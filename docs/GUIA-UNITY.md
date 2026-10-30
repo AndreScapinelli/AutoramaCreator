@@ -1,0 +1,2117 @@
+# Construtor de Pista de Autorama na Unity
+
+Guia para recriar na Unity o construtor que está em `index.html`: vista de cima, mesa quadriculada, pista de 2 trilhos, peças que encaixam umas nas outras a partir de uma base de largada.
+
+A ideia central é a mesma do HTML. **A pista é uma lista de peças, e a posição de cada peça não é guardada: ela é recalculada a partir da largada toda vez que algo muda.** Inserir, remover, trocar ou inverter uma peça é só mexer na lista e reconstruir.
+
+---
+
+## 1. Conceitos
+
+| Conceito | O que é |
+|---|---|
+| **Célula** | Unidade da grade. 1 célula = 1 unidade da Unity = largura da pista (2 trilhos). |
+| **Pose** | Posição no plano da mesa + direção (ângulo). Todo encaixe entre peças é uma pose. |
+| **Peça** | Sabe calcular a pose em qualquer ponto do seu comprimento (`t` de 0 a 1), partindo da pose de entrada. |
+| **Segmento** | Peça já posicionada: pose de entrada `a` e pose de saída `b`. |
+| **Ponto de inserção** | Fim da pista, ou o fim da peça selecionada. |
+
+### Medidas das peças (em células)
+
+| Peça | Tipo | Medida | Observação |
+|---|---|---|---|
+| Base de largada | reta | 2 | Sempre a peça 0. Não pode ser removida. |
+| Reta curta | reta | 2 | |
+| Reta comprida | reta | 4 | Linha forte da grade a cada 4 células. |
+| Reta curtinha | reta | 1 | Ajuste fino: sem ela, um 8 não fecha (seção 16.8). |
+| Curva longa | curva | 90°, raio 2,5 | Ocupa um bloco de 3×3 células. |
+| Meia curva | curva | 45°, raio 2,5 | Duas meias curvas = uma curva longa. |
+
+O raio 2,5 na linha central faz a borda interna ter raio 2 e a externa raio 3. Com a pista ocupando exatamente uma fileira de células, uma curva de 90° termina alinhada à grade de novo. Curvas de 45° saem na diagonal, que é o comportamento esperado.
+
+Os trilhos ficam a ±0,25 célula da linha central. **Trilho 1 à esquerda, trilho 2 à direita** de quem pilota.
+
+### Sistema de coordenadas
+
+- A mesa fica no plano **XZ** (Y para cima). Uma `Pose2` usa `Vector2(x, z)`.
+- Ângulo em graus: **0 = +X**, crescendo no sentido **anti-horário** visto de cima (rumo a +Z).
+- `dir = +1` vira à **direita** (o ângulo diminui) e `dir = -1` vira à **esquerda**.
+- Para girar um objeto pela pose: `Quaternion.Euler(0, -heading, 0)`. Modele os carrinhos apontando para **+X**.
+
+> O HTML usa Y para baixo (padrão de tela). Na seção 9 tem a conversão para abrir na Unity as pistas salvas no navegador.
+
+---
+
+## 2. Montagem do projeto
+
+1. Unity 6 (ou 2022.3+), template **Universal 3D (URP)**.
+2. Instale o pacote **Input System** e aceite reiniciar.
+3. Câmera: posição `(16, 30, 10)`, rotação `(90, 0, 0)`, **Projection: Orthographic**. Isso dá a vista de cima.
+4. Crie as pastas:
+
+```
+Assets/Autorama/
+  Scripts/      TrackMath.cs, PieceDefinition.cs, TrackPieceView.cs, TrackBuilder.cs,
+                GridBoard.cs, TopDownCamera.cs, LanePath.cs, CarRunner.cs, TrackSave.cs, BuilderUI.cs
+  Pieces/       5 assets de PieceDefinition
+  Materials/    Asfalto, Borda, Trilho, Fenda, FaixaVermelha, FaixaAzul, Fantasma
+  Texturas/     as imagens da pasta Texturas/ deste projeto (seção 5.1)
+  Prefabs/      TrackPiece.prefab, Carrinho1.prefab, Carrinho2.prefab
+  UI/           Builder.uxml, Builder.uss
+```
+
+5. Materiais em **URP/Unlit**, que deixa a vista de cima limpa, sem sombra:
+   - Asfalto `#2F3533`, Borda `#F2F2EC`, Trilho `#AEB4B8`, Fenda `#0E1110`
+   - FaixaVermelha `#D3261C` e FaixaAzul `#1F5ED4`, com Surface Type **Transparent** e alfa por volta de 0,2
+   - Fantasma: amarelo `#E9A800`, Transparent, alfa 0,3
+
+---
+
+## 3. Definição das peças
+
+`PieceDefinition.cs`: um ScriptableObject por tipo de peça.
+
+```csharp
+using UnityEngine;
+
+public enum PieceKind { Straight, Curve }
+
+[CreateAssetMenu(menuName = "Autorama/Peça")]
+public class PieceDefinition : ScriptableObject
+{
+    public string id = "reta-curta";       // usado no save: reta-curta, reta-comprida, curva-longa, meia-curva
+    public string displayName = "Reta curta";
+    public PieceKind kind = PieceKind.Straight;
+    public float length = 2f;              // retas
+    public float angle = 90f;              // curvas, em graus
+    public float radius = 2.5f;            // curvas, raio da linha central
+    public bool isStart;
+
+    public float CenterLength =>
+        kind == PieceKind.Straight ? length : angle * Mathf.Deg2Rad * radius;
+
+    // offset > 0 = lado direito. Numa curva à direita (dir = +1) o centro fica à direita,
+    // então o trilho da direita tem raio menor.
+    public float LaneLength(int dir, float offset) =>
+        kind == PieceKind.Straight ? length : angle * Mathf.Deg2Rad * (radius - dir * offset);
+}
+```
+
+Crie os 5 assets em `Pieces/` (botão direito, **Create > Autorama > Peça**) com as medidas da tabela. Na Base de largada, marque `isStart`.
+
+---
+
+## 4. Geometria
+
+`TrackMath.cs` é o coração do construtor. Tudo depende de `PoseAt`.
+
+```csharp
+using System.Collections.Generic;
+using UnityEngine;
+
+[System.Serializable]
+public struct Pose2
+{
+    public Vector2 pos;     // (x, z) no plano da mesa
+    public float heading;   // graus: 0 = +X, anti-horário positivo
+
+    public Pose2(Vector2 pos, float heading) { this.pos = pos; this.heading = heading; }
+    public Vector3 World(float y = 0f) => new Vector3(pos.x, y, pos.y);
+    public Quaternion Rotation => Quaternion.Euler(0f, -heading, 0f);
+}
+
+public static class TrackMath
+{
+    public const float TrackWidth = 1f;
+    public const float LaneOffset = 0.25f;
+    public static readonly float[] Lanes = { -LaneOffset, LaneOffset }; // trilho 1, trilho 2
+
+    public static Vector2 Dir(float deg)
+    {
+        float r = deg * Mathf.Deg2Rad;
+        return new Vector2(Mathf.Cos(r), Mathf.Sin(r));
+    }
+
+    public static float Normalize(float h) => Mathf.Repeat(h, 360f);
+
+    // Pose a uma fração t (0..1) da peça, partindo da pose de entrada a.
+    public static Pose2 PoseAt(Pose2 a, PieceDefinition d, int dir, float t)
+    {
+        if (d.kind == PieceKind.Straight)
+            return new Pose2(a.pos + Dir(a.heading) * d.length * t, a.heading);
+
+        Vector2 center = a.pos + Dir(a.heading - 90f * dir) * d.radius;
+        float h = a.heading - dir * d.angle * t;
+        return new Pose2(center + Dir(h + 90f * dir) * d.radius, h);
+    }
+
+    // Deslocamento lateral: o > 0 = direita de quem pilota.
+    public static Vector2 Offset(Pose2 p, float o) => p.pos + Dir(p.heading - 90f) * o;
+
+    public static List<Pose2> Sample(Pose2 a, PieceDefinition d, int dir, float degPerStep = 4f)
+    {
+        int n = d.kind == PieceKind.Straight ? 1 : Mathf.CeilToInt(d.angle / degPerStep);
+        var list = new List<Pose2>(n + 1);
+        for (int k = 0; k <= n; k++) list.Add(PoseAt(a, d, dir, k / (float)n));
+        return list;
+    }
+
+    // Encaixa a largada na grade: a pista sempre ocupa uma fileira inteira de células.
+    public static Pose2 SnapStart(Pose2 o)
+    {
+        float h = Normalize(Mathf.Round(o.heading / 90f) * 90f);
+        bool horizontal = Mathf.Approximately(h % 180f, 0f);
+        return horizontal
+            ? new Pose2(new Vector2(Mathf.Round(o.pos.x), Mathf.Floor(o.pos.y) + 0.5f), h)
+            : new Pose2(new Vector2(Mathf.Floor(o.pos.x) + 0.5f, Mathf.Round(o.pos.y)), h);
+    }
+}
+```
+
+**Teste rápido:** partindo de `(0,0)` com heading 0, uma curva longa à direita (`dir = +1`) precisa terminar em `(2.5, -2.5)` com heading -90. Se der isso, a geometria está certa.
+
+---
+
+## 5. Malha de cada peça
+
+Cada peça vira uma malha gerada em código: várias "faixas" paralelas à linha central, uma por material.
+
+`TrackPieceView.cs`:
+
+```csharp
+using System.Collections.Generic;
+using UnityEngine;
+
+[RequireComponent(typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider))]
+public class TrackPieceView : MonoBehaviour
+{
+    public int index;           // posição na lista; usado para seleção por clique
+    Mesh mesh;
+
+    // Ordem dos materiais: 0 asfalto, 1 faixa vermelha, 2 faixa azul, 3 borda, 4 trilho, 5 fenda
+    public void Build(Pose2 a, PieceDefinition def, int dir, Material[] mats)
+    {
+        var poses = TrackMath.Sample(a, def, dir);
+        var v = new List<Vector3>();
+        var uv = new List<Vector2>();
+        var subs = new List<int>[6];
+        for (int i = 0; i < subs.Length; i++) subs[i] = new List<int>();
+
+        AddStrip(v, uv, subs[0], poses, -0.5f, 0.5f, 0f);
+        AddStrip(v, uv, subs[1], poses, -0.46f, -0.04f, 0.001f);
+        AddStrip(v, uv, subs[2], poses, 0.04f, 0.46f, 0.001f);
+        AddStrip(v, uv, subs[3], poses, -0.47f, -0.43f, 0.002f);
+        AddStrip(v, uv, subs[3], poses, 0.43f, 0.47f, 0.002f);
+        foreach (float lane in TrackMath.Lanes)
+        {
+            AddStrip(v, uv, subs[4], poses, lane - 0.08f, lane - 0.05f, 0.003f);
+            AddStrip(v, uv, subs[4], poses, lane + 0.05f, lane + 0.08f, 0.003f);
+            AddStrip(v, uv, subs[5], poses, lane - 0.022f, lane + 0.022f, 0.004f);
+        }
+
+        if (mesh == null) { mesh = new Mesh(); mesh.name = "Peça"; }
+        mesh.Clear();
+        mesh.SetVertices(v);
+        mesh.SetUVs(0, uv);
+        mesh.subMeshCount = subs.Length;
+        for (int i = 0; i < subs.Length; i++) mesh.SetTriangles(subs[i], i);
+        mesh.RecalculateNormals();
+        mesh.RecalculateBounds();
+
+        GetComponent<MeshFilter>().sharedMesh = mesh;
+        GetComponent<MeshRenderer>().sharedMaterials = mats;
+        var col = GetComponent<MeshCollider>();
+        col.sharedMesh = null;      // força o collider a reler a malha
+        col.sharedMesh = mesh;
+    }
+
+    // Faixa entre os deslocamentos o1 (esquerda) e o2 (direita), na altura y.
+    static void AddStrip(List<Vector3> v, List<Vector2> uv, List<int> tri,
+                         List<Pose2> poses, float o1, float o2, float y)
+    {
+        int start = v.Count;
+        float dist = 0f;
+        for (int i = 0; i < poses.Count; i++)
+        {
+            if (i > 0) dist += Vector2.Distance(poses[i].pos, poses[i - 1].pos);
+            Vector2 l = TrackMath.Offset(poses[i], o1), r = TrackMath.Offset(poses[i], o2);
+            v.Add(new Vector3(l.x, y, l.y));
+            v.Add(new Vector3(r.x, y, r.y));
+            uv.Add(new Vector2(0f, dist));
+            uv.Add(new Vector2(1f, dist));
+            if (i > 0)
+            {
+                int k = start + i * 2;    // sentido horário visto de cima = face virada para a câmera
+                tri.Add(k - 2); tri.Add(k);     tri.Add(k - 1);
+                tri.Add(k - 1); tri.Add(k);     tri.Add(k + 1);
+            }
+        }
+    }
+
+    void OnDestroy() { if (mesh != null) Destroy(mesh); }
+}
+```
+
+Monte `TrackPiece.prefab` com esse componente (MeshFilter, MeshRenderer e MeshCollider entram sozinhos).
+
+**Detalhes que dão cara de autorama:**
+- **Zebra nas curvas:** uma faixa extra no lado de fora (`-dir * 0.43` a `-dir * 0.47`) com material de textura listrada vermelha e branca. O UV `y = dist` já faz a textura repetir ao longo da curva.
+- **Bandeirada na largada:** um Quad filho com textura quadriculada, atravessado na pista a 1,2 célula do início.
+- **Emendas:** um Quad bem fino e escuro na pose `a` de cada peça, a partir da segunda.
+
+### 5.1 Texturas prontas
+
+A pasta `Texturas/` traz as imagens. Copie para `Assets/Autorama/Texturas/`. Todas usam as cores do HTML.
+
+| Arquivo | Tamanho | Uso | Import Settings |
+|---|---|---|---|
+| `pista-reta.png` | 512×512 | Pista inteira num só material: asfalto, faixas, trilhos, fendas e bordas | Default, **Wrap: Repeat** |
+| `pista-curva-direita.png` | 512×512 | Igual, com zebra no lado de fora (esquerdo) | Default, Repeat |
+| `pista-curva-esquerda.png` | 512×512 | Igual, com zebra no lado de fora (direito) | Default, Repeat |
+| `pista-curva-inclinada-direita.png`, `pista-curva-inclinada-esquerda.png` | 512×512 | Curvas inclinadas: listras amarelas atravessando a pista (4 por célula), clareiam rumo ao lado de fora e têm muro em vez de zebra (seção 16) | Default, Repeat |
+| `asfalto.png` | 512×512 | Só o asfalto, se você montar com várias faixas (seção 5) | Default, Repeat |
+| `zebra.png` | 64×256 | Zebra avulsa, 4 listras por célula | Default, Repeat |
+| `bandeirada.png` | 512×128 | Linha de chegada: 1 célula × 0,25 célula | Default, **Clamp** |
+| `grade-mesa.png` | 256×256 | Bloco de 4×4 células para a mesa (substitui a textura gerada em código da seção 7) | Default, Repeat, Aniso 8 |
+| `sobreposicao.png` | 128×128 | Listras laranja para peças sobrepostas (transparente) | Default, Repeat, Alpha Is Transparency |
+| `seta-insercao.png` | 256×256 | Seta amarela do ponto de inserção, aponta para +X | Sprite ou Default, Clamp, Alpha Is Transparency |
+| `carrinho-vermelho.png`, `carrinho-azul.png` | 640×384 | Carrinhos vistos de cima, frente para +X | Default, Clamp, Alpha Is Transparency |
+| `icone-*.png` (13 arquivos) | 256×256 | Ícones da paleta, todos na mesma escala, incluindo curvas inclinadas e rampas | **Sprite (2D and UI)** |
+
+**Opção mais simples para a malha:** em vez das 6 faixas da seção 5, use uma faixa só (`AddStrip(..., -0.5f, 0.5f, 0f)`) com um destes materiais:
+- `pista-reta.png` nas retas;
+- `pista-curva-direita.png` quando `dir = +1`;
+- `pista-curva-esquerda.png` quando `dir = -1`.
+
+O UV já está pronto: `u` atravessa a pista da esquerda (0) para a direita (1), e `v` repete a cada célula, porque `AddStrip` grava `v = distância`. Uma malha com um submesh e um material por peça.
+
+**Mesa com a imagem:** no `GridBoard`, troque a geração da textura por `public Texture2D gridTexture;` e use `mat.mainTexture = gridTexture;`. O `mainTextureScale` continua `largura / 4` × `altura / 4`.
+
+**Carrinhos:** um Quad deitado (`rotation (90, 0, 0)`) com escala `(0.64, 0.384, 1)` e material URP/Unlit **Transparent** com a textura do carrinho. Com esse tamanho, 1 pixel da imagem = 1 milésimo de célula, e a carroceria mede 0,60 × 0,32 célula, a mesma caixa de colisão da seção 15.8.
+
+**Seta:** Quad de `(1.28, 1.28, 1)`. O centro da imagem fica 0,25 célula à frente da linha da seta, então desloque o Quad 0,25 para a frente da `InsertPose`.
+
+**Ícones na UI Toolkit:** `button.style.backgroundImage = new StyleBackground(sprite);` ou, no USS, `background-image: url("project://database/Assets/Autorama/Texturas/icone-reta-curta.png");`.
+
+**Gerar de novo com outras cores:** o script `ferramentas/gen-texturas.js` cria todas as imagens. Mude as cores no bloco `C` e rode:
+
+```
+node ferramentas/gen-texturas.js Assets/Autorama/Texturas
+```
+
+Rode na raiz do repositório. Depois, na Unity, use o menu **Autorama > Atualizar materiais e ícones**.
+
+---
+
+## 6. O construtor
+
+`TrackBuilder.cs` guarda a lista, recalcula as posições e expõe as ações.
+
+```csharp
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+[Serializable]
+public class PieceInstance
+{
+    public PieceDefinition def;
+    public int dir;                         // 0 em retas, -1 esquerda, +1 direita
+    public PieceInstance(PieceDefinition def, int dir) { this.def = def; this.dir = dir; }
+}
+
+public struct Segment { public PieceInstance piece; public Pose2 a, b; }
+
+public class TrackBuilder : MonoBehaviour
+{
+    [Header("Peças")]
+    public PieceDefinition start, shortStraight, longStraight, curve, halfCurve;
+    [Header("Visual")]
+    public TrackPieceView piecePrefab;
+    public Material[] materials;            // 6, na ordem do TrackPieceView
+    public Vector2Int board = new Vector2Int(32, 20);
+    public float cellCm = 15f;
+
+    public Pose2 origin = new Pose2(new Vector2(8f, 12.5f), 0f);
+    public readonly List<PieceInstance> pieces = new();
+    public readonly List<Segment> segments = new();
+    public readonly HashSet<int> overlaps = new();
+    public int selected = -1;               // -1 = inserir no fim
+    public bool IsClosed { get; private set; }
+    public float CenterLength { get; private set; }
+    public float[] LaneLengths { get; } = new float[2];
+    public bool Playing;
+
+    public event Action Changed;
+
+    readonly List<TrackPieceView> views = new();
+    readonly Stack<string> undo = new(), redo = new();
+
+    void Start()
+    {
+        pieces.Add(new PieceInstance(start, 0));
+        Rebuild();
+    }
+
+    // ---------- Ações ----------
+    public int InsertIndex => selected < 0 ? pieces.Count : selected + 1;
+    public Pose2 InsertPose => selected < 0 ? segments[^1].b : segments[selected].b;
+
+    public void Add(PieceDefinition def, int dir) => Commit(() =>
+    {
+        int at = InsertIndex;
+        pieces.Insert(at, new PieceInstance(def, dir));
+        if (selected >= 0) selected = at;   // continua encaixando em sequência
+    });
+
+    public void RemoveSelected()
+    {
+        if (selected <= 0) return;          // a largada não sai
+        Commit(() => { pieces.RemoveAt(selected); selected--; });
+    }
+
+    public void RemoveLast()
+    {
+        if (pieces.Count < 2) return;
+        Commit(() => { pieces.RemoveAt(pieces.Count - 1); if (selected >= pieces.Count) selected = -1; });
+    }
+
+    public void FlipSelected()
+    {
+        if (selected <= 0 || pieces[selected].def.kind != PieceKind.Curve) return;
+        Commit(() => pieces[selected].dir *= -1);
+    }
+
+    public void SwapSelected(PieceDefinition def, int dir)
+    {
+        if (selected <= 0) return;
+        Commit(() => pieces[selected] = new PieceInstance(def, dir));
+    }
+
+    public void RotateStart() => Commit(() =>
+    {
+        Vector2 mid = origin.pos + TrackMath.Dir(origin.heading);    // centro da largada
+        float h = origin.heading + 90f;
+        origin = TrackMath.SnapStart(new Pose2(mid - TrackMath.Dir(h), h));
+    });
+
+    public void Select(int i) { selected = (i == selected) ? -1 : i; Rebuild(); }
+
+    // ---------- Desfazer ----------
+    public void BeginEdit() { undo.Push(TrackSave.ToJson(this)); redo.Clear(); }
+
+    void Commit(Action change)
+    {
+        BeginEdit();
+        change();
+        Rebuild();
+    }
+
+    public void Undo() { if (undo.Count == 0) return; redo.Push(TrackSave.ToJson(this)); TrackSave.FromJson(this, undo.Pop()); }
+    public void Redo() { if (redo.Count == 0) return; undo.Push(TrackSave.ToJson(this)); TrackSave.FromJson(this, redo.Pop()); }
+
+    // ---------- Reconstrução ----------
+    public void Rebuild()
+    {
+        if (selected >= pieces.Count) selected = -1;
+        segments.Clear();
+        var conn = origin;
+        foreach (var p in pieces)
+        {
+            var b = TrackMath.PoseAt(conn, p.def, p.dir, 1f);
+            b.heading = TrackMath.Normalize(b.heading);
+            segments.Add(new Segment { piece = p, a = conn, b = b });
+            conn = b;
+        }
+
+        while (views.Count < segments.Count) views.Add(Instantiate(piecePrefab, transform));
+        while (views.Count > segments.Count) { Destroy(views[^1].gameObject); views.RemoveAt(views.Count - 1); }
+        for (int i = 0; i < segments.Count; i++)
+        {
+            views[i].index = i;
+            views[i].Build(segments[i].a, segments[i].piece.def, segments[i].piece.dir, materials);
+        }
+
+        Analyze();
+        Changed?.Invoke();
+    }
+
+    void Analyze()
+    {
+        var last = segments[^1].b;
+        IsClosed = segments.Count > 1
+            && Vector2.Distance(last.pos, origin.pos) < 0.02f
+            && Mathf.Abs(Mathf.DeltaAngle(last.heading, origin.heading)) < 0.5f;
+
+        CenterLength = 0f; LaneLengths[0] = LaneLengths[1] = 0f;
+        foreach (var s in segments)
+        {
+            CenterLength += s.piece.def.CenterLength;
+            for (int k = 0; k < 2; k++) LaneLengths[k] += s.piece.def.LaneLength(s.piece.dir, TrackMath.Lanes[k]);
+        }
+
+        FindOverlaps();
+    }
+
+    // Pontos da linha central a cada 0,25 célula. Dois trechos não vizinhos a menos de
+    // 0,92 célula estão sobrepostos. Retas lado a lado (distância 1,0) são permitidas.
+    void FindOverlaps()
+    {
+        overlaps.Clear();
+        var samples = new List<List<Vector2>>();
+        foreach (var s in segments)
+        {
+            int n = Mathf.Max(2, Mathf.CeilToInt(s.piece.def.CenterLength / 0.25f));
+            var pts = new List<Vector2>(n + 1);
+            for (int k = 0; k <= n; k++) pts.Add(TrackMath.PoseAt(s.a, s.piece.def, s.piece.dir, k / (float)n).pos);
+            samples.Add(pts);
+        }
+
+        const float min = 0.92f * 0.92f;
+        int count = segments.Count;
+        for (int i = 0; i < count; i++)
+        for (int j = i + 2; j < count; j++)
+        {
+            if (IsClosed && i == 0 && j == count - 1) continue;   // vizinhas pelo fechamento
+            if (Touches(samples[i], samples[j], min)) { overlaps.Add(i); overlaps.Add(j); }
+        }
+    }
+
+    static bool Touches(List<Vector2> a, List<Vector2> b, float minSqr)
+    {
+        foreach (var p in a) foreach (var q in b) if ((p - q).sqrMagnitude < minSqr) return true;
+        return false;
+    }
+}
+```
+
+**Destaques visuais** (dentro de `Rebuild`, depois de construir as views):
+- **Peça selecionada:** troque o material 0 da view por uma versão amarelada do asfalto.
+- **Peças sobrepostas:** material 0 com textura listrada laranja.
+- **Ponto de inserção:** uma seta amarela posicionada em `InsertPose.World(0.01f)` com rotação `InsertPose.Rotation`.
+
+---
+
+## 7. Mesa quadriculada
+
+`GridBoard.cs` gera a textura da grade em código: linha fina a cada célula e linha forte a cada 4 (o tamanho de uma reta comprida).
+
+```csharp
+using UnityEngine;
+
+public class GridBoard : MonoBehaviour
+{
+    public TrackBuilder track;
+    public int majorEvery = 4;
+    public Color boardColor = new Color32(0xF3, 0xF6, 0xF0, 0xFF);
+    public Color minorColor = new Color32(0xD5, 0xDC, 0xD2, 0xFF);
+    public Color majorColor = new Color32(0xA6, 0xB3, 0xA4, 0xFF);
+
+    GameObject quad;
+
+    void Start() => Build();
+
+    public void Build()
+    {
+        const int px = 32;                              // pixels por célula
+        int size = px * majorEvery;
+        var tex = new Texture2D(size, size, TextureFormat.RGBA32, true)
+        {
+            wrapMode = TextureWrapMode.Repeat, filterMode = FilterMode.Trilinear, anisoLevel = 8
+        };
+        var pixels = new Color[size * size];
+        for (int y = 0; y < size; y++)
+        for (int x = 0; x < size; x++)
+        {
+            bool major = x < 2 || y < 2;
+            bool minor = x % px == 0 || y % px == 0;
+            pixels[y * size + x] = major ? majorColor : minor ? minorColor : boardColor;
+        }
+        tex.SetPixels(pixels);
+        tex.Apply();
+
+        if (quad) Destroy(quad);
+        quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
+        Destroy(quad.GetComponent<Collider>());
+        quad.name = "Mesa";
+        quad.transform.SetParent(transform, false);
+        quad.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);    // virado para cima
+        var b = track.board;
+        quad.transform.localPosition = new Vector3(b.x / 2f, -0.01f, b.y / 2f);
+        quad.transform.localScale = new Vector3(b.x, b.y, 1f);
+
+        var mat = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
+        mat.mainTexture = tex;
+        mat.mainTextureScale = new Vector2(b.x / (float)majorEvery, b.y / (float)majorEvery);
+        quad.GetComponent<Renderer>().sharedMaterial = mat;
+    }
+}
+```
+
+**Réguas de referência (colunas 1, 2, 3… e linhas A, B, C…):** faça como no HTML, em espaço de tela. Num `Label` de UI Toolkit ou num TextMeshPro, posicione cada rótulo com `Camera.WorldToScreenPoint(new Vector3(c + 0.5f, 0, borda))`. Se as células ficarem pequenas demais na tela, mostre só 1 a cada 2 ou a cada 4.
+
+**Célula sob o mouse:** um Quad 1×1 semitransparente em `(floor(x) + 0.5, 0.005, floor(z) + 0.5)`.
+
+---
+
+## 8. Câmera e entrada
+
+`TopDownCamera.cs`: arrastar com o botão direito ou do meio move a vista, a roda dá zoom no ponto do mouse.
+
+```csharp
+using UnityEngine;
+using UnityEngine.InputSystem;
+
+[RequireComponent(typeof(Camera))]
+public class TopDownCamera : MonoBehaviour
+{
+    public float minSize = 2f, maxSize = 40f;
+    Camera cam;
+    Vector3 dragOrigin;
+
+    void Awake() => cam = GetComponent<Camera>();
+
+    public Vector3 MouseOnTable()
+    {
+        Ray ray = cam.ScreenPointToRay(Mouse.current.position.ReadValue());
+        new Plane(Vector3.up, Vector3.zero).Raycast(ray, out float enter);
+        return ray.GetPoint(enter);
+    }
+
+    void Update()
+    {
+        var m = Mouse.current; if (m == null) return;
+
+        float scroll = m.scroll.ReadValue().y;
+        if (Mathf.Abs(scroll) > 0.01f)
+        {
+            Vector3 before = MouseOnTable();
+            cam.orthographicSize = Mathf.Clamp(cam.orthographicSize * Mathf.Pow(0.9f, scroll / 120f), minSize, maxSize);
+            transform.position += before - MouseOnTable();      // mantém o ponto sob o mouse
+        }
+
+        bool panPressed = m.rightButton.wasPressedThisFrame || m.middleButton.wasPressedThisFrame;
+        bool panHeld = m.rightButton.isPressed || m.middleButton.isPressed;
+        if (panPressed) dragOrigin = MouseOnTable();
+        else if (panHeld) transform.position += dragOrigin - MouseOnTable();
+    }
+}
+```
+
+> O valor da roda varia por plataforma (às vezes ±120, às vezes ±1). Ajuste o divisor `120f` se o zoom ficar lento ou rápido demais.
+
+`BuilderInput.cs`: teclado e mouse do construtor.
+
+```csharp
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
+
+public class BuilderInput : MonoBehaviour
+{
+    public TrackBuilder track;
+    public TopDownCamera cam;
+
+    bool draggingStart, moved;
+    Vector3 grabWorld;
+    Pose2 grabOrigin;
+
+    void Update()
+    {
+        var kb = Keyboard.current; var m = Mouse.current;
+        if (kb == null || m == null) return;
+
+        bool ctrl = kb.ctrlKey.isPressed;
+        if (ctrl && kb.zKey.wasPressedThisFrame) { if (kb.shiftKey.isPressed) track.Redo(); else track.Undo(); }
+        else if (ctrl && kb.yKey.wasPressedThisFrame) track.Redo();
+        else if (!ctrl)
+        {
+            if (kb.digit1Key.wasPressedThisFrame) track.Add(track.shortStraight, 0);
+            if (kb.digit2Key.wasPressedThisFrame) track.Add(track.longStraight, 0);
+            if (kb.digit3Key.wasPressedThisFrame) track.Add(track.curve, -1);
+            if (kb.digit4Key.wasPressedThisFrame) track.Add(track.curve, 1);
+            if (kb.digit5Key.wasPressedThisFrame) track.Add(track.halfCurve, -1);
+            if (kb.digit6Key.wasPressedThisFrame) track.Add(track.halfCurve, 1);
+            if (kb.fKey.wasPressedThisFrame) track.FlipSelected();
+            if (kb.rKey.wasPressedThisFrame) track.RotateStart();
+            if (kb.deleteKey.wasPressedThisFrame) track.RemoveSelected();
+            if (kb.backspaceKey.wasPressedThisFrame) { if (track.selected > 0) track.RemoveSelected(); else track.RemoveLast(); }
+            if (kb.escapeKey.wasPressedThisFrame) track.Select(-1);
+            if (kb.spaceKey.wasPressedThisFrame) track.Playing = !track.Playing;
+        }
+
+        // Clique: seleciona a peça. Arrastar a largada move a pista inteira, encaixando na grade.
+        bool overUI = EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
+        if (m.leftButton.wasPressedThisFrame && !overUI)
+        {
+            Ray ray = Camera.main.ScreenPointToRay(m.position.ReadValue());
+            int hitIndex = -1;
+            if (Physics.Raycast(ray, out var hit) && hit.collider.TryGetComponent(out TrackPieceView v)) hitIndex = v.index;
+            draggingStart = hitIndex == 0;
+            moved = false;
+            grabWorld = cam.MouseOnTable();
+            grabOrigin = track.origin;
+            if (!draggingStart) track.Select(hitIndex);
+        }
+        else if (draggingStart && m.leftButton.isPressed)
+        {
+            Vector3 d = cam.MouseOnTable() - grabWorld;
+            var o = TrackMath.SnapStart(new Pose2(grabOrigin.pos + new Vector2(d.x, d.z), grabOrigin.heading));
+            if (o.pos != track.origin.pos)
+            {
+                if (!moved) { track.BeginEdit(); moved = true; }   // um único "desfazer" pelo arraste todo
+                track.origin = o;
+                track.Rebuild();
+            }
+        }
+        else if (draggingStart && m.leftButton.wasReleasedThisFrame)
+        {
+            if (!moved) track.Select(0);
+            draggingStart = false;
+        }
+    }
+}
+```
+
+> `IsPointerOverGameObject` reconhece painéis de UI Toolkit desde que a cena tenha um **EventSystem** com **Input System UI Input Module**.
+
+---
+
+## 9. Salvar e carregar (mesmo formato do HTML)
+
+Use o mesmo JSON do botão **Copiar** do HTML. Assim uma pista montada no navegador abre na Unity, e vice-versa.
+
+O HTML usa Y para baixo e ângulo no sentido horário. Na Unity: **`z = altura da mesa - y`** e **`heading = -h`**.
+
+`TrackSave.cs`:
+
+```csharp
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+[Serializable] public class BoardSave  { public int w = 32, h = 20; }
+[Serializable] public class OriginSave { public float x, y, h; }
+[Serializable] public class PieceSave  { public string tipo; public string sentido; }
+
+[Serializable]
+public class TrackSave
+{
+    public string formato = "autorama-pista";
+    public int versao = 1;
+    public BoardSave mesa = new();
+    public float escalaCm = 15f;
+    public OriginSave largada = new();
+    public List<PieceSave> pecas = new();
+
+    public static string ToJson(TrackBuilder t)
+    {
+        var s = new TrackSave
+        {
+            mesa = new BoardSave { w = t.board.x, h = t.board.y },
+            escalaCm = t.cellCm,
+            largada = new OriginSave
+            {
+                x = t.origin.pos.x,
+                y = t.board.y - t.origin.pos.y,
+                h = TrackMath.Normalize(-t.origin.heading),
+            },
+        };
+        for (int i = 1; i < t.pieces.Count; i++)                    // a largada não vai na lista
+        {
+            var p = t.pieces[i];
+            s.pecas.Add(new PieceSave
+            {
+                tipo = p.def.id,
+                sentido = p.dir < 0 ? "esquerda" : p.dir > 0 ? "direita" : null,
+            });
+        }
+        return JsonUtility.ToJson(s, true);
+    }
+
+    public static void FromJson(TrackBuilder t, string json)
+    {
+        var s = JsonUtility.FromJson<TrackSave>(json);
+        var byId = new Dictionary<string, PieceDefinition>
+        {
+            { t.shortStraight.id, t.shortStraight }, { t.longStraight.id, t.longStraight },
+            { t.curve.id, t.curve }, { t.halfCurve.id, t.halfCurve },
+        };
+
+        t.board = new Vector2Int(s.mesa.w, s.mesa.h);
+        t.cellCm = s.escalaCm;
+        t.origin = TrackMath.SnapStart(new Pose2(new Vector2(s.largada.x, s.mesa.h - s.largada.y), -s.largada.h));
+        t.pieces.Clear();
+        t.pieces.Add(new PieceInstance(t.start, 0));
+        foreach (var p in s.pecas)
+        {
+            if (!byId.TryGetValue(p.tipo, out var def)) { Debug.LogWarning($"Peça desconhecida: {p.tipo}"); continue; }
+            int dir = def.kind == PieceKind.Curve ? (p.sentido == "esquerda" ? -1 : 1) : 0;
+            t.pieces.Add(new PieceInstance(def, dir));
+        }
+        t.selected = -1;
+        t.Rebuild();
+    }
+}
+```
+
+Para gravar em disco: `System.IO.File.WriteAllText(Path.Combine(Application.persistentDataPath, "pista.json"), TrackSave.ToJson(track))`.
+
+**Biblioteca de pistas** (como "Minhas pistas" no HTML):
+- Grave cada pista num arquivo próprio em `Application.persistentDataPath/pistas/<id>.json`.
+- Use o mesmo `TrackSave`, com o campo `nome`.
+- A tela de corrida lista esses arquivos com `Directory.GetFiles`, mais os exemplos que vêm no jogo (TextAssets em `Resources`).
+- Na lista, mostre só as pistas fechadas como escolhíveis.
+- Escolher uma pista para correr carrega uma **cópia**: a pista aberta no construtor não muda.
+
+No `TrackSave`, acrescente `public string nome;`. O HTML já exporta esse campo.
+
+> O desfazer/refazer do `TrackBuilder` usa esse mesmo JSON como foto do estado, então sai de graça.
+
+---
+
+## 10. Carrinhos e teste de volta
+
+Cada trilho vira uma polilinha com distância acumulada. O carrinho anda por distância, o que dá velocidade constante em reta e curva.
+
+`LanePath.cs`:
+
+```csharp
+using System.Collections.Generic;
+using UnityEngine;
+
+public class LanePath
+{
+    readonly List<Vector2> pts = new();
+    readonly List<float> cum = new();
+    public float Total => cum.Count > 0 ? cum[^1] : 0f;
+
+    public LanePath(IReadOnlyList<Segment> segs, float offset)
+    {
+        for (int s = 0; s < segs.Count; s++)
+        {
+            var seg = segs[s];
+            int n = Mathf.Max(1, Mathf.CeilToInt(seg.piece.def.CenterLength / 0.08f));
+            for (int j = s == 0 ? 0 : 1; j <= n; j++)
+                pts.Add(TrackMath.Offset(TrackMath.PoseAt(seg.a, seg.piece.def, seg.piece.dir, j / (float)n), offset));
+        }
+        cum.Add(0f);
+        for (int i = 1; i < pts.Count; i++) cum.Add(cum[i - 1] + Vector2.Distance(pts[i], pts[i - 1]));
+    }
+
+    public Pose2 At(float d)
+    {
+        d = Mathf.Clamp(d, 0f, Total);
+        int lo = 0, hi = cum.Count - 1;
+        while (hi - lo > 1) { int mid = (lo + hi) / 2; if (cum[mid] <= d) lo = mid; else hi = mid; }
+        float t = (d - cum[lo]) / Mathf.Max(cum[hi] - cum[lo], 1e-5f);
+        Vector2 a = pts[lo], b = pts[hi], delta = b - a;
+        return new Pose2(Vector2.Lerp(a, b, t), Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg);
+    }
+}
+```
+
+`CarRunner.cs`: um por carrinho, com `lane = 0` (vermelho) e `lane = 1` (azul).
+
+```csharp
+using UnityEngine;
+
+public class CarRunner : MonoBehaviour
+{
+    public TrackBuilder track;
+    public int lane;
+    public float speed = 8f;                 // células por segundo
+    public int Laps { get; private set; }
+
+    LanePath path;
+    float distance = 0.75f;                  // estacionado no grid de largada
+
+    void OnEnable()  => track.Changed += ResetCar;
+    void OnDisable() => track.Changed -= ResetCar;
+
+    void ResetCar() { path = null; distance = 0.75f; Laps = 0; Place(); }
+
+    void Update()
+    {
+        if (!track.Playing) return;
+        distance += speed * Time.deltaTime;
+        path ??= new LanePath(track.segments, TrackMath.Lanes[lane]);
+        if (distance >= path.Total)
+        {
+            if (track.IsClosed) { distance -= path.Total; Laps++; }
+            else distance = 0f;              // pista aberta: volta para a largada
+        }
+        Place();
+    }
+
+    void Place()
+    {
+        if (track.segments.Count == 0) return;
+        path ??= new LanePath(track.segments, TrackMath.Lanes[lane]);
+        var p = path.At(distance);
+        transform.SetPositionAndRotation(p.World(0.05f), p.Rotation);
+    }
+}
+```
+
+Como os dois andam na mesma velocidade, o carrinho do trilho mais curto vai abrindo vantagem. É a mesma diferença que aparece no resumo da pista.
+
+---
+
+## 11. Interface (UI Toolkit)
+
+`Builder.uxml`, só a estrutura:
+
+```xml
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+  <ui:VisualElement name="side" class="side">
+    <ui:Label name="status" class="status" />
+    <ui:Label text="Peças" class="h2" />
+    <ui:VisualElement class="palette">
+      <ui:Button name="reta-curta"       text="Reta curta [1]" />
+      <ui:Button name="reta-comprida"    text="Reta comprida [2]" />
+      <ui:Button name="curva-esquerda"   text="Curva longa esq. [3]" />
+      <ui:Button name="curva-direita"    text="Curva longa dir. [4]" />
+      <ui:Button name="meia-esquerda"    text="Meia curva esq. [5]" />
+      <ui:Button name="meia-direita"     text="Meia curva dir. [6]" />
+    </ui:VisualElement>
+    <ui:Label name="stats" />
+    <ui:Button name="play" text="Testar volta" />
+  </ui:VisualElement>
+</ui:UXML>
+```
+
+`BuilderUI.cs`:
+
+```csharp
+using UnityEngine;
+using UnityEngine.UIElements;
+
+public class BuilderUI : MonoBehaviour
+{
+    public UIDocument doc;
+    public TrackBuilder track;
+    VisualElement root;
+
+    void OnEnable()
+    {
+        root = doc.rootVisualElement;
+        root.Q<Button>("reta-curta").clicked     += () => track.Add(track.shortStraight, 0);
+        root.Q<Button>("reta-comprida").clicked  += () => track.Add(track.longStraight, 0);
+        root.Q<Button>("curva-esquerda").clicked += () => track.Add(track.curve, -1);
+        root.Q<Button>("curva-direita").clicked  += () => track.Add(track.curve, 1);
+        root.Q<Button>("meia-esquerda").clicked  += () => track.Add(track.halfCurve, -1);
+        root.Q<Button>("meia-direita").clicked   += () => track.Add(track.halfCurve, 1);
+        root.Q<Button>("play").clicked           += () => track.Playing = !track.Playing;
+        track.Changed += Refresh;
+    }
+
+    void OnDisable() => track.Changed -= Refresh;
+
+    void Refresh()
+    {
+        string status = track.overlaps.Count > 0 ? $"Há {track.overlaps.Count} peças sobrepostas"
+                      : track.IsClosed ? "Circuito fechado"
+                      : "Pista aberta";
+        root.Q<Label>("status").text = status;
+
+        float m(float cells) => cells * track.cellCm / 100f;
+        root.Q<Label>("stats").text =
+            $"Linha central: {track.CenterLength:0.0} cél. ({m(track.CenterLength):0.00} m)\n" +
+            $"Trilho 1: {track.LaneLengths[0]:0.0} cél. ({m(track.LaneLengths[0]):0.00} m)\n" +
+            $"Trilho 2: {track.LaneLengths[1]:0.0} cél. ({m(track.LaneLengths[1]):0.00} m)\n" +
+            $"Peças: {track.pieces.Count}";
+    }
+}
+```
+
+**Prévia "fantasma":** no `PointerEnterEvent` de cada botão, ative um `TrackPieceView` extra com o material Fantasma e chame `Build(track.InsertPose, def, dir, ...)`. No `PointerLeaveEvent`, desative.
+
+---
+
+## 12. Montando a cena
+
+1. **Mesa:** GameObject vazio com `GridBoard`.
+2. **Pista:** GameObject vazio com `TrackBuilder`. Ligue as 5 peças, o prefab e os 6 materiais na ordem.
+3. **Câmera:** `TopDownCamera` na Main Camera.
+4. **Entrada:** GameObject com `BuilderInput`, ligado à pista e à câmera.
+5. **Carrinhos:** dois prefabs (um cubo de 0,46 × 0,1 × 0,22 já serve), cada um com `CarRunner`, `lane` 0 e 1.
+6. **UI:** `UIDocument` com o `Builder.uxml` e `BuilderUI`. Crie também um **EventSystem**.
+7. Dê Play, aperte `2 2 4 4 2 2 1 4 4` e a pista deve fechar num oval. A volta precisa de uma reta curta a mais para compensar a base de largada.
+
+### Pista de exemplo (a mesma do HTML)
+
+Depois da largada: reta comprida, meia curva esq., meia curva dir., curva longa dir., curva longa dir., reta comprida, meia curva esq., meia curva dir., reta curta, curva longa dir., curva longa dir. Fecha certinho. O trilho 1 sai cerca de 3,1 células mais longo, porque todas as curvas de 90° viram para a direita.
+
+---
+
+## 13. Ordem sugerida
+
+1. `TrackMath` + teste da curva (seção 4). Sem isso nada encaixa.
+2. `PieceDefinition` + `TrackPieceView` só com o asfalto. Veja uma peça aparecer.
+3. `TrackBuilder` com Add e Rebuild, pelo teclado.
+4. Grade e câmera.
+5. Seleção, remover, inverter, girar e arrastar a largada.
+6. Fechamento e sobreposição.
+7. Desfazer, salvar e carregar.
+8. Trilhos, fendas, zebras e bandeirada.
+9. Carrinhos.
+10. UI e prévia fantasma.
+
+## 14. Próximos passos
+
+- **Ponte sobre ponte:** o modelo já aceita nível 2. Falta um exemplo que use.
+- **Curvas de outros raios:** basta criar novos assets de `PieceDefinition`. O código não muda.
+- Feitos depois: cruzamento (seção 18), fechar o circuito sozinho (seção 17) e o campeonato com baterias trocando de trilho (seção 19).
+
+---
+
+## 15. Modo corrida
+
+A aba **Corrida** do `index.html` já roda esse modelo: dá para jogar com duas pessoas no mesmo teclado ou no mesmo celular. Esta seção explica a lógica e como levar para a Unity.
+
+### 15.1 O controle: um botão que vira acelerador
+
+Cada jogador tem **dois botões**: Acelerar e Recolocar.
+
+| Ação | Efeito |
+|---|---|
+| Segurar Acelerar | O acelerador `T` sobe de 0 a 1, linear, em `rampTime` (0,5 s por padrão). |
+| Soltar Acelerar | `T` volta a 0 **na hora**, e o carrinho freia. |
+| Recolocar | Só funciona com o carrinho fora da pista. Devolve o carrinho ao trilho. |
+
+```
+T = segurando ? min(1, tempoSegurando / rampTime) : 0
+```
+
+Isso cria três jeitos de pilotar:
+- **Reta:** segura direto até 100%.
+- **Antes da curva:** solta para frear. Saber onde soltar é a habilidade principal.
+- **Dentro e na saída da curva:** segura de novo. Como `T` recomeça do zero e sobe aos poucos, a potência volta suave. Toques curtos mantêm uma velocidade média.
+
+A rampa é o que dá controle fino a um botão de liga e desliga. Com `rampTime` curto, o jogo fica nervoso. Com `rampTime` longo, fica fácil e lento.
+
+### 15.2 O motor
+
+O carrinho não obedece `T` na hora: ele **persegue** a velocidade `T × vMax`, como um motor elétrico de autorama.
+
+```
+se T > 0:  a = accel × (T × vMax − v)          // acelera ou alivia até o alvo
+se T = 0:  a = −(brake × v + brakeFixed)        // freio de motor ao soltar
+v = max(0, v + a × dt)
+distância += v × dt
+```
+
+| Parâmetro | Padrão | Efeito |
+|---|---|---|
+| `vMax` | 14 cél/s | Velocidade de reta com o acelerador no fundo |
+| `accel` | 3,5 /s | Quão rápido o motor responde |
+| `brake`, `brakeFixed` | 1,8 /s e 0,5 cél/s² | Força do freio ao soltar |
+
+### 15.3 Derrapar e sair da pista (a parte difícil)
+
+Numa curva de raio `r`, o carrinho sente uma força lateral `v² / r`. O pneu e a guia aguentam até `grip`. Daí sai a velocidade limite de cada curva:
+
+```
+vLimite = √(grip × r)
+```
+
+Com `grip = 29` e as curvas de raio 2,5:
+- o trilho de dentro (r = 2,25) segura **8,1 cél/s**;
+- o de fora (r = 2,75) segura **8,9 cél/s**.
+
+Os dois ficam em torno de 60% da velocidade de reta. Numa curva à direita, o trilho 2 fica por dentro e é o mais lento. Na curva seguinte, para a esquerda, a situação inverte.
+
+**Passar do limite não derruba na hora.** Se o carrinho voasse no primeiro décimo de segundo acima do limite, o jogo pareceria injusto. Por isso existe um acumulador de **derrapagem** (`slip`, de 0 a 1):
+
+```
+excesso = (v² × |curvatura|) / grip − 1
+se excesso > 0:  slip += excesso × slipGain × dt     // passou do limite: enche
+senão:           slip −= slipDecay × dt               // dentro do limite: esvazia
+se slip ≥ 1:     sai da pista
+```
+
+- Passar um pouco do limite numa curva curta enche a barra, mas não derruba. O jogador vê a traseira escorregar e solta a tempo.
+- Passar muito, ou por uma curva longa (duas curvas de 90° seguidas), derruba.
+- Com `slipGain = 6`, uma curva de 90° a **110%** do limite enche a barra até uns 55%. A **120%**, o carrinho sai.
+
+**O carrinho "roda" antes de sair.** No autorama, o carrinho gira em volta da **guia**, a lâmina na frente que fica presa na fenda. A frente fica no trilho e a traseira escorrega para fora da curva:
+
+```
+guia         = pontoNoTrilho + direção(ângulo) × pin            // pin = 0,22 célula
+ânguloCarro  = ângulo + lado × slip^1.4 × yawMax                 // yawMax = 38°
+centroCarro  = guia − direção(ânguloCarro) × pin
+```
+
+Assim a barra de derrapagem aparece no próprio carrinho: quanto mais cheia, mais de lado ele anda. O expoente 1,4 deixa uma derrapagem pequena quase invisível e faz a rodada final ser rápida.
+
+**Saindo da pista:** com `slip` em 1, o carrinho larga a fenda:
+- Sai pela **tangente** do trilho, com mais 35% da velocidade empurrando para fora da curva.
+- Gira no sentido da curva, a `220 + 30 × v` graus por segundo.
+- Velocidade e giro caem aos poucos (atrito) até ele parar.
+- Guarda a distância em que saiu (`exitS`).
+
+**Recolocar** (o segundo botão) faz o papel do fiscal de pista:
+- O carrinho volta para `exitS − 0,4`, um pouco antes de onde saiu, para não entrar embalado no mesmo ponto.
+- O retorno é uma animação de 0,6 s, da posição na mesa até o trilho.
+- Ele volta parado, com `v = 0` e `slip = 0`.
+- O castigo é o tempo perdido. Não precisa de mais nada.
+
+### 15.4 Teste da afinação (simulação da pista de exemplo, 5 voltas)
+
+| Estratégia | Melhor volta | Saídas |
+|---|---|---|
+| Acelerador sempre no fundo | 10,7 s | 30 (6 por volta) |
+| Solta antes das curvas, alvo 95% do limite | 4,9 s | 0 |
+| Solta antes das curvas, alvo 120% do limite | 4,1 s | 0 |
+| Solta antes das curvas, alvo 140% do limite | 7,3 s | 15 |
+| Toques de 0,3 s, sem olhar a pista | 10,2 s | 0 |
+
+A curva de risco funciona:
+- Arriscar um pouco acima do limite é o jeito mais rápido.
+- Arriscar demais custa caro.
+- Acelerar no fundo e ir recolocando perde de longe.
+
+O trilho 2 é cerca de 3 células mais curto nessa pista, e por isso vence com a mesma pilotagem. Daí a ideia de baterias trocando de trilho (seção 14).
+
+### 15.5 Na Unity
+
+**Curvatura no `LanePath`.** Guarde a curvatura de cada ponto: `+1/raio` em curva à direita, 0 em reta. No construtor do `LanePath` (seção 10), dentro do laço por segmento, antes do `for` interno:
+
+```csharp
+var def = seg.piece.def;
+float kap = def.kind == PieceKind.Curve ? seg.piece.dir / (def.radius - seg.piece.dir * offset) : 0f;
+```
+
+E, junto de cada `pts.Add(...)`, faça `ks.Add(kap);`. No resto da classe:
+
+```csharp
+readonly List<float> ks = new();
+
+public float CurvatureAt(float dist) => ks[IndexAt(dist)];
+
+int IndexAt(float dist)
+{
+    dist = Mathf.Repeat(dist, Total);
+    int lo = 0, hi = cum.Count - 1;
+    while (hi - lo > 1) { int mid = (lo + hi) / 2; if (cum[mid] <= dist) lo = mid; else hi = mid; }
+    return hi;
+}
+```
+
+Em `At`, troque `Mathf.Clamp(d, 0f, Total)` por `Mathf.Repeat(d, Total)` para o carrinho poder dar voltas.
+
+**Entrada (Input System).** Crie um Input Actions com quatro ações do tipo Button:
+- `P1/Acelerar` (tecla A, botão sul do gamepad 1)
+- `P1/Recolocar` (S)
+- `P2/Acelerar` (L)
+- `P2/Recolocar` (K)
+
+No celular, dois botões grandes de UI com `PointerDownEvent` e `PointerUpEvent` fazem o mesmo papel.
+
+`SlotCar.cs`, que substitui o `CarRunner` no modo corrida:
+
+```csharp
+using UnityEngine;
+using UnityEngine.InputSystem;
+
+public class SlotCar : MonoBehaviour
+{
+    public enum State { OnSlot, Off, Returning }
+
+    [Header("Pista")]
+    public TrackBuilder track;
+    public int lane;                                   // 0 = trilho 1, 1 = trilho 2
+    [Header("Controle")]
+    public InputActionReference gasAction, reslotAction;
+    [Header("Motor")]
+    public float vMax = 14f, rampTime = 0.5f, accel = 3.5f, brake = 1.8f, brakeFixed = 0.5f;
+    [Header("Aderência")]
+    public float grip = 29f, slipGain = 6f, slipDecay = 1.5f, yawMax = 38f, pin = 0.22f;
+
+    public State CurrentState { get; private set; } = State.OnSlot;
+    public float Throttle { get; private set; }            // 0..1, para a barra da UI
+    public float Speed { get; private set; }
+    public float Slip { get; private set; }                // 0..1, para a barra da UI
+    public float Distance { get; private set; } = 0.75f;   // só cresce: serve para contar voltas
+    public bool CanDrive { get; set; }                     // o RaceManager libera na luz verde
+    public int Exits { get; private set; }
+    public float LapLength => path?.Total ?? 1f;
+
+    LanePath path;
+    float hold, side = 1f, exitDistance;
+    Vector2 flyPos, flyVel;
+    float flyHeading, flySpin;
+    Pose2 returnFrom;
+    float returnT;
+
+    void OnEnable()  { gasAction.action.Enable(); reslotAction.action.Enable(); track.Changed += ResetCar; }
+    void OnDisable() { track.Changed -= ResetCar; }
+
+    public void ResetCar()
+    {
+        path = new LanePath(track.segments, TrackMath.Lanes[lane]);
+        Distance = 0.75f; Speed = 0; Slip = 0; Exits = 0; CurrentState = State.OnSlot;
+        Place(SlotPose());
+    }
+
+    void Update()
+    {
+        if (path == null) ResetCar();
+        float dt = Time.deltaTime;
+
+        // 1. Acelerador: sobe enquanto segura, zera ao soltar.
+        if (gasAction.action.IsPressed()) { hold += dt; Throttle = Mathf.Min(1f, hold / rampTime); }
+        else { hold = 0; Throttle = 0; }
+
+        if (reslotAction.action.WasPressedThisFrame()) Reslot();
+
+        switch (CurrentState)
+        {
+            case State.OnSlot:    Drive(dt); Place(SlotPose()); break;
+            case State.Off:       Fly(dt); break;
+            case State.Returning: Return(dt); break;
+        }
+    }
+
+    void Drive(float dt)
+    {
+        // 2. Motor. Antes da luz verde e depois da bandeirada, conta como acelerador solto.
+        float t = CanDrive ? Throttle : 0f;
+        float a = t > 0 ? accel * (t * vMax - Speed) : -(brake * Speed + brakeFixed);
+        Speed = Mathf.Max(0f, Speed + a * dt);
+        Distance += Speed * dt;
+
+        // 3. Derrapagem
+        float k = path.CurvatureAt(Distance);
+        if (k != 0) side = Mathf.Sign(k);
+        float excess = Speed * Speed * Mathf.Abs(k) / grip - 1f;
+        Slip = excess > 0 ? Slip + excess * slipGain * dt : Mathf.Max(0f, Slip - slipDecay * dt);
+        if (Slip >= 1f) Deslot();
+    }
+
+    // Pose no trilho, girando em volta da guia conforme derrapa.
+    Pose2 SlotPose()
+    {
+        Pose2 q = path.At(Distance);
+        // Na Unity o ângulo cresce para a esquerda: numa curva à direita (side +1) o ângulo diminui.
+        float heading = q.heading - side * Mathf.Pow(Slip, 1.4f) * yawMax;
+        Vector2 guide = q.pos + TrackMath.Dir(q.heading) * pin;
+        return new Pose2(guide - TrackMath.Dir(heading) * pin, heading);
+    }
+
+    void Deslot()
+    {
+        Pose2 body = SlotPose(), q = path.At(Distance);
+        Vector2 tangent = TrackMath.Dir(q.heading);
+        Vector2 outward = TrackMath.Dir(q.heading + side * 90f);   // para fora da curva
+        flyPos = body.pos;
+        flyHeading = body.heading;
+        flyVel = (tangent + outward * 0.35f) * Speed;
+        flySpin = -side * (220f + Speed * 30f);                       // gira no sentido da curva
+        exitDistance = Distance;
+        Speed = 0; Slip = 0; Exits++;
+        CurrentState = State.Off;
+    }
+
+    void Fly(float dt)
+    {
+        flyVel *= Mathf.Exp(-2.4f * dt);
+        flySpin *= Mathf.Exp(-2.8f * dt);
+        flyPos += flyVel * dt;
+        flyHeading += flySpin * dt;
+        Place(new Pose2(flyPos, flyHeading));
+    }
+
+    void Reslot()
+    {
+        if (CurrentState != State.Off) return;
+        returnFrom = new Pose2(flyPos, flyHeading);
+        Distance = Mathf.Max(0.75f, exitDistance - 0.4f);
+        returnT = 0;
+        CurrentState = State.Returning;
+    }
+
+    void Return(float dt)
+    {
+        returnT += dt / 0.6f;
+        Pose2 to = SlotPose();
+        float e = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(returnT));
+        Place(new Pose2(Vector2.Lerp(returnFrom.pos, to.pos, e), Mathf.LerpAngle(returnFrom.heading, to.heading, e)));
+        if (returnT >= 1f) { CurrentState = State.OnSlot; Speed = 0; Slip = 0; }
+    }
+
+    void Place(Pose2 p) => transform.SetPositionAndRotation(p.World(0.05f), p.Rotation);
+}
+```
+
+> Na primeira vez que rodar, confira os sinais. Numa curva à direita, a traseira tem que escorregar para a **esquerda** e o carrinho tem que voar para a **esquerda**. Se ele sair para dentro da curva, inverta o sinal de `outward`. Se girar ao contrário, inverta o de `flySpin`.
+
+**Alternativa com a física da Unity:** em `Deslot`, troque o `Rigidbody` do carrinho de kinematic para dinâmico e passe `linearVelocity` (ou `velocity`, antes do Unity 6) e `angularVelocity`. A mesa precisa de um `PhysicsMaterial` com atrito alto. Fica mais vistoso, porque o carrinho bate nas peças e capota, mas é mais difícil de afinar. A versão manual acima é a mesma do HTML.
+
+### 15.6 Largada, voltas e vitória
+
+`RaceManager.cs`:
+
+```csharp
+using UnityEngine;
+
+public class RaceManager : MonoBehaviour
+{
+    public TrackBuilder track;
+    public SlotCar[] cars;                 // os 2 carrinhos
+    public int laps = 5;
+    public float countdown = 2.4f;         // três luzes vermelhas, depois verde
+    const float FinishLine = 1.325f;       // bandeirada, medida desde o início da largada
+
+    public float RaceTime { get; private set; }
+    public int Lights { get; private set; }        // 1..3 vermelhas; -1 = verde
+    public int Winner { get; private set; } = -1;
+    public bool Running { get; private set; }
+    public readonly int[] lapsDone = new int[2];
+    public readonly float[] lastLap = new float[2], bestLap = new float[2];
+
+    readonly int[] crossings = new int[2];
+    readonly float[] lapStart = new float[2];
+
+    public void StartRace()
+    {
+        if (!track.IsClosed) return;
+        for (int k = 0; k < cars.Length; k++)
+        {
+            cars[k].ResetCar(); cars[k].CanDrive = false;
+            crossings[k] = -1; lapStart[k] = 0; lapsDone[k] = 0; lastLap[k] = 0; bestLap[k] = 0;
+        }
+        Winner = -1; RaceTime = -countdown; Running = true;
+    }
+
+    void Update()
+    {
+        if (!Running) return;
+        RaceTime += Time.deltaTime;
+        if (RaceTime < 0)
+        {
+            Lights = Mathf.Min(3, Mathf.FloorToInt((RaceTime + countdown) / (countdown / 3f)) + 1);
+            return;
+        }
+        if (Lights != -1) { Lights = -1; foreach (var c in cars) c.CanDrive = true; }
+
+        for (int k = 0; k < cars.Length; k++)
+        {
+            var car = cars[k];
+            if (car.CurrentState != SlotCar.State.OnSlot || lapsDone[k] >= laps) continue;
+            int cr = Mathf.FloorToInt((car.Distance - FinishLine) / car.LapLength);
+            if (cr <= crossings[k]) continue;
+            crossings[k] = cr;
+            if (cr < 1) continue;                      // passar a linha logo após largar não conta
+
+            lastLap[k] = RaceTime - lapStart[k];
+            lapStart[k] = RaceTime;
+            lapsDone[k] = cr;
+            if (bestLap[k] == 0 || lastLap[k] < bestLap[k]) bestLap[k] = lastLap[k];
+            if (cr >= laps)
+            {
+                if (Winner < 0) Winner = k;
+                car.CanDrive = false;                  // cruzou: solta o acelerador e freia
+            }
+        }
+    }
+}
+```
+
+`Distance` só cresce: ele não volta a zero a cada volta. Por isso o carrinho recolocado um pouco atrás da linha não conta a mesma volta duas vezes.
+
+### 15.7 Interface de corrida
+
+Por jogador, o mínimo:
+- **Botão Acelerar** grande, com a barra de `Throttle` dentro dele. A barra mostra que segurar mais dá mais força.
+- **Barra de velocidade** (`Speed / vMax`).
+- **Barra de derrapagem** (`Slip`): verde até 45%, amarela até 75%, vermelha acima. É o aviso de que vai sair.
+- **Botão Recolocar:** desligado no trilho, piscando quando o carrinho está fora.
+- **Placar:** voltas, última volta, melhor volta e número de saídas.
+
+No meio da tela, as **três luzes** da largada e o **aviso de vitória**.
+
+### 15.8 Colisão entre os carrinhos
+
+Os dois carrinhos correm em trilhos separados. Na reta e dentro do limite, eles **nunca** se tocam. A colisão aparece em dois casos, os mesmos do autorama de verdade:
+
+1. **Raspão lado a lado:** numa curva, o carrinho de **dentro** derrapa, a traseira dele sai para fora e bate no carrinho do trilho de fora. O carrinho de fora, ao derrapar, joga a traseira para fora da pista e não alcança ninguém.
+2. **Carrinho solto:** quem saiu da pista atravessa o outro trilho e acerta o carrinho que vem ali, ou os dois soltos batem entre si.
+
+**O tamanho do carrinho é o que faz isso acontecer.** Os trilhos ficam a 0,5 célula um do outro. No autorama real o carrinho ocupa uns 3/4 desse espaço, e por isso ele tem **0,60 × 0,32 célula**. A traseira do carrinho de dentro alcança o vizinho com uns **20° de derrapagem**, o que dá cerca de 65% da barra. Com carrinhos finos (0,46 × 0,22), a traseira só chegava no outro trilho quando o carrinho já estava saindo: a colisão nunca acontecia.
+
+#### Detecção: teste de eixos separados (SAT)
+
+Cada carroceria é um retângulo girado (meio comprimento 0,30 e meia largura 0,16). Dois retângulos **não** se tocam se existe um eixo em que as sombras deles não se sobrepõem. Bastam 4 eixos: frente e lado de cada carrinho. O eixo de menor sobreposição dá a **normal** do choque (para onde empurrar) e a **profundidade**.
+
+```csharp
+public static class CarCollision
+{
+    public const float HalfLength = 0.30f, HalfWidth = 0.16f;
+
+    // Devolve true se as carrocerias se sobrepõem. normal aponta de A para B.
+    public static bool Overlap(Pose2 a, Pose2 b, out Vector2 normal, out float depth)
+    {
+        Vector2[] axes = { TrackMath.Dir(a.heading), TrackMath.Dir(a.heading + 90f),
+                           TrackMath.Dir(b.heading), TrackMath.Dir(b.heading + 90f) };
+        Vector2 d = b.pos - a.pos;
+        normal = Vector2.zero; depth = float.MaxValue;
+        foreach (var ax in axes)
+        {
+            float overlap = Radius(a, ax) + Radius(b, ax) - Mathf.Abs(Vector2.Dot(d, ax));
+            if (overlap <= 0f) return false;                 // achou um eixo que separa
+            if (overlap < depth) { depth = overlap; normal = Vector2.Dot(d, ax) < 0 ? -ax : ax; }
+        }
+        return true;
+    }
+
+    // Meia "sombra" do retângulo projetado no eixo.
+    static float Radius(Pose2 p, Vector2 ax) =>
+        HalfLength * Mathf.Abs(Vector2.Dot(TrackMath.Dir(p.heading), ax)) +
+        HalfWidth  * Mathf.Abs(Vector2.Dot(TrackMath.Dir(p.heading + 90f), ax));
+}
+```
+
+> Também dá para usar dois `BoxCollider` com `isTrigger` e `OnTriggerStay`. Mas os carrinhos se movem por código, sem física, e o SAT acima devolve a normal e a profundidade de que a resposta precisa.
+
+#### Resposta
+
+**Os dois no trilho (raspão).** O trilho prende os carrinhos de lado, então ninguém é empurrado para fora da fenda. A batida vira **derrapagem**:
+
+| Momento | Efeito nos dois carrinhos |
+|---|---|
+| Primeiro contato | `slip += 0,15 + 0,03 × maior velocidade` |
+| Enquanto encostam | `slip += profundidade × 8 × dt` e `v *= e^(−1,2 × dt)` (atrito) |
+
+Quem estava derrapando já vinha com a barra alta e costuma sair. Quem foi atingido leva um susto: na simulação, o carrinho de fora chegou a 85–92% da barra sem sair. Se o jogador dele estiver no limite também, sai junto.
+
+**Pelo menos um solto (batida de verdade).** É um choque entre massas iguais, com impulso na direção da normal:
+
+```
+vRel = (velB − velA) · normal          // < 0: estão se aproximando
+J    = −(1 + 0,35) × vRel / 2          // 0,35 = quanto quica
+velA −= J × normal ;  velB += J × normal
+```
+
+- **Carrinho solto:** recebe o impulso inteiro na velocidade e ganha giro (`± |J| × 60` graus por segundo). O sentido do giro vem do lado em que foi atingido: o produto vetorial entre "centro → ponto de contato" e o impulso.
+- **Carrinho no trilho:** separe o impulso em duas partes. A parte **na direção da pista** muda a velocidade: atingido por trás, ele ganha velocidade; de frente, perde. A parte **de lado** vira derrapagem: `slip += 0,12 + 0,14 × |lateral|`. Se a barra encher, ele sai da pista, e o impulso da batida soma na velocidade de voo.
+- **Separação:** afaste o carrinho solto pela profundidade, ao longo da normal, para eles não ficarem grudados. Se os dois estão soltos, cada um anda metade. O do trilho não se move de lado.
+- **Carrinho voltando ao trilho** (estado `Returning`) não bate: está "na mão do fiscal".
+
+```csharp
+bool touching;
+
+// Chame depois de mover os dois carrinhos, no mesmo frame (por exemplo, no RaceManager).
+public void Collide(SlotCar a, SlotCar b, float dt)
+{
+    if (a.CurrentState == SlotCar.State.Returning || b.CurrentState == SlotCar.State.Returning) { touching = false; return; }
+    if (!CarCollision.Overlap(a.Pose, b.Pose, out var n, out float depth)) { touching = false; return; }
+
+    bool first = !touching;
+    touching = true;
+    if (first) { Sparks(Vector2.Lerp(a.Pose.pos, b.Pose.pos, 0.5f)); a.Hits++; b.Hits++; }
+
+    if (a.CurrentState == SlotCar.State.OnSlot && b.CurrentState == SlotCar.State.OnSlot)
+    {
+        if (first) { float kick = 0.15f + 0.03f * Mathf.Max(a.Speed, b.Speed); a.AddSlip(kick); b.AddSlip(kick); }
+        a.AddSlip(depth * 8f * dt); b.AddSlip(depth * 8f * dt);
+        float drag = Mathf.Exp(-1.2f * dt); a.ScaleSpeed(drag); b.ScaleSpeed(drag);
+    }
+    else
+    {
+        float vRel = Vector2.Dot(b.WorldVelocity - a.WorldVelocity, n);
+        if (vRel < 0)
+        {
+            float j = -(1f + 0.35f) * vRel / 2f;
+            Vector2 half = (b.Pose.pos - a.Pose.pos) / 2f;
+            a.ApplyImpulse(-j * n, half);
+            b.ApplyImpulse(j * n, -half);
+        }
+        float share = a.CurrentState == SlotCar.State.Off && b.CurrentState == SlotCar.State.Off ? 0.5f : 1f;
+        if (a.CurrentState == SlotCar.State.Off) a.Nudge(-n * depth * share);
+        if (b.CurrentState == SlotCar.State.Off) b.Nudge(n * depth * share);
+    }
+    a.DeslotIfFull(); b.DeslotIfFull();
+}
+```
+
+O `SlotCar` da seção 15.5 precisa expor:
+- `Pose`: a pose atual da carroceria, a mesma que vai para o `transform`;
+- `WorldVelocity`: no trilho, `direção(ângulo da pista) × Speed`; solto, `flyVel`;
+- `AddSlip` e `ScaleSpeed`;
+- `Nudge(Vector2)`, que soma em `flyPos`;
+- `ApplyImpulse(impulso, r)`, com as regras acima;
+- `DeslotIfFull()`, que chama `Deslot()` quando `Slip ≥ 1` e soma o último impulso em `flyVel`;
+- o contador `Hits`.
+
+#### Testes na simulação
+
+| Cenário | Resultado |
+|---|---|
+| Os dois pilotando dentro do limite | Nenhum toque. A colisão não atrapalha quem pilota limpo. |
+| T2 (dentro) derrapando 40% ou 65% ao lado de T1 | Nenhum toque. A traseira ainda não chega. |
+| T2 derrapando 80% ao lado de T1 | 2 a 3 toques. T2 sai, e T1 vai a 80–92% da barra. |
+| Os dois com o acelerador no fundo | 4 batidas de carrinho solto em 5 voltas. |
+
+#### Interface
+
+- **Faíscas** amarelas no ponto de contato por 0,35 s.
+- **"Batida!"** no painel do jogador por 0,6 s.
+- Coluna **Toques** no placar.
+- Opção **Colisão entre carrinhos** nos ajustes, para desligar quando quiser só treinar.
+
+---
+
+## 16. Pontes, rampas e curvas inclinadas
+
+O `index.html` já tem as duas coisas:
+- **Ponte:** qualquer peça pode subir ou descer um nível de altura. Há também dois atalhos na paleta, as **Rampas** (teclas `U` e `D`).
+- **Curvas inclinadas:** longa (90°) e curta (45°), nas teclas `7` a `0`.
+
+O botão **Exemplo: 8 com ponte** carrega um 8 deitado de 26 peças, feito com curvas curtas inclinadas, em que uma diagonal passa por cima da outra (seção 16.8).
+
+Na Unity isso fica até mais simples que no HTML. A altura vira **Y de verdade**, e a câmera e o depth buffer resolvem quem aparece por cima.
+
+### 16.1 Altura das peças
+
+Cada peça ganha `rise`: `+1` sobe um nível, `-1` desce, `0` fica plana. A altura não é guardada por peça. Ela é calculada em sequência a partir da largada, igual à posição:
+
+```
+zEntrada(peça i) = zSaída(peça i − 1)          // a largada começa no chão (0)
+zSaída(peça i)   = clamp(zEntrada + rise, 0, 2)
+z(t)             = zEntrada + (zSaída − zEntrada) × t
+```
+
+Por que `rise` em vez de "altura da peça"? Porque inserir ou remover uma rampa no meio levanta ou abaixa **todo o resto** sozinho, como na pista de verdade.
+
+No `TrackBuilder` (seção 6):
+
+```csharp
+[Serializable]
+public class PieceInstance
+{
+    public PieceDefinition def;
+    public int dir;
+    public int rise;                         // -1 desce, 0 plana, +1 sobe
+    public PieceInstance(PieceDefinition def, int dir, int rise = 0) { this.def = def; this.dir = dir; this.rise = rise; }
+}
+
+public struct Segment { public PieceInstance piece; public Pose2 a, b; public int zIn, zOut; }
+
+public const int MaxLevel = 2;
+public const float LevelHeight = 0.5f;       // 1 nível = meia célula de altura (vão para o carrinho passar)
+
+// dentro de Rebuild(), no laço das peças:
+int z = 0;
+for (int i = 0; i < pieces.Count; i++)
+{
+    var p = pieces[i];
+    var b = TrackMath.PoseAt(conn, p.def, p.dir, 1f);
+    b.heading = TrackMath.Normalize(b.heading);
+    int zOut = Mathf.Clamp(z + (i == 0 ? 0 : p.rise), 0, MaxLevel);
+    segments.Add(new Segment { piece = p, a = conn, b = b, zIn = z, zOut = zOut });
+    conn = b; z = zOut;
+}
+```
+
+**Fechamento:** o circuito só fecha se a ponta chegar na largada **e** no chão:
+
+```csharp
+IsClosed = segments.Count > 1
+    && Vector2.Distance(last.pos, origin.pos) < 0.02f
+    && Mathf.Abs(Mathf.DeltaAngle(last.heading, origin.heading)) < 0.5f
+    && segments[^1].zOut == 0;
+```
+
+Se fechar no plano mas não na altura, avise: "A ponta chega na largada, mas no nível 1. Desça até o chão."
+
+### 16.2 Sobreposição com altura
+
+Duas peças só se sobrepõem se estiverem perto no plano **e** na mesma altura. Guarde a altura de cada ponto amostrado em `FindOverlaps` (seção 6) e mude o teste:
+
+```csharp
+// pontos: (x, z da mesa) + altura em níveis
+static bool Touches(List<Vector3> a, List<Vector3> b, float minSqr)
+{
+    foreach (var p in a) foreach (var q in b)
+        if (Mathf.Abs(p.z - q.z) < 0.75f && (new Vector2(p.x, p.y) - new Vector2(q.x, q.y)).sqrMagnitude < minSqr)
+            return true;
+    return false;
+}
+```
+
+Por que 0,75 nível de folga? O meio de uma rampa fica no nível 0,5 e não pode passar sobre nada nem sob nada. Só a parte plana da ponte (nível 1) passa sobre o chão (nível 0).
+
+### 16.3 Malha com altura
+
+No `AddStrip` (seção 5), a altura de cada vértice deixa de ser fixa:
+
+```csharp
+// y de um vértice: altura da peça naquele ponto + inclinação da curva
+float VertexY(Segment s, float t, float lateral, float layerY)
+{
+    float y = (s.zIn + (s.zOut - s.zIn) * t) * TrackBuilder.LevelHeight + layerY;
+    if (s.piece.def.banked)
+    {
+        // O lado de fora sobe. Na curva à direita (dir +1), o de fora é o esquerdo (lateral < 0).
+        float bank = Mathf.Tan(s.piece.def.bankAngle * Mathf.Deg2Rad) * BankWeight(s, t);
+        y += -s.piece.dir * lateral * bank;
+    }
+    return y;
+}
+
+// Transição de 20% em cada ponta, para não fazer degrau com a peça plana vizinha.
+// Se a vizinha também for inclinada para o mesmo lado, mantenha 1 naquela ponta.
+float BankWeight(Segment s, float t) => Mathf.Clamp01(Mathf.Min(t, 1f - t) / 0.2f);
+```
+
+Some ao `PieceDefinition` os campos `public bool banked;` e `public float bankAngle = 15f;`. Crie os assets **Curva longa inclinada** (90°) e **Curva curta inclinada** (45°), os dois com raio 2,5.
+
+**Pilares:** a cada 1,25 célula ao longo de uma peça com `z(t) > 0,25`, ponha um cilindro fino do chão até a pista (`altura = z(t) × LevelHeight`). Ponha também uma **mureta** dos dois lados das peças no alto: uma faixa vertical da malha, de `y` até `y + 0,08`.
+
+**Carrinho na rampa:** a rotação passa a incluir a inclinação. Guarde a altura de cada ponto no `LanePath` e use a tangente 3D:
+
+```csharp
+Vector3 here = path.At3D(Distance), ahead = path.At3D(Distance + 0.1f);
+transform.SetPositionAndRotation(here + Vector3.up * 0.05f, Quaternion.LookRotation(ahead - here) * Quaternion.Euler(0, -90f, 0));
+// o "-90" é porque o modelo aponta para +X; LookRotation aponta o +Z para a frente
+```
+
+**Visual da altura:** com a câmera ortográfica de cima, a altura não aparece sozinha. Ligue sombras na Directional Light, levemente inclinada (rotação `(60, 30, 0)`, por exemplo). A sombra da ponte no chão é o que mostra que ela está no alto, como a sombra deslocada do HTML.
+
+### 16.4 Corrida com ponte e rampa
+
+| Situação | Regra |
+|---|---|
+| Rampa | `a −= slopeG × inclinação`, com `slopeG = 8` e `inclinação = (zSaída − zEntrada) / comprimento`. Subir freia e descer embala. Numa rampa de reta comprida, isso dá ±2 cél/s². |
+| Sair da pista na ponte | O voo começa na altura em que estava e cai até o chão (no HTML, 3 níveis por segundo; na Unity, gravidade de verdade). |
+| Colisão | Só se a diferença de altura for menor que 0,6 nível. Um carrinho passa embaixo do outro sem bater. |
+| Recolocar | Volta para o trilho na altura da pista naquele ponto. |
+
+No `LanePath`, guarde por ponto a altura, a inclinação e o multiplicador de aderência (seção 16.5), como já é feito com a curvatura.
+
+### 16.5 Curva inclinada: por que dá para acelerar mais
+
+Numa curva plana, só o atrito segura o carrinho de lado. Numa curva inclinada, o próprio piso empurra o carrinho para dentro da curva. A conta da física é:
+
+```
+aderência inclinada / aderência plana = (tan θ + μ) / (μ × (1 − μ × tan θ))
+```
+
+Com θ = 15° de inclinação e μ = 0,9, o multiplicador fica em **1,7**. No jogo isso vira só um número por peça (`BANK_GRIP = 1,7`), usado na conta da derrapagem:
+
+```
+excesso = v² × |curvatura| / (grip × multiplicador) − 1        // multiplicador = 1 na plana, 1,7 na inclinada
+```
+
+Como a velocidade limite é a raiz da aderência, a curva inclinada aceita √1,7 ≈ **1,30×** mais velocidade:
+
+| Curva | Trilho de dentro | Trilho de fora |
+|---|---|---|
+| Plana | 8,1 cél/s (58% da máxima) | 8,9 (64%) |
+| Inclinada | 10,5 (75%) | 11,6 (83%) |
+
+Na simulação da pista com ponte, os carrinhos chegaram a **13,4 cél/s** nas inclinadas e a 10,6 nas planas.
+
+Se o jogador abusar mesmo assim, ele derrapa e sai igual. A inclinada sobe o limite, não remove o limite.
+
+### 16.6 Testes feitos (pista "Exemplo: 8 com ponte")
+
+| Teste | Resultado |
+|---|---|
+| Pista fecha, sem sobreposição | Sim. A ponte (peça 11, nível 1) passa exatamente sobre a peça 24 (chão). |
+| Mesma pista com as rampas planas | Acusa sobreposição nas peças 10, 11, 12, 23, 24 e 25. |
+| Só subir, sem descer | "Fecha no plano" mas não no nível: aviso de nível 1. |
+| Carrinho na ponte em cima do outro | Camadas 1 e 0, nenhum toque. |
+| 1/10 s com acelerador cheio a 8 cél/s | Plano 9,82 · subindo 9,64 · descendo 9,99. |
+| Corrida de 5 voltas, os dois a 115% do limite | Os dois trilhos chegam juntos (27,2 s). No 8, cada carrinho faz um lóbulo por dentro e o outro por fora, então os trilhos têm o mesmo comprimento. |
+| Acelerador sempre no fundo | 11 a 13 saídas em 5 voltas. |
+
+### 16.7 Texturas novas
+
+| Arquivo | Uso |
+|---|---|
+| `pista-curva-inclinada-direita.png`, `pista-curva-inclinada-esquerda.png` | Faixa inteira da curva inclinada: listras amarelas transversais, clareia rumo ao lado de fora e tem muro no lugar da zebra |
+| `icone-curva-longa-inclinada-*.png`, `icone-curva-curta-inclinada-*.png` | Ícones da paleta |
+| `icone-rampa-sobe.png`, `icone-rampa-desce.png` | Ícones das rampas, com setas amarelas apontando para o lado alto |
+| `icone-reta-curtinha.png` | Ícone da reta de 1 célula |
+
+No save (seção 9), cada peça ganha o campo opcional `"altura": "sobe"` ou `"desce"`, e os tipos novos são `reta-curtinha`, `curva-longa-inclinada` e `curva-curta-inclinada`. É o mesmo formato do HTML.
+
+### 16.8 O 8 com ponte, peça por peça
+
+O 8 deitado é o traçado clássico de autorama com ponte. Cada lóbulo vira 270° e as duas diagonais se cruzam em ângulo reto no meio. Todas as curvas são **curtas inclinadas** (45°), seis por lóbulo.
+
+| Trecho | Peças | Rumo |
+|---|---|---|
+| Largada | Base de largada | leste |
+| Lóbulo direito | curta dir., reta curta, curta dir., curta dir., reta curta, curta dir., reta curta, curta dir. | de 0° até 225° |
+| Diagonal de cima | reta comprida **sobe**, reta curtinha (**a ponte**), reta comprida **desce** | 225° |
+| Lóbulo esquerdo | curta esq., reta curta, curta esq., reta curta, curta esq., curta esq., reta curta, curta esq., reta curta, curta esq. | de 225° até −45° |
+| Diagonal do chão | reta comprida, reta curtinha (passa embaixo da ponte), reta comprida | −45° |
+| Fechamento | curta dir. | de −45° até 0° |
+
+Ocupa 22,7 × 8,8 células. O meio da ponte cai exatamente sobre o meio da reta curtinha do chão.
+
+**Por que precisa da reta curtinha.** Com curvas de raio 2,5, a distância entre os dois lóbulos ao longo de cada diagonal sai sempre **5 + um número par** de células. É uma conta de geometria, não de ajuste. As retas de 2 e 4 só somam números pares, então o 8 nunca fecha só com elas. Por isso o autorama de verdade vende retas de 1/4. Aqui, cada diagonal tem 4 + 1 + 4 = 9 células.
+
+As retas curtas dentro dos lóbulos, duas delas na diagonal, servem para empurrar os lóbulos para longe do centro. Elas deixam 4 células de cada lado da ponte para as rampas.
+
+
+## 17. Fechar o circuito sozinho (tecla Q)
+
+Já está no projeto: `Core/TrackCloser.cs`, chamado pelo botão **Fechar circuito** do painel e pela tecla **Q**. O HTML usa o mesmo algoritmo.
+
+- **Conta exata.** As curvas de 45° geram coordenadas com √2. Cada coordenada é guardada como `(a + b·√2) / 8`, com `a` e `b` inteiros (struct `Q`), então "chegou na largada" é uma comparação exata, sem tolerância.
+- **Busca dos dois lados.** Expande até 6 peças a partir da ponta da pista (`Depth`) e até 6 a partir da largada, andando de ré. De ré, cada curva vira para o lado oposto (`MIRROR`). As duas buscas se encontram num mesmo estado (posição + rumo), e o fechamento tem no máximo 12 peças.
+- **Poucas peças primeiro.** Para cada estado, guarda as 3 sequências mais curtas (`KeepPerState`). Ordena os candidatos por número de peças, depois comprimento, depois menos curvas. Testa no máximo 600 contra sobreposição (`MaxChecks`) e recusa o que passa por cima da pista.
+- **Altura e estilo.** Se a ponta está no alto, encaixa rampas que descem: primeiro na reta comprida, depois na curta, depois em qualquer reta. Se a pista usa mais curvas inclinadas que planas, o fechamento também usa inclinadas.
+- **Desfazer.** O fechamento entra como uma ação só: Ctrl+Z tira tudo.
+
+## 18. Cruzamento (X)
+
+Duas peças, já no catálogo (`PieceCatalog.Cross` e `CrossS`):
+
+| Peça | id no JSON | Tecla | Comprimento | S de cada trilho |
+|---|---|---|---|---|
+| Cruzamento | `cruzamento` | X | 4 células | 4,038 |
+| Cruzamento curto | `cruzamento-curto` | B | 2 células | 2,075 |
+
+- **Caminho do trilho.** Na peça, o trilho sai de um lado e chega no outro: deslocamento `offset · cos(π·t)` (`PieceDef.LaneOffsetAt`). O comprimento do S é igual para os dois trilhos (`CrossLaneLength`).
+- **Troca de lado.** Depois de cada cruzamento, o sinal do deslocamento inverte. O `LanePath` do `RaceSim` faz isso ao montar o caminho.
+- **Número ímpar de cruzamentos.** O carrinho só volta ao trilho de partida depois de 2 voltas. O caminho então cobre 2 voltas e tem 2 bandeiradas (`marks`). A volta é contada por `LineCount(d) − 1`. No resumo, os dois trilhos aparecem com a média: o mesmo comprimento.
+- **Textura.** `pista-cruzamento.png` (256×1024) e `pista-cruzamento-curto.png` (256×512) cobrem a peça inteira (`vScale = 1 / Length`), com as fendas em X e a faixa amarela no meio. Materiais `theme.cross` e `theme.crossShort`.
+
+## 19. Campeonato
+
+Terceira aba, ao lado de Construtor e Corrida. No HTML ela já funciona; a seguir, como fazer igual na Unity.
+
+### 19.1 Como funciona
+
+- **Campeonato** = nome + pilotos (2 a 8) + etapas. **Etapa** = uma pista com um número de voltas.
+- **Bateria** = uma largada com 2 carros. Cada etapa tem **N baterias** (N = número de pilotos), em **rodízio em ciclo**: na bateria k correm o piloto k no trilho 1 e o piloto k+1 no trilho 2.
+
+| Pilotos | Baterias da etapa |
+|---|---|
+| 2 | A×B, B×A (a troca de lado) |
+| 3 | A×B, B×C, C×A |
+| 4 | A×B, B×C, C×D, D×A |
+
+  Cada piloto corre **exatamente uma vez em cada trilho**, nunca fica sem par e não precisa de todos contra todos.
+- **Resultado da etapa:** mais voltas primeiro, depois o **tempo somado** das duas baterias. É o que permite comparar pilotos que não correram juntos.
+- **Fim da bateria:** quando os dois chegam, ou **30 s** depois da bandeirada do primeiro. Quem não terminou fica com as voltas que fez, e o tempo dele é o tempo da prova nesse momento.
+- **Pontos:** 10 · 8 · 6 · 5 · 4 · 3 · 2 · 1 por posição, **+1 para a melhor volta da etapa**. Desempate da tabela geral: vitórias, pódios, tempo total.
+- **Regras fixas:** ao começar, o campeonato copia a velocidade, a rampa do acelerador, a aderência e a colisão dos ajustes da corrida. Assim, todas as baterias correm com as mesmas regras.
+- **Cópia das pistas:** o campeonato guarda uma cópia de cada pista. Editar a pista na biblioteca no meio do caminho não muda o campeonato.
+- **Salvar a bateria:** depois da bandeirada, a bateria só conta quando alguém aperta **Salvar e seguir** (Enter). **Correr de novo** descarta a bateria e larga outra vez. O campeonato fica salvo depois de cada bateria, e dá para fechar e continuar outro dia.
+
+### 19.2 Dados
+
+`Scripts/Champ/ChampData.cs`. Os nomes dos campos são os mesmos do HTML (`localStorage`: `autorama-pilotos-v1`, `autorama-campeonatos-v1`, `autorama-recordes-v1`).
+
+```csharp
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace Autorama
+{
+    [Serializable] public class Pilot
+    {
+        public string id, name, tag; public string color;    // color: "#RRGGBB"
+        public bool ai; public int skill = 50;               // piloto IA e qualidade 1–100 (seção 19.10)
+    }
+
+    [Serializable] public class Stage { public string name; public int laps = 5; public string hash; public TrackSave data; }
+
+    [Serializable] public class HeatResult
+    {
+        public int laps; public float time; public bool dnf;
+        public float best = -1;                  // -1: nenhuma volta completa
+        public int offs, hits;
+        public bool rec, raceRec, pb;            // bateu recorde de volta, de corrida, ou o melhor pessoal
+    }
+
+    [Serializable] public class Heat
+    {
+        public int s;                            // etapa
+        public int[] p = new int[2];             // índice dos pilotos: [trilho 1, trilho 2]
+        public HeatResult[] res;                 // null até salvar
+        public bool Saved => res != null && res.Length == 2;
+    }
+
+    [Serializable] public class ChampRules { public float vmax, ramp, grip; public bool collide; }
+
+    [Serializable] public class Championship
+    {
+        public string id, name; public long created, finished;
+        public ChampRules rules;
+        public List<Pilot> pilots = new List<Pilot>();
+        public List<Stage> stages = new List<Stage>();
+        public List<Heat> heats = new List<Heat>();
+    }
+
+    public static class ChampRulesTable
+    {
+        public static readonly int[] Points = { 10, 8, 6, 5, 4, 3, 2, 1 };
+        public const float Cutoff = 30f;
+        public const int MaxPilots = 8;
+        public static readonly string[] Colors = { "#E0362C", "#2563EB", "#F2B705", "#16A34A", "#9333EA", "#F97316", "#0EA5B7", "#E04B95" };
+    }
+}
+```
+
+Os 8 nomes das cores, na ordem: Vermelho, Azul, Amarelo, Verde, Roxo, Laranja, Ciano, Rosa. Dois pilotos do mesmo campeonato não podem ter a mesma cor.
+
+A **sigla** são as 3 primeiras letras do nome, sem acento e em maiúsculas (André → AND). O jogador pode trocar.
+
+### 19.3 Rodízio
+
+```csharp
+public static List<Heat> MakeHeats(int nPilots, int nStages)
+{
+    var list = new List<Heat>();
+    for (int s = 0; s < nStages; s++)
+        for (int k = 0; k < nPilots; k++)
+            list.Add(new Heat { s = s, p = new[] { k, (k + 1) % nPilots } });
+    return list;
+}
+
+// A bateria da vez: a primeira sem resultado. -1 = campeonato encerrado.
+public static int CurrentHeat(Championship c) => c.heats.FindIndex(h => !h.Saved);
+```
+
+### 19.4 Mudanças no RaceSim
+
+**1. Regras e voltas.** Para cada bateria, o `RaceController` cria o `RaceSim` com um `RaceSettings` montado a partir de `champ.rules` e de `stage.laps`. Os ajustes salvos da aba Corrida não mudam.
+
+**2. Tempo limite.** Um campo novo e uma linha no `Step`:
+
+```csharp
+public float? cutoff;          // null na corrida livre; 30 no campeonato
+public float? bestT;           // melhor volta da bateria até agora
+
+// no Step, logo depois de avançar t:
+if (phase == Phase.Running && cutoff.HasValue && winner >= 0 && t - cars[winner].finish.Value >= cutoff.Value)
+    phase = Phase.Done;
+```
+
+**3. Aviso de volta.** Um evento `LapDone(int car, float lap)`, disparado antes de atualizar `best` e `bestT`. É ele que mostra o recorde na hora (19.6).
+
+### 19.5 Resultado da etapa e tabela geral
+
+```csharp
+public class StageRow { public int i, laps, runs, offs, hits, pts = -1; public float time, best = -1; public bool fast; }
+
+public static (List<StageRow> rows, bool complete) StageResults(Championship c, int s)
+{
+    var rows = new List<StageRow>();
+    for (int i = 0; i < c.pilots.Count; i++) rows.Add(new StageRow { i = i });
+    bool complete = true;
+    foreach (var h in c.heats)
+    {
+        if (h.s != s) continue;
+        if (!h.Saved) { complete = false; continue; }
+        for (int k = 0; k < 2; k++)
+        {
+            var r = h.res[k]; var row = rows[h.p[k]];
+            row.laps += r.laps; row.time += r.time; row.runs++; row.offs += r.offs; row.hits += r.hits;
+            if (r.best >= 0 && (row.best < 0 || r.best < row.best)) row.best = r.best;
+        }
+    }
+    rows.RemoveAll(r => r.runs == 0);
+    rows.Sort((a, b) => a.laps != b.laps ? b.laps.CompareTo(a.laps) : a.time.CompareTo(b.time));
+    if (complete)
+    {
+        for (int pos = 0; pos < rows.Count; pos++) rows[pos].pts = pos < ChampRulesTable.Points.Length ? ChampRulesTable.Points[pos] : 0;
+        StageRow fastest = null;
+        foreach (var r in rows) if (r.best >= 0 && (fastest == null || r.best < fastest.best)) fastest = r;
+        if (fastest != null) { fastest.fast = true; fastest.pts++; }
+    }
+    return (rows, complete);
+}
+```
+
+A tabela geral soma só as etapas completas: pontos, vitórias (1º na etapa), pódios (até 3º), melhores voltas e tempo. A ordem é pontos, depois vitórias, depois pódios, depois menor tempo.
+
+A setinha ▲▼ compara a posição atual com a tabela calculada sem a última etapa completa.
+
+### 19.6 Recordes
+
+**Identidade da pista.** O recorde fica preso à **forma da pista**, não ao nome nem à posição na mesa:
+- a mesma pista salva com outro nome mantém o recorde;
+- mudar uma peça faz dela outra pista.
+
+A identidade é o FNV-1a de 32 bits do texto `largada:0:0|reta-comprida:0:0|meia-curva:-1:0|…`, com a peça escrita como `id:sentido:altura`:
+- o id é o mesmo do JSON;
+- o sentido é −1 para a esquerda, 1 para a direita e 0 nas retas;
+- a altura é 1 para sobe, −1 para desce e 0 para plana.
+
+O HTML calcula exatamente o mesmo número.
+
+```csharp
+public static string TrackHash(TrackSave t)
+{
+    var sb = new System.Text.StringBuilder("largada:0:0");
+    foreach (var p in t.pecas)
+    {
+        int dir = p.sentido == "esquerda" ? -1 : p.sentido == "direita" ? 1 : 0;
+        int rise = p.altura == "sobe" ? 1 : p.altura == "desce" ? -1 : 0;
+        sb.Append('|').Append(p.tipo).Append(':').Append(dir).Append(':').Append(rise);
+    }
+    uint h = 0x811c9dc5;
+    foreach (char ch in sb.ToString()) { h ^= ch; h *= 0x01000193; }
+    return h.ToString("x8");
+}
+```
+
+**O que fica guardado por pista:**
+- **Volta:** o recorde absoluto, com tempo, piloto (cópia com nome, sigla e cor), data e campeonato.
+- **Por trilho:** um recorde para cada trilho. Fica de fora quando a pista tem número **ímpar** de cruzamentos, porque aí cada carrinho passa pelos dois trilhos.
+- **Corrida:** um recorde por número de voltas. 5 voltas só se compara com 5 voltas.
+- **Pessoal:** a melhor volta e a melhor corrida de cada piloto.
+
+**Quando gravar.** Só ao **Salvar e seguir** a bateria. Antes disso, cada volta completa só compara (evento `LapDone`):
+- se a volta for menor que o recorde salvo e que a melhor volta da bateria, o controle mostra "**Recorde da pista!**" em amarelo por 2,5 s;
+- se for só menor que o melhor pessoal (que já existia), mostra "**Melhor volta pessoal!**" em verde.
+
+**Corrida livre.** Não grava recorde, mas mostra o recorde da pista como meta: "Recorde da pista: 4,03 s CAI".
+
+### 19.7 Telas (UI Toolkit)
+
+**Montar o campeonato:**
+- Nome do campeonato.
+- **Pilotos:** cadastro com marcar e desmarcar. A ordem em que marca é a ordem do rodízio. Cada piloto tem Editar e Apagar, e um piloto com cor repetida mostra o aviso "cor repetida".
+- **Formulário de piloto:** nome, sigla e as 8 bolinhas de cor. As cores já usadas aparecem apagadas.
+- **Etapas:** miniatura, voltas com − e +, botões para subir, descer e tirar.
+- **Pistas disponíveis:** da construção, os exemplos e a biblioteca, cada uma com o recorde.
+- **Regras e plano:** "3 pilotos · 2 etapas · 6 baterias · cerca de 2 min". A estimativa é, por bateria, voltas × comprimento ÷ (60% da velocidade máxima) + 10 s.
+- **Começar:** fica desligado com o motivo à vista (menos de 2 pilotos, cor repetida, nenhuma etapa).
+- **Campeonatos anteriores:** cada um abre a tabela final e tem "Apagar do histórico".
+
+**Durante o campeonato:**
+- **Ficha da bateria:** a etapa e as voltas, os dois pilotos com a cor deles, "Trilho 1 · fora" e "Trilho 2 · dentro" (o trilho mais curto é o de dentro; se forem iguais, não diz) e as teclas de cada um.
+- **Botões:** Largar (Enter); Recomeçar bateria durante a prova; depois da bandeirada, Salvar e seguir (Enter) e Correr de novo.
+- **Placar:** voltas, última, melhor, saídas e toques. O carrinho e a borda do controle ganham a **cor do piloto** (no HTML, a variável CSS `--car` e `--lane`).
+- **Resultado da etapa:** a etapa da última bateria salva. Enquanto não termina, tem a coluna Bat. (1/2, 2/2) e os pontos ficam "—".
+- **Tabela geral** com a setinha ▲▼.
+- **Recordes** da pista em uso e o melhor de cada piloto nela.
+- **Lista das etapas:** ✓ e o vencedor, ou quantas baterias faltam.
+- **Faixa no meio da mesa:** quem venceu a bateria, com "RECORDE" e de quem, se houve. Na primeira bateria de uma etapa nova, quem venceu a anterior.
+
+**No fim:**
+- Pódio (2º, 1º, 3º).
+- Prêmios:
+  - mão mais rápida (melhor volta do campeonato);
+  - rei do muro (mais saídas de pista);
+  - para-choque (mais toques);
+  - número de recordes batidos.
+- Botão **Arquivar e montar outro**, que guarda a tabela final no histórico.
+
+### 19.8 Onde salvar
+
+Pasta `Application.persistentDataPath/autorama/`:
+- `pilotos.json`
+- `campeonatos.json`, com o rascunho, o campeonato ativo e o histórico
+- `recordes.json`
+
+O `JsonUtility` não lê dicionário. Os recordes no HTML são um mapa `{ hash: { lap, lanes, race: { voltas: … }, pb: { piloto: … } } }`. Para ter **o mesmo JSON** nos dois, use o pacote `com.unity.nuget.newtonsoft-json`. Se preferir o `JsonUtility`, troque os mapas por listas (`List<TrackRecords>` com o campo `hash`).
+
+### 19.9 Testes feitos (HTML, simulação com pilotos-robô)
+
+3 pilotos e 2 etapas: Oval com 3 voltas e 8 com ponte com 2 voltas. Os robôs aceleram até um limite diferente cada um: 105%, 112% e 122% do que a curva aguenta.
+
+| Bateria | Pista | Trilho 1 | Trilho 2 |
+|---|---|---|---|
+| 1 | Oval | AND (fora) 13,72 s | BIA (dentro) 13,88 s |
+| 2 | Oval | BIA (fora) 14,73 s | CAI (dentro) 12,32 s |
+| 3 | Oval | CAI (fora) 13,02 s | AND (dentro) 12,92 s |
+| 4 | 8 com ponte | AND 11,55 s | BIA 11,87 s |
+| 5 | 8 com ponte | BIA 12,08 s | CAI 13,17 s, 2 saídas |
+| 6 | 8 com ponte | CAI 11,68 s | AND 11,50 s |
+
+- **Etapa 1 (Oval):** CAI 25,33 s, 11 pts com a melhor volta; AND 8; BIA 6.
+- **Etapa 2 (8 com ponte):** AND 10; BIA 8; CAI 7 com a melhor volta.
+- **Tabela final:** AND 18 e CAI 18, com 1 vitória e 2 pódios cada. O desempate foi pelo tempo total: AND 49,68 s contra CAI 50,18 s. BIA ficou com 14.
+- **Recordes do Oval:** volta 4,03 s (CAI), 3 voltas 12,32 s (CAI).
+- **Recordes do 8 com ponte:** volta 5,20 s (CAI), 2 voltas 11,50 s (AND).
+- **Identidade da pista:** a mesma pista com outro nome e em outro lugar da mesa tem a mesma identidade; trocar uma peça muda.
+- **Rodízio com 2, 4 e 5 pilotos:** cada piloto uma vez em cada trilho.
+- **Salvar e recarregar:** o campeonato voltou com as 6 baterias.
+
+### 19.10 Pilotos IA
+
+No formulário de piloto há uma chave **Piloto IA** e, com ela ligada, uma régua de **qualidade de 1 a 100**. Piloto IA sem nome vira "Robô 1", "Robô 2"…
+
+O texto embaixo da régua muda com a qualidade:
+
+| Qualidade | Texto |
+|---|---|
+| até 20 | Iniciante: freia cedo e erra bastante |
+| até 45 | Amador: anda seguro, às vezes passa do ponto |
+| até 70 | Bom: entra forte nas curvas |
+| até 90 | Experiente: quase no limite, raramente sai |
+| acima | Profissional: no limite da aderência |
+
+**Como a IA dirige.** Ela usa o mesmo botão que a gente, só segura e solta, sem trapaça. Olha 3,5 células à frente e acelera enquanto a velocidade for menor que a que ainda dá para frear antes da próxima curva:
+
+```csharp
+// sk = qualidade / 100
+float Base(float sk)   => 0.82f + 0.33f * sk;                     // coragem: fração do limite da curva
+float Spread(float sk) => 0.02f + 0.10f * (1 - sk);               // variação a cada sorteio
+float Miss(float sk)   => 0.005f + 0.12f * Mathf.Pow(1 - sk, 1.5f); // chance de errar por sorteio
+float ReslotDelay(float sk) => 1.4f - 0.9f * sk;                   // segundos até apertar Recolocar
+
+void AiDrive(CarState c, int k, float dt, float sk)
+{
+    if (phase == Phase.Countdown) { c.held = true; return; }        // segura na luz vermelha, como gente
+    if ((c.aiT -= dt) <= 0)                                         // sorteia de novo a cada 1,2 s
+    {
+        c.aiM = Random.value < Miss(sk) ? 1.3f + 0.1f * Random.value              // erro: entra forte demais
+                                        : Base(sk) + (Random.value * 2 - 1) * Spread(sk);
+        c.aiT = 1.2f;
+    }
+    if (c.mode == CarMode.Off) { c.held = false; if ((c.offT += dt) >= ReslotDelay(sk)) { c.offT = 0; Reslot(k); } return; }
+    if (c.mode != CarMode.OnSlot || c.finish != null) { c.held = false; return; }
+    float need = float.PositiveInfinity;
+    for (float d = 0; d <= 3.5f; d += 0.1f)
+    {
+        var q = paths[k].At(Wrap(c.s + d, paths[k].Total));
+        if (q.k == 0) continue;
+        float v = Mathf.Sqrt(set.grip * q.grip / Mathf.Abs(q.k)) * c.aiM;
+        need = Mathf.Min(need, Mathf.Sqrt(v * v + 2 * 20f * d));       // 20 cél/s²: quanto ele conta frear
+    }
+    c.held = c.v < need;
+}
+```
+
+Chame `AiDrive` no começo do `Step`, antes de atualizar o acelerador, para cada carrinho com IA. `CarState` ganha `aiM`, `aiT` e `offT`, e o `RaceSim` ganha `ai[2]`, nulo para gente. O `RaceController` preenche `ai` com os pilotos da bateria.
+
+**O que muda em volta:**
+- **Controle do carrinho IA:** o botão vira só um mostrador ("IA pilotando · 85", borda tracejada) e ignora toque e tecla. O Recolocar fica desligado, porque a IA se recoloca sozinha.
+- **Recordes:** a IA **não bate recorde da pista**, nem de volta, nem por trilho, nem de corrida. Recorde é coisa de gente. Ela guarda só o melhor pessoal dela. O aviso "Recorde da pista!" e a faixa "RECORDE" consideram só as voltas de gente.
+- **Selo "IA 85":** aparece no cadastro e na tabela geral. A ficha da bateria mostra "IA · qualidade 85" no lugar das teclas.
+- **Campeonato:** pode misturar gente e IA como quiser, ou ser só de IA, só para assistir.
+
+**Calibração (HTML, 30 corridas de 5 voltas por qualidade, os dois carros iguais, sem colisão):**
+
+| Qualidade | Oval: tempo médio | Oval: saídas por corrida | 8 com ponte: tempo médio | 8 com ponte: saídas por corrida |
+|---|---|---|---|---|
+| 1 | 28,09 s | 0,57 | 35,98 s | 0,80 |
+| 25 | 26,66 s | 0,43 | 34,05 s | 0,73 |
+| 50 | 24,72 s | 0,10 | 31,86 s | 0,27 |
+| 75 | 23,39 s | 0,07 | 29,39 s | 0,10 |
+| 90 | 22,28 s | 0,07 | 28,45 s | 0,07 |
+| 100 | 21,60 s | 0,07 | 27,29 s | 0,03 |
+
+A qualidade 100 anda perto do limite (o oval de 5 voltas a 115% dava 21,5 s). A qualidade 1 leva 30% a mais e sai da pista quase uma vez a cada corrida.
+
+**Campeonato misto testado:** André (gente), Robô 1 (IA 100) e Robô 2 (IA 30) no Oval com 3 voltas. O recorde de volta ficou com o André (5,23 s), embora o Robô 1 tenha feito 4,10 s. A volta do Robô 1 ficou guardada como melhor pessoal dele.
+
+### 19.11 Já implementado no projeto Unity
+
+O campeonato e os pilotos IA já estão no projeto Unity deste repositório:
+
+| Arquivo | O que faz |
+|---|---|
+| `Scripts/Champ/ChampData.cs` | Classes salvas (`Pilot`, `Stage`, `Heat`, `HeatResult`, `Championship`, `ChampStore`, `TrackRecords`). As contas em `Champ`: rodízio, resultado da etapa, tabela geral, identidade da pista, sigla, texto da qualidade e estimativa de duração. A leitura e gravação dos arquivos em `ChampFiles`. |
+| `Scripts/Race/RaceSim.cs` | Ganhou `set` trocável, `cutoff`, `bestT`, `aiSkill[2]`, o evento `LapDone`, o `AiDrive` e o `HumanBest()`. |
+| `Scripts/Race/RaceController.cs` | Virou `partial`. Ganhou as três abas (`OnMode(Mode)`), a IA no lugar do teclado, o aviso de recorde no controle e a faixa do campeonato. |
+| `Scripts/Race/RaceController.Champ.cs` | A aba Campeonato inteira: montar, bateria, tabelas, recordes, pódio, histórico. Também pinta o carrinho na cor do piloto, com o mesmo desenho do `gen-texturas.js` gerado em tempo de execução. |
+| `Scripts/Builder/BuilderPanel.cs` | Ganhou o enum `Mode { Build, Race, Champ }`, a terceira aba e o `ChampBox`. |
+| `UI/Construtor.uss` | Estilos do campeonato. |
+
+**Arquivos salvos** (`persistentDataPath/autorama/`): `pilotos.json`, `campeonatos.json` e `recordes.json`. Os três usam o `JsonUtility`, com listas no lugar dos mapas do HTML. O `JsonUtility` grava `null` como objeto vazio, por isso:
+- `ChampStore.hasActive` diz se há campeonato ativo;
+- um recorde com `t < 0` quer dizer "nenhum".
+
+**Testes feitos na Unity:**
+- **Identidade da pista:** igual à do HTML. Oval `a34f4cb9`, 8 com ponte `81546106`.
+- **Campeonato só de IA (qualidades 30, 70 e 100), no Oval com 3 voltas e no 8 com ponte com 2 voltas:** a IA 100 venceu as duas etapas e ficou com 22 pontos; a IA 70 com 16; a IA 30 com 12. Ninguém saiu da pista.
+- **JSON:** o campeonato salvo e relido voltou com as 6 baterias. Um campeonato sem bateria salva continua sem bateria salva depois da leitura.
+- **Modo Play:** montar pelo formulário (gente + 2 IA), começar e largar funcionaram, com ficha da bateria, controle "IA PILOTANDO · 85" e carrinhos nas cores dos pilotos.
+
+### 19.12 Corrida livre contra o robô
+
+Na aba Corrida, logo abaixo de Largar, há uma chave **Jogador 2 é um robô**. Ligada, ela mostra a régua **Qualidade do robô** (1 a 100), com o mesmo texto do formulário de piloto. O robô é a mesma IA do campeonato (seção 19.10), sempre no trilho 2.
+
+- **Salvo junto com os ajustes da corrida:** `RaceSettings` ganha `bot` (bool) e `botSkill` (int, padrão 60).
+- **Vale na hora,** até no meio da prova. Ao entrar na aba Corrida, ou ao mexer na chave ou na régua:
+
+```csharp
+sim.aiSkill[0] = 0;
+sim.aiSkill[1] = set.bot ? set.botSkill : 0;
+if (!set.bot) sim.cars[1].held = false;     // desligou: solta o acelerador que a IA segurava
+DrawPadHeads();
+```
+
+- **Controle do jogador 2:** vira "ROBÔ · TRILHO 2", com o botão de mostrador ("IA PILOTANDO · 80") e o Recolocar desligado.
+- **Na Unity:** um `Toggle` e um `SliderInt` na seção CORRIDA do `RaceController.BuildUI`. O `DrawPadHeads` já trata o nome e o mostrador quando `aiSkill[k] > 0`; no nome, sem piloto do campeonato, use "ROBÔ · TRILHO 2".
+
+**Teste (HTML):** Oval com 5 voltas, robô 80 contra o jogador 1 parado. O robô fez as 5 voltas em 22,65 s e o jogador 1 ficou no grid. Ao desligar a chave, o robô soltou o acelerador. Ao sair para o campeonato e voltar, a corrida livre continuou sem robô.
+
+**Já está na Unity:**
+- `RaceSettings.bot` e `RaceSettings.botSkill`;
+- o `Toggle` e o `SliderInt` na seção CORRIDA;
+- `RaceController.SetBot()`, chamado ao entrar na aba e a cada mudança. Ele só vale na aba Corrida.
+
+No teste em modo Play (8 com ponte, robô 60), o robô fez 3 voltas sozinho, com melhor volta de 5,60 s, e o jogador 1 ficou no grid.
+
+## 20. Celular em pé
+
+No HTML, a mesma página vira a versão de celular quando a tela tem menos de 640 px de largura. Na Unity, trave a orientação em **Portrait** (Player Settings › Resolution and Presentation › Default Orientation) e use um segundo layout de UI para telas estreitas.
+
+### 20.1 Construtor
+
+| Área | O que tem |
+|---|---|
+| Topo | Abas (Construtor, Corrida, Campeonato), botão **Menu** e, embaixo, o aviso de circuito fechado/aberto |
+| Meio | A mesa. Um dedo arrasta a vista e dois dedos dão zoom (pinça) |
+| Embaixo | Desfazer / Refazer / Fechar circuito; a barra da peça tocada (Inverter, Remover, Sobe/Plana/Desce, Soltar); a faixa de peças com rolagem lateral |
+| Menu | Gaveta que sobe de baixo com o resto do painel: resumo, minhas pistas, exportar, trocar o tipo da peça |
+
+Na Unity: um `ScrollView` horizontal com os botões de peça e um `VisualElement` de gaveta animando `translate` de 100% para 0. Abrir uma pista ou largar fecha a gaveta.
+
+### 20.2 Corrida
+
+- O controle do jogador 2 fica em cima, **girado 180°**, e o do jogador 1 fica embaixo. Assim o celular fica deitado na mesa, com um jogador de cada lado. O botão **⇅ Frente** desvira o controle de cima (salvo no aparelho).
+- Os dois aceleradores aceitam toques ao mesmo tempo. Na Unity, use `Input.touches`, ou um `PointerDown`/`PointerUp` por botão com o `pointerId`. O acelerador vale enquanto aquele dedo estiver no botão.
+- Entre a mesa e o jogador 1 fica uma barra com **Largar** e o tempo da prova. No meio da prova, recomeçar pede dois toques, porque o botão fica perto do acelerador.
+- **Pista girada:** se a área da mesa é mais alta que larga (mais de 15%) e a pista é mais larga que alta (mais de 15%), a câmera gira 90° e a régua some. Na Unity basta `camera.transform.rotation = Quaternion.Euler(90, 0, 90)` na câmera de cima e recalcular o enquadramento com largura e altura trocadas. Ao mudar o tamanho da tela durante a corrida, enquadre de novo.
+- Teclas e atalhos ficam escondidos no celular.
+
+## 21. A mesa cresce com a pista
+
+Quando a pista passa da borda da mesa quadriculada, a mesa ganha células, com **1 de folga** além da pista e um máximo de 120 × 120. Ela nunca encolhe sozinha; para diminuir, use os campos de tamanho da mesa.
+
+- **Passou da direita, ou do topo na Unity:** a mesa só aumenta naquele lado.
+- **Passou da esquerda, ou de baixo na Unity (de cima no HTML):** a mesa começa na célula 0, então a pista inteira é **empurrada para dentro** por células inteiras. Assim a largada continua encaixada na grade. A vista anda junto (`TopDownCamera.Nudge`; no HTML, `view.x/y`), e nada pula na tela.
+- **Quando:**
+  - a cada edição (`Commit`);
+  - ao abrir uma pista (`ShowTrack`, rascunho, biblioteca, exemplos, corrida, campeonato);
+  - ao **soltar** a largada arrastada (`EndEdit`). Durante o arrasto a mesa espera, senão a pista fugiria do mouse.
+- **Desfazer:** a mesa entra no Ctrl+Z junto com a pista (o instantâneo do desfazer já guarda `mesa`). Desfazer a peça que fez a mesa crescer devolve a mesa ao tamanho anterior.
+
+```csharp
+// TrackBuilder
+const int BoardMargin = 1, BoardMax = 120;
+bool GrowBoard()
+{
+    var b = TrackLayout.Analyze(Origin, TrackLayout.Build(Origin, pieces)).bounds;   // já inclui meia largura da pista
+    int dx = b.xMin < -0.01f ? Mathf.CeilToInt(-b.xMin) + BoardMargin : 0;
+    int dz = b.yMin < -0.01f ? Mathf.CeilToInt(-b.yMin) + BoardMargin : 0;
+    int w = boardSize.x + dx, h = boardSize.y + dz;
+    if (b.xMax + dx > w + 0.01f) w = Mathf.CeilToInt(b.xMax + dx) + BoardMargin;
+    if (b.yMax + dz > h + 0.01f) h = Mathf.CeilToInt(b.yMax + dz) + BoardMargin;
+    w = Mathf.Min(w, BoardMax); h = Mathf.Min(h, BoardMax);
+    if (dx == 0 && dz == 0 && w == boardSize.x && h == boardSize.y) return false;
+    if (dx != 0 || dz != 0) { Origin = new Pose2(Origin.pos + new Vector2(dx, dz), Origin.heading); Shifted?.Invoke(new Vector2(dx, dz)); }
+    boardSize = new Vector2Int(w, h);
+    return true;
+}
+```
+
+**Testes:**
+- **HTML, oval:** 8 retas compridas para a direita levaram a mesa de 32 × 20 para 44 × 20. Virando para cima com 5 retas, a pista desceu 17 células e a mesa foi para 46 × 37. Desfazendo, a mesa voltou para 44 × 20.
+- **Unity:** 8 retas levaram a mesa de 32 para 44. Virando e passando da borda, ela foi para 46 × 37. Saindo pela borda de baixo, a pista foi empurrada para cima e o aviso `Shifted` saiu a cada empurrão (é ele que move a câmera).

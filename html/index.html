@@ -1,0 +1,2805 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Construtor de Pista Autorama</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: bancada de oficina — painel de peças à esquerda, mesa quadriculada vista de cima ocupando o resto */
+:root{
+  --paper:#E8ECE6; --panel:#F8FAF6; --board:#F3F6F0; --ink:#18201C; --muted:#5B675F;
+  --grid:#D5DCD2; --grid-strong:#A6B3A4; --line:#CFD7CC;
+  --asphalt:#2F3533; --edge:#F2F2EC; --rail:#AEB4B8; --slot:#0E1110; --joint:#4C5450; --curb:#D13A2E;
+  --laneA:#D3261C; --laneB:#1F5ED4; --accent:#E9A800; --accent-ink:#1B1600;
+  --ok:#1D7F45; --warn:#C2410C;
+  --light-off:#2A2F2D; --light-red:#E0372C; --light-green:#2BC167;
+  --f-display:"Saira Condensed","Arial Narrow",sans-serif;
+  --f-body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0F1311; --panel:#161C19; --board:#151B18; --ink:#E5EBE3; --muted:#94A197;
+  --grid:#222A26; --grid-strong:#3A4740; --line:#29322D;
+  --asphalt:#3B4240; --edge:#E2E5DE; --rail:#9AA2A6; --slot:#090B0A; --joint:#5A635E; --curb:#E0493C;
+  --laneA:#F04A3F; --laneB:#5089F2; --accent:#F5C21B; --accent-ink:#1B1600;
+  --ok:#3DBE74; --warn:#F07A3A; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --paper:#0F1311; --panel:#161C19; --board:#151B18; --ink:#E5EBE3; --muted:#94A197;
+  --grid:#222A26; --grid-strong:#3A4740; --line:#29322D;
+  --asphalt:#3B4240; --edge:#E2E5DE; --rail:#9AA2A6; --slot:#090B0A; --joint:#5A635E; --curb:#E0493C;
+  --laneA:#F04A3F; --laneB:#5089F2; --accent:#F5C21B; --accent-ink:#1B1600;
+  --ok:#3DBE74; --warn:#F07A3A; color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0}
+html,body{height:100%}
+body{background:var(--paper);color:var(--ink);font:400 15px/1.45 var(--f-body);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+kbd{font:500 10px/1 var(--f-mono);color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:2px 4px;background:var(--board)}
+
+.app{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr);gap:12px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px 16px}
+
+/* Cabeçalho */
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px}
+.brand{display:flex;align-items:center;gap:12px;margin-right:auto;min-width:0}
+.flag{width:34px;height:34px;flex:none;border-radius:6px;overflow:hidden}
+.flag .fl{fill:var(--panel)} .flag .fd{fill:var(--ink)}
+.brand h1{font:700 26px/1 var(--f-display);letter-spacing:.02em;text-transform:uppercase;margin:0;text-wrap:balance}
+.brand p{margin:3px 0 0;font:500 11px/1.2 var(--f-mono);color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.status{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border-radius:999px;font:600 13px/1.1 var(--f-body);border:1px solid var(--line);background:var(--panel)}
+.status .dot{width:9px;height:9px;border-radius:50%;background:var(--muted);flex:none}
+.status.ok{color:var(--ok)} .status.ok .dot{background:var(--ok)}
+.status.warn{color:var(--warn)} .status.warn .dot{background:var(--warn)}
+.status.open .dot{background:var(--accent)}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+
+.btn{font:600 14px/1 var(--f-body);color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:9px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.btn:hover{border-color:var(--grid-strong)}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.primary{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.btn.primary kbd{background:transparent;color:inherit;border-color:currentColor;opacity:.7}
+.btn.danger{color:var(--warn)}
+.btn.accent{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.accent kbd{background:transparent;color:inherit;border-color:currentColor;opacity:.7}
+.toast{position:absolute;right:12px;bottom:44px;max-width:min(460px,calc(100% - 24px));padding:9px 14px;border-radius:8px;background:var(--ink);color:var(--panel);font-size:13px;line-height:1.35;box-shadow:0 4px 18px rgba(0,0,0,.18)}
+.btn svg{width:12px;height:12px;fill:currentColor}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* Área de trabalho */
+.work{display:grid;grid-template-columns:320px minmax(0,1fr);gap:12px;min-height:0}
+.side{min-height:0;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px}
+.block{padding:14px 16px;border-top:1px solid var(--line)}
+.block:first-child{border-top:0}
+h2{font:700 15px/1 var(--f-display);letter-spacing:.09em;text-transform:uppercase;margin:0 0 10px}
+h3{font:600 12px/1 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px}
+.hint{margin:0 0 10px;color:var(--muted);font-size:13px}
+.hint b{color:var(--ink);font-weight:600}
+
+.palette{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pc{position:relative;display:grid;grid-template-columns:44px minmax(0,1fr);align-items:center;gap:8px;text-align:left;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--board);cursor:pointer}
+.pc:hover,.pc:focus-visible{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--board))}
+.pc:active{transform:translateY(1px)}
+.pc .ico{width:44px;height:44px}
+.pc b{display:block;font:600 13.5px/1.15 var(--f-body)}
+.pc small{display:block;color:var(--muted);font-size:12px;line-height:1.2;margin-top:2px}
+.pc kbd{position:absolute;top:6px;right:6px}
+.pc b{padding-right:16px;overflow-wrap:anywhere}   /* não encosta na tecla de atalho */
+
+.ico .ib{fill:var(--asphalt)}
+.ico .il{fill:none;stroke-width:.09px}
+.ico .il.a{stroke:var(--laneA)} .ico .il.b{stroke:var(--laneB)}
+.ico .ick{fill:none;stroke:var(--edge);stroke-width:.22px;stroke-dasharray:.125px .125px}
+
+.selhead{display:flex;gap:10px;align-items:center;margin-bottom:10px}
+.selhead .ico{width:40px;height:40px;flex:none}
+.selhead b{display:block;font-weight:600}
+.selhead small{display:block;color:var(--muted);font-size:13px}
+.row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.row .btn{padding:8px 10px;font-size:13px}
+.swap{display:flex;flex-wrap:wrap;align-items:center;gap:4px}
+.swap span{font-size:12px;color:var(--muted);margin-right:4px}
+.mini{width:36px;height:36px;padding:3px;border:1px solid var(--line);border-radius:6px;background:var(--board);cursor:pointer}
+.mini:hover{border-color:var(--accent)}
+.mini .ico{width:100%;height:100%;display:block}
+
+.stats{display:grid;grid-template-columns:auto 1fr auto;gap:6px 10px;margin:0;font-size:13.5px;align-items:baseline}
+.stats dt{color:var(--muted);display:flex;align-items:center;gap:6px}
+.stats dd{margin:0;font:500 13px/1.3 var(--f-mono);font-variant-numeric:tabular-nums;text-align:right}
+.stats dd.m{color:var(--muted)}
+.sw{width:10px;height:10px;border-radius:2px;display:inline-block}
+.sw.a{background:var(--laneA)} .sw.b{background:var(--laneB)}
+.bom{width:100%;border-collapse:collapse;font-size:13.5px}
+.bom td{padding:4px 0;border-top:1px solid var(--line);vertical-align:middle}
+.bom tr:first-child td{border-top:0}
+.bom .ico{width:24px;height:24px;display:block}
+.bom td:first-child{width:32px}
+.bom small{color:var(--muted);font-size:12px;margin-left:4px}
+.bom td:last-child{text-align:right;font:500 13px var(--f-mono);font-variant-numeric:tabular-nums}
+.bom tr.zero{opacity:.45}
+
+.seq{display:flex;flex-wrap:wrap;gap:4px}
+.chip{display:flex;flex-direction:column;align-items:center;gap:2px;width:38px;padding:4px 2px 3px;border:1px solid var(--line);border-radius:6px;background:var(--board);cursor:pointer}
+.chip .ico{width:22px;height:22px}
+.chip span{font:500 10px/1 var(--f-mono);color:var(--muted)}
+.chip.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 22%,var(--board))}
+.chip.on span{color:var(--ink)}
+.chip.bad{border-color:var(--warn)}
+
+.fields{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.fields label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
+.fields input{width:100%;font:500 14px var(--f-mono);padding:7px 8px;border:1px solid var(--line);border-radius:6px;background:var(--board);color:var(--ink)}
+textarea{width:100%;height:110px;resize:vertical;font:500 11.5px/1.4 var(--f-mono);padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--board);color:var(--ink)}
+.io-msg{font-size:13px;margin:8px 0 0;color:var(--warn)}
+.namerow{display:flex;gap:8px}
+.namerow input{flex:1;min-width:0;font:500 14px var(--f-body);padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--board);color:var(--ink)}
+.tlist{display:flex;flex-direction:column;gap:6px}
+.titem{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:10px;align-items:center;padding:6px 8px 6px 6px;border:1px solid var(--line);border-radius:8px;background:var(--board);text-align:left;width:100%}
+.titem b{display:block;font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.titem small{display:block;color:var(--muted);font-size:12px}
+.titem .bad{color:var(--warn)}
+.titem.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,var(--board))}
+.titem .acts{display:flex;gap:4px}
+.titem .acts .btn{padding:6px 8px;font-size:12.5px}
+button.titem{cursor:pointer}
+button.titem:hover:not(:disabled){border-color:var(--grid-strong)}
+button.titem:disabled{opacity:.5;cursor:default}
+.thumb{width:52px;height:40px;display:block;background:var(--panel);border-radius:5px}
+.thumb polyline{fill:none;stroke:var(--asphalt);stroke-width:2.5px;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+.thumb polyline.hi{stroke:var(--accent)}
+.thumb circle{fill:var(--laneA)}
+.io-msg.good{color:var(--ok)}
+.keys{display:grid;grid-template-columns:auto 1fr;gap:6px 10px;margin:0;font-size:13px}
+.keys dt{white-space:nowrap}
+.keys dd{margin:0;color:var(--muted)}
+
+/* Mesa */
+.stage{position:relative;min-height:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--paper)}
+#svg{display:block;width:100%;height:100%;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+#svg.moving{cursor:grabbing}
+#svg .piece{cursor:pointer}
+#svg .piece[data-i="0"]{cursor:move}
+.boardbg{fill:var(--board)}
+.gl{stroke:var(--grid);stroke-width:1px;vector-effect:non-scaling-stroke}
+.gl.M{stroke:var(--grid-strong)}
+.board-edge{fill:none;stroke:var(--grid-strong);stroke-width:2px;vector-effect:non-scaling-stroke}
+#hc{fill:var(--accent);fill-opacity:.16;stroke:var(--accent);stroke-width:1px;vector-effect:non-scaling-stroke}
+
+.band{fill:var(--asphalt)}
+.tint{fill:none;stroke-width:.42px;stroke-opacity:.2}
+.tint.a{stroke:var(--laneA)} .tint.b{stroke:var(--laneB)}
+.edge{fill:none;stroke:var(--edge);stroke-width:.035px}
+.curb-base{fill:none;stroke:var(--edge);stroke-width:.09px}
+.curb{fill:none;stroke:var(--curb);stroke-width:.09px;stroke-dasharray:.2px .2px}
+.rail{fill:none;stroke:var(--rail);stroke-width:.024px}
+.slot{fill:none;stroke:var(--slot);stroke-width:.045px}
+.joint{stroke:var(--joint);stroke-width:.03px}
+.chk-l{fill:var(--edge)} .chk-d{fill:var(--slot)}
+.gridbox{fill:none;stroke:var(--edge);stroke-width:.03px;stroke-opacity:.8}
+.badge.a{fill:var(--laneA)} .badge.b{fill:var(--laneB)}
+.badge-t{font:700 .14px var(--f-mono);fill:#fff;text-anchor:middle}
+.clash{fill:url(#hatch)}
+.h1{fill:var(--warn);fill-opacity:.22} .h2{fill:var(--warn);fill-opacity:.85}
+.selo{fill:var(--accent);fill-opacity:.2;stroke:var(--accent);stroke-width:.07px;stroke-linejoin:round}
+.ghost{fill:var(--accent);fill-opacity:.25;stroke:var(--accent);stroke-width:.05px;stroke-dasharray:.16px .1px}
+.ins path{fill:none;stroke:var(--accent);stroke-width:.09px;stroke-linecap:round;stroke-linejoin:round}
+.ins{animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.35}}
+@media (prefers-reduced-motion: reduce){.ins{animation:none}}
+.car .cb{stroke:var(--slot);stroke-width:.025px}
+.car.a{--car:var(--laneA)} .car.b{--car:var(--laneB)} .car .cb{fill:var(--car)}   /* no campeonato, a cor do piloto */
+.car .cw{fill:var(--edge);opacity:.85}
+
+.rbg{fill:var(--panel)}
+.rline{stroke:var(--line);stroke-width:1px}
+.rt{font:500 10px var(--f-mono);fill:var(--muted);text-anchor:middle}
+.rt.on{fill:var(--accent-ink)}
+.ron{fill:var(--accent)}
+
+.hud{position:absolute;display:flex;gap:6px;align-items:center}
+.hud-tr{top:28px;right:8px}
+.hud-tr .btn{padding:7px 10px;font-size:13px}
+.hud-tl{top:28px;left:34px;flex-wrap:wrap;max-width:calc(100% - 200px)}
+.lap{font:600 12px/1 var(--f-body);padding:6px 9px;border-radius:999px;background:var(--panel);border:1px solid var(--line);display:inline-flex;gap:6px;align-items:center;font-variant-numeric:tabular-nums}
+.hud-bl{bottom:8px;left:34px;font:500 12px/1 var(--f-mono);color:var(--muted);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 9px;gap:12px}
+.hud-bl b{color:var(--ink);font-weight:500}
+.scale{display:inline-flex;align-items:center;gap:6px}
+#scalebar{display:inline-block;height:6px;border:1.5px solid var(--ink);border-top:0}
+
+/* Abas */
+.tabs{display:inline-flex;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px}
+.tab{border:0;background:transparent;padding:8px 14px;border-radius:7px;font:700 15px/1 var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);cursor:pointer}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--panel)}
+
+/* Corrida */
+.arena{display:flex;flex-direction:column;min-height:0;min-width:0}
+.arena .stage{flex:1}
+.racing #svg .piece,.racing #svg .piece[data-i="0"]{cursor:grab}
+.pads{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.pad{--lane:var(--laneA);background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--lane);border-radius:12px;padding:10px 12px 12px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px}
+.pad.b{--lane:var(--laneB)}
+.pad-head{grid-column:1/-1;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.pad-head b{font:700 16px/1 var(--f-display);letter-spacing:.06em;text-transform:uppercase}
+.pad-head span{font:500 12px/1 var(--f-mono);color:var(--muted)}
+.pad-head span.alert{color:var(--warn)}
+.gas{position:relative;overflow:hidden;min-height:92px;border:2px solid var(--lane);border-radius:10px;background:var(--board);cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;font:700 20px/1 var(--f-display);letter-spacing:.1em;text-transform:uppercase}
+.gas i{position:absolute;inset:0 auto 0 0;width:0;background:var(--lane);opacity:.32}
+.gas span{position:relative;display:inline-flex;align-items:center;gap:8px}
+.gas.on{background:color-mix(in srgb,var(--lane) 10%,var(--board))}
+.side-pad{display:flex;flex-direction:column;gap:7px;min-width:140px}
+.meter{display:grid;gap:3px;font-size:11.5px;color:var(--muted)}
+.meter div{height:8px;border-radius:4px;background:var(--board);border:1px solid var(--line);overflow:hidden}
+.meter div i{display:block;height:100%;width:0;background:var(--ink)}
+.reslot{justify-content:center}
+.reslot.ready{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);opacity:1;animation:pulse 1s ease-in-out infinite}
+.lights{position:absolute;top:32px;left:50%;transform:translateX(-50%);display:flex;gap:8px;background:var(--slot);padding:8px 10px;border-radius:10px}
+.lights i{width:22px;height:22px;border-radius:50%;background:var(--light-off)}
+.lights i.red{background:var(--light-red);box-shadow:0 0 12px var(--light-red)}
+.lights i.green{background:var(--light-green);box-shadow:0 0 12px var(--light-green)}
+.banner{position:absolute;top:32px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:4px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 18px;text-align:center;width:max-content;max-width:calc(100% - 60px)}
+.banner b{font:700 24px/1 var(--f-display);letter-spacing:.06em;text-transform:uppercase}
+.banner b.a{color:var(--laneA)} .banner b.b{color:var(--laneB)}
+.banner span{font-size:13px;color:var(--muted)}
+.clock{margin:2px 0 8px;font-size:13px;color:var(--muted)}
+.clock b{font:500 15px var(--f-mono);color:var(--ink);font-variant-numeric:tabular-nums;margin-left:6px}
+.score{width:100%;border-collapse:collapse}
+.score th{font:600 10.5px/1 var(--f-mono);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-align:right;padding:4px 0 6px}
+.score td{padding:6px 0 6px 6px;border-top:1px solid var(--line);text-align:right;font:500 12.5px var(--f-mono);font-variant-numeric:tabular-nums}
+.score th:first-child,.score td:first-child{text-align:left}
+.score tr.win td{font-weight:700;color:var(--ink)}
+.range{display:grid;gap:4px;font-size:13px;margin-bottom:12px}
+.range span{display:flex;justify-content:space-between;gap:8px;color:var(--muted)}
+.range b{font:500 12.5px var(--f-mono);color:var(--ink)}
+.range input{width:100%;accent-color:var(--ink)}
+.shadow{fill:var(--slot);fill-opacity:.28}
+.beam{stroke:var(--joint);stroke-width:.09px;stroke-linecap:round}
+.bank{fill:var(--edge)}
+.stripe{fill:var(--accent);fill-opacity:.7}
+.ico .istripe{fill:var(--accent)}
+.wall{fill:none;stroke:var(--rail);stroke-width:.07px}
+.guard{fill:none;stroke:var(--rail);stroke-width:.05px}
+.chev{fill:none;stroke:var(--accent);stroke-width:.05px;stroke-linecap:round;stroke-linejoin:round}
+.xmark{stroke:var(--accent);stroke-width:.045px;stroke-opacity:.85}
+.ico .ibank{fill:var(--edge)}
+.ico .ichev{fill:none;stroke:var(--accent);stroke-width:.13px;stroke-linecap:round;stroke-linejoin:round}
+.seg{font:600 12.5px/1 var(--f-body);padding:7px 10px;border:1px solid var(--line);border-radius:6px;background:var(--board);cursor:pointer}
+.seg:hover{border-color:var(--grid-strong)}
+.seg.on{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.check{display:flex;gap:8px;align-items:center;font-size:13.5px;margin-bottom:12px;cursor:pointer}
+.check input{width:16px;height:16px;accent-color:var(--ink)}
+.spark{fill:none;stroke:var(--accent);stroke-width:.035px;stroke-linecap:round}
+.rules{margin:0;padding-left:18px;font-size:13.5px;color:var(--muted);display:grid;gap:6px}
+.rules b{color:var(--ink);font-weight:600}
+.pad-head span.rec{color:var(--accent-ink);background:var(--accent);padding:3px 6px;border-radius:4px;font-weight:600}
+.pad-head span.pb{color:var(--ok);font-weight:600}
+
+/* Campeonato */
+.txt{width:100%;min-width:0;font:500 14px var(--f-body);padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--board);color:var(--ink)}
+h2 .count{font:500 12px var(--f-mono);letter-spacing:0;color:var(--muted);text-transform:none;margin-left:4px}
+.pdot{display:inline-block;width:12px;height:12px;border-radius:50%;background:var(--c);box-shadow:inset 0 0 0 1px rgba(0,0,0,.25);flex:none;vertical-align:-1px}
+.ptag{display:inline-block;font:600 11px/1 var(--f-mono);letter-spacing:.04em;padding:3px 5px;border-radius:4px;background:var(--c);vertical-align:1px}
+.plist{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.prow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--board)}
+.prow.on{border-color:var(--ink)}
+.prow input{width:16px;height:16px;accent-color:var(--ink);margin:0}
+.prow label{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;min-width:0;cursor:pointer}
+.prow label b{font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0;max-width:calc(100% - 20px)}   /* o nome fica inteiro; os selos descem */
+.prow .ord{font:500 11px var(--f-mono);color:var(--muted)}
+.prow .bad{font-size:12px;color:var(--warn)}
+.prow .acts{display:flex;gap:4px}
+.prow .acts .btn{padding:5px 7px;font-size:12px}
+.pform{border:1px dashed var(--line);border-radius:8px;padding:4px 10px 10px}
+.pform h3{margin:8px 0}
+.pf-row{display:grid;grid-template-columns:minmax(0,1fr) 72px;gap:8px;margin-bottom:8px}
+.pf-row label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
+.pf-tag .txt{font-family:var(--f-mono);text-transform:uppercase}
+.swatches{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.swatch{width:28px;height:28px;border-radius:50%;border:2px solid var(--panel);background:var(--c);box-shadow:0 0 0 1px var(--line);cursor:pointer;padding:0}
+.swatch[aria-checked="true"]{box-shadow:0 0 0 2px var(--ink)}
+.swatch.used{opacity:.35}
+.srow{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:8px;align-items:center;padding:6px 8px 6px 6px;border:1px solid var(--line);border-radius:8px;background:var(--board)}
+.srow b{display:block;font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.srow small{display:block;color:var(--muted);font-size:12px}
+.srow .ctl{display:flex;flex-direction:column;gap:4px;align-items:flex-end}
+.stepper{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+.stepper button{border:0;background:none;width:24px;height:24px;cursor:pointer;font-weight:600}
+.stepper span{font:500 12px var(--f-mono);min-width:56px;text-align:center}
+.mv{display:flex;gap:2px}
+.mv button{border:1px solid var(--line);background:var(--panel);border-radius:5px;width:24px;height:22px;cursor:pointer;font-size:11px;padding:0}
+.mv button:disabled{opacity:.35;cursor:default}
+.plan{font-size:13.5px;margin:12px 0 10px}
+.plan b{font-weight:600}
+.heat{border:1px solid var(--line);border-radius:10px;background:var(--board);padding:10px;margin-bottom:10px}
+.heat .hs{font:600 11px/1.2 var(--f-mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.vs{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:6px;align-items:stretch}
+.vs .x{align-self:center;font:700 16px var(--f-display);color:var(--muted)}
+.hp{border-left:4px solid var(--c);background:var(--panel);border-radius:6px;padding:6px 8px;min-width:0}
+.hp small{display:block;font-size:11.5px;color:var(--muted)}
+.hp b{display:block;font:700 18px/1.15 var(--f-display);letter-spacing:.04em;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hp kbd{font-size:10px}
+.stand{width:100%;border-collapse:collapse;font-size:13px}
+.stand th{font:600 10.5px/1 var(--f-mono);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-align:right;padding:4px 0 6px 6px}
+.stand td{padding:6px 0 6px 6px;border-top:1px solid var(--line);text-align:right;font:500 12.5px var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.stand th:nth-child(2),.stand td:nth-child(2){text-align:left;width:100%;white-space:normal}
+.stand th:first-child,.stand td:first-child{text-align:left;padding-left:0;width:1%}
+.stand td.pts{font-weight:700}
+.stand tr.lead td{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.stand .nm{font-family:var(--f-body);font-weight:600}
+.up{color:var(--ok)} .down{color:var(--warn)}
+.star{color:var(--accent)}
+.badge-rec{display:inline-block;font:700 10px/1 var(--f-mono);letter-spacing:.04em;padding:3px 5px;border-radius:4px;background:var(--accent);color:var(--accent-ink);vertical-align:1px}
+.recline{font-size:13px;margin:-2px 0 10px;color:var(--muted)}
+.recline b{font:500 13px var(--f-mono);color:var(--ink)}
+.recs{display:grid;grid-template-columns:auto 1fr auto;gap:6px 10px;margin:0;font-size:13px;align-items:center}
+.recs dt{color:var(--muted)}
+.recs dd{margin:0;text-align:right;font:500 12.5px var(--f-mono);font-variant-numeric:tabular-nums}
+.recs dd.who{text-align:left;font-family:var(--f-body)}
+.podium{display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:6px;align-items:end;margin:4px 0 12px;text-align:center}
+.podium div{background:var(--board);border:1px solid var(--line);border-top:4px solid var(--c);border-radius:8px;padding:8px 4px}
+.podium div:nth-child(2){padding-top:18px}
+.podium em{display:block;font:700 22px/1 var(--f-display);font-style:normal}
+.podium b{display:block;font-weight:600;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.podium small{display:block;color:var(--muted);font:500 11.5px var(--f-mono)}
+.awards{list-style:none;margin:0 0 10px;padding:0;display:grid;gap:6px;font-size:13.5px}
+.awards li{display:flex;gap:8px;align-items:baseline}
+.awards li > span:first-child{color:var(--muted);min-width:112px}
+.hist summary{cursor:pointer;display:flex;gap:8px;align-items:center;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--board);list-style:none}
+.hist summary::-webkit-details-marker{display:none}
+.hist summary b{font-weight:600;font-size:14px}
+.hist summary small{color:var(--muted);font-size:12px;margin-left:auto;white-space:nowrap}
+.hist[open] summary{border-bottom-left-radius:0;border-bottom-right-radius:0}
+.hist .hbody{border:1px solid var(--line);border-top:0;border-radius:0 0 8px 8px;padding:0 8px 6px}
+.hist .hbody .row{margin:6px 0 0}
+.sdone{color:var(--ok)}
+.aib{display:inline-block;font:600 10.5px/1 var(--f-mono);padding:3px 5px;border-radius:4px;border:1px solid var(--grid-strong);color:var(--muted);vertical-align:1px;white-space:nowrap}
+.toggle{display:flex;align-items:center;gap:10px;font-size:13.5px;font-weight:600;margin-bottom:10px;cursor:pointer}
+.toggle small{font-weight:400;color:var(--muted)}
+.toggle input{position:absolute;opacity:0;width:1px;height:1px}
+.toggle .tg{position:relative;width:34px;height:20px;border-radius:999px;background:var(--grid-strong);flex:none;transition:background .15s}
+.toggle .tg::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--panel);transition:transform .15s}
+.toggle input:checked + .tg{background:var(--ink)}
+.toggle input:checked + .tg::after{transform:translateX(14px)}
+.toggle input:focus-visible + .tg{outline:2px solid var(--accent);outline-offset:2px}
+.gas.ai{cursor:default;border-style:dashed;font-size:16px}
+.gas.ai kbd{display:none}
+
+@media (max-width: 860px){
+  html,body{height:auto}
+  .app{height:auto}
+  .work{grid-template-columns:minmax(0,1fr)}
+  .arena{order:-1}
+  .stage{height:62vh;min-height:340px;flex:none}
+  .side{overflow:visible}
+  .hud-tl{max-width:calc(100% - 50px);top:66px}
+  .lights,.banner{top:66px}     /* abaixo dos botões de zoom */
+}
+@media (max-width: 640px){
+  .pad{grid-template-columns:minmax(0,1fr)}
+  .side-pad{min-width:0}
+  .gas{min-height:76px;font-size:17px}
+  .lights,.banner{top:66px}
+}
+@media (max-width: 420px){
+  .brand h1{font-size:22px}
+  .hud-tr .btn span{display:none}
+}
+
+/* Celular em pé: cabeçalho curto, a mesa ocupa o meio, as peças numa faixa embaixo e o resto do painel numa gaveta.
+   Na corrida, um botão em cada ponta da tela: o jogador 2 pode jogar do outro lado do celular deitado na mesa. */
+.sheet-head,.dock,.mrace,#menuBtn,#scrim{display:none}
+.phone,.phone body{height:100%;overflow:hidden;overscroll-behavior:none}
+.phone body{-webkit-tap-highlight-color:transparent}
+.phone .app{height:100%;gap:8px;padding:max(8px,env(safe-area-inset-top,0px)) max(10px,env(safe-area-inset-right,0px)) max(8px,env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px))}
+.phone kbd,.phone .keys,.phone #buildSide .block:has(> .keys){display:none}   /* sem teclado, sem atalhos */
+.phone .btn,.phone .seg,.phone .pc,.phone .tab{touch-action:manipulation}
+.phone .top{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:6px 8px;align-items:center}
+.phone .brand{margin:0} .phone .brand > div{display:none} .phone .flag{width:30px;height:30px}
+.phone .tabs{display:flex;min-width:0} .phone .tab{flex:1;min-width:0;padding:10px 2px;font-size:14px;letter-spacing:.04em}
+.phone #menuBtn{display:inline-flex;padding:9px 11px}
+.phone .status{grid-column:1/-1;grid-row:2;justify-self:start;max-width:100%;font-size:12.5px;padding:5px 10px}
+.phone .work{grid-template-columns:minmax(0,1fr);min-height:0}
+.phone .arena{order:0;display:flex;flex-direction:column;gap:8px;min-height:0}
+.phone .stage{flex:1 1 0;height:auto;min-height:140px}
+.phone .hud-bl{display:none}
+.phone .hud-tr{top:26px;right:6px} .phone .hud-tr .btn{padding:8px 11px;font-size:14px} .phone .hud-tr .btn span{display:none}
+.phone .toast{bottom:10px}
+/* Gaveta */
+.phone .side{position:fixed;left:0;right:0;bottom:0;z-index:20;max-height:86dvh;overflow:auto;overscroll-behavior:contain;border-radius:16px 16px 0 0;border-bottom:0;
+  padding-bottom:env(safe-area-inset-bottom,0px);box-shadow:0 -8px 30px rgba(0,0,0,.25);transform:translateY(105%);visibility:hidden;transition:transform .22s ease,visibility 0s .22s}
+.phone.sheet .side{transform:none;visibility:visible;transition:transform .22s ease}
+.phone .sheet-head{display:flex;position:sticky;top:0;z-index:1;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px 10px 16px;background:var(--panel);border-bottom:1px solid var(--line)}
+.sheet-head b{font:700 17px/1 var(--f-display);letter-spacing:.08em;text-transform:uppercase}
+.phone.sheet #scrim{display:block;position:fixed;inset:0;z-index:19;background:rgba(0,0,0,.4)}
+@media (prefers-reduced-motion: reduce){.phone .side{transition:none}}
+/* Construtor: ações, peça selecionada e a faixa de peças */
+.phone body:not(.racing) .dock{display:flex;flex-direction:column;gap:6px;flex:none;order:3}
+.mrow{display:flex;gap:6px;align-items:center;overflow-x:auto;scrollbar-width:none;min-height:40px}
+.mrow::-webkit-scrollbar{display:none}
+.mrow .btn{flex:none;padding:10px 12px;font-size:14px}
+.mrow .seg{flex:none;padding:10px 10px;font-size:13.5px}
+.mrow .actions{flex-wrap:nowrap}
+.mname{flex:none;font-weight:600;font-size:14px;max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mhint{font-size:13px;color:var(--muted);line-height:1.3}
+.phone #dockPal .palette{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.phone #dockPal .palette::-webkit-scrollbar{display:none}
+.phone #dockPal .pc{flex:none;width:84px;grid-template-columns:1fr;justify-items:center;text-align:center;gap:3px;padding:6px 4px 7px}
+.phone #dockPal .pc .ico{width:42px;height:42px}
+.phone #dockPal .pc b{padding:0;font-size:11.5px;line-height:1.15}
+.phone #dockPal .pc small{font-size:10.5px}
+/* Corrida: controle do jogador 2 em cima, mesa, barra da prova, controle do jogador 1 embaixo */
+.phone .pads{display:contents}
+.phone .arena .stage{order:2} .phone .pad.b{order:1} .phone .mrace{order:3} .phone .pad.a{order:4}
+.phone body.racing .mrace{display:flex;gap:8px;align-items:center;flex:none}
+.mrace .btn{padding:11px 14px;font-size:15px;justify-content:center}
+.mrace #mGo{flex:1}
+.mclock{font:500 15px var(--f-mono);font-variant-numeric:tabular-nums;min-width:68px;text-align:center}
+#mFace[aria-pressed="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.phone .pad{flex:none;grid-template-columns:minmax(0,1fr) 108px;gap:6px 8px;padding:7px 9px 9px;border-radius:12px}
+.phone .pad-head b{font-size:14px} .phone .pad-head span{font-size:11.5px}
+.phone .gas{min-height:96px;font-size:19px}
+.phone .side-pad{min-width:0;gap:5px;justify-content:space-between}
+.phone .meter{font-size:10.5px;gap:2px}
+.phone .reslot{padding:12px 6px;font-size:14px}
+.phone.face .pad.b{transform:rotate(180deg)}
+@media (max-height: 640px){ .phone .gas{min-height:72px} .phone .pad .meter span{display:none} }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <svg class="flag" viewBox="0 0 4 4" aria-hidden="true">
+        <rect class="fl" width="4" height="4"/>
+        <path class="fd" d="M0 0h1v1H0zM2 0h1v1H2zM1 1h1v1H1zM3 1h1v1H3zM0 2h1v1H0zM2 2h1v1H2zM1 3h1v1H1zM3 3h1v1H3z"/>
+      </svg>
+      <div>
+        <h1>Construtor de Pista</h1>
+        <p>Autorama · 2 trilhos · vista de cima</p>
+      </div>
+    </div>
+    <div class="status" id="status" role="status"></div>
+    <div class="tabs" role="tablist" aria-label="Modo">
+      <button class="tab" role="tab" id="tabBuild" aria-selected="true">Construtor</button>
+      <button class="tab" role="tab" id="tabRace" aria-selected="false">Corrida</button>
+      <button class="tab" role="tab" id="tabChamp" aria-selected="false">Campeonato</button>
+    </div>
+    <button class="btn" id="menuBtn" aria-expanded="false" aria-controls="side">☰ Menu</button>
+    <div class="actions" id="buildActions">
+      <button class="btn accent" id="closeTrack" title="Completa a pista da ponta até a largada com o mínimo de peças, sem passar por cima da pista. Ctrl+Z desfaz." hidden>Fechar circuito <kbd>Q</kbd></button>
+      <button class="btn" id="undo" title="Desfazer (Ctrl+Z)">Desfazer</button>
+      <button class="btn" id="redo" title="Refazer (Ctrl+Y)">Refazer</button>
+    </div>
+  </header>
+
+  <main class="work">
+    <aside class="side" id="side">
+     <div class="sheet-head"><b id="sheetTitle">Construtor</b><button class="btn" id="sheetClose">Fechar</button></div>
+     <div id="buildSide">
+      <section class="block">
+        <h2>Peças</h2>
+        <p class="hint" id="insertHint"></p>
+        <div class="palette" id="palette"></div>
+      </section>
+      <section class="block">
+        <h2>Peça selecionada</h2>
+        <div id="selBody"></div>
+      </section>
+      <section class="block">
+        <h2>Resumo da pista</h2>
+        <dl class="stats" id="stats"></dl>
+        <h3>Lista de peças</h3>
+        <table class="bom" id="bom"></table>
+      </section>
+      <section class="block">
+        <h2>Sequência</h2>
+        <p class="hint">Da largada até a ponta, no sentido em que os carrinhos correm.</p>
+        <div class="seq" id="seq"></div>
+      </section>
+      <section class="block">
+        <h2>Mesa e escala</h2>
+        <div class="fields">
+          <label for="bw">Largura (cél.)<input id="bw" type="number" min="8" max="120" step="1"></label>
+          <label for="bh">Altura (cél.)<input id="bh" type="number" min="8" max="120" step="1"></label>
+          <label for="sc">1 célula (cm)<input id="sc" type="number" min="1" max="100" step="0.5"></label>
+        </div>
+        <p class="hint" style="margin:10px 0 0">1 célula = largura da pista (2 trilhos). Linha forte a cada 4 células, o tamanho de uma reta comprida.</p>
+      </section>
+      <section class="block">
+        <h2>Minhas pistas</h2>
+        <div class="namerow">
+          <input id="trackName" type="text" maxlength="60" placeholder="Nome da pista" aria-label="Nome da pista">
+          <button class="btn primary" id="saveTrack">Salvar</button>
+        </div>
+        <p class="hint" id="libState" style="margin:8px 0 10px"></p>
+        <div class="tlist" id="libList"></div>
+        <div class="row" style="margin:10px 0 0">
+          <button class="btn" id="saveAsNew">Salvar como nova</button>
+          <button class="btn danger" id="clear">Nova pista</button>
+        </div>
+        <div class="row" style="margin:0">
+          <button class="btn" id="sample">Exemplo: oval</button>
+          <button class="btn" id="sampleBridge">Exemplo: 8 com ponte</button>
+        </div>
+        <p class="io-msg" id="libMsg" hidden></p>
+      </section>
+      <section class="block">
+        <h2>Exportar e importar</h2>
+        <p class="hint">As pistas ficam salvas neste navegador. Para levar uma a outro computador, copie o texto abaixo; para abrir, cole o texto e carregue.</p>
+        <textarea id="json" spellcheck="false" aria-label="Pista em formato JSON"></textarea>
+        <div class="row" style="margin:8px 0 0">
+          <button class="btn" id="copy">Copiar</button>
+          <button class="btn" id="import">Carregar do texto</button>
+        </div>
+        <p class="io-msg" id="ioMsg" hidden></p>
+      </section>
+      <section class="block">
+        <h2>Atalhos</h2>
+        <dl class="keys">
+          <dt><kbd>1</kbd>–<kbd>0</kbd></dt><dd>Adicionar peça (7 a 0: curvas inclinadas)</dd>
+          <dt><kbd>T</kbd></dt><dd>Reta curtinha (1 célula)</dd>
+          <dt><kbd>X</kbd> · <kbd>B</kbd></dt><dd>Cruzamento comprido · curto (os trilhos trocam de lado)</dd>
+          <dt><kbd>Q</kbd></dt><dd>Fechar o circuito sozinho</dd>
+          <dt><kbd>U</kbd> · <kbd>D</kbd></dt><dd>Rampa que sobe · que desce</dd>
+          <dt>Clique</dt><dd>Selecionar peça (insere depois dela)</dd>
+          <dt><kbd>F</kbd></dt><dd>Inverter curva selecionada</dd>
+          <dt><kbd>R</kbd></dt><dd>Girar a largada 90°</dd>
+          <dt><kbd>Del</kbd></dt><dd>Remover peça selecionada</dd>
+          <dt><kbd>⌫</kbd></dt><dd>Remover a última peça</dd>
+          <dt><kbd>Esc</kbd></dt><dd>Soltar seleção</dd>
+          <dt><kbd>Ctrl</kbd>+<kbd>Z</kbd></dt><dd>Desfazer</dd>
+          <dt>Arrastar</dt><dd>Fundo move a vista; largada move a pista</dd>
+          <dt>Roda</dt><dd>Zoom</dd>
+        </dl>
+      </section>
+     </div>
+
+     <div id="raceSide" hidden>
+      <section class="block">
+        <h2>Pista</h2>
+        <p class="hint">Escolha onde correr. Trocar aqui não mexe na pista que está no construtor.</p>
+        <div class="tlist" id="racePick" role="radiogroup" aria-label="Pista da corrida"></div>
+      </section>
+      <section class="block">
+        <h2>Corrida</h2>
+        <p class="hint" id="raceHint"></p>
+        <div class="row">
+          <button class="btn primary" id="startRace">Largar <kbd>Enter</kbd></button>
+          <button class="btn" id="gridRace">Voltar ao grid</button>
+        </div>
+        <label class="toggle" for="rBot"><input id="rBot" type="checkbox" role="switch"><span class="tg" aria-hidden="true"></span> Jogador 2 é um robô</label>
+        <div id="rBotBox" hidden>
+          <label class="range" for="rBotSkill" style="margin-bottom:4px"><span>Qualidade do robô <b id="vBotSkill"></b></span><input id="rBotSkill" type="range" min="1" max="100" step="1"></label>
+          <p class="hint" id="rBotHint"></p>
+        </div>
+        <p class="clock">Tempo de prova<b id="raceClock">0,00 s</b></p>
+        <p class="recline" id="raceRec" hidden></p>
+        <table class="score" id="score"></table>
+      </section>
+      <section class="block">
+        <h2>Como pilotar</h2>
+        <ul class="rules">
+          <li><b>Segure</b> o botão de acelerar e o acelerador sobe de 0 a 100%. <b>Soltou, zerou</b>: o carrinho freia na hora.</li>
+          <li>Entrou rápido demais na curva, a traseira escorrega e a barra de <b>derrapagem</b> enche.</li>
+          <li>Com a barra cheia, o carrinho roda e <b>sai da pista</b>.</li>
+          <li>Aperte <b>Recolocar</b> para devolver o carrinho ao trilho, um pouco antes de onde ele saiu.</li>
+        </ul>
+        <dl class="keys" style="margin-top:12px">
+          <dt><kbd>A</kbd> · <kbd>S</kbd></dt><dd>Jogador 1: acelerar · recolocar</dd>
+          <dt><kbd>L</kbd> · <kbd>K</kbd></dt><dd>Jogador 2: acelerar · recolocar</dd>
+          <dt><kbd>Enter</kbd></dt><dd>Largar</dd>
+        </dl>
+      </section>
+      <section class="block">
+        <h2>Ajustes</h2>
+        <label class="range" for="rLaps"><span>Voltas <b id="vLaps"></b></span><input id="rLaps" type="range" min="1" max="20" step="1"></label>
+        <label class="range" for="rVmax"><span>Velocidade máxima <b id="vVmax"></b></span><input id="rVmax" type="range" min="8" max="20" step="0.5"></label>
+        <label class="range" for="rRamp"><span>Tempo até 100% <b id="vRamp"></b></span><input id="rRamp" type="range" min="0.2" max="1.5" step="0.05"></label>
+        <label class="range" for="rGrip"><span>Aderência <b id="vGrip"></b></span><input id="rGrip" type="range" min="15" max="45" step="1"></label>
+        <label class="check" for="rCollide"><input id="rCollide" type="checkbox"> Colisão entre carrinhos</label>
+        <p class="hint" id="gripHint" style="margin:0"></p>
+      </section>
+     </div>
+
+     <div id="champSide" hidden>
+      <div id="cSetup">
+       <section class="block">
+         <h2>Novo campeonato</h2>
+         <p class="hint">Escolha os pilotos e as pistas. Em cada etapa, todo piloto corre uma bateria em cada trilho, em rodízio: ninguém leva vantagem por ficar sempre do lado de dentro.</p>
+         <input class="txt" id="cName" type="text" maxlength="40" placeholder="Nome do campeonato" aria-label="Nome do campeonato">
+       </section>
+       <section class="block">
+         <h2>Pilotos <span class="count" id="cPilotCount"></span></h2>
+         <p class="hint">Marque quem vai correr: de 2 a 8. A ordem em que você marca é a ordem do rodízio. Piloto IA é dirigido pelo computador e não bate recorde da pista.</p>
+         <div class="plist" id="cRoster"></div>
+         <form class="pform" id="pForm" autocomplete="off">
+           <h3 id="pFormTitle">Novo piloto</h3>
+           <div class="pf-row">
+             <label>Nome<input class="txt" id="pName" type="text" maxlength="20" placeholder="Ex.: Bia"></label>
+             <label class="pf-tag">Sigla<input class="txt" id="pTag" type="text" maxlength="3" placeholder="BIA"></label>
+           </div>
+           <div class="swatches" id="pColors" role="radiogroup" aria-label="Cor do piloto"></div>
+           <label class="toggle" for="pAi"><input id="pAi" type="checkbox" role="switch"><span class="tg" aria-hidden="true"></span> Piloto IA <small>o computador dirige</small></label>
+           <div id="pSkillBox" hidden>
+             <label class="range" for="pSkill" style="margin-bottom:4px"><span>Qualidade <b id="vSkill">50</b></span><input id="pSkill" type="range" min="1" max="100" step="1" value="50"></label>
+             <p class="hint" id="pSkillHint" style="margin:0 0 10px"></p>
+           </div>
+           <div class="row" style="margin:0">
+             <button class="btn primary" id="pSave" type="submit">Adicionar piloto</button>
+             <button class="btn" id="pCancel" type="button" hidden>Cancelar</button>
+           </div>
+         </form>
+       </section>
+       <section class="block">
+         <h2>Etapas <span class="count" id="cStageCount"></span></h2>
+         <p class="hint">Cada etapa é uma pista com um número de voltas. Clique numa pista abaixo para incluir.</p>
+         <div class="tlist" id="cStages"></div>
+         <h3>Pistas disponíveis</h3>
+         <div class="tlist" id="cTrackPick"></div>
+       </section>
+       <section class="block">
+         <h2>Regras</h2>
+         <ul class="rules" id="cRules"></ul>
+         <p class="plan" id="cPlan"></p>
+         <button class="btn primary" id="cStart">Começar campeonato</button>
+         <p class="io-msg" id="cMsg" hidden></p>
+       </section>
+       <section class="block" id="cHistBlock">
+         <h2>Campeonatos anteriores</h2>
+         <div class="tlist" id="cHist"></div>
+       </section>
+      </div>
+
+      <div id="cRun" hidden>
+       <section class="block">
+         <h2 id="cTitle"></h2>
+         <p class="hint" id="cProgress"></p>
+         <div id="cHeat"></div>
+         <div class="row" id="cActs"></div>
+         <p class="hint" id="cHint"></p>
+         <div id="cLive">
+           <p class="clock">Tempo de prova<b id="cClock">0,00 s</b></p>
+           <table class="score" id="cScore"></table>
+         </div>
+       </section>
+       <section class="block" id="cStageBlock">
+         <h2 id="cStageTitle"></h2>
+         <table class="stand" id="cStageTable"></table>
+       </section>
+       <section class="block">
+         <h2>Tabela geral</h2>
+         <table class="stand" id="cTable"></table>
+         <p class="hint" style="margin:8px 0 0">Pontos por etapa: <span id="cPts"></span>, mais 1 para a melhor volta. Desempate: vitórias, pódios, tempo total.</p>
+       </section>
+       <section class="block">
+         <h2>Recordes da pista</h2>
+         <div id="cRecs"></div>
+       </section>
+       <section class="block">
+         <h2>Etapas</h2>
+         <div class="tlist" id="cStageList"></div>
+         <div class="row" style="margin:12px 0 0"><button class="btn danger" id="cQuit">Abandonar campeonato</button></div>
+       </section>
+      </div>
+     </div>
+    </aside>
+
+   <div class="arena">
+    <section class="stage" id="stage">
+      <svg id="svg" aria-label="Mesa da pista vista de cima">
+        <defs>
+          <pattern id="hatch" patternUnits="userSpaceOnUse" width=".3" height=".3" patternTransform="rotate(45)">
+            <rect class="h1" width=".3" height=".3"/><rect class="h2" width=".1" height=".3"/>
+          </pattern>
+        </defs>
+        <g id="world">
+          <g id="board"></g>
+          <rect id="hc" width="1" height="1" visibility="hidden"/>
+          <!-- Camadas por altura: chão, ponte, ponte sobre ponte. Cada uma com seus carrinhos por cima. -->
+          <g id="track0"></g>
+          <g id="cars0">
+            <g id="car0" class="car a"><rect class="cb" x="-.3" y="-.16" width=".6" height=".32" rx=".08"/><rect class="cw" x=".05" y="-.115" width=".12" height=".23" rx=".04"/></g>
+            <g id="car1" class="car b"><rect class="cb" x="-.3" y="-.16" width=".6" height=".32" rx=".08"/><rect class="cw" x=".05" y="-.115" width=".12" height=".23" rx=".04"/></g>
+          </g>
+          <g id="track1"></g>
+          <g id="cars1"></g>
+          <g id="track2"></g>
+          <g id="cars2"></g>
+          <g id="overlay"></g>
+          <g id="fx"></g>
+        </g>
+        <g id="rulers"></g>
+      </svg>
+      <div class="lights" id="lights" hidden><i></i><i></i><i></i></div>
+      <div class="toast" id="toast" role="status" hidden></div>
+      <div class="banner" id="banner" hidden></div>
+      <div class="hud hud-tr">
+        <button class="btn" id="zout" title="Afastar" aria-label="Afastar">−</button>
+        <button class="btn" id="zin" title="Aproximar" aria-label="Aproximar">+</button>
+        <button class="btn" id="fitTrack" title="Enquadrar a pista">⤢ <span>Pista</span></button>
+        <button class="btn" id="fitBoard" title="Ver a mesa inteira">▭ <span>Mesa</span></button>
+      </div>
+      <div class="hud hud-bl">
+        <span>Célula <b id="cell">—</b></span>
+        <span class="scale"><i id="scalebar"></i><span id="scalelbl">1 m</span></span>
+      </div>
+    </section>
+    <div class="dock" id="dock">
+      <div class="mrow" id="mActs"></div>
+      <div class="mrow" id="mSel"></div>
+      <div id="dockPal"></div>
+    </div>
+    <div class="mrace" id="mRace">
+      <button class="btn primary" id="mGo">Largar</button>
+      <span class="mclock" id="mClock">0,00 s</span>
+      <button class="btn" id="mFace" aria-pressed="true" title="Controle do jogador 2 virado para quem está do outro lado">⇅ Frente</button>
+    </div>
+    <div class="pads" id="pads" hidden>
+      <div class="pad a">
+        <div class="pad-head"><b data-r="who">Jogador 1</b><span data-r="state">No grid</span></div>
+        <button class="gas" data-r="gas" aria-label="Acelerar, jogador 1. Segure para acelerar."><i data-r="fill"></i><span>Acelerar <kbd>A</kbd></span></button>
+        <div class="side-pad">
+          <div class="meter"><span>Velocidade</span><div><i data-r="speed"></i></div></div>
+          <div class="meter"><span>Derrapagem</span><div><i data-r="slip"></i></div></div>
+          <button class="btn reslot" data-r="reset" disabled>Recolocar <kbd>S</kbd></button>
+        </div>
+      </div>
+      <div class="pad b">
+        <div class="pad-head"><b data-r="who">Jogador 2</b><span data-r="state">No grid</span></div>
+        <button class="gas" data-r="gas" aria-label="Acelerar, jogador 2. Segure para acelerar."><i data-r="fill"></i><span>Acelerar <kbd>L</kbd></span></button>
+        <div class="side-pad">
+          <div class="meter"><span>Velocidade</span><div><i data-r="speed"></i></div></div>
+          <div class="meter"><span>Derrapagem</span><div><i data-r="slip"></i></div></div>
+          <button class="btn reslot" data-r="reset" disabled>Recolocar <kbd>K</kbd></button>
+        </div>
+      </div>
+    </div>
+   </div>
+  </main>
+  <div id="scrim"></div>
+</div>
+
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+
+/* ---------- Peças (medidas em células; 1 célula = largura da pista) ---------- */
+const PIECES = {
+  start: { kind:'straight', len:2, name:'Base de largada' },
+  short: { kind:'straight', len:2, name:'Reta curta' },
+  long:  { kind:'straight', len:4, name:'Reta comprida' },
+  tiny:  { kind:'straight', len:1, name:'Reta curtinha' },
+  cross: { kind:'straight', len:4, cross:true, name:'Cruzamento' },   // os trilhos trocam de lado em X
+  crossS:{ kind:'straight', len:2, cross:true, name:'Cruzamento curto' },   // o mesmo X numa reta curta (S mais fechado)
+  curve: { kind:'curve', angle:90, r:2.5, name:'Curva longa' },
+  half:  { kind:'curve', angle:45, r:2.5, name:'Meia curva' },
+  curveB:{ kind:'curve', angle:90, r:2.5, bank:true, name:'Curva longa inclinada' },
+  halfB: { kind:'curve', angle:45, r:2.5, bank:true, name:'Curva curta inclinada' },
+};
+const MAX_Z = 2;            // níveis de altura: 0 = chão, 1 = ponte, 2 = ponte sobre ponte
+const BANK_GRIP = 1.7;      // curva inclinada (~15°) aguenta 1,7× a força lateral da curva plana
+const SHADOW = [.16, .26];  // deslocamento da sombra no chão por nível de altura
+const LANES = [
+  { off:-.25, cls:'a', name:'Trilho 1', color:'vermelho' },
+  { off: .25, cls:'b', name:'Trilho 2', color:'azul' },
+];
+const PAL = [
+  { type:'short', dir:0,  key:'1', label:'Reta curta',    sub:'2 células' },
+  { type:'long',  dir:0,  key:'2', label:'Reta comprida', sub:'4 células' },
+  { type:'tiny',  dir:0,  key:'t', label:'Reta curtinha', sub:'1 célula' },
+  { type:'cross', dir:0,  key:'x', label:'Cruzamento', sub:'4 células' },
+  { type:'crossS', dir:0, key:'b', label:'Cruzamento curto', sub:'2 células' },
+  { type:'curve', dir:-1, key:'3', label:'Curva longa',   sub:'90° esquerda' },
+  { type:'curve', dir:1,  key:'4', label:'Curva longa',   sub:'90° direita' },
+  { type:'half',  dir:-1, key:'5', label:'Meia curva',    sub:'45° esquerda' },
+  { type:'half',  dir:1,  key:'6', label:'Meia curva',    sub:'45° direita' },
+  { type:'curveB', dir:-1, key:'7', label:'Curva longa inclinada', sub:'90° esquerda' },
+  { type:'curveB', dir:1,  key:'8', label:'Curva longa inclinada', sub:'90° direita' },
+  { type:'halfB',  dir:-1, key:'9', label:'Curva curta inclinada', sub:'45° esquerda' },
+  { type:'halfB',  dir:1,  key:'0', label:'Curva curta inclinada', sub:'45° direita' },
+  { type:'long',  dir:0, rise:1,  key:'u', label:'Rampa', sub:'sobe 1 nível' },
+  { type:'long',  dir:0, rise:-1, key:'d', label:'Rampa', sub:'desce 1 nível' },
+];
+const TYPE_OUT = { short:'reta-curta', long:'reta-comprida', tiny:'reta-curtinha', cross:'cruzamento', crossS:'cruzamento-curto', curve:'curva-longa', half:'meia-curva', curveB:'curva-longa-inclinada', halfB:'curva-curta-inclinada' };
+const TYPE_IN = Object.fromEntries(Object.entries(TYPE_OUT).map(([k,v]) => [v,k]));
+const MIN_S = 5, MAX_S = 160, KEY = 'autorama-construtor-v1';
+
+/* ---------- Geometria (x para a direita, y para baixo, ângulo 0 = leste) ---------- */
+const rad = d => d * Math.PI / 180;
+const dirv = h => [Math.cos(rad(h)), Math.sin(rad(h))];
+const norm = h => ((h % 360) + 360) % 360;
+const f = n => String(Math.round(n * 1000) / 1000);
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const nf = (n, d = 1) => n.toLocaleString('pt-BR', { minimumFractionDigits:d, maximumFractionDigits:d });
+
+function pieceLen(p){ const d = PIECES[p.type]; return d.kind === 'straight' ? d.len : rad(d.angle) * d.r; }
+// No cruzamento o trilho faz um S de um lado para o outro: deslocamento off·cos(π·t). Nas outras peças, fixo.
+const laneOffAt = (p, off, t) => PIECES[p.type].cross ? off * Math.cos(Math.PI * t) : off;
+// Comprimento do S de um cruzamento de L células (o mesmo para os dois trilhos).
+function crossLaneLen(L){
+  let s = 0; const n = 200;
+  for (let k = 0; k < n; k++){ const t = (k + .5) / n, d = .25 * Math.PI / L * Math.sin(Math.PI * t); s += Math.sqrt(1 + d * d) * L / n; }
+  return s;
+}
+function laneLen(p, off){
+  const d = PIECES[p.type];
+  if (d.cross) return crossLaneLen(d.len);
+  return d.kind === 'straight' ? d.len : rad(d.angle) * (d.r - p.dir * off);
+}
+
+// Posição ao longo da peça (t de 0 a 1), partindo do conector "a".
+function poseAt(a, p, t){
+  const d = PIECES[p.type];
+  if (d.kind === 'straight'){ const [cx, cy] = dirv(a.h); return { x:a.x + cx*d.len*t, y:a.y + cy*d.len*t, h:a.h }; }
+  const s = p.dir; // +1 vira à direita, -1 à esquerda
+  const [nx, ny] = dirv(a.h + s*90);
+  const cx = a.x + nx*d.r, cy = a.y + ny*d.r;
+  const h = a.h + s*d.angle*t;
+  const [px, py] = dirv(h - s*90);
+  return { x:cx + px*d.r, y:cy + py*d.r, h };
+}
+// Desloca para o lado (positivo = direita de quem dirige).
+function offset(q, o){ const [nx, ny] = dirv(q.h + 90); return [q.x + nx*o, q.y + ny*o]; }
+function samplePiece(a, p, n){ const out = []; for (let k = 0; k <= n; k++) out.push(poseAt(a, p, k/n)); return out; }
+function steps(p, per){ const d = PIECES[p.type]; return d.cross ? 24 : d.kind === 'straight' ? 1 : Math.ceil(d.angle / per); }
+function bandPath(poses, o1, o2){
+  const L = poses.map(q => offset(q, o1)), R = poses.map(q => offset(q, o2)).reverse();
+  return 'M' + L.concat(R).map(p => f(p[0]) + ' ' + f(p[1])).join('L') + 'Z';
+}
+function linePath(poses, o){ return 'M' + poses.map(q => { const p = offset(q, o); return f(p[0]) + ' ' + f(p[1]); }).join('L'); }
+// Linha de um trilho (ou de algo preso a ele, deslocado de extra): segue o S no cruzamento.
+function lanePath(poses, p, off, extra = 0){
+  const N = poses.length - 1;
+  return 'M' + poses.map((q, k) => { const pt = offset(q, laneOffAt(p, off, k / N) + extra); return f(pt[0]) + ' ' + f(pt[1]); }).join('L');
+}
+function snapOrigin(o){
+  const h = norm(Math.round(o.h / 90) * 90);
+  return h % 180 === 0 ? { x:Math.round(o.x), y:Math.floor(o.y) + .5, h } : { x:Math.floor(o.x) + .5, y:Math.round(o.y), h };
+}
+function rowName(r){ let s = ''; r += 1; while (r > 0){ const m = (r - 1) % 26; s = String.fromCharCode(65 + m) + s; r = Math.floor((r - 1) / 26); } return s; }
+function cellName(x, y){ return rowName(Math.floor(y)) + (Math.floor(x) + 1); }
+const COMPASS = { 0:'leste →', 90:'sul ↓', 180:'oeste ←', 270:'norte ↑' };
+
+/* ---------- Estado ---------- */
+const P = (type, dir = 0, rise = 0) => ({ type, dir, rise });
+function sampleState(){
+  return { origin:{ x:8, y:7.5, h:0 }, board:{ w:32, h:20 }, scaleCm:15,
+    pieces:[P('start'), P('long'), P('half',-1), P('half',1), P('curve',1), P('curve',1),
+            P('long'), P('half',-1), P('half',1), P('short'), P('curve',1), P('curve',1)] };
+}
+// Um 8 deitado feito de curvas curtas inclinadas (45°). Cada lóbulo vira 270°; as duas diagonais
+// se cruzam em ângulo reto no meio. A de cima sobe numa reta comprida, passa pela ponte (reta
+// curtinha, peça 11) exatamente sobre a reta curtinha do chão (peça 24) e desce na outra reta comprida.
+// A reta curtinha é o que faz o 8 fechar: com raio 2,5, cada diagonal mede 5 + um número par de células.
+function bridgeState(){
+  const Q = d => P('halfB', d);
+  return { origin:{ x:21, y:5.5, h:0 }, board:{ w:32, h:20 }, scaleCm:15,
+    pieces:[P('start'),
+            Q(1), P('short'), Q(1), Q(1), P('short'), Q(1), P('short'), Q(1),                   // lóbulo direito
+            P('long', 0, 1), P('tiny'), P('long', 0, -1),                                         // diagonal com ponte
+            Q(-1), P('short'), Q(-1), P('short'), Q(-1), Q(-1), P('short'), Q(-1), P('short'), Q(-1),  // lóbulo esquerdo
+            P('long'), P('tiny'), P('long'),                                                      // diagonal no chão
+            Q(1)] };
+}
+function intIn(v, a, b, dflt){ v = Math.round(+v); return Number.isFinite(v) ? clamp(v, a, b) : dflt; }
+function numIn(v, a, b, dflt){ v = +v; return Number.isFinite(v) && v > 0 ? clamp(v, a, b) : dflt; }
+function sanitize(o){
+  if (!o || !Array.isArray(o.pieces) || !o.origin) return null;
+  const pieces = o.pieces.filter(p => p && PIECES[p.type] && p.type !== 'start')
+    .map(p => P(p.type, PIECES[p.type].kind === 'curve' ? (p.dir < 0 ? -1 : 1) : 0, p.rise > 0 ? 1 : p.rise < 0 ? -1 : 0));
+  return {
+    origin: snapOrigin({ x:+o.origin.x || 0, y:+o.origin.y || 0, h:+o.origin.h || 0 }),
+    pieces: [P('start'), ...pieces],
+    board: { w:intIn(o.board && o.board.w, 8, 120, 32), h:intIn(o.board && o.board.h, 8, 120, 20) },
+    scaleCm: numIn(o.scaleCm, 1, 100, 15),
+    libId: typeof o.libId === 'string' ? o.libId : null,       // de qual pista salva ela veio
+    name: typeof o.name === 'string' ? o.name.slice(0, 60) : '',
+  };
+}
+function load(){ try { const raw = localStorage.getItem(KEY); return raw ? sanitize(JSON.parse(raw)) : null; } catch (e){ return null; } }
+// Na aba Corrida a pista em uso pode ser outra (escolhida da lista); o rascunho do construtor fica guardado à parte.
+function save(){ if (mode !== 'build') return; try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e){} }
+
+/* ---------- Biblioteca: as pistas salvas pelo usuário ---------- */
+const LKEY = 'autorama-pistas-v1';
+function loadLib(){
+  try {
+    const a = JSON.parse(localStorage.getItem(LKEY) || '[]');
+    return Array.isArray(a) ? a.filter(e => e && typeof e.id === 'string' && sanitize(e.data)).map(e => ({ id:e.id, name:String(e.name || 'Sem nome').slice(0, 60), savedAt:+e.savedAt || 0, data:sanitize(e.data) })) : [];
+  } catch (e){ return []; }
+}
+function saveLib(){ try { localStorage.setItem(LKEY, JSON.stringify(lib)); return true; } catch (e){ return false; } }
+let lib = loadLib();
+const trackData = () => ({ origin:{ ...state.origin }, pieces:state.pieces.map(p => ({ ...p })), board:{ ...state.board }, scaleCm:state.scaleCm });
+const sameTrack = (a, b) => JSON.stringify([a.origin, a.pieces]) === JSON.stringify([b.origin, b.pieces]);
+function setState(d){
+  state.origin = { ...d.origin }; state.pieces = d.pieces.map(p => ({ ...p }));
+  state.board = { ...d.board }; state.scaleCm = d.scaleCm; state.libId = d.libId ?? null; state.name = d.name ?? '';
+  growBoard();
+}
+// Linha central, comprimento e se fecha, sem mexer na pista aberta (para miniaturas e listas).
+function trackInfo(d){
+  let conn = { ...d.origin }, z = 0, len = 0;
+  const pts = [], hi = [];
+  d.pieces.forEach((p, i) => {
+    const n = steps(p, 10), zIn = z;
+    z = clamp(z + (i ? p.rise || 0 : 0), 0, MAX_Z);
+    for (let k = i ? 1 : 0; k <= n; k++){ const q = poseAt(conn, p, k / n); pts.push([q.x, q.y]); hi.push(zIn > 0 || z > 0); }
+    len += pieceLen(p);
+    conn = poseAt(conn, p, 1); conn.h = norm(conn.h);
+  });
+  const o = d.origin; let dh = Math.abs(norm(conn.h) - norm(o.h)); dh = Math.min(dh, 360 - dh);
+  const closed = d.pieces.length > 1 && Math.hypot(conn.x - o.x, conn.y - o.y) < .02 && dh < .5 && z === 0;
+  return { pts, hi, len, closed };
+}
+function thumbSVG(d){
+  const { pts, hi } = trackInfo(d);
+  const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+  const x0 = Math.min(...xs) - 1, y0 = Math.min(...ys) - 1, w = Math.max(...xs) - x0 + 1, h = Math.max(...ys) - y0 + 1;
+  const W = Math.max(w, h * 1.3), H = W / 1.3;
+  const vb = [x0 - (W - w) / 2, y0 - (H - h) / 2, W, H].map(f).join(' ');
+  // Trecho no chão em cinza; trecho no alto (ponte e rampas) em amarelo, por cima.
+  const line = flag => {
+    let s = '', run = [];
+    for (let i = 0; i < pts.length; i++){
+      if (hi[i] === flag){ if (!run.length && i > 0) run.push(pts[i - 1]); run.push(pts[i]); }
+      else if (run.length){ s += poly(run, flag); run = []; }
+    }
+    return s + (run.length > 1 ? poly(run, flag) : '');
+  };
+  const poly = (run, flag) => `<polyline${flag ? ' class="hi"' : ''} points="${run.map(p => f(p[0]) + ',' + f(p[1])).join(' ')}"/>`;
+  return `<svg class="thumb" viewBox="${vb}" aria-hidden="true">${line(false)}${line(true)}<circle cx="${f(d.origin.x)}" cy="${f(d.origin.y)}" r="${f(W / 18)}"/></svg>`;
+}
+function trackLine(d){
+  const t = trackInfo(d);
+  return `${d.pieces.length} peças · ${nf(t.len * d.scaleCm / 100, 1)} m · ${t.closed ? 'fechada' : '<span class="bad">aberta</span>'}`;
+}
+
+let state = load() || sampleState();
+let sel = null;            // índice da peça selecionada (novas peças entram depois dela)
+let view = { s:30, x:40, y:40 };
+let undoStack = [], redoStack = [];
+let hoverAdd = null, hoverCell = null;
+let segs = [], info = null;
+
+// O desfazer guarda também a mesa: ela pode ter crescido junto com a pista.
+const snap = () => JSON.stringify({ origin:state.origin, pieces:state.pieces, board:state.board });
+function restore(str){ const o = JSON.parse(str); state.origin = o.origin; state.pieces = o.pieces; if (o.board) state.board = o.board; if (sel != null && sel >= state.pieces.length) sel = null; }
+function commit(fn){
+  undoStack.push(snap()); if (undoStack.length > 300) undoStack.shift();
+  redoStack.length = 0; fn(); growBoard(); resetRace(); save(); render();
+}
+// A mesa cresce com a pista: se a pista passa da borda, a mesa ganha células (com 1 de folga). Se passou da
+// esquerda ou de cima, a pista inteira é empurrada para dentro (células inteiras, a largada continua encaixada)
+// e a vista acompanha, para nada pular na tela. A mesa nunca encolhe sozinha.
+const BOARD_MARGIN = 1, BOARD_MAX = 120;
+function growBoard(){
+  const b = analyze(layout(state.origin, state.pieces), state.origin).bbox, M = BOARD_MARGIN;
+  const dx = b.x0 < -.01 ? Math.ceil(-b.x0) + M : 0, dy = b.y0 < -.01 ? Math.ceil(-b.y0) + M : 0;
+  const w = Math.min(BOARD_MAX, Math.max(state.board.w + dx, b.x1 + dx > state.board.w + dx + .01 ? Math.ceil(b.x1 + dx) + M : 0));
+  const h = Math.min(BOARD_MAX, Math.max(state.board.h + dy, b.y1 + dy > state.board.h + dy + .01 ? Math.ceil(b.y1 + dy) + M : 0));
+  if (!dx && !dy && w === state.board.w && h === state.board.h) return false;
+  if (dx || dy){
+    state.origin = { ...state.origin, x:state.origin.x + dx, y:state.origin.y + dy };
+    view.x -= dx * view.s; view.y -= dy * view.s;
+    if (typeof world !== 'undefined') applyView();
+  }
+  state.board = { w, h };
+  return true;
+}
+function undo(){ if (!undoStack.length) return; redoStack.push(snap()); restore(undoStack.pop()); resetRace(); save(); render(); }
+function redo(){ if (!redoStack.length) return; undoStack.push(snap()); restore(redoStack.pop()); resetRace(); save(); render(); }
+
+/* ---------- Cálculos ---------- */
+// Cada peça herda a altura de onde a anterior terminou; rampas sobem ou descem um nível.
+// Sem argumentos usa a pista aberta; o fechamento automático passa outras pistas para testar.
+function layout(origin = state.origin, pieces = state.pieces){
+  let conn = { ...origin }, z = 0;
+  return pieces.map((p, i) => {
+    const a = conn, b = poseAt(a, p, 1); b.h = norm(b.h);
+    const zIn = z, zOut = clamp(z + (i ? p.rise || 0 : 0), 0, MAX_Z);
+    conn = b; z = zOut;
+    return { p, i, a, b, zIn, zOut };
+  });
+}
+const zAt = (sg, t) => sg.zIn + (sg.zOut - sg.zIn) * t;
+const layerOf = sg => Math.round(Math.max(sg.zIn, sg.zOut));
+function analyze(list = segs, o = state.origin){
+  const last = list[list.length - 1].b;
+  const gap = Math.hypot(last.x - o.x, last.y - o.y);
+  let dh = Math.abs(norm(last.h) - norm(o.h)); dh = Math.min(dh, 360 - dh);
+  const closedXY = list.length > 1 && gap < .02 && dh < .5;
+  const endZ = list[list.length - 1].zOut;
+  const closed = closedXY && endZ === 0;      // fecha no chão, na mesma altura da largada
+
+  const S = list.map(sg => {
+    const n = Math.max(2, Math.ceil(pieceLen(sg.p) / .25));
+    const pts = samplePiece(sg.a, sg.p, n).map((q, k) => ({ ...q, z:zAt(sg, k / n) }));
+    const bb = { x0:Infinity, y0:Infinity, x1:-Infinity, y1:-Infinity };
+    pts.forEach(q => { bb.x0 = Math.min(bb.x0, q.x); bb.y0 = Math.min(bb.y0, q.y); bb.x1 = Math.max(bb.x1, q.x); bb.y1 = Math.max(bb.y1, q.y); });
+    return { pts, bb };
+  });
+  const clash = new Set(), N = list.length;
+  for (let i = 0; i < N; i++) for (let j = i + 2; j < N; j++){
+    if (closed && i === 0 && j === N - 1) continue;
+    const A = S[i], B = S[j];
+    if (A.bb.x1 + 1 < B.bb.x0 || B.bb.x1 + 1 < A.bb.x0 || A.bb.y1 + 1 < B.bb.y0 || B.bb.y1 + 1 < A.bb.y0) continue;
+    // Só bate se estiverem na mesma altura: uma ponte (nível 1) passa por cima do chão (nível 0).
+    hit: for (const p of A.pts) for (const q of B.pts) if (Math.abs(p.z - q.z) < .75 && Math.hypot(p.x - q.x, p.y - q.y) < .92){ clash.add(i); clash.add(j); break hit; }
+  }
+  const bbox = { x0:Infinity, y0:Infinity, x1:-Infinity, y1:-Infinity };
+  S.forEach(s => { bbox.x0 = Math.min(bbox.x0, s.bb.x0 - .5); bbox.y0 = Math.min(bbox.y0, s.bb.y0 - .5); bbox.x1 = Math.max(bbox.x1, s.bb.x1 + .5); bbox.y1 = Math.max(bbox.y1, s.bb.y1 + .5); });
+  let center = 0; const lanes = [0, 0];
+  // Cada carrinho troca de lado a cada cruzamento. Com um número ímpar deles, cada um alterna de trilho
+  // a cada volta: na média das duas voltas os dois correm a mesma distância.
+  const offs = LANES.map(l => l.off);
+  let crosses = 0;
+  list.forEach(sg => {
+    center += pieceLen(sg.p);
+    LANES.forEach((l, k) => { lanes[k] += laneLen(sg.p, offs[k]); });
+    if (PIECES[sg.p.type].cross){ crosses++; offs[0] = -offs[0]; offs[1] = -offs[1]; }
+  });
+  if (crosses % 2) lanes[0] = lanes[1] = (lanes[0] + lanes[1]) / 2;
+  const fits = bbox.x0 >= -.01 && bbox.y0 >= -.01 && bbox.x1 <= state.board.w + .01 && bbox.y1 <= state.board.h + .01;
+  const high = list.filter(sg => sg.zIn > 0 || sg.zOut > 0).length;
+  return { closed, closedXY, endZ, gap, dh, clash, bbox, center, lanes, fits, high };
+}
+
+/* ---------- Fechar o circuito sozinho ---------- */
+// O mesmo algoritmo do TrackCloser da Unity. As curvas de 45° geram coordenadas com √2, então a conta é exata:
+// cada coordenada é (a + b·√2) / 8 com a e b inteiros. A busca vai da ponta para a frente e da largada para trás
+// (de ré, com as curvas espelhadas), até 6 peças de cada lado, e junta onde se encontram.
+// Fica a sequência com menos peças que fecha sem passar por cima da pista (na mesma altura).
+const Closer = (() => {
+  const SQ2 = Math.SQRT2, DEPTH = 6, KEEP = 3, MAX_CHECKS = 600;
+  const MOVES = [P('long'), P('short'), P('curve', 1), P('curve', -1), P('half', 1), P('half', -1), P('tiny')];
+  const MIRROR = [0, 1, 3, 2, 5, 4, 6];        // curva percorrida de ré vira para o outro lado
+  const mod8 = v => ((v % 8) + 8) % 8;
+  let tab = null;
+
+  // Valor pequeno em float → forma exata (só para montar a tabela de deslocamentos).
+  function toQ(v){
+    for (let k = 0; k <= 64; k++) for (const b of k ? [k, -k] : [0]){
+      const a = Math.round(8 * v - b * SQ2);
+      if (Math.abs(a + b * SQ2 - 8 * v) < 1e-3) return [a, b];
+    }
+    throw new Error('fora da grade exata: ' + v);
+  }
+  // Deslocamento e rumo final de cada peça saindo de cada um dos 8 rumos (múltiplos de 45°).
+  function table(){
+    if (tab) return tab;
+    tab = MOVES.map(m => Array.from({ length:8 }, (_, h) => {
+      const b = poseAt({ x:0, y:0, h:h * 45 }, m, 1), [xa, xb] = toQ(b.x), [ya, yb] = toQ(b.y);
+      return { xa, xb, ya, yb, h:mod8(Math.round(b.h / 45)) };
+    }));
+    return tab;
+  }
+  const apply = (s, m) => { const d = tab[m][s.h]; return { xa:s.xa + d.xa, xb:s.xb + d.xb, ya:s.ya + d.ya, yb:s.yb + d.yb, h:d.h }; };
+  const key = s => `${s.xa},${s.xb},${s.ya},${s.yb},${s.h}`;
+  // Movimento de mesma geometria (a largada é uma reta curta; as inclinadas são iguais às planas).
+  function moveOf(p){
+    const d = PIECES[p.type];
+    if (d.kind === 'straight') return d.len === 4 ? 0 : d.len === 2 ? 1 : 6;
+    return d.angle === 45 ? (p.dir > 0 ? 4 : 5) : (p.dir > 0 ? 2 : 3);
+  }
+  // Todas as sequências de até DEPTH peças a partir de s; por estado, guarda só as mais curtas.
+  function expand(s){
+    const map = new Map([[key(s), [[]]]]);
+    let frontier = [[s, []]];
+    for (let d = 1; d <= DEPTH; d++){
+      const next = [];
+      for (const [st, seq] of frontier) for (let m = 0; m < MOVES.length; m++){
+        const ns = apply(st, m), k = key(ns);
+        let list = map.get(k);
+        if (!list){ list = []; map.set(k, list); }
+        if (list.length >= KEEP) continue;
+        const nseq = seq.concat(m);
+        list.push(nseq);
+        next.push([ns, nseq]);
+      }
+      frontier = next;
+    }
+    return map;
+  }
+  // Vira peças; se a ponta está no alto, a rampa de descida vai na reta mais suave (comprida, curta, qualquer).
+  function toPieces(seq, endZ, banked){
+    const list = seq.map(m => {
+      const t = MOVES[m].type;
+      return P(banked && t === 'curve' ? 'curveB' : banked && t === 'half' ? 'halfB' : t, MOVES[m].dir);
+    });
+    let need = endZ;
+    for (const pass of [0, 1, 2]) for (const p of list){
+      if (need <= 0) break;
+      const ok = pass === 0 ? p.type === 'long' : pass === 1 ? p.type === 'short' : true;
+      if (ok && !p.rise){ p.rise = -1; need--; }
+    }
+    return need > 0 ? null : list;
+  }
+
+  function close(origin, pieces, banked){
+    table();
+    const start = { xa:Math.round(origin.x * 8), xb:0, ya:Math.round(origin.y * 8), yb:0, h:mod8(Math.round(origin.h / 45)) };
+    let end = start;
+    pieces.forEach(p => { end = apply(end, moveOf(p)); });
+    if (key(end) === key(start)) return { ok:false, msg:'A ponta já está na largada.' };
+    const base = layout(origin, pieces), endZ = base[base.length - 1].zOut, before = analyze(base, origin).clash.size;
+
+    const fwd = expand(end), back = expand({ ...start, h:mod8(start.h + 4) });
+    const cands = [];
+    for (const [k, bl] of back){
+      const [xa, xb, ya, yb, h] = k.split(',').map(Number);
+      const fl = fwd.get(`${xa},${xb},${ya},${yb},${mod8(h + 4)}`);   // estado de ré → mesmo estado de frente
+      if (!fl) continue;
+      for (const f of fl) for (const b of bl){
+        const seq = f.concat(b.slice().reverse().map(m => MIRROR[m]));
+        if (seq.length) cands.push(seq);
+      }
+    }
+    if (!cands.length) return { ok:false, msg:`Não achei um fechamento com até ${DEPTH * 2} peças. Leve a ponta mais perto da largada e tente de novo.` };
+
+    const len = s => s.reduce((t, m) => t + pieceLen(MOVES[m]), 0), curves = s => s.filter(m => m >= 2 && m <= 5).length;
+    cands.sort((p, q) => p.length - q.length || len(p) - len(q) || curves(p) - curves(q));
+    const seen = new Set();
+    let checks = 0, crosses = false;
+    for (const seq of cands){
+      const sk = seq.join();
+      if (seen.has(sk)) continue;
+      seen.add(sk);
+      if (++checks > MAX_CHECKS) break;
+      const add = toPieces(seq, endZ, banked);
+      if (!add) continue;
+      const a2 = analyze(layout(origin, pieces.concat(add)), origin);
+      if (!a2.closed) continue;
+      if (a2.clash.size <= before)
+        return { ok:true, pieces:add, msg:`Circuito fechado com ${add.length} ${add.length === 1 ? 'peça' : 'peças'}: ${add.map(p => pieceName(p).toLowerCase()).join(', ')}. Ctrl+Z desfaz.` };
+      crosses = true;
+    }
+    return { ok:false, msg:crosses ? 'Todo fechamento curto passa por cima da pista. Mexa um pouco a ponta (ou faça uma ponte) e tente de novo.'
+                                   : 'Não achei um fechamento que funcione daqui. Leve a ponta mais perto da largada e tente de novo.' };
+  }
+  return { close };
+})();
+
+/* ---------- Desenho ---------- */
+const svg = $('#svg'), world = $('#world'), boardG = $('#board'),
+      overlayG = $('#overlay'), rulersG = $('#rulers'), hc = $('#hc');
+
+// Seta pequena (chevron) apontando para o lado mais alto de uma rampa.
+function chevPath(q, back, s = 1){
+  const h = q.h + (back ? 180 : 0), [fx, fy] = dirv(h), [px, py] = dirv(h + 90);
+  const tx = q.x + fx * .16 * s, ty = q.y + fy * .16 * s, bx = q.x - fx * .04 * s, by = q.y - fy * .04 * s;
+  return `M${f(bx + px * .18 * s)} ${f(by + py * .18 * s)}L${f(tx)} ${f(ty)}L${f(bx - px * .18 * s)} ${f(by - py * .18 * s)}`;
+}
+// Faixas mais claras rumo à borda de fora: o lado alto da curva inclinada.
+function bankStrips(poses, dir, cls){
+  let s = '';
+  for (let k = 1; k < 4; k++) s += `<path class="${cls}" fill-opacity="${(k * .07).toFixed(2)}" d="${bandPath(poses, dir * (.5 - k * .25), dir * (.25 - k * .25))}"/>`;
+  return s;
+}
+// Listras amarelas atravessando a pista: a marca das curvas inclinadas.
+const STRIPE_STEP = .3, STRIPE_W = .11;   // a cada 0,3 célula, 0,11 de largura (medido na linha central)
+function bankStripes(a, p, cls){
+  const len = pieceLen(p), n = Math.floor(len / STRIPE_STEP);
+  let s = '';
+  for (let j = 0; j < n; j++){
+    const mid = (j + .5) * len / n, t0 = (mid - STRIPE_W / 2) / len, t1 = (mid + STRIPE_W / 2) / len;
+    s += `<path class="${cls}" d="${bandPath([poseAt(a, p, t0), poseAt(a, p, t1)], -.46, .46)}"/>`;
+  }
+  return s;
+}
+function iconSVG(type, dir, fixed, rise = 0){
+  const p = P(type, dir), a = { x:0, y:0, h:-90 };
+  const poses = samplePiece(a, p, steps(p, 6));
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  poses.forEach(q => [-.5, .5].forEach(o => { const [x, y] = offset(q, o); x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }));
+  const S = fixed ? 4.4 : Math.max(x1 - x0, y1 - y0) + .4;
+  const vb = [(x0 + x1)/2 - S/2, (y0 + y1)/2 - S/2, S, S].map(f).join(' ');
+  let extra = '';
+  if (type === 'start'){ const m = poseAt(a, p, .5), [ax, ay] = offset(m, -.5), [bx, by] = offset(m, .5); extra = `<path class="ick" d="M${f(ax)} ${f(ay)}L${f(bx)} ${f(by)}"/>`; }
+  if (PIECES[type].bank) extra += bankStrips(poses, dir, 'ibank') + bankStripes(a, p, 'istripe');
+  let top = '';
+  if (rise) for (const t of [.25, .5, .75]) top += `<path class="ichev" d="${chevPath(poseAt(a, p, t), rise < 0, 1.6)}"/>`;
+  return `<svg class="ico" viewBox="${vb}" aria-hidden="true"><path class="ib" d="${bandPath(poses, -.5, .5)}"/>${extra}${LANES.map(l => `<path class="il ${l.cls}" d="${lanePath(poses, p, l.off)}"/>`).join('')}${top}</svg>`;
+}
+function pieceName(p){
+  return PIECES[p.type].name + (p.dir ? (p.dir < 0 ? ' · esquerda' : ' · direita') : '') + (p.rise > 0 ? ' · sobe' : p.rise < 0 ? ' · desce' : '');
+}
+
+function drawBoard(){
+  const { w, h } = state.board;
+  let s = `<rect class="boardbg" x="0" y="0" width="${w}" height="${h}"/>`;
+  for (let x = 1; x < w; x++) s += `<path class="gl${x % 4 ? '' : ' M'}" d="M${x} 0V${h}"/>`;
+  for (let y = 1; y < h; y++) s += `<path class="gl${y % 4 ? '' : ' M'}" d="M0 ${y}H${w}"/>`;
+  s += `<rect class="board-edge" x="0" y="0" width="${w}" height="${h}"/>`;
+  boardG.innerHTML = s;
+}
+function startDecor(a){
+  let s = `<g transform="translate(${f(a.x)} ${f(a.y)}) rotate(${f(a.h)})">`;
+  const q = .125;
+  for (let r = 0; r < 2; r++) for (let c = 0; c < 8; c++)
+    s += `<rect class="${(r + c) % 2 ? 'chk-d' : 'chk-l'}" x="${f(1.2 + r*q)}" y="${f(-.5 + c*q)}" width="${q}" height="${q}"/>`;
+  for (const l of LANES) s += `<path class="gridbox" d="M1.08 ${f(l.off - .16)}H.46V${f(l.off + .16)}H1.08"/>`;
+  return s + '</g>';
+}
+function startBadges(a){
+  let s = `<g transform="translate(${f(a.x)} ${f(a.y)}) rotate(${f(a.h)})">`;
+  LANES.forEach((l, k) => {
+    s += `<g transform="translate(.24 ${f(l.off)}) rotate(${f(-a.h)})"><circle class="badge ${l.cls}" r=".11"/><text class="badge-t" y=".048">${k + 1}</text></g>`;
+  });
+  return s + '</g>';
+}
+function pieceSVG(sg){
+  const { p, i, a } = sg, d = PIECES[p.type];
+  const poses = samplePiece(a, p, steps(p, 4)), N = poses.length - 1;
+  const band = bandPath(poses, -.5, .5);
+  const high = sg.zIn > 0 || sg.zOut > 0;
+  let g = `<g class="piece" data-i="${i}">`;
+  if (high){
+    // Na vista de cima, a altura aparece pela sombra no chão e pelas vigas que sobram dos lados.
+    const sh = poses.map((q, k) => { const z = zAt(sg, k / N); return { x:q.x + SHADOW[0] * z, y:q.y + SHADOW[1] * z, h:q.h }; });
+    g += `<path class="shadow" d="${bandPath(sh, -.5, .5)}"/>`;
+    const nb = Math.max(1, Math.round(pieceLen(p) / 1.25));
+    for (let j = 0; j <= nb; j++){
+      if (zAt(sg, j / nb) < .25) continue;
+      const q = poseAt(a, p, j / nb), [x1, y1] = offset(q, -.62), [x2, y2] = offset(q, .62);
+      g += `<path class="beam" d="M${f(x1)} ${f(y1)}L${f(x2)} ${f(y2)}"/>`;
+    }
+  }
+  g += `<path class="band" d="${band}"/>`;
+  if (d.bank) g += bankStrips(poses, p.dir, 'bank') + bankStripes(a, p, 'stripe');
+  for (const l of LANES) g += `<path class="tint ${l.cls}" d="${lanePath(poses, p, l.off)}"/>`;
+  if (d.cross){
+    // Faixa amarela no meio do cruzamento, onde os carrinhos podem se encontrar.
+    const m = poseAt(a, p, .5), [x1, y1] = offset(m, -.4), [x2, y2] = offset(m, .4);
+    g += `<path class="xmark" d="M${f(x1)} ${f(y1)}L${f(x2)} ${f(y2)}"/>`;
+  }
+  if (d.kind === 'curve'){
+    const s = p.dir, outer = linePath(poses, -s * .43);
+    g += `<path class="edge" d="${linePath(poses, s * .44)}"/>`;
+    // Curva inclinada tem muro do lado de fora; a plana, zebra.
+    g += d.bank ? `<path class="wall" d="${linePath(poses, -s * .465)}"/>` : `<path class="curb-base" d="${outer}"/><path class="curb" d="${outer}"/>`;
+  } else {
+    g += `<path class="edge" d="${linePath(poses, -.44)}"/><path class="edge" d="${linePath(poses, .44)}"/>`;
+  }
+  if (high) g += `<path class="guard" d="${linePath(poses, -.485)}"/><path class="guard" d="${linePath(poses, .485)}"/>`;
+  if (p.type === 'start') g += startDecor(a);
+  for (const l of LANES)
+    g += `<path class="rail" d="${lanePath(poses, p, l.off, -.065)}"/><path class="rail" d="${lanePath(poses, p, l.off, .065)}"/>`;
+  for (const l of LANES) g += `<path class="slot" d="${lanePath(poses, p, l.off)}"/>`;   // fendas por cima dos trilhos (no X, por cima de tudo)
+  if (p.type === 'start') g += startBadges(a);
+  if (sg.zOut !== sg.zIn) for (const t of [.3, .5, .7]) g += `<path class="chev" d="${chevPath(poseAt(a, p, t), sg.zOut < sg.zIn)}"/>`;
+  if (i > 0){ const [x1, y1] = offset(a, -.5), [x2, y2] = offset(a, .5); g += `<path class="joint" d="M${f(x1)} ${f(y1)}L${f(x2)} ${f(y2)}"/>`; }
+  if (info.clash.has(i)) g += `<path class="clash" d="${band}"/>`;
+  if (i === sel) g += `<path class="selo" d="${band}"/>`;
+  return g + '</g>';
+}
+function insertConn(){ return sel == null ? segs[segs.length - 1].b : segs[sel].b; }
+function drawOverlay(){
+  if (mode !== 'build'){ overlayG.innerHTML = ''; return; }
+  const at = insertConn();
+  let s = '';
+  if (hoverAdd){
+    const p = P(hoverAdd.type, hoverAdd.dir), poses = samplePiece(at, p, steps(p, 4));
+    s += `<path class="ghost" d="${bandPath(poses, -.5, .5)}"/>`;
+  }
+  s += `<g class="ins" transform="translate(${f(at.x)} ${f(at.y)}) rotate(${f(at.h)})"><path d="M0 -.6V.6"/><path d="M.2 -.28L.48 0L.2 .28"/></g>`;
+  overlayG.innerHTML = s;
+}
+
+/* ---------- Corrida: trilhos ---------- */
+// Cada trilho vira uma polilinha com distância acumulada. Por ponto guarda também:
+// curvatura (1/raio; + = curva à direita), aderência extra da inclinação, altura, rampa e a peça.
+// Cada carrinho troca de lado a cada cruzamento. Com um número ímpar de cruzamentos, ele só volta ao trilho
+// de partida depois de duas voltas: aí o caminho cobre duas voltas, com duas passagens pela bandeirada (marks).
+function buildPaths(){
+  const crosses = segs.filter(sg => PIECES[sg.p.type].cross).length, laps = crosses % 2 ? 2 : 1;
+  return LANES.map(l => {
+    const pts = [], ks = [], gm = [], zs = [], gs = [], pis = [], lapStart = [];
+    let off = l.off;
+    for (let lap = 0; lap < laps; lap++){
+      lapStart.push(Math.max(0, pts.length - 1));
+      segs.forEach((sg, k) => {
+        const d = PIECES[sg.p.type], len = pieceLen(sg.p), n = Math.max(1, Math.ceil(len / .08));
+        const kap = d.kind === 'curve' ? sg.p.dir / (d.r - sg.p.dir * off) : 0;
+        const slope = (sg.zOut - sg.zIn) / len;
+        for (let j = lap || k ? 1 : 0; j <= n; j++){
+          const [x, y] = offset(poseAt(sg.a, sg.p, j/n), laneOffAt(sg.p, off, j/n));
+          pts.push([x, y]); ks.push(kap); gm.push(d.bank ? BANK_GRIP : 1); zs.push(zAt(sg, j/n)); gs.push(slope); pis.push(k);
+        }
+        if (d.cross) off = -off;
+      });
+    }
+    const cum = [0];
+    for (let i = 1; i < pts.length; i++) cum.push(cum[i-1] + Math.hypot(pts[i][0] - pts[i-1][0], pts[i][1] - pts[i-1][1]));
+    // A largada é reta: a bandeirada fica LINE_S depois do começo de cada volta.
+    return { pts, ks, gm, zs, gs, pis, cum, total:cum[cum.length - 1], marks:lapStart.map(i => cum[i] + LINE_S) };
+  });
+}
+// Quantas vezes o carrinho já passou pela bandeirada, andando s pelo caminho.
+function lineCount(P, s){
+  const cyc = Math.floor(s / P.total), r = s - cyc * P.total;
+  return cyc * P.marks.length + P.marks.filter(m => m <= r).length;
+}
+function posOn(P, d){
+  const { pts, cum } = P; d = clamp(d, 0, P.total);
+  let lo = 0, hi = cum.length - 1;
+  while (hi - lo > 1){ const m = (lo + hi) >> 1; if (cum[m] <= d) lo = m; else hi = m; }
+  const t = (d - cum[lo]) / ((cum[hi] - cum[lo]) || 1), A = pts[lo], B = pts[hi];
+  return { x:A[0] + (B[0] - A[0])*t, y:A[1] + (B[1] - A[1])*t, h:Math.atan2(B[1] - A[1], B[0] - A[0]) * 180 / Math.PI,
+           k:P.ks[hi], gm:P.gm[hi], g:P.gs[hi], pi:P.pis[hi], z:P.zs[lo] + (P.zs[hi] - P.zs[lo]) * t };
+}
+const wrap = (s, T) => ((s % T) + T) % T;
+const angDiff = (a, b) => ((b - a) % 360 + 540) % 360 - 180;
+const ease = t => t < .5 ? 2*t*t : 1 - Math.pow(-2*t + 2, 2) / 2;
+
+/* ---------- Corrida: regras e física ---------- */
+const RKEY = 'autorama-corrida-v1';
+const RS = (() => {
+  const d = { laps:5, vmax:14, ramp:.5, grip:29, collide:true, track:'builder', bot:false, botSkill:60 };
+  try { const o = JSON.parse(localStorage.getItem(RKEY) || '{}');
+    return { laps:intIn(o.laps, 1, 20, d.laps), vmax:numIn(o.vmax, 6, 24, d.vmax), ramp:numIn(o.ramp, .1, 2, d.ramp), grip:numIn(o.grip, 15, 45, d.grip), collide:o.collide !== false,
+             track:typeof o.track === 'string' ? o.track : d.track, bot:o.bot === true, botSkill:intIn(o.botSkill, 1, 100, d.botSkill) };
+  } catch (e){ return d; }
+})();
+function saveRS(){ try { localStorage.setItem(RKEY, JSON.stringify(RS)); } catch (e){} }
+// Regras em uso: na aba Corrida são os ajustes dela; no campeonato, as regras fixadas ao criá-lo e as voltas da etapa.
+let RC = RS;
+
+const GRID_S = .75;        // carrinho parado no grid (distância desde o início da largada)
+const LINE_S = 1.325;      // bandeirada
+const PIN = .22;           // guia na frente do carrinho: é em volta dele que a traseira escorrega
+const COUNT = 2.4;         // tempo das três luzes vermelhas
+const ACCEL = 3.5;         // resposta do motor (1/s)
+const SLOPE_G = 8;         // gravidade na rampa: subir freia, descer embala (cél/s² por inclinação)
+const FALL = 3;            // carrinho que sai da ponte cai a 3 níveis por segundo
+const BRAKE = 1.8, BRAKE0 = .5;   // freio ao soltar: proporcional à velocidade + fixo
+const SLIP_GAIN = 6, SLIP_DECAY = 1.5, YAW_MAX = 38;
+const KEYS = [{ gas:'a', reset:'s' }, { gas:'l', reset:'k' }];
+let mode = 'build';
+
+function newCar(){
+  return { s:GRID_S, v:0, held:false, hold:0, T:0, slip:0, side:1, state:'on', fly:null, back:null,
+           exitS:0, cross:-1, lapStart:0, laps:0, lastLap:null, best:null, finish:null, offs:0,
+           hits:0, contact:false, hitFx:0, push:null, flash:null, aiM:null, aiT:0, offT:0 };
+}
+// cutoff: no campeonato, a bateria acaba esse tanto de segundos depois da bandeirada do primeiro.
+// bestT: melhor volta da bateria até agora (para saber, na hora, se uma volta é recorde).
+// ai: por trilho, null (gente) ou { skill } (o computador dirige).
+const race = { phase:'idle', t:0, last:0, raf:0, winner:null, paths:null, fx:[], cutoff:null, bestT:null, ai:[null, null], cars:[newCar(), newCar()] };
+
+function resetRace(){
+  race.phase = 'idle'; race.t = 0; race.winner = null; race.paths = null; race.fx = []; race.bestT = null;
+  race.cars.forEach(c => { const held = c.held; Object.assign(c, newCar(), { held }); });
+}
+function startRace(){
+  if (!info.closed) return;
+  resetRace(); race.phase = 'countdown';
+  drawStatus(); drawModeSide();
+}
+
+// Piloto IA: acelera enquanto estiver abaixo da velocidade com que ainda freia a tempo para a próxima curva.
+// A coragem m é a fração do limite da curva que ele aceita entrar: de 0,82 (qualidade 1) a 1,15 (qualidade 100).
+// A cada 1,2 s sorteia de novo, com uma variação que diminui com a qualidade. Às vezes erra: entra a 130–140%
+// do limite e sai da pista. A chance do erro vai de 12,5% por sorteio (qualidade 1) a 0,5% (qualidade 100).
+// Fora da pista, aperta Recolocar depois de um tempo de reação, também menor nos melhores.
+const AI_LOOK = 3.5, AI_BRAKE = 20, AI_EVERY = 1.2;
+const aiBase = sk => .82 + .33 * sk, aiSpread = sk => .02 + .1 * (1 - sk), aiReslot = sk => 1.4 - .9 * sk;
+const aiMiss = sk => .005 + .12 * Math.pow(1 - sk, 1.5);
+function aiDrive(c, k, dt){
+  const sk = race.ai[k].skill / 100;
+  if (race.phase === 'countdown'){ c.held = true; return; }      // segura na luz vermelha, como gente
+  if ((c.aiT -= dt) <= 0 || c.aiM == null){
+    c.aiM = Math.random() < aiMiss(sk) ? 1.3 + .1 * Math.random() : aiBase(sk) + (Math.random() * 2 - 1) * aiSpread(sk);
+    c.aiT = AI_EVERY;
+  }
+  if (c.state === 'off'){ c.held = false; if ((c.offT += dt) >= aiReslot(sk)){ c.offT = 0; reslot(k); } return; }
+  const P = race.paths && race.paths[k];
+  if (c.state !== 'on' || c.finish != null || !P){ c.held = false; return; }
+  let need = Infinity;
+  for (let d = 0; d <= AI_LOOK; d += .1){
+    const q = posOn(P, wrap(c.s + d, P.total)), kap = Math.abs(q.k); if (!kap) continue;
+    const v = Math.sqrt(RC.grip * q.gm / kap) * c.aiM;
+    need = Math.min(need, Math.sqrt(v * v + 2 * AI_BRAKE * d));
+  }
+  c.held = c.v < need;
+}
+// Melhor volta da bateria só entre gente: piloto IA não bate recorde da pista.
+const humanBest = () => Math.min(...race.cars.map((c, k) => race.ai[k] ? Infinity : c.best ?? Infinity));
+
+function step(dt){
+  if (race.phase !== 'idle') race.cars.forEach((c, k) => { if (race.ai[k]) aiDrive(c, k, dt); });
+  // Acelerador: sobe enquanto segura, zera ao soltar.
+  race.cars.forEach(c => {
+    if (c.held && c.finish == null){ c.hold += dt; c.T = Math.min(1, c.hold / RC.ramp); }
+    else { c.hold = 0; c.T = 0; }
+  });
+  if (race.phase === 'countdown'){
+    race.t += dt;
+    if (race.t >= COUNT){ race.phase = 'running'; race.t = 0; }
+    return;
+  }
+  if (race.phase === 'idle') return;
+  if (race.phase === 'running') race.t += dt;
+  race.fx = race.fx.filter(s => (s.t += dt) < .35);
+  race.cars.forEach(c => { c.hitFx = Math.max(0, c.hitFx - dt); if (c.flash && (c.flash.t -= dt) <= 0) c.flash = null; });
+  // Campeonato: quem ainda não chegou tem um tempo limite depois da bandeirada do primeiro.
+  if (race.phase === 'running' && race.cutoff != null && race.winner != null && race.t - race.cars[race.winner].finish >= race.cutoff) race.phase = 'done';
+
+  race.cars.forEach((c, k) => {
+    const P = race.paths[k];
+    if (c.state === 'on'){
+      // Motor: busca a velocidade T × máxima. Soltou: freio forte. Rampa: subir freia, descer embala.
+      const here = posOn(P, wrap(c.s, P.total));
+      const a = (c.T === 0 ? -(BRAKE * c.v + BRAKE0) : ACCEL * (c.T * RC.vmax - c.v)) - SLOPE_G * here.g;
+      c.v = Math.max(0, c.v + a * dt);
+      c.s += c.v * dt;
+      // Força lateral v²/r contra a aderência (maior na curva inclinada). O excesso enche a derrapagem.
+      const q = posOn(P, wrap(c.s, P.total)), kap = q.k;
+      if (kap) c.side = Math.sign(kap);
+      const ratio = c.v * c.v * Math.abs(kap) / (RC.grip * q.gm);
+      c.slip = ratio > 1 ? c.slip + (ratio - 1) * SLIP_GAIN * dt : Math.max(0, c.slip - SLIP_DECAY * dt);
+      if (c.slip >= 1) deslot(c, P);
+      else countLap(c, P, k);
+    } else if (c.state === 'off'){
+      // Fora do trilho: desliza e gira até parar.
+      const f = c.fly, damp = Math.exp(-2.4 * dt);
+      f.vx *= damp; f.vy *= damp; f.w *= Math.exp(-2.8 * dt);
+      f.x += f.vx * dt; f.y += f.vy * dt; f.h += f.w * dt;
+      f.z = Math.max(0, f.z - FALL * dt);                     // saiu da ponte: cai até o chão
+    } else if (c.state === 'back'){
+      c.back.t += dt;
+      if (c.back.t >= c.back.dur){ c.state = 'on'; c.back = null; c.v = 0; c.slip = 0; }
+    }
+  });
+  if (RC.collide) collide(dt);
+}
+function deslot(c, P, push){
+  const body = onSlot(c, P), q = posOn(P, wrap(c.s, P.total));
+  const th = rad(q.h), out = rad(q.h - c.side * 90);       // tangente + um pouco para fora da curva
+  c.fly = { x:body.x, y:body.y, h:body.h, z:q.z,
+            vx:(Math.cos(th) + Math.cos(out) * .35) * c.v, vy:(Math.sin(th) + Math.sin(out) * .35) * c.v,
+            w:c.side * (220 + c.v * 30) };
+  if (push){ c.fly.vx += push[0]; c.fly.vy += push[1]; }   // empurrão de uma batida
+  c.state = 'off'; c.exitS = c.s; c.v = 0; c.slip = 0; c.offs++;
+  drawScore();
+}
+function reslot(k){
+  const c = race.cars[k];
+  if (c.state !== 'off') return;
+  c.s = Math.max(GRID_S, c.exitS - .4);
+  c.back = { from:{ x:c.fly.x, y:c.fly.y, h:c.fly.h }, t:0, dur:.6 };
+  c.fly = null; c.state = 'back';
+}
+function countLap(c, P, k){
+  const cr = lineCount(P, c.s) - 1;       // -1 no grid; 0 ao largar; 1 ao completar a primeira volta
+  if (cr <= c.cross) return;
+  c.cross = cr;
+  if (cr < 1 || c.finish != null || race.phase !== 'running') return;
+  const lap = race.t - c.lapStart;
+  c.lapStart = race.t; c.laps = cr; c.lastLap = lap;
+  if (mode === 'champ') champLap(k, lap);      // recorde da pista ou pessoal: avisa na hora
+  if (c.best == null || lap < c.best) c.best = lap;
+  if (race.bestT == null || lap < race.bestT) race.bestT = lap;
+  if (cr >= RC.laps){
+    c.finish = race.t;
+    if (race.winner == null) race.winner = k;
+    if (race.cars.every(x => x.finish != null)) race.phase = 'done';
+  }
+  drawScore(); drawStatus();
+}
+
+/* ---------- Corrida: colisão entre carrinhos ---------- */
+const CAR_HL = .3, CAR_HW = .16;     // meio comprimento e meia largura da carroceria
+const RESTITUTION = .35;             // quanto o choque "quica" (0 = gruda, 1 = bola de bilhar)
+const RUB_KICK = .15, RUB_KICK_V = .03, RUB_SLIP = 8, RUB_DRAG = 1.2;
+const HIT_SLIP = .12, HIT_SLIP_SIDE = .14, HIT_SPIN = 60;
+
+// Teste de eixos separados (SAT) entre duas carrocerias retangulares.
+// Devolve a normal (de A para B) e a profundidade da sobreposição, ou null se não encostam.
+function overlap(a, b){
+  const axes = p => { const c = Math.cos(rad(p.h)), s = Math.sin(rad(p.h)); return [[c, s], [-s, c]]; };
+  const axA = axes(a), axB = axes(b), dx = b.x - a.x, dy = b.y - a.y;
+  const radius = (ax, own) => CAR_HL * Math.abs(own[0][0] * ax[0] + own[0][1] * ax[1]) + CAR_HW * Math.abs(own[1][0] * ax[0] + own[1][1] * ax[1]);
+  let best = null;
+  for (const ax of [...axA, ...axB]){
+    const d = dx * ax[0] + dy * ax[1];
+    const depth = radius(ax, axA) + radius(ax, axB) - Math.abs(d);
+    if (depth <= 0) return null;
+    if (!best || depth < best.depth) best = { depth, n:d < 0 ? [-ax[0], -ax[1]] : ax };
+  }
+  return best;
+}
+function carVel(k){
+  const c = race.cars[k];
+  if (c.state === 'off') return [c.fly.vx, c.fly.vy];
+  if (c.state !== 'on') return [0, 0];
+  const h = rad(posOn(race.paths[k], wrap(c.s, race.paths[k].total)).h);
+  return [Math.cos(h) * c.v, Math.sin(h) * c.v];
+}
+// r: do centro do carrinho até o ponto de contato (define para que lado ele gira).
+function applyImpulse(k, ix, iy, r){
+  const c = race.cars[k];
+  if (c.state === 'off'){
+    c.fly.vx += ix; c.fly.vy += iy;
+    c.fly.w += Math.sign(r[0] * iy - r[1] * ix) * Math.hypot(ix, iy) * HIT_SPIN;
+  } else if (c.state === 'on'){
+    // O trilho segura o carrinho: só a parte do empurrão na direção da pista vira velocidade.
+    // A parte de lado vira derrapagem, e pode tirá-lo da pista.
+    const h = rad(posOn(race.paths[k], wrap(c.s, race.paths[k].total)).h);
+    const along = ix * Math.cos(h) + iy * Math.sin(h), across = Math.abs(-ix * Math.sin(h) + iy * Math.cos(h));
+    c.v = Math.max(0, c.v + along);
+    c.slip += HIT_SLIP + across * HIT_SLIP_SIDE;
+    c.push = [ix, iy];
+  }
+}
+function collide(dt){
+  const [A, B] = race.cars;
+  // Carrinho voltando para o trilho está "na mão do fiscal": não bate.
+  if (A.state === 'back' || B.state === 'back'){ A.contact = B.contact = false; return; }
+  // Um na ponte e outro embaixo dela: passam sem se tocar.
+  if (Math.abs(carZ(0) - carZ(1)) > .6){ A.contact = B.contact = false; return; }
+  const pa = carPose(0), pb = carPose(1), hit = overlap(pa, pb);
+  if (!hit){ A.contact = B.contact = false; return; }
+  const first = !A.contact;
+  A.contact = B.contact = true;
+  const [nx, ny] = hit.n, va = carVel(0), vb = carVel(1);
+  const vrel = (vb[0] - va[0]) * nx + (vb[1] - va[1]) * ny;       // < 0: estão se aproximando
+  if (first){
+    spark((pa.x + pb.x) / 2, (pa.y + pb.y) / 2);
+    A.hitFx = B.hitFx = .6; A.hits++; B.hits++;
+    drawScore();
+  }
+  if (A.state === 'on' && B.state === 'on'){
+    // Raspando lado a lado: os dois ganham derrapagem e perdem velocidade enquanto encostam.
+    if (first){ const kick = RUB_KICK + RUB_KICK_V * Math.max(A.v, B.v); A.slip += kick; B.slip += kick; }
+    A.slip += hit.depth * RUB_SLIP * dt; B.slip += hit.depth * RUB_SLIP * dt;
+    const drag = Math.exp(-RUB_DRAG * dt); A.v *= drag; B.v *= drag;
+  } else {
+    // Pelo menos um está solto: choque com troca de impulso (massas iguais).
+    if (vrel < 0){
+      const J = -(1 + RESTITUTION) * vrel / 2, half = [(pb.x - pa.x) / 2, (pb.y - pa.y) / 2];
+      applyImpulse(0, -J * nx, -J * ny, half);
+      applyImpulse(1, J * nx, J * ny, [-half[0], -half[1]]);
+    }
+    // Afasta quem está solto para não ficarem grudados.
+    const share = A.state === 'off' && B.state === 'off' ? .5 : 1;
+    if (A.state === 'off'){ A.fly.x -= nx * hit.depth * share; A.fly.y -= ny * hit.depth * share; }
+    if (B.state === 'off'){ B.fly.x += nx * hit.depth * share; B.fly.y += ny * hit.depth * share; }
+  }
+  race.cars.forEach((c, k) => {
+    if (c.state === 'on' && c.slip >= 1) deslot(c, race.paths[k], c.push);
+    c.push = null;
+  });
+}
+function spark(x, y){ race.fx.push({ x, y, t:0 }); }
+
+/* ---------- Corrida: desenho ---------- */
+// No trilho, o carrinho gira em volta da guia: a traseira sai para fora da curva conforme derrapa.
+function onSlot(c, P){
+  const q = posOn(P, wrap(c.s, P.total));
+  const hh = q.h + c.side * Math.pow(c.slip, 1.4) * YAW_MAX;
+  const px = q.x + Math.cos(rad(q.h)) * PIN, py = q.y + Math.sin(rad(q.h)) * PIN;
+  return { x:px - Math.cos(rad(hh)) * PIN, y:py - Math.sin(rad(hh)) * PIN, h:hh };
+}
+function carPose(k){
+  const c = race.cars[k], P = race.paths[k];
+  if (c.state === 'off') return { x:c.fly.x, y:c.fly.y, h:c.fly.h };
+  const to = onSlot(c, P);
+  if (c.state === 'back'){
+    const b = c.back, e = ease(Math.min(1, b.t / b.dur));
+    return { x:b.from.x + (to.x - b.from.x) * e, y:b.from.y + (to.y - b.from.y) * e, h:b.from.h + angDiff(b.from.h, to.h) * e };
+  }
+  return to;
+}
+// Altura do carrinho: no trilho, a da pista; solto, a do voo (que cai até o chão).
+function carZ(k){
+  const c = race.cars[k], P = race.paths[k];
+  return c.state === 'off' ? c.fly.z : posOn(P, wrap(c.s, P.total)).z;
+}
+// Camada de desenho: a da peça em que ele está. Assim some embaixo da ponte e aparece em cima dela.
+function carLayer(k){
+  const c = race.cars[k], P = race.paths[k];
+  return c.state === 'off' ? Math.round(c.fly.z) : layerOf(segs[posOn(P, wrap(c.s, P.total)).pi]);
+}
+function drawCars(){
+  if (!race.paths) race.paths = buildPaths();
+  race.cars.forEach((c, k) => {
+    const q = carPose(k), el = $('#car' + k), host = $('#cars' + carLayer(k));
+    if (el.parentNode !== host) host.appendChild(el);
+    el.setAttribute('transform', `translate(${f(q.x)} ${f(q.y)}) rotate(${f(q.h)}) scale(${f(1 + .07 * carZ(k))})`);
+  });
+}
+function drawFx(){
+  $('#fx').innerHTML = race.fx.map(s => {
+    const r = .1 + s.t * 1.1;
+    let d = '';
+    for (let i = 0; i < 8; i++){
+      const a = i * Math.PI / 4 + .3;
+      d += `M${f(s.x + Math.cos(a) * r * .45)} ${f(s.y + Math.sin(a) * r * .45)}L${f(s.x + Math.cos(a) * r)} ${f(s.y + Math.sin(a) * r)}`;
+    }
+    return `<path class="spark" d="${d}" opacity="${(1 - s.t / .35).toFixed(2)}"/>`;
+  }).join('');
+}
+const pads = [...document.querySelectorAll('.pad')].map(el => {
+  const r = { el }; el.querySelectorAll('[data-r]').forEach(n => { r[n.dataset.r] = n; }); return r;
+});
+function drawPads(){
+  race.cars.forEach((c, k) => {
+    const p = pads[k];
+    p.fill.style.width = (c.T * 100).toFixed(1) + '%';
+    p.gas.classList.toggle('on', c.held);
+    p.speed.style.width = Math.min(100, c.v / RC.vmax * 100).toFixed(1) + '%';
+    p.slip.style.width = Math.min(100, c.slip * 100).toFixed(1) + '%';
+    p.slip.style.background = c.slip < .45 ? 'var(--ok)' : c.slip < .75 ? 'var(--accent)' : 'var(--warn)';
+    p.reset.disabled = c.state !== 'off' || !!race.ai[k];      // a IA se recoloca sozinha
+    p.reset.classList.toggle('ready', c.state === 'off' && !race.ai[k]);
+    const txt = c.flash && c.state !== 'off' ? c.flash.text
+      : c.finish != null ? (race.winner === k ? 'Venceu!' : 'Chegou')
+      : race.phase === 'done' ? 'Não terminou'
+      : c.state === 'off' ? 'Fora da pista!'
+      : c.state === 'back' ? 'Voltando ao trilho'
+      : c.hitFx > 0 ? 'Batida!'
+      : race.phase === 'countdown' ? 'Aguarde a luz verde'
+      : race.phase === 'running' ? `Volta ${Math.min(c.laps + 1, RC.laps)} de ${RC.laps}`
+      : 'No grid';
+    if (p.state.textContent !== txt){
+      p.state.textContent = txt; p.state.classList.toggle('alert', c.state === 'off');
+      p.state.classList.toggle('rec', !!c.flash && c.flash.kind === 'rec'); p.state.classList.toggle('pb', !!c.flash && c.flash.kind === 'pb');
+    }
+  });
+}
+// Cabeçalho dos controles: na corrida livre, "Jogador 1/2"; no campeonato, o piloto da bateria com a cor dele.
+function drawPadHeads(){
+  const h = mode === 'champ' ? champHeat() : null;
+  pads.forEach((p, k) => {
+    const pl = h && h.pilots[k];
+    p.who.textContent = pl ? `${pl.name} · ${LANES[k].name}` : race.ai[k] ? `Robô · ${LANES[k].name}` : `Jogador ${k + 1}`;
+    // Carrinho da IA: o botão vira só um mostrador (o computador segura e solta).
+    const ai = race.ai[k];
+    p.gas.classList.toggle('ai', !!ai); p.gas.setAttribute('aria-disabled', String(!!ai));
+    p.gas.querySelector('span').innerHTML = ai ? `IA pilotando · ${ai.skill}` : `Acelerar <kbd>${KEYS[k].gas.toUpperCase()}</kbd>`;
+    p.el.style.setProperty('--lane', pl ? pl.color : '');
+    if (!pl) p.el.style.removeProperty('--lane');
+    const car = $('#car' + k);
+    if (pl) car.style.setProperty('--car', pl.color); else car.style.removeProperty('--car');
+  });
+}
+function fmtT(s){
+  if (s == null) return '—';
+  if (s < 60) return nf(s, 2) + ' s';
+  const m = Math.floor(s / 60);
+  return m + ':' + nf(s - m * 60, 2).padStart(5, '0');
+}
+function drawScore(){
+  const h = mode === 'champ' ? champHeat() : null;
+  const who = k => h ? pilotTag(h.pilots[k]) : `<i class="sw ${LANES[k].cls}"></i> ${k + 1}`;
+  $(h ? '#cScore' : '#score').innerHTML = `<tr><th>${h ? 'Piloto' : 'Trilho'}</th><th>Voltas</th><th>Última</th><th>Melhor</th><th>Saídas</th><th>Toques</th></tr>`
+    + race.cars.map((c, k) => `<tr class="${race.winner === k ? 'win' : ''}"><td>${who(k)}${race.winner === k ? ' · 1º' : ''}</td><td>${c.laps}/${RC.laps}</td><td>${fmtT(c.lastLap)}</td><td>${fmtT(c.best)}</td><td>${c.offs}</td><td>${c.hits}</td></tr>`).join('');
+}
+function drawLights(){
+  const el = $('#lights');
+  const show = mode !== 'build' && (race.phase === 'countdown' || (race.phase === 'running' && race.t < 1));
+  el.hidden = !show;
+  if (!show) return;
+  const n = race.phase === 'countdown' ? Math.min(3, Math.floor(race.t / (COUNT / 3)) + 1) : 0;
+  [...el.children].forEach((i, k) => { i.className = race.phase === 'running' ? 'green' : k < n ? 'red' : ''; });
+}
+function drawBanner(){
+  const el = $('#banner'); let html = '';
+  if (mode === 'race'){
+    if (!info.closed) html = '<b>Pista aberta</b><span>Volte ao Construtor e feche o circuito para correr.</span>';
+    else if (race.winner != null){
+      const c = race.cars[race.winner];
+      html = `<b class="${LANES[race.winner].cls}">${LANES[race.winner].name} venceu</b><span>${fmtT(c.finish)} · melhor volta ${fmtT(c.best)}</span>`;
+    }
+  }
+  else if (mode === 'champ') html = champBanner();
+  if (el.dataset.html !== html){ el.dataset.html = html; el.innerHTML = html; el.hidden = !html; }
+}
+function drawRaceSide(){
+  const can = info.closed;
+  $('#startRace').disabled = !can;
+  $('#startRace').innerHTML = (race.phase === 'idle' ? 'Largar' : 'Nova largada') + ' <kbd>Enter</kbd>';
+  drawRacePick();
+  $('#raceHint').textContent = !can ? 'Esta pista não é um circuito fechado. Escolha outra acima ou feche o traçado no Construtor.'
+    : race.phase === 'idle' ? 'Os dois carrinhos estão no grid. Aperte Largar e espere as luzes.'
+    : race.phase === 'countdown' ? 'Pode segurar o acelerador: o carrinho sai quando a luz ficar verde.'
+    : race.phase === 'running' ? `Vence quem completar ${RS.laps} ${RS.laps === 1 ? 'volta' : 'voltas'} primeiro.`
+    : 'Prova encerrada. Aperte Nova largada para correr de novo.';
+  // O recorde só vale no campeonato; aqui ele aparece como meta.
+  const rec = can && recordOf(trackHash(state));
+  $('#raceRec').innerHTML = rec ? `Recorde da pista: <b>${fmtT(rec.lap.t)}</b> ${pilotTag(rec.lap.pilot)}${rec.race[RS.laps] ? ` · ${RS.laps} voltas em <b>${fmtT(rec.race[RS.laps].t)}</b>` : ''}` : '';
+  $('#raceRec').hidden = !rec;
+  drawScore();
+  const ms = v => nf(v * state.scaleCm / 100, 1) + ' m/s';
+  $('#rLaps').value = RS.laps; $('#vLaps').textContent = RS.laps;
+  $('#rVmax').value = RS.vmax; $('#vVmax').textContent = `${nf(RS.vmax, 1)} cél/s · ${ms(RS.vmax)}`;
+  $('#rRamp').value = RS.ramp; $('#vRamp').textContent = nf(RS.ramp, 2) + ' s';
+  $('#rCollide').checked = RS.collide;
+  $('#rBot').checked = RS.bot; $('#rBotBox').hidden = !RS.bot;
+  $('#rBotSkill').value = RS.botSkill; $('#vBotSkill').textContent = RS.botSkill; $('#rBotHint').textContent = skillWord(RS.botSkill);
+  $('#rGrip').value = RS.grip; $('#vGrip').textContent = String(RS.grip);
+  const lim = (r, m = 1) => Math.min(100, Math.round(Math.sqrt(RS.grip * m * r) / RS.vmax * 100));
+  const R = PIECES.curve.r;
+  $('#gripHint').textContent = `Nas curvas planas, o carrinho segura até ${lim(R - .25)}% da velocidade máxima no trilho de dentro e ${lim(R + .25)}% no de fora. Nas inclinadas, até ${lim(R - .25, BANK_GRIP)}% e ${lim(R + .25, BANK_GRIP)}%. Acima disso, derrapa.`;
+}
+function loop(t){
+  if (mode === 'build'){ race.raf = 0; return; }
+  const dt = Math.min(.05, (t - race.last) / 1000); race.last = t;
+  const before = race.phase;
+  step(dt);
+  if (race.phase !== before){ drawStatus(); drawModeSide(); }
+  drawCars(); drawFx(); drawPads(); drawLights(); drawBanner();
+  $(mode === 'champ' ? '#cClock' : '#raceClock').textContent = $('#mClock').textContent = fmtT(race.phase === 'idle' || race.phase === 'countdown' ? 0 : race.t);
+  race.raf = requestAnimationFrame(loop);
+}
+/* ---------- Corrida: escolha da pista ---------- */
+let builderStash = null;     // a pista do construtor, guardada enquanto a aba Corrida usa outra
+function raceOptions(){
+  const b = builderStash || state;
+  return [
+    { key:'builder', name:'Pista do construtor', sub:b.name ? `“${b.name}”` : 'a que está aberta agora', data:b },
+    { key:'ex:oval', name:'Exemplo: oval', data:sampleState() },
+    { key:'ex:oito', name:'Exemplo: 8 com ponte', data:bridgeState() },
+    ...lib.map(e => ({ key:e.id, name:e.name, data:e.data })),
+  ];
+}
+function useRaceTrack(key){
+  const opts = raceOptions(), o = opts.find(x => x.key === key) || opts[0];
+  RS.track = o.key; saveRS();
+  setState({ ...o.data, libId:o.data.libId ?? null, name:o.data.name || o.name });
+}
+function pickRaceTrack(key){
+  useRaceTrack(key);
+  resetRace(); render(); drawStatus(); drawRaceSide(); drawCars(); drawPads(); drawBanner();
+  requestAnimationFrame(fitTrack);
+}
+function drawRacePick(){
+  $('#racePick').innerHTML = raceOptions().map(o => {
+    const t = trackInfo(o.data), on = o.key === RS.track;
+    return `<button class="titem${on ? ' on' : ''}" role="radio" aria-checked="${on}" data-track="${o.key}"${t.closed ? '' : ' disabled'}>
+      ${thumbSVG(o.data)}<span><b>${esc(o.name)}</b><small>${o.sub ? esc(o.sub) + ' · ' : ''}${trackLine(o.data)}</small></span><span></span></button>`;
+  }).join('');
+}
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' })[c]); }
+
+/* ---------- Campeonato: dados ---------- */
+// Pilotos ficam num cadastro e são reaproveitados. O campeonato guarda uma cópia dos pilotos e das pistas
+// (editar a pista na biblioteca no meio do caminho não muda o campeonato).
+// Rodízio: com N pilotos, cada etapa tem N baterias; na bateria k correm o piloto k (trilho 1) e o k+1 (trilho 2).
+// Assim cada piloto corre exatamente uma vez em cada trilho. Com 2 pilotos são as 2 baterias com troca de lado.
+const PILOT_COLORS = [
+  { c:'#E0362C', n:'Vermelho' }, { c:'#2563EB', n:'Azul' }, { c:'#F2B705', n:'Amarelo' }, { c:'#16A34A', n:'Verde' },
+  { c:'#9333EA', n:'Roxo' }, { c:'#F97316', n:'Laranja' }, { c:'#0EA5B7', n:'Ciano' }, { c:'#E04B95', n:'Rosa' },
+];
+const POINTS = [10, 8, 6, 5, 4, 3, 2, 1];   // por posição na etapa; +1 para quem fez a melhor volta da etapa
+const CUTOFF = 30;                           // segundos que quem não terminou ainda tem depois da bandeirada do primeiro
+const MAX_PILOTS = 8;
+const PKEY = 'autorama-pilotos-v1', CKEY = 'autorama-campeonatos-v1', REKEY = 'autorama-recordes-v1';
+const loadJSON = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? d; } catch (e){ return d; } };
+const saveJSON = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e){ return false; } };
+const uid = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const isColor = c => typeof c === 'string' && /^#[0-9a-f]{6}$/i.test(c);
+// Sigla de 3 letras para o placar: tira acento e o que não for letra ou número.
+const tagOf = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 3);
+// Texto escuro ou claro, conforme a cor de fundo.
+function inkOn(hex){
+  const v = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255).map(c => c <= .03928 ? c / 12.92 : Math.pow((c + .055) / 1.055, 2.4));
+  return .2126 * v[0] + .7152 * v[1] + .0722 * v[2] > .3 ? '#141414' : '#FFFFFF';
+}
+const pilotTag = p => `<span class="ptag" style="--c:${p.color};color:${inkOn(p.color)}" title="${esc(p.name)}">${esc(p.tag)}</span>`;
+const pilotDot = p => `<i class="pdot" style="--c:${p.color}"></i>`;
+function cleanPilot(p){
+  if (!p || typeof p.id !== 'string') return null;
+  const name = String(p.name || 'Piloto').slice(0, 20);
+  return { id:p.id, name, tag:tagOf(p.tag) || tagOf(name) || 'P', color:isColor(p.color) ? p.color : PILOT_COLORS[0].c,
+           ai:!!p.ai, skill:intIn(p.skill, 1, 100, 50) };
+}
+// Qualidade do piloto IA em palavras.
+const skillWord = s => s <= 20 ? 'Iniciante: freia cedo e erra bastante' : s <= 45 ? 'Amador: anda seguro, às vezes passa do ponto'
+  : s <= 70 ? 'Bom: entra forte nas curvas' : s <= 90 ? 'Experiente: quase no limite, raramente sai' : 'Profissional: no limite da aderência';
+const aiBadge = p => p.ai ? `<span class="aib" title="Piloto IA, qualidade ${p.skill}">IA ${p.skill}</span>` : '';
+let roster = (Array.isArray(loadJSON(PKEY, [])) ? loadJSON(PKEY, []) : []).map(cleanPilot).filter(Boolean);
+const savePilots = () => saveJSON(PKEY, roster);
+
+const pickTrack = d => ({ origin:{ ...d.origin }, pieces:d.pieces.map(p => ({ ...p })), board:{ ...d.board }, scaleCm:d.scaleCm });
+function cleanStage(s){
+  const data = s && sanitize(s.data);
+  return data ? { name:String(s.name || 'Pista').slice(0, 60), laps:intIn(s.laps, 1, 30, 5), data, hash:trackHash(data) } : null;
+}
+function loadChamps(){
+  const o = loadJSON(CKEY, {}) || {};
+  const draft = o.draft || {};
+  const out = {
+    draft:{ name:String(draft.name || '').slice(0, 40), pilots:Array.isArray(draft.pilots) ? draft.pilots.filter(id => typeof id === 'string') : [],
+            stages:Array.isArray(draft.stages) ? draft.stages.map(cleanStage).filter(Boolean) : [] },
+    active:null, history:Array.isArray(o.history) ? o.history.filter(h => h && Array.isArray(h.table)).slice(0, 30) : [],
+  };
+  const a = o.active;
+  if (a && Array.isArray(a.pilots) && Array.isArray(a.stages) && Array.isArray(a.heats)){
+    const pilots = a.pilots.map(cleanPilot).filter(Boolean), stages = a.stages.map(cleanStage).filter(Boolean);
+    if (pilots.length >= 2 && stages.length === a.stages.length && a.heats.length === pilots.length * stages.length)
+      out.active = { ...a, pilots, stages };
+  }
+  return out;
+}
+let CH = loadChamps();
+const saveCH = () => saveJSON(CKEY, CH);
+
+/* ---------- Recordes ---------- */
+// O recorde fica preso à forma da pista (a sequência de peças), não ao nome nem à posição na mesa:
+// salvar a mesma pista com outro nome mantém o recorde; mudar uma peça faz dela outra pista.
+// Cada peça vira "id:sentido:altura" com os ids do JSON exportado, e o texto passa por FNV-1a de 32 bits.
+function trackHash(d){
+  const s = d.pieces.map(p => [p.type === 'start' ? 'largada' : TYPE_OUT[p.type], p.dir || 0, p.rise || 0].join(':')).join('|');
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+  return h.toString(16).padStart(8, '0');
+}
+const crossCount = d => d.pieces.filter(p => PIECES[p.type].cross).length;
+let RECS = loadJSON(REKEY, {}) || {};
+// { [hash]: { name, lap:{t, pilot, date, champ, lane}, lanes:[rec, rec], race:{ [voltas]:{t, pilot, …} }, pb:{ [piloto]:{ lap, race:{ [voltas]:t } } } }
+const recordOf = hash => (RECS[hash] && RECS[hash].lap) ? RECS[hash] : null;
+
+/* ---------- Campeonato: contas ---------- */
+function makeHeats(nPilots, nStages){
+  const out = [];
+  for (let s = 0; s < nStages; s++) for (let k = 0; k < nPilots; k++) out.push({ s, p:[k, (k + 1) % nPilots], res:null });
+  return out;
+}
+// A bateria da vez (a primeira sem resultado), com a etapa e os dois pilotos. null: sem campeonato ou já acabou.
+function champHeat(){
+  const C = CH.active; if (!C) return null;
+  const idx = C.heats.findIndex(x => !x.res); if (idx < 0) return null;
+  const heat = C.heats[idx];
+  return { C, idx, heat, stage:C.stages[heat.s], pilots:heat.p.map(i => C.pilots[i]) };
+}
+// Resultado de uma etapa: soma as duas baterias de cada piloto. Mais voltas primeiro, depois menos tempo.
+function stageResults(C, s){
+  const rows = C.pilots.map((p, i) => ({ i, laps:0, time:0, best:null, offs:0, hits:0, runs:0, dnf:0, pts:null, fast:false }));
+  const heats = C.heats.filter(h => h.s === s);
+  heats.forEach(h => { if (!h.res) return; h.p.forEach((pi, k) => {
+    const r = h.res[k], row = rows[pi];
+    row.laps += r.laps; row.time += r.time; row.runs++; row.offs += r.offs; row.hits += r.hits; if (r.dnf) row.dnf++;
+    if (r.best != null && (row.best == null || r.best < row.best)) row.best = r.best;
+  }); });
+  const order = rows.filter(r => r.runs).sort((a, b) => b.laps - a.laps || a.time - b.time);
+  const complete = heats.every(h => h.res), saved = heats.filter(h => h.res).length;
+  if (complete){
+    order.forEach((r, pos) => { r.pts = POINTS[pos] ?? 0; });
+    const fastest = Math.min(...order.map(r => r.best ?? Infinity));
+    const f = order.find(r => r.best === fastest);
+    if (f){ f.fast = true; f.pts++; }
+  }
+  return { rows:order, complete, saved, total:heats.length };
+}
+// Tabela geral com as primeiras `upto` etapas (só as completas contam).
+function standings(C, upto = C.stages.length){
+  const T = C.pilots.map((p, i) => ({ i, pts:0, wins:0, podiums:0, fast:0, time:0 }));
+  for (let s = 0; s < upto; s++){
+    const r = stageResults(C, s); if (!r.complete) continue;
+    r.rows.forEach((row, pos) => { const t = T[row.i]; t.pts += row.pts; if (pos === 0) t.wins++; if (pos < 3) t.podiums++; if (row.fast) t.fast++; t.time += row.time; });
+  }
+  return T.sort((a, b) => b.pts - a.pts || b.wins - a.wins || b.podiums - a.podiums || a.time - b.time);
+}
+const stagesDone = C => C.stages.filter((s, i) => stageResults(C, i).complete).length;
+// Duração estimada: cada bateria ~ voltas × comprimento ÷ (60% da velocidade máxima), mais a largada.
+function estimateMin(stages, nPilots, vmax){
+  const sec = stages.reduce((a, s) => a + nPilots * (s.laps * trackInfo(s.data).len / (.6 * vmax) + 10), 0);
+  return Math.max(1, Math.round(sec / 60));
+}
+// Dentro ou fora: o trilho mais curto é o de dentro. Igual (8 simétrico, cruzamentos ímpares): não diz.
+function laneSide(k){
+  const [a, b] = info.lanes;
+  if (Math.abs(a - b) < .01) return '';
+  return (k === 0 ? a < b : b < a) ? 'dentro' : 'fora';
+}
+
+/* ---------- Campeonato: corrida ---------- */
+function useChampTrack(){
+  const h = champHeat(), C = CH.active;
+  let d = null;
+  race.ai = h ? h.pilots.map(p => p.ai ? { skill:p.skill } : null) : [null, null];
+  if (h){ d = h.stage; RC = { ...C.rules, laps:h.stage.laps }; race.cutoff = CUTOFF; }
+  else {
+    RC = RS; race.cutoff = null;
+    d = C ? C.stages[C.stages.length - 1] : CH.draft.stages[CH.draft.stages.length - 1];
+  }
+  if (d) setState({ ...d.data, libId:null, name:d.name });
+  else if (builderStash) setState(builderStash);
+  drawPadHeads(); drawPadsBox();
+}
+function drawPadsBox(){ $('#pads').hidden = mode === 'build' || (mode === 'champ' && !champHeat()); }
+// Volta completa no campeonato: avisa na hora se é recorde da pista ou o melhor pessoal (vale de verdade ao salvar a bateria).
+function champLap(k, lap){
+  const h = champHeat(); if (!h) return;
+  const R = RECS[h.stage.hash], c = race.cars[k], pl = h.pilots[k];
+  const trackBest = Math.min(R && R.lap ? R.lap.t : Infinity, humanBest());
+  const own = Math.min(R && R.pb[pl.id] && R.pb[pl.id].lap != null ? R.pb[pl.id].lap : Infinity, c.best ?? Infinity);
+  if (lap < trackBest && !pl.ai) c.flash = { kind:'rec', text:`Recorde da pista! ${fmtT(lap)}`, t:2.5 };
+  else if (own < Infinity && lap < own) c.flash = { kind:'pb', text:`Melhor volta pessoal! ${fmtT(lap)}`, t:2.5 };
+}
+function champStart(){ if (champHeat() && race.phase === 'idle') startRace(); }
+function champRestart(){ resetRace(); drawStatus(); drawChampSide(); drawCars(); drawPads(); drawBanner(); }
+function champEnter(){ if (race.phase === 'idle') champStart(); else if (race.phase === 'done') champSave(); }
+// Salva o resultado da bateria, atualiza os recordes e prepara a próxima.
+function champSave(){
+  const h = champHeat(); if (!h || race.phase !== 'done') return;
+  const { C, heat, stage, pilots } = h;
+  const R = RECS[stage.hash] ??= { name:stage.name, lap:null, lanes:[null, null], race:{}, pb:{} };
+  R.name = stage.name;
+  const odd = crossCount(stage.data) % 2 === 1, L = stage.laps, now = Date.now();
+  const prevLap = R.lap ? R.lap.t : Infinity, prevRace = R.race[L] ? R.race[L].t : Infinity;
+  // Recordes da pista são de gente: piloto IA só guarda o melhor pessoal dele.
+  const human = (c, k) => !pilots[k].ai;
+  const heatBest = Math.min(...race.cars.map((c, k) => human(c, k) ? c.best ?? Infinity : Infinity));
+  const heatFin = Math.min(...race.cars.map((c, k) => human(c, k) ? c.finish ?? Infinity : Infinity));
+  const news = [];
+  heat.res = race.cars.map((c, k) => {
+    const pl = pilots[k], base = { pilot:{ id:pl.id, name:pl.name, tag:pl.tag, color:pl.color }, date:now, champ:C.name };
+    const pb = R.pb[pl.id] ??= { lap:null, race:{} };
+    const res = { laps:c.laps, time:c.finish ?? race.t, dnf:c.finish == null, best:c.best, offs:c.offs, hits:c.hits };
+    if (c.best != null){
+      if (!pl.ai){
+        if (c.best === heatBest && c.best < prevLap){ R.lap = { t:c.best, lane:k, ...base }; res.rec = true; news.push(`recorde de volta de ${pl.name} (${fmtT(c.best)})`); }
+        // Com cruzamentos em número ímpar o carrinho passa pelos dois trilhos: recorde por trilho não faz sentido.
+        if (!odd && (!R.lanes[k] || c.best < R.lanes[k].t)) R.lanes[k] = { t:c.best, ...base };
+      }
+      if (pb.lap == null || c.best < pb.lap){ if (pb.lap != null) res.pb = true; pb.lap = c.best; }
+    }
+    if (c.finish != null){
+      if (!pl.ai && c.finish === heatFin && c.finish < prevRace){ R.race[L] = { t:c.finish, ...base }; res.raceRec = true; news.push(`recorde de ${L} voltas de ${pl.name} (${fmtT(c.finish)})`); }
+      if (pb.race[L] == null || c.finish < pb.race[L]) pb.race[L] = c.finish;
+    }
+    return res;
+  });
+  if (C.heats.every(x => x.res)) C.finished = now;
+  saveJSON(REKEY, RECS);
+  if (!saveCH()) toast('Não deu para salvar: o navegador recusou guardar os dados.');
+  else if (news.length) toast('Novo ' + news.join(' e novo ') + '.');
+  refreshChamp(false);
+}
+function champStatus(){
+  const C = CH.active;
+  if (!C) return { cls:'open', txt:'Monte o campeonato: pilotos e etapas' };
+  const h = champHeat();
+  if (!h){ const w = C.pilots[standings(C)[0].i]; return { cls:'ok', txt:`${C.name}: ${w.name} venceu` }; }
+  const where = `Etapa ${h.heat.s + 1} de ${C.stages.length} · bateria ${h.idx + 1} de ${C.heats.length}`;
+  if (race.phase === 'running'){ const lead = Math.max(...race.cars.map(c => c.laps)); return { cls:'open', txt:`${where} · volta ${Math.min(lead + 1, RC.laps)} de ${RC.laps}` }; }
+  if (race.phase === 'done') return { cls:'ok', txt:`Bateria ${h.idx + 1} encerrada · salve para seguir` };
+  if (race.phase === 'countdown') return { cls:'open', txt:'Atenção à largada' };
+  return { cls:'open', txt:where };
+}
+function champBanner(){
+  const C = CH.active; if (!C) return '';
+  const h = champHeat();
+  if (!h){
+    const top = standings(C)[0], w = C.pilots[top.i];
+    return `<b>${pilotDot(w)} ${esc(w.name)} vence o campeonato</b><span>${top.pts} pontos · ${top.wins} ${top.wins === 1 ? 'vitória' : 'vitórias'} · ${esc(C.name)}</span>`;
+  }
+  if (race.phase === 'done' && race.winner != null){
+    const c = race.cars[race.winner], w = h.pilots[race.winner];
+    // Recorde de volta na bateria: pode ter sido de quem perdeu, então diz de quem é.
+    const R = RECS[h.stage.hash], hb = humanBest(), rec = hb < Infinity && (!R || !R.lap || hb < R.lap.t);
+    const holder = rec ? h.pilots[race.cars.findIndex((x, k) => !race.ai[k] && x.best === hb)] : null;
+    return `<b>${pilotDot(w)} ${esc(w.name)} vence a bateria</b><span>${fmtT(c.finish)} · melhor volta ${fmtT(c.best)}${holder ? ` · <span class="badge-rec">RECORDE</span> ${esc(holder.tag)} ${fmtT(hb)}` : ''}</span>`;
+  }
+  // Primeira bateria de uma etapa nova: mostra quem venceu a anterior.
+  if (race.phase === 'idle' && h.idx > 0 && C.heats[h.idx - 1].s !== h.heat.s){
+    const prev = C.heats[h.idx - 1].s, r = stageResults(C, prev), w = C.pilots[r.rows[0].i];
+    return `<b>${pilotDot(w)} ${esc(w.name)} vence a etapa ${esc(C.stages[prev].name)}</b><span>Próxima: ${esc(h.stage.name)} · ${h.stage.laps} voltas</span>`;
+  }
+  return '';
+}
+
+/* ---------- Campeonato: painel ---------- */
+let editPilot = null, pColor = null, tagTouched = false;
+function draftPilots(){ return CH.draft.pilots.map(id => roster.find(p => p.id === id)).filter(Boolean); }
+function freeColor(){
+  const used = new Set(draftPilots().filter(p => p.id !== editPilot).map(p => p.color));
+  return (PILOT_COLORS.find(c => !used.has(c.c)) || PILOT_COLORS[0]).c;
+}
+function champProblem(){
+  const ps = draftPilots(), D = CH.draft;
+  if (ps.length < 2) return 'Marque pelo menos 2 pilotos.';
+  if (ps.length > MAX_PILOTS) return `No máximo ${MAX_PILOTS} pilotos.`;
+  const seen = new Map();
+  for (const p of ps){ if (seen.has(p.color)) return `${seen.get(p.color)} e ${p.name} estão com a mesma cor. Troque a cor de um deles.`; seen.set(p.color, p.name); }
+  if (!D.stages.length) return 'Inclua pelo menos uma pista nas etapas.';
+  return '';
+}
+function drawChampSide(){
+  const C = CH.active;
+  $('#cSetup').hidden = !!C; $('#cRun').hidden = !C;
+  if (C) drawChampRun(C); else drawChampSetup();
+}
+function drawChampSetup(){
+  const D = CH.draft, ps = draftPilots();
+  const name = $('#cName'); if (document.activeElement !== name) name.value = D.name;
+  $('#cPilotCount').textContent = `${ps.length} de ${MAX_PILOTS}`;
+  const dup = new Set(ps.filter((p, i) => ps.findIndex(q => q.color === p.color) !== i).map(p => p.color));
+  $('#cRoster').innerHTML = roster.length ? roster.map(p => {
+    const k = D.pilots.indexOf(p.id), on = k >= 0;
+    return `<div class="prow${on ? ' on' : ''}"><input type="checkbox" id="pk-${p.id}" data-pick="${p.id}"${on ? ' checked' : ''}${!on && ps.length >= MAX_PILOTS ? ' disabled' : ''}>
+      <label for="pk-${p.id}">${pilotDot(p)}<b>${esc(p.name)}</b>${pilotTag(p)}${aiBadge(p)}${on ? `<span class="ord">${k + 1}º</span>` : ''}${on && dup.has(p.color) ? '<span class="bad">cor repetida</span>' : ''}</label>
+      <span class="acts"><button class="btn" type="button" data-edit="${p.id}">Editar</button><button class="btn danger" type="button" data-pdel="${p.id}">Apagar</button></span></div>`;
+  }).join('') : '<p class="hint" style="margin:0">Nenhum piloto cadastrado. Adicione abaixo.</p>';
+  if (!pColor) pColor = freeColor();
+  const used = new Set(ps.filter(p => p.id !== editPilot).map(p => p.color));
+  $('#pColors').innerHTML = PILOT_COLORS.map(c => `<button type="button" class="swatch${used.has(c.c) ? ' used' : ''}" role="radio" aria-checked="${c.c === pColor}" aria-label="${c.n}${used.has(c.c) ? ' (já usada)' : ''}" title="${c.n}" data-color="${c.c}" style="--c:${c.c}"></button>`).join('');
+  $('#pFormTitle').textContent = editPilot ? 'Editar piloto' : 'Novo piloto';
+  $('#pSave').textContent = editPilot ? 'Salvar piloto' : 'Adicionar piloto';
+  $('#pCancel').hidden = !editPilot;
+
+  $('#cStageCount').textContent = D.stages.length ? `${D.stages.length}` : '';
+  $('#cStages').innerHTML = D.stages.length ? D.stages.map((s, i) => `<div class="srow">${thumbSVG(s.data)}<span><b>${i + 1}. ${esc(s.name)}</b><small>${trackLine(s.data)}</small></span>
+      <span class="ctl"><span class="stepper"><button type="button" data-lap="${i}:-1" aria-label="Menos voltas">−</button><span>${s.laps} ${s.laps === 1 ? 'volta' : 'voltas'}</span><button type="button" data-lap="${i}:1" aria-label="Mais voltas">+</button></span>
+      <span class="mv"><button type="button" data-mv="${i}:-1" aria-label="Subir"${i ? '' : ' disabled'}>▲</button><button type="button" data-mv="${i}:1" aria-label="Descer"${i < D.stages.length - 1 ? '' : ' disabled'}>▼</button><button type="button" data-sdel="${i}" aria-label="Tirar etapa">✕</button></span></span></div>`).join('')
+    : '<p class="hint" style="margin:0">Nenhuma etapa ainda.</p>';
+  $('#cTrackPick').innerHTML = raceOptions().map(o => {
+    const t = trackInfo(o.data), rec = t.closed && recordOf(trackHash(o.data));
+    return `<button class="titem" data-add="${o.key}"${t.closed ? '' : ' disabled'}>${thumbSVG(o.data)}<span><b>${esc(o.name)}</b><small>${o.sub ? esc(o.sub) + ' · ' : ''}${trackLine(o.data)}${rec ? ` · recorde ${fmtT(rec.lap.t)} ${esc(rec.lap.pilot.tag)}` : ''}</small></span><span class="btn" aria-hidden="true">+</span></button>`;
+  }).join('');
+
+  $('#cRules').innerHTML = `<li>Usa os ajustes da aba Corrida: velocidade <b>${nf(RS.vmax, 1)} cél/s</b>, até 100% em <b>${nf(RS.ramp, 2)} s</b>, aderência <b>${RS.grip}</b>, colisão <b>${RS.collide ? 'ligada' : 'desligada'}</b>. Ficam fixos até o fim.</li>
+    <li>Cada etapa: ${ps.length >= 2 ? `<b>${ps.length} baterias</b>` : 'uma bateria por piloto'}, e cada piloto corre uma vez em cada trilho. Vale o <b>tempo somado</b> das duas.</li>
+    <li>Quem não completar as voltas tem <b>${CUTOFF} s</b> depois da bandeirada do primeiro; fica com as voltas que fez.</li>
+    <li>Pontos: <b>${POINTS.join(' · ')}</b>, mais 1 para a melhor volta da etapa.</li>`;
+  const prob = champProblem();
+  $('#cPlan').innerHTML = prob ? `<span style="color:var(--warn)">${esc(prob)}</span>`
+    : `<b>${ps.length} pilotos · ${D.stages.length} ${D.stages.length === 1 ? 'etapa' : 'etapas'} · ${ps.length * D.stages.length} baterias</b> · cerca de ${estimateMin(D.stages, ps.length, RS.vmax)} min`;
+  $('#cStart').disabled = !!prob;
+
+  $('#cHistBlock').hidden = !CH.history.length;
+  $('#cHist').innerHTML = CH.history.map((hst, n) => {
+    const w = hst.table[0];
+    return `<details class="hist"><summary>${pilotDot(w.pilot)}<b>${esc(hst.name)}</b><small>${esc(w.pilot.name)} · ${new Date(hst.finished).toLocaleDateString('pt-BR')}</small></summary>
+      <div class="hbody"><table class="stand"><tr><th>#</th><th>Piloto</th><th>Pts</th><th>Vit.</th></tr>${hst.table.map((r, i) => `<tr><td>${i + 1}</td><td>${pilotTag(r.pilot)} <span class="nm">${esc(r.pilot.name)}</span></td><td class="pts">${r.pts}</td><td>${r.wins}</td></tr>`).join('')}</table>
+      <p class="hint" style="margin:6px 0 0">${hst.stages.map(s => `${esc(s.name)} (${s.laps})`).join(' · ')}</p>
+      <div class="row"><button class="btn danger" type="button" data-hdel="${n}">Apagar do histórico</button></div></div></details>`;
+  }).join('');
+}
+function standTable(C, rows, prevPos){
+  return `<tr><th>#</th><th>Piloto</th><th>Pts</th><th>Vit.</th><th title="Melhores voltas">MV</th></tr>` + rows.map((r, pos) => {
+    const p = C.pilots[r.i], was = prevPos ? prevPos.get(r.i) : null;
+    const mv = was == null || was === pos ? '' : was > pos ? `<span class="up" title="Subiu">▲${was - pos}</span>` : `<span class="down" title="Caiu">▼${pos - was}</span>`;
+    return `<tr class="${pos === 0 && r.pts ? 'lead' : ''}"><td>${pos + 1}</td><td>${pilotTag(p)} <span class="nm">${esc(p.name)}</span> ${aiBadge(p)} ${mv}</td><td class="pts">${r.pts}</td><td>${r.wins}</td><td>${r.fast}</td></tr>`;
+  }).join('');
+}
+function podiumHTML(C){
+  const T = standings(C), place = [1, 0, 2].filter(i => T[i]);
+  const all = C.heats.flatMap(h => h.res.map((r, k) => ({ ...r, p:C.pilots[h.p[k]], s:h.s })));
+  const fastest = all.filter(r => r.best != null).sort((a, b) => a.best - b.best)[0];
+  const sum = key => { const m = new Map(); all.forEach(r => m.set(r.p, (m.get(r.p) || 0) + r[key])); return [...m].sort((a, b) => b[1] - a[1])[0]; };
+  const offs = sum('offs'), hits = sum('hits'), recs = all.filter(r => r.rec || r.raceRec).length;
+  return `<div class="podium">${place.map(i => { const p = C.pilots[T[i].i]; return `<div style="--c:${p.color}"><em>${i + 1}º</em><b>${esc(p.name)}</b><small>${T[i].pts} pts</small></div>`; }).join('')}</div>
+    <ul class="awards">
+      ${fastest ? `<li><span>Mão mais rápida</span><span>${pilotTag(fastest.p)} ${fmtT(fastest.best)} em ${esc(C.stages[fastest.s].name)}</span></li>` : ''}
+      ${offs && offs[1] ? `<li><span>Rei do muro</span><span>${pilotTag(offs[0])} ${offs[1]} ${offs[1] === 1 ? 'saída' : 'saídas'} de pista</span></li>` : ''}
+      ${hits && hits[1] ? `<li><span>Para-choque</span><span>${pilotTag(hits[0])} ${hits[1]} ${hits[1] === 1 ? 'toque' : 'toques'}</span></li>` : ''}
+      <li><span>Recordes batidos</span><span>${recs}</span></li>
+    </ul>`;
+}
+function drawChampRun(C){
+  const h = champHeat(), S = C.stages.length, H = C.heats.length;
+  $('#cTitle').textContent = C.name;
+  $('#cProgress').textContent = h ? `Etapa ${h.heat.s + 1} de ${S} · bateria ${h.idx + 1} de ${H}` : `Encerrado · ${S} ${S === 1 ? 'etapa' : 'etapas'} · ${H} baterias`;
+  if (h){
+    const side = k => { const s = laneSide(k); return `${LANES[k].name}${s ? ' · ' + s : ''}`; };
+    const who = k => { const p = h.pilots[k]; return `<div class="hp" style="--c:${p.color}"><small>${side(k)}</small><b>${esc(p.name)}</b><small>${p.ai ? `IA · qualidade ${p.skill}` : `acelera <kbd>${KEYS[k].gas.toUpperCase()}</kbd> · recoloca <kbd>${KEYS[k].reset.toUpperCase()}</kbd>`}</small></div>`; };
+    $('#cHeat').innerHTML = `<div class="heat"><div class="hs">${esc(h.stage.name)} · ${h.stage.laps} ${h.stage.laps === 1 ? 'volta' : 'voltas'}</div><div class="vs">${who(0)}<span class="x">×</span>${who(1)}</div></div>`;
+  } else $('#cHeat').innerHTML = podiumHTML(C);
+  const ph = race.phase;
+  $('#cActs').innerHTML = !h ? '<button class="btn primary" type="button" data-c="archive">Arquivar e montar outro</button>'
+    : ph === 'idle' ? `<button class="btn primary" type="button" data-c="start"${info.closed ? '' : ' disabled'}>Largar <kbd>Enter</kbd></button>`
+    : ph === 'done' ? '<button class="btn primary" type="button" data-c="save">Salvar e seguir <kbd>Enter</kbd></button><button class="btn" type="button" data-c="restart">Correr de novo</button>'
+    : '<button class="btn" type="button" data-c="restart">Recomeçar bateria</button>';
+  $('#cHint').textContent = !h ? 'Arquivar guarda a tabela final no histórico. Os recordes ficam salvos nas pistas.'
+    : ph === 'idle' ? 'Confira quem está em cada trilho e passe o controle. Depois, Largar e esperar as luzes.'
+    : ph === 'done' ? 'Salve para o resultado contar na tabela. Se algo deu errado, corra de novo: esta bateria é descartada.'
+    : `Vence a bateria quem completar ${RC.laps} ${RC.laps === 1 ? 'volta' : 'voltas'} primeiro. Quem não terminar tem ${CUTOFF} s depois da bandeirada.`;
+  $('#cLive').hidden = !h;
+  if (h) drawScore();
+
+  // Etapa: a da última bateria salva (assim o resultado fica à vista até a próxima), ou a atual.
+  const lastSaved = C.heats.reduce((a, x, i) => x.res ? i : a, -1);
+  const sIdx = lastSaved >= 0 ? C.heats[lastSaved].s : h ? h.heat.s : 0;
+  const R = stageResults(C, sIdx);
+  $('#cStageBlock').hidden = !R.saved;
+  $('#cStageTitle').textContent = `Etapa ${sIdx + 1} · ${C.stages[sIdx].name}${R.complete ? '' : ` (${R.saved} de ${R.total} baterias)`}`;
+  // Etapa pela metade: a coluna Bat. mostra quem já correu as duas baterias (a ordem ainda vai mudar).
+  const bat = r => R.complete ? '' : `<td>${r.runs}/2</td>`;
+  $('#cStageTable').innerHTML = `<tr><th>#</th><th>Piloto</th>${R.complete ? '' : '<th title="Baterias corridas">Bat.</th>'}<th>Voltas</th><th>Tempo</th><th>Melhor</th><th>Pts</th></tr>` + R.rows.map((r, pos) => {
+    const p = C.pilots[r.i];
+    return `<tr><td>${pos + 1}</td><td>${pilotTag(p)} <span class="nm">${esc(p.name)}</span></td>${bat(r)}<td>${r.laps}</td><td>${fmtT(r.time)}</td><td>${r.fast ? '<span class="star" title="Melhor volta da etapa">★</span> ' : ''}${fmtT(r.best)}</td><td class="pts">${r.pts ?? '—'}</td></tr>`;
+  }).join('');
+
+  const done = stagesDone(C), prev = done >= 2 ? new Map(standings(C, done - 1).map((r, pos) => [r.i, pos])) : null;
+  $('#cTable').innerHTML = standTable(C, standings(C), prev);
+  $('#cPts').textContent = POINTS.slice(0, Math.max(2, C.pilots.length)).join(' · ');
+
+  // Recordes da pista em uso.
+  const st = C.stages[h ? h.heat.s : sIdx], rec = RECS[st.hash], odd = crossCount(st.data) % 2 === 1;
+  const line = (label, r) => `<dt>${label}</dt><dd class="who">${r ? `${pilotTag(r.pilot)} ${esc(r.pilot.name)}` : '<span style="color:var(--muted)">ninguém ainda</span>'}</dd><dd>${r ? fmtT(r.t) : '—'}</dd>`;
+  const pbs = rec ? C.pilots.filter(p => rec.pb[p.id] && rec.pb[p.id].lap != null).sort((a, b) => rec.pb[a.id].lap - rec.pb[b.id].lap) : [];
+  $('#cRecs').innerHTML = `<p class="hint">${esc(st.name)}</p><dl class="recs">${line('Volta', rec && rec.lap)}${odd ? '' : line(LANES[0].name, rec && rec.lanes[0]) + line(LANES[1].name, rec && rec.lanes[1])}${line(`${st.laps} voltas`, rec && rec.race[st.laps])}</dl>`
+    + (pbs.length ? `<h3>Melhor volta de cada um</h3><dl class="recs">${pbs.map(p => `<dt>${pilotTag(p)}</dt><dd class="who">${esc(p.name)}</dd><dd>${fmtT(rec.pb[p.id].lap)}</dd>`).join('')}</dl>` : '');
+
+  $('#cStageList').innerHTML = C.stages.map((s, i) => {
+    const r = stageResults(C, i), w = r.complete ? C.pilots[r.rows[0].i] : null, cur = h && h.heat.s === i;
+    const st = w ? `<span class="sdone">✓</span> ${pilotTag(w)} venceu` : r.saved ? `${r.saved} de ${r.total} baterias` : cur ? 'próxima' : `${r.total} baterias`;
+    return `<div class="titem${cur ? ' on' : ''}">${thumbSVG(s.data)}<span><b>${i + 1}. ${esc(s.name)}</b><small>${s.laps} ${s.laps === 1 ? 'volta' : 'voltas'} · ${st}</small></span><span></span></div>`;
+  }).join('');
+  $('#cQuit').hidden = !h;
+}
+
+/* ---------- Campeonato: ações ---------- */
+function champBegin(){
+  if (champProblem()) return;
+  const D = CH.draft, ps = draftPilots();
+  CH.active = { id:uid('c'), name:D.name.trim() || `Campeonato ${CH.history.length + 1}`, created:Date.now(), finished:null,
+    rules:{ vmax:RS.vmax, ramp:RS.ramp, grip:RS.grip, collide:RS.collide },
+    pilots:ps.map(p => ({ ...p })), stages:D.stages.map(s => ({ ...s, data:pickTrack(s.data) })), heats:makeHeats(ps.length, D.stages.length) };
+  saveCH(); refreshChamp(true);
+}
+function champArchive(){
+  const C = CH.active; if (!C || champHeat()) return;
+  CH.history.unshift({ id:C.id, name:C.name, finished:C.finished || Date.now(), stages:C.stages.map(s => ({ name:s.name, laps:s.laps })),
+    table:standings(C).map(r => ({ pilot:C.pilots[r.i], pts:r.pts, wins:r.wins, podiums:r.podiums, fast:r.fast })) });
+  CH.history = CH.history.slice(0, 30); CH.active = null; saveCH(); refreshChamp(true);
+}
+function refreshChamp(fit){
+  const before = trackHash(state);
+  resetRace(); useChampTrack(); render(); drawPads(); drawBanner(); drawStatus();
+  if (fit || trackHash(state) !== before) requestAnimationFrame(fitTrack);
+}
+function cMsg(text){ const el = $('#cMsg'); el.textContent = text; el.hidden = false; clearTimeout(cMsg.t); cMsg.t = setTimeout(() => { el.hidden = true; }, 4000); }
+const armed = (b, label, again) => {    // ações que apagam pedem um segundo clique
+  if (b.dataset.armed) return true;
+  b.dataset.armed = '1'; b.textContent = again; setTimeout(() => { if (b.isConnected){ delete b.dataset.armed; b.textContent = label; } }, 3000);
+  return false;
+};
+function resetPilotForm(){ editPilot = null; tagTouched = false; pColor = null; $('#pName').value = ''; $('#pTag').value = ''; setAiForm(false, 50); }
+// Chave de piloto IA: mostra a régua de qualidade só quando ligada.
+function setAiForm(on, skill){
+  $('#pAi').checked = on; $('#pSkill').value = skill; $('#pSkillBox').hidden = !on;
+  $('#vSkill').textContent = skill; $('#pSkillHint').textContent = skillWord(skill);
+}
+
+function setMode(m){
+  if (m === mode) return;
+  const from = mode; mode = m;
+  $('#tabBuild').setAttribute('aria-selected', String(m === 'build'));
+  $('#tabRace').setAttribute('aria-selected', String(m === 'race'));
+  $('#tabChamp').setAttribute('aria-selected', String(m === 'champ'));
+  $('#buildSide').hidden = m !== 'build'; $('#raceSide').hidden = m !== 'race'; $('#champSide').hidden = m !== 'champ';
+  $('#buildActions').hidden = m !== 'build';
+  document.body.classList.toggle('racing', m !== 'build');
+  sel = null; hoverAdd = null;
+  // Na corrida e no campeonato, usa outra pista; ao voltar, o construtor reencontra a sua.
+  if (from === 'build') builderStash = JSON.parse(JSON.stringify(state));
+  if (m === 'race'){ RC = RS; race.cutoff = null; race.ai = raceBots(); useRaceTrack(RS.track); }
+  else if (m === 'champ') useChampTrack();
+  else if (builderStash){ setState(builderStash); builderStash = null; }
+  race.cars.forEach(c => { c.held = false; });
+  resetRace(); drawPadHeads(); drawPadsBox(); render(); drawPads(); drawLights(); drawBanner();
+  requestAnimationFrame(fitTrack);
+  if (m !== 'build' && !race.raf){ race.last = performance.now(); race.raf = requestAnimationFrame(loop); }
+}
+
+/* ---------- Vista: zoom, rolagem, réguas ---------- */
+// Celular em pé, na corrida: pista deitada (mais larga que alta) gira 90° para ocupar a tela. A vista trabalha
+// num quadro "virtual" com largura e altura trocadas; o giro leva esse quadro para a tela.
+let spun = false;
+function wantSpin(){
+  if (!document.documentElement.classList.contains('phone') || mode === 'build') return false;
+  const W = svg.clientWidth, H = svg.clientHeight, b = info.bbox;
+  return H > W * 1.15 && (b.x1 - b.x0) > (b.y1 - b.y0) * 1.15;
+}
+const frame = () => spun ? [svg.clientHeight, svg.clientWidth] : [svg.clientWidth, svg.clientHeight];
+function applyView(){
+  world.setAttribute('transform', (spun ? `translate(${svg.clientWidth} 0) rotate(90) ` : '') + `translate(${f(view.x)} ${f(view.y)}) scale(${f(view.s)})`);
+  drawRulers(); drawScale();
+}
+function drawRulers(){
+  if (spun){ rulersG.innerHTML = ''; return; }    // girada, a régua não confere com a tela
+  const W = svg.clientWidth, H = svg.clientHeight; if (!W) return;
+  const s = view.s, T = 20, L = 26;
+  let step = 1; while (step * s < 18) step *= 2;
+  let o = `<rect class="rbg" x="0" y="0" width="${W}" height="${T}"/><rect class="rbg" x="0" y="0" width="${L}" height="${H}"/><path class="rline" d="M0 ${T - .5}H${W}M${L - .5} 0V${H}"/>`;
+  const hx = hoverCell ? hoverCell.cx : -1, hy = hoverCell ? hoverCell.cy : -1;
+  for (let c = 0; c < state.board.w; c++){
+    const X = view.x + (c + .5) * s, on = c === hx;
+    if (X < L + 8 || X > W - 8 || (c % step && !on)) continue;
+    if (on) o += `<rect class="ron" x="${f(X - 11)}" y="3" width="22" height="15" rx="3"/>`;
+    o += `<text class="rt${on ? ' on' : ''}" x="${f(X)}" y="14">${c + 1}</text>`;
+  }
+  for (let r = 0; r < state.board.h; r++){
+    const Y = view.y + (r + .5) * s, on = r === hy;
+    if (Y < T + 8 || Y > H - 8 || (r % step && !on)) continue;
+    if (on) o += `<rect class="ron" x="2" y="${f(Y - 8)}" width="${L - 4}" height="15" rx="3"/>`;
+    o += `<text class="rt${on ? ' on' : ''}" x="${L/2}" y="${f(Y + 3.5)}">${rowName(r)}</text>`;
+  }
+  o += `<rect class="rbg" x="0" y="0" width="${L - .5}" height="${T - .5}"/>`;
+  rulersG.innerHTML = o;
+}
+function drawScale(){
+  const cm = state.scaleCm, opts = [5, 10, 20, 25, 50, 100, 200, 500, 1000];
+  let best = opts[0]; for (const v of opts) if (v / cm * view.s <= 120) best = v;
+  $('#scalebar').style.width = f(best / cm * view.s) + 'px';
+  $('#scalelbl').textContent = best >= 100 ? nf(best / 100, best % 100 ? 1 : 0) + ' m' : best + ' cm';
+}
+function fitBox(bb){
+  if (!svg.clientWidth) return;
+  spun = wantSpin();
+  const [W, H] = frame(), L = spun ? 0 : 26, T = spun ? 0 : 20, pad = 1.2;
+  const bw = bb.x1 - bb.x0 + 2*pad, bh = bb.y1 - bb.y0 + 2*pad;
+  view.s = clamp(Math.min((W - L - 16) / bw, (H - T - 50) / bh), MIN_S, MAX_S);
+  view.x = L + (W - L) / 2 - (bb.x0 + bb.x1) / 2 * view.s;
+  view.y = T + (H - T) / 2 - (bb.y0 + bb.y1) / 2 * view.s;
+  applyView();
+}
+const fitTrack = () => fitBox(info.bbox);
+const fitBoard = () => fitBox({ x0:0, y0:0, x1:state.board.w, y1:state.board.h });
+function zoomAt(mx, my, k){
+  const ns = clamp(view.s * k, MIN_S, MAX_S); k = ns / view.s;
+  view.x = mx - (mx - view.x) * k; view.y = my - (my - view.y) * k; view.s = ns; applyView();
+}
+function setHover(mx, my){
+  let next = null;
+  if (mx != null && mx > 26 && my > 20){
+    const cx = Math.floor((mx - view.x) / view.s), cy = Math.floor((my - view.y) / view.s);
+    if (cx >= 0 && cy >= 0 && cx < state.board.w && cy < state.board.h) next = { cx, cy };
+  }
+  if ((next && hoverCell && next.cx === hoverCell.cx && next.cy === hoverCell.cy) || (!next && !hoverCell)) return;
+  hoverCell = next;
+  if (next){ hc.setAttribute('x', next.cx); hc.setAttribute('y', next.cy); hc.setAttribute('visibility', 'visible'); $('#cell').textContent = rowName(next.cy) + (next.cx + 1); }
+  else { hc.setAttribute('visibility', 'hidden'); $('#cell').textContent = '—'; }
+  drawRulers();
+}
+
+/* ---------- Painel lateral ---------- */
+function buildPalette(){
+  $('#palette').innerHTML = PAL.map((q, k) =>
+    `<button class="pc" data-k="${k}" title="${q.label} · ${q.sub} (tecla ${q.key.toUpperCase()})">${iconSVG(q.type, q.dir, true, q.rise)}<span><b>${q.label}</b><small>${q.sub}</small></span><kbd>${q.key.toUpperCase()}</kbd></button>`).join('');
+}
+function drawSide(){
+  $('#insertHint').innerHTML = sel == null
+    ? 'Clique para encaixar no <b>fim da pista</b>, onde está a seta amarela.'
+    : `Encaixando <b>depois da peça ${sel + 1}</b> (${pieceName(state.pieces[sel]).toLowerCase()}).`;
+
+  const box = $('#selBody');
+  if (sel == null){
+    box.innerHTML = `<p class="hint" style="margin:0">Nenhuma. Clique numa peça na mesa para inserir peças depois dela, trocar o tipo ou remover.</p>`;
+  } else if (sel === 0){
+    const c = poseAt(state.origin, state.pieces[0], .5);
+    box.innerHTML = `<div class="selhead">${iconSVG('start', 0)}<div><b>Peça 1 · Base de largada</b><small>Célula ${cellName(c.x, c.y)} · sentido ${COMPASS[norm(Math.round(state.origin.h))] || ''}</small></div></div>
+      <div class="row"><button class="btn" data-act="rotate">Girar 90° <kbd>R</kbd></button><button class="btn" data-act="desel">Soltar <kbd>Esc</kbd></button></div>
+      <p class="hint" style="margin:0">Arraste a largada na mesa para mover a pista inteira. Ela não pode ser removida.</p>`;
+  } else {
+    const p = state.pieces[sel], sg = segs[sel], curve = PIECES[p.type].kind === 'curve';
+    const level = z => z === 0 ? 'chão' : 'nível ' + z;
+    const height = sg.zIn === sg.zOut ? level(sg.zIn) : `${level(sg.zIn)} → ${level(sg.zOut)}`;
+    box.innerHTML = `<div class="selhead">${iconSVG(p.type, p.dir, false, p.rise)}<div><b>Peça ${sel + 1} · ${PIECES[p.type].name}</b><small>${curve ? (p.dir < 0 ? 'Vira à esquerda' : 'Vira à direita') + ' · ' + PIECES[p.type].angle + '°' : 'Reta'} · ${nf(pieceLen(p))} cél. · ${height}</small></div></div>
+      <div class="row">${curve ? '<button class="btn" data-act="flip">Inverter <kbd>F</kbd></button>' : ''}<button class="btn danger" data-act="remove">Remover <kbd>Del</kbd></button><button class="btn" data-act="desel">Soltar <kbd>Esc</kbd></button></div>
+      <div class="swap"><span>Altura</span>${[[1, 'Sobe'], [0, 'Plana'], [-1, 'Desce']].map(([r, t]) => `<button class="seg${(p.rise || 0) === r ? ' on' : ''}" data-rise="${r}">${t}</button>`).join('')}</div>
+      <div class="swap" style="margin-top:10px"><span>Trocar por</span>${PAL.map((q, k) => `<button class="mini" data-swap="${k}" title="${q.label} · ${q.sub}" aria-label="Trocar por ${q.label} ${q.sub}">${iconSVG(q.type, q.dir, false, q.rise)}</button>`).join('')}</div>`;
+  }
+
+  drawMSel();
+
+  const cm = state.scaleCm, m = c => nf(c * cm / 100, 2) + ' m';
+  const [la, lb] = info.lanes, diff = la - lb;
+  const bw = info.bbox.x1 - info.bbox.x0, bh = info.bbox.y1 - info.bbox.y0;
+  const diffTxt = Math.abs(diff) < .01 ? 'iguais' : `${diff > 0 ? '1' : '2'} +${nf(Math.abs(diff) * cm, 0)} cm`;
+  $('#stats').innerHTML = [
+    ['Linha central', nf(info.center) + ' cél.', m(info.center)],
+    [`<i class="sw a"></i>${LANES[0].name}`, nf(la) + ' cél.', m(la)],
+    [`<i class="sw b"></i>${LANES[1].name}`, nf(lb) + ' cél.', m(lb)],
+    ['Mais longo', diffTxt, Math.abs(diff) < .01 ? '' : nf(Math.abs(diff) / Math.min(la, lb) * 100) + '%'],
+    ['Área ocupada', `${nf(bw)} × ${nf(bh)}`, `${nf(bw * cm / 100, 2)} × ${nf(bh * cm / 100, 2)} m`],
+    ['Na mesa', info.fits ? 'cabe' : 'passa da borda', `${state.board.w} × ${state.board.h} cél.`],
+  ].map(r => `<dt>${r[0]}</dt><dd>${r[1]}</dd><dd class="m">${r[2]}</dd>`).join('');
+
+  const count = (type, dir) => state.pieces.filter(p => p.type === type && (dir == null || p.dir === dir)).length;
+  const sides = t => { const e = count(t, -1), d = count(t, 1); return e + d ? `<small>${e} esq. · ${d} dir.</small>` : ''; };
+  $('#bom').innerHTML = [
+    ['start', 0, 'Base de largada', '', 1],
+    ['short', 0, 'Reta curta', '', count('short')],
+    ['long', 0, 'Reta comprida', '', count('long')],
+    ['tiny', 0, 'Reta curtinha', '', count('tiny')],
+    ['cross', 0, 'Cruzamento', '', count('cross')],
+    ['crossS', 0, 'Cruzamento curto', '', count('crossS')],
+    ['curve', 1, 'Curva longa', sides('curve'), count('curve')],
+    ['half', 1, 'Meia curva', sides('half'), count('half')],
+    ['curveB', 1, 'Curva longa inclinada', sides('curveB'), count('curveB')],
+    ['halfB', 1, 'Curva curta inclinada', sides('halfB'), count('halfB')],
+  ].map(r => `<tr class="${r[4] ? '' : 'zero'}"><td>${iconSVG(r[0], r[1])}</td><td>${r[2]}${r[3]}</td><td>${r[4]}</td></tr>`).join('')
+    + `<tr><td></td><td><b>Total</b></td><td><b>${state.pieces.length}</b></td></tr>`
+    + (info.high ? `<tr><td></td><td>No alto<small>precisam de suporte</small></td><td>${info.high}</td></tr>` : '');
+
+  $('#seq').innerHTML = state.pieces.map((p, i) =>
+    `<button class="chip${i === sel ? ' on' : ''}${info.clash.has(i) ? ' bad' : ''}" data-i="${i}" title="${i + 1}. ${pieceName(p)}">${iconSVG(p.type, p.dir, false, p.rise)}<span>${i + 1}${segs[i].zIn || segs[i].zOut ? '↑' : ''}</span></button>`).join('');
+
+  const ta = $('#json'); if (document.activeElement !== ta) ta.value = exportJSON();
+  drawLib();
+  $('#bw').value = state.board.w; $('#bh').value = state.board.h; $('#sc').value = state.scaleCm;
+  $('#undo').disabled = !undoStack.length; $('#redo').disabled = !redoStack.length;
+}
+function drawStatus(){
+  const el = $('#status'); let cls, txt;
+  if (mode === 'champ') ({ cls, txt } = champStatus());
+  else if (mode === 'race'){
+    cls = 'open';
+    if (!info.closed){ cls = 'warn'; txt = 'Feche o circuito no Construtor para correr'; }
+    else if (race.winner != null){ cls = 'ok'; txt = `${LANES[race.winner].name} venceu`; }
+    else if (race.phase === 'countdown') txt = 'Atenção à largada';
+    else if (race.phase === 'running'){ const lead = Math.max(...race.cars.map(c => c.laps)); txt = `Corrida · volta ${Math.min(lead + 1, RC.laps)} de ${RC.laps}`; }
+    else txt = 'Pronto para largar';
+  }
+  else if (info.clash.size){ cls = 'warn'; txt = `${info.closed ? 'Circuito fechado, mas há' : 'Há'} ${info.clash.size} peças sobrepostas`; }
+  else if (info.closed){ cls = 'ok'; txt = 'Circuito fechado'; }
+  else if (info.closedXY){ cls = 'warn'; txt = `A ponta chega na largada, mas no nível ${info.endZ}. Desça até o chão`; }
+  else if (segs.length === 1){ cls = 'open'; txt = 'Só a largada. Adicione peças'; }
+  else { cls = 'open'; txt = `Pista aberta · ponta a ${nf(info.gap)} cél. da largada`; }
+  el.className = 'status ' + cls; el.innerHTML = `<span class="dot"></span>${txt}`;
+  // O botão de fechar aparece só no construtor, com algo para fechar.
+  $('#closeTrack').hidden = mode !== 'build' || info.closed || segs.length < 2;
+  drawMBar();
+}
+function render(){
+  if (sel != null && sel >= state.pieces.length) sel = null;
+  segs = layout(); info = analyze();
+  drawBoard();
+  const layers = Array.from({ length:MAX_Z + 1 }, () => []);
+  segs.forEach(sg => layers[layerOf(sg)].push(pieceSVG(sg)));
+  layers.forEach((html, L) => { $('#track' + L).innerHTML = html.join(''); });
+  drawOverlay(); drawSide(); drawStatus();
+  race.paths = null;
+  drawCars(); drawRulers(); drawScale();
+  if (mode !== 'build'){ drawModeSide(); drawBanner(); }
+}
+const drawModeSide = () => mode === 'champ' ? drawChampSide() : drawRaceSide();
+
+/* ---------- Ações ---------- */
+function addPiece(type, dir, rise = 0){
+  commit(() => { const at = sel == null ? state.pieces.length : sel + 1; state.pieces.splice(at, 0, P(type, dir, rise)); if (sel != null) sel = at; });
+}
+function removeSel(){ if (sel == null || sel === 0) return; commit(() => { state.pieces.splice(sel, 1); sel = sel - 1; }); }
+function removeLast(){ if (state.pieces.length < 2) return; commit(() => { state.pieces.pop(); if (sel != null && sel >= state.pieces.length) sel = null; }); }
+function flipSel(){ if (sel == null || PIECES[state.pieces[sel].type].kind !== 'curve') return; commit(() => { state.pieces[sel].dir *= -1; }); }
+// Trocar mantém a altura da peça, a não ser que a troca seja por uma rampa.
+function swapSel(k){ if (sel == null || sel === 0) return; const q = PAL[k]; commit(() => { state.pieces[sel] = P(q.type, q.dir, q.rise ?? state.pieces[sel].rise ?? 0); }); }
+function setRise(r){ if (sel == null || sel === 0) return; commit(() => { state.pieces[sel].rise = r; }); }
+function rotateStart(){
+  commit(() => {
+    const o = state.origin, [cx, cy] = dirv(o.h), mid = { x:o.x + cx, y:o.y + cy }, h = o.h + 90, [nx, ny] = dirv(h);
+    state.origin = snapOrigin({ x:mid.x - nx, y:mid.y - ny, h });
+  });
+}
+function select(i){ sel = (i == null || i === sel) ? null : i; render(); }
+
+/* ---------- Salvar e carregar ---------- */
+function exportJSON(){
+  return JSON.stringify({
+    formato:'autorama-pista', versao:1, nome:state.name || undefined, mesa:state.board, escalaCm:state.scaleCm, largada:state.origin,
+    pecas: state.pieces.slice(1).map(p => {
+      const o = { tipo:TYPE_OUT[p.type] };
+      if (p.dir) o.sentido = p.dir < 0 ? 'esquerda' : 'direita';
+      if (p.rise) o.altura = p.rise > 0 ? 'sobe' : 'desce';
+      return o;
+    }),
+  }, null, 1);
+}
+function ioMsg(text, good){ const el = $('#ioMsg'); el.textContent = text; el.className = 'io-msg' + (good ? ' good' : ''); el.hidden = false; clearTimeout(ioMsg.t); ioMsg.t = setTimeout(() => { el.hidden = true; }, 5000); }
+function importJSON(txt){
+  let o; try { o = JSON.parse(txt); } catch (e){ return ioMsg('Esse texto não é um JSON válido. Confira se copiou tudo, da primeira à última chave.'); }
+  if (!o || !Array.isArray(o.pecas)) return ioMsg('Não encontrei a lista "pecas" nesse texto.');
+  const pieces = [];
+  for (const q of o.pecas){
+    const t = q && TYPE_IN[q.tipo];
+    if (!t) return ioMsg(`Peça desconhecida: "${q && q.tipo}". Use ${Object.values(TYPE_OUT).join(', ')}.`);
+    pieces.push(P(t, PIECES[t].kind === 'curve' ? (q.sentido === 'esquerda' ? -1 : 1) : 0, q.altura === 'sobe' ? 1 : q.altura === 'desce' ? -1 : 0));
+  }
+  commit(() => {
+    state.pieces = [P('start'), ...pieces];
+    if (o.largada) state.origin = snapOrigin({ x:+o.largada.x || 0, y:+o.largada.y || 0, h:+o.largada.h || 0 });
+    if (o.mesa) state.board = { w:intIn(o.mesa.w, 8, 120, state.board.w), h:intIn(o.mesa.h, 8, 120, state.board.h) };
+    if (o.escalaCm) state.scaleCm = numIn(o.escalaCm, 1, 100, state.scaleCm);
+    state.libId = null; state.name = typeof o.nome === 'string' ? o.nome.slice(0, 60) : '';   // entra como pista nova
+    sel = null;
+  });
+  $('#json').value = exportJSON(); fitTrack(); ioMsg(`Pista carregada: ${state.pieces.length} peças.`, true);
+}
+
+/* ---------- Eventos ---------- */
+const pal = $('#palette');
+pal.addEventListener('click', e => { const b = e.target.closest('.pc'); if (b){ const q = PAL[+b.dataset.k]; addPiece(q.type, q.dir, q.rise || 0); } });
+const setGhost = e => { const b = e.target.closest('.pc'); const q = b ? PAL[+b.dataset.k] : null; if (q !== hoverAdd){ hoverAdd = q; drawOverlay(); } };
+pal.addEventListener('pointerover', setGhost);
+pal.addEventListener('focusin', setGhost);
+pal.addEventListener('pointerleave', () => { hoverAdd = null; drawOverlay(); });
+pal.addEventListener('focusout', () => { hoverAdd = null; drawOverlay(); });
+
+const selClick = e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.swap) return swapSel(+b.dataset.swap);
+  if (b.dataset.rise != null) return setRise(+b.dataset.rise);
+  ({ flip:flipSel, remove:removeSel, rotate:rotateStart, desel:() => select(null) })[b.dataset.act]?.();
+};
+$('#selBody').addEventListener('click', selClick);
+$('#mSel').addEventListener('click', selClick);
+$('#seq').addEventListener('click', e => { const b = e.target.closest('.chip'); if (b) select(+b.dataset.i); });
+$('#undo').onclick = undo; $('#redo').onclick = redo;
+
+// Fechar circuito: completa da ponta até a largada (uma ação só no desfazer).
+function toast(text){
+  const el = $('#toast');
+  el.textContent = text; el.hidden = false;
+  clearTimeout(toast.t); toast.t = setTimeout(() => { el.hidden = true; }, 5000);
+}
+function autoClose(){
+  if (mode !== 'build') return;
+  if (info.closed) return toast('A pista já está fechada.');
+  if (state.pieces.length < 2) return toast('Coloque algumas peças antes: o fechamento parte da ponta da pista.');
+  // Segue o estilo da pista: se ela usa mais curvas inclinadas, fecha com inclinadas.
+  let banked = 0, plain = 0;
+  state.pieces.forEach(p => { const d = PIECES[p.type]; if (d.kind === 'curve') { if (d.bank) banked++; else plain++; } });
+  const r = Closer.close(state.origin, state.pieces, banked > plain);
+  if (!r.ok) return toast(r.msg);
+  commit(() => { state.pieces.push(...r.pieces); sel = null; });
+  fitTrack();
+  toast(r.msg);
+}
+$('#closeTrack').onclick = autoClose;
+$('#tabBuild').onclick = () => setMode('build');
+$('#tabRace').onclick = () => setMode('race');
+$('#tabChamp').onclick = () => setMode('champ');
+$('#startRace').onclick = startRace;
+$('#gridRace').onclick = () => { resetRace(); drawStatus(); drawRaceSide(); drawCars(); drawPads(); drawBanner(); };
+pads.forEach((p, k) => {
+  const release = () => { race.cars[k].held = false; };
+  p.gas.addEventListener('pointerdown', e => { e.preventDefault(); if (race.ai[k]) return; p.gas.setPointerCapture(e.pointerId); race.cars[k].held = true; });
+  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => p.gas.addEventListener(ev, release));
+  p.gas.addEventListener('contextmenu', e => e.preventDefault());
+  p.reset.addEventListener('click', () => reslot(k));
+});
+[['#rLaps', 'laps', v => intIn(v, 1, 20, 5)], ['#rVmax', 'vmax', v => numIn(v, 6, 24, 14)],
+ ['#rRamp', 'ramp', v => numIn(v, .1, 2, .5)], ['#rGrip', 'grip', v => numIn(v, 15, 45, 29)]]
+  .forEach(([id, key, parse]) => $(id).addEventListener('input', e => { RS[key] = parse(e.target.value); saveRS(); drawRaceSide(); drawStatus(); }));
+$('#rCollide').addEventListener('change', e => { RS.collide = e.target.checked; saveRS(); });
+// Corrida livre contra o computador: o jogador 2 vira um piloto IA (a mesma IA do campeonato). Vale na hora, até no meio da prova.
+function raceBots(){ return [null, RS.bot ? { skill:RS.botSkill } : null]; }
+function applyBot(){
+  if (mode !== 'race') return;
+  race.ai = raceBots();
+  if (!RS.bot) race.cars[1].held = false;
+  drawPadHeads(); drawRaceSide(); drawPads();
+}
+$('#rBot').addEventListener('change', e => { RS.bot = e.target.checked; saveRS(); applyBot(); });
+$('#rBotSkill').addEventListener('input', e => { RS.botSkill = intIn(e.target.value, 1, 100, 60); saveRS(); applyBot(); });
+$('#zin').onclick = () => { const [W, H] = frame(); zoomAt(W / 2, H / 2, 1.25); };
+$('#zout').onclick = () => { const [W, H] = frame(); zoomAt(W / 2, H / 2, .8); };
+$('#fitTrack').onclick = fitTrack; $('#fitBoard').onclick = fitBoard;
+const setBoard = () => { state.board = { w:intIn($('#bw').value, 8, 120, state.board.w), h:intIn($('#bh').value, 8, 120, state.board.h) }; state.scaleCm = numIn($('#sc').value, 1, 100, state.scaleCm); save(); render(); };
+['#bw', '#bh', '#sc'].forEach(id => $(id).addEventListener('change', setBoard));
+$('#copy').onclick = () => {
+  const ta = $('#json'); ta.value = exportJSON();
+  const fallback = () => { ta.focus(); ta.select(); ioMsg('Texto selecionado. Use Ctrl+C para copiar.', true); };
+  try { navigator.clipboard.writeText(ta.value).then(() => ioMsg('Pista copiada.', true), fallback); } catch (e){ fallback(); }
+};
+$('#import').onclick = () => importJSON($('#json').value);
+// Exemplos abrem como pista nova (sem vínculo com a lista): salvar cria uma cópia.
+$('#sample').onclick = () => { commit(() => { setState({ ...sampleState(), name:'Oval' }); sel = null; }); fitTrack(); };
+$('#sampleBridge').onclick = () => { commit(() => { setState({ ...bridgeState(), name:'8 com ponte' }); sel = null; }); fitTrack(); };
+
+/* ---------- Minhas pistas ---------- */
+function libMsg(text, good){ const el = $('#libMsg'); el.textContent = text; el.className = 'io-msg' + (good ? ' good' : ''); el.hidden = false; clearTimeout(libMsg.t); libMsg.t = setTimeout(() => { el.hidden = true; }, 4000); }
+function drawLib(){
+  const cur = state.libId && lib.find(e => e.id === state.libId);
+  const name = $('#trackName');
+  if (document.activeElement !== name) name.value = state.name || '';
+  $('#saveTrack').textContent = cur ? 'Salvar' : 'Salvar na lista';
+  $('#saveAsNew').hidden = !cur;
+  $('#libState').innerHTML = !cur ? 'Esta pista ainda não está na lista. Dê um nome e salve.'
+    : sameTrack(cur.data, state) && cur.name === (state.name || cur.name) ? `Aberta: <b>${esc(cur.name)}</b>, sem alterações.`
+    : `Aberta: <b>${esc(cur.name)}</b>, com alterações não salvas.`;
+  $('#libList').innerHTML = lib.length ? lib.map(e => `<div class="titem${e.id === state.libId ? ' on' : ''}">
+      ${thumbSVG(e.data)}<span><b>${esc(e.name)}</b><small>${trackLine(e.data)}</small></span>
+      <span class="acts"><button class="btn" data-open="${e.id}">Abrir</button><button class="btn danger" data-del="${e.id}">Apagar</button></span></div>`).join('')
+    : '<p class="hint" style="margin:0">Nenhuma pista salva ainda.</p>';
+}
+function saveTrack(asNew){
+  const name = $('#trackName').value.trim() || `Pista ${lib.length + 1}`;
+  let e = !asNew && state.libId && lib.find(x => x.id === state.libId);
+  if (e){ e.name = name; e.data = trackData(); e.savedAt = Date.now(); }
+  else {
+    e = { id:'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name, savedAt:Date.now(), data:trackData() };
+    lib.unshift(e);
+  }
+  state.libId = e.id; state.name = name;
+  if (!saveLib()) return libMsg('Não deu para salvar: o navegador recusou guardar os dados. Copie o texto em Exportar e importar.');
+  save(); drawLib(); libMsg(`“${name}” salva.`, true);
+}
+function openTrack(id){
+  const e = lib.find(x => x.id === id); if (!e) return;
+  commit(() => { setState({ ...e.data, libId:e.id, name:e.name }); sel = null; });
+  fitTrack(); libMsg(`“${e.name}” aberta.`, true);
+}
+$('#saveTrack').onclick = () => saveTrack(false);
+$('#saveAsNew').onclick = () => saveTrack(true);
+$('#trackName').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); saveTrack(false); } });
+$('#trackName').addEventListener('input', e => { state.name = e.target.value.slice(0, 60); save(); });
+$('#libList').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.open) return openTrack(b.dataset.open);
+  if (b.dataset.del){
+    // Apagar pede um segundo clique.
+    if (!b.dataset.armed){ b.dataset.armed = '1'; b.textContent = 'Confirmar'; setTimeout(() => { if (b.isConnected){ delete b.dataset.armed; b.textContent = 'Apagar'; } }, 3000); return; }
+    const e2 = lib.find(x => x.id === b.dataset.del);
+    lib = lib.filter(x => x.id !== b.dataset.del); saveLib();
+    if (state.libId === b.dataset.del){ state.libId = null; save(); }
+    if (RS.track === b.dataset.del){ RS.track = 'builder'; saveRS(); }
+    drawLib(); if (e2) libMsg(`“${e2.name}” apagada da lista.`, true);
+  }
+});
+$('#racePick').addEventListener('click', e => { const b = e.target.closest('[data-track]'); if (b && !b.disabled) pickRaceTrack(b.dataset.track); });
+
+/* ---------- Campeonato: eventos ---------- */
+$('#cName').addEventListener('input', e => { CH.draft.name = e.target.value.slice(0, 40); saveCH(); });
+$('#cRoster').addEventListener('change', e => {
+  const id = e.target.dataset.pick; if (!id) return;
+  const D = CH.draft;
+  if (e.target.checked){ if (!D.pilots.includes(id) && D.pilots.length < MAX_PILOTS) D.pilots.push(id); }
+  else D.pilots = D.pilots.filter(x => x !== id);
+  if (!editPilot) pColor = null;
+  saveCH(); drawChampSetup();
+});
+$('#cRoster').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.edit){
+    const p = roster.find(x => x.id === b.dataset.edit); if (!p) return;
+    editPilot = p.id; pColor = p.color; tagTouched = true; $('#pName').value = p.name; $('#pTag').value = p.tag; setAiForm(p.ai, p.skill);
+    drawChampSetup(); $('#pName').focus(); return;
+  }
+  if (b.dataset.pdel){
+    if (!armed(b, 'Apagar', 'Confirmar')) return;
+    const id = b.dataset.pdel;
+    roster = roster.filter(x => x.id !== id); savePilots();
+    CH.draft.pilots = CH.draft.pilots.filter(x => x !== id); saveCH();
+    if (editPilot === id) resetPilotForm();
+    drawChampSetup();
+  }
+});
+$('#pName').addEventListener('input', () => { if (!tagTouched) $('#pTag').value = tagOf($('#pName').value); });
+$('#pTag').addEventListener('input', e => { tagTouched = true; e.target.value = tagOf(e.target.value); });
+$('#pColors').addEventListener('click', e => { const b = e.target.closest('[data-color]'); if (b){ pColor = b.dataset.color; drawChampSetup(); } });
+$('#pForm').addEventListener('submit', e => {
+  e.preventDefault();
+  // Piloto IA sem nome ganha um: Robô 1, Robô 2…
+  const name = $('#pName').value.trim().slice(0, 20) || ($('#pAi').checked && !editPilot ? `Robô ${roster.filter(p => p.ai).length + 1}` : '');
+  if (!name) return $('#pName').focus();
+  const tag = tagOf($('#pTag').value) || tagOf(name) || 'P', color = pColor || freeColor();
+  const ai = $('#pAi').checked, skill = intIn($('#pSkill').value, 1, 100, 50);
+  if (editPilot){ const p = roster.find(x => x.id === editPilot); if (p) Object.assign(p, { name, tag, color, ai, skill }); }
+  else {
+    const p = { id:uid('j'), name, tag, color, ai, skill };
+    roster.push(p);
+    if (CH.draft.pilots.length < MAX_PILOTS){ CH.draft.pilots.push(p.id); saveCH(); }    // quem acabou de entrar já vem marcado
+  }
+  savePilots(); resetPilotForm(); drawChampSetup();
+});
+$('#pCancel').onclick = () => { resetPilotForm(); drawChampSetup(); };
+$('#pAi').addEventListener('change', e => setAiForm(e.target.checked, intIn($('#pSkill').value, 1, 100, 50)));
+$('#pSkill').addEventListener('input', e => setAiForm(true, intIn(e.target.value, 1, 100, 50)));
+$('#cStages').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const S = CH.draft.stages;
+  if (b.dataset.lap){ const [i, d] = b.dataset.lap.split(':').map(Number); S[i].laps = clamp(S[i].laps + d, 1, 30); saveCH(); return drawChampSetup(); }
+  if (b.dataset.mv){ const [i, d] = b.dataset.mv.split(':').map(Number), j = i + d; if (j < 0 || j >= S.length) return; [S[i], S[j]] = [S[j], S[i]]; }
+  else if (b.dataset.sdel != null) S.splice(+b.dataset.sdel, 1);
+  saveCH(); refreshChamp();
+});
+$('#cTrackPick').addEventListener('click', e => {
+  const b = e.target.closest('[data-add]'); if (!b || b.disabled) return;
+  const o = raceOptions().find(x => x.key === b.dataset.add); if (!o) return;
+  const data = sanitize(pickTrack(o.data));
+  CH.draft.stages.push({ name:o.key === 'builder' ? (o.data.name || 'Pista do construtor') : o.name, laps:RS.laps, data, hash:trackHash(data) });
+  saveCH(); refreshChamp();
+});
+$('#cStart').onclick = () => { const p = champProblem(); if (p) return cMsg(p); champBegin(); };
+$('#cHist').addEventListener('click', e => {
+  const b = e.target.closest('[data-hdel]'); if (!b || !armed(b, 'Apagar do histórico', 'Confirmar')) return;
+  CH.history.splice(+b.dataset.hdel, 1); saveCH(); drawChampSetup();
+});
+$('#cActs').addEventListener('click', e => { const b = e.target.closest('[data-c]'); if (b) ({ start:champStart, save:champSave, restart:champRestart, archive:champArchive })[b.dataset.c](); });
+$('#cQuit').onclick = function(){
+  if (!armed(this, 'Abandonar campeonato', 'Abandonar? Clique de novo')) return;
+  delete this.dataset.armed; this.textContent = 'Abandonar campeonato';
+  CH.active = null; saveCH(); refreshChamp(true);
+};
+$('#clear').onclick = function(){
+  if (!this.dataset.armed){ this.dataset.armed = '1'; this.textContent = 'Apagar tudo?'; setTimeout(() => { delete this.dataset.armed; this.textContent = 'Nova pista'; }, 3000); return; }
+  delete this.dataset.armed; this.textContent = 'Nova pista';
+  commit(() => { state.pieces = [P('start')]; state.libId = null; state.name = ''; sel = null; });
+};
+
+// Mesa: clique seleciona, arrastar o fundo move a vista, arrastar a largada move a pista, pinça dá zoom.
+const ptrs = new Map(); let drag = null;
+const local = e => { const r = svg.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top; return spun ? [y, r.width - x] : [x, y]; };
+svg.addEventListener('pointerdown', e => {
+  if (e.button > 0) return;
+  svg.setPointerCapture(e.pointerId);
+  ptrs.set(e.pointerId, local(e));
+  if (ptrs.size === 2){
+    if (drag && drag.mode === 'move') save();
+    const [a, b] = [...ptrs.values()];
+    drag = { mode:'pinch', d0:Math.hypot(a[0] - b[0], a[1] - b[1]) || 1, s0:view.s, vx:view.x, vy:view.y, cx:(a[0] + b[0]) / 2, cy:(a[1] + b[1]) / 2 };
+    return;
+  }
+  const el = mode === 'build' ? e.target.closest('[data-i]') : null;
+  drag = { mode:'press', idx:el ? +el.dataset.i : null, sx:e.clientX, sy:e.clientY, vx:view.x, vy:view.y, moved:false, o0:{ ...state.origin } };
+});
+svg.addEventListener('pointermove', e => {
+  const [mx, my] = local(e);
+  if (e.pointerType === 'mouse') setHover(mx, my);
+  if (!drag || !ptrs.has(e.pointerId)) return;
+  ptrs.set(e.pointerId, [mx, my]);
+  if (drag.mode === 'pinch'){
+    if (ptrs.size < 2) return;
+    const [a, b] = [...ptrs.values()];
+    const ns = clamp(drag.s0 * Math.hypot(a[0] - b[0], a[1] - b[1]) / drag.d0, MIN_S, MAX_S), k = ns / drag.s0;
+    const cx = (a[0] + b[0]) / 2, cy = (a[1] + b[1]) / 2;
+    view.s = ns; view.x = cx - (drag.cx - drag.vx) * k; view.y = cy - (drag.cy - drag.vy) * k; applyView();
+    return;
+  }
+  const dx = e.clientX - drag.sx, dy = e.clientY - drag.sy;
+  if (!drag.moved){
+    if (Math.hypot(dx, dy) < 4) return;
+    drag.moved = true;
+    if (drag.idx === 0){ drag.mode = 'move'; undoStack.push(snap()); redoStack.length = 0; }
+    else drag.mode = 'pan';
+    svg.classList.add('moving');
+  }
+  if (drag.mode === 'pan'){ view.x = drag.vx + (spun ? dy : dx); view.y = drag.vy + (spun ? -dx : dy); applyView(); }
+  else if (drag.mode === 'move'){
+    const o = snapOrigin({ x:drag.o0.x + dx / view.s, y:drag.o0.y + dy / view.s, h:drag.o0.h });
+    if (o.x !== state.origin.x || o.y !== state.origin.y){ state.origin = o; resetRace(); render(); }
+  }
+});
+const endPtr = e => {
+  ptrs.delete(e.pointerId);
+  if (!drag) return;
+  if (drag.mode === 'press' && !drag.moved && mode === 'build') select(drag.idx);
+  if (drag.mode === 'move'){
+    if (state.origin.x === drag.o0.x && state.origin.y === drag.o0.y) undoStack.pop();
+    growBoard(); save(); render();      // arrastando, a mesa espera: cresce quando solta
+  }
+  svg.classList.remove('moving');
+  drag = null;
+};
+svg.addEventListener('pointerup', endPtr);
+svg.addEventListener('pointercancel', endPtr);
+svg.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') setHover(null, null); });
+svg.addEventListener('wheel', e => { e.preventDefault(); const [mx, my] = local(e); zoomAt(mx, my, Math.exp(-e.deltaY * .0015)); }, { passive:false });
+
+window.addEventListener('keydown', e => {
+  const t = e.target;
+  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+  const k = e.key, mod = e.ctrlKey || e.metaKey;
+  if (mode !== 'build'){
+    if (mod || e.altKey) return;
+    const key = k.toLowerCase();
+    KEYS.forEach((m, i) => {
+      if (race.ai[i]) return;
+      if (key === m.gas){ e.preventDefault(); race.cars[i].held = true; }
+      if (key === m.reset && !e.repeat) reslot(i);
+    });
+    if (k === 'Enter' && !(t && t.tagName === 'BUTTON')){ e.preventDefault(); mode === 'champ' ? champEnter() : startRace(); }
+    return;
+  }
+  if (mod && (k === 'z' || k === 'Z')){ e.preventDefault(); return e.shiftKey ? redo() : undo(); }
+  if (mod && (k === 'y' || k === 'Y')){ e.preventDefault(); return redo(); }
+  if (mod || e.altKey) return;
+  const q = PAL.find(p => p.key === k.toLowerCase());
+  if (q){ e.preventDefault(); return addPiece(q.type, q.dir, q.rise || 0); }
+  if (k === 'f' || k === 'F') return flipSel();
+  if (k === 'r' || k === 'R') return rotateStart();
+  if (k === 'Delete') return removeSel();
+  if (k === 'Backspace'){ e.preventDefault(); return sel != null && sel > 0 ? removeSel() : removeLast(); }
+  if (k === 'q' || k === 'Q'){ e.preventDefault(); return autoClose(); }
+  if (k === 'Escape') return select(null);
+});
+window.addEventListener('keyup', e => {
+  const key = e.key.toLowerCase();
+  KEYS.forEach((m, i) => { if (key === m.gas && !race.ai[i]) race.cars[i].held = false; });
+});
+window.addEventListener('blur', () => { race.cars.forEach(c => { c.held = false; }); });
+
+/* ---------- Celular em pé ---------- */
+// Abaixo de 640 px de largura, o painel vira gaveta, as peças descem para uma faixa sob a mesa
+// e, na corrida, cada jogador ganha uma ponta da tela.
+const PHONE = matchMedia('(max-width: 640px)'), MKEY = 'autorama-celular-v1', root = document.documentElement;
+const palHome = pal.parentNode, actsHome = $('#buildActions').parentNode;
+let face = (() => { try { return JSON.parse(localStorage.getItem(MKEY) || '{}').face !== false; } catch (e){ return true; } })();
+function placeUI(){
+  const on = PHONE.matches;
+  root.classList.toggle('phone', on); root.classList.toggle('face', on && face);
+  (on ? $('#mActs') : actsHome).appendChild($('#buildActions'));
+  (on ? $('#dockPal') : palHome).appendChild(pal);
+  $('#mFace').setAttribute('aria-pressed', String(face));
+  if (!on) setSheet(false);
+}
+function setSheet(open){ root.classList.toggle('sheet', open); $('#menuBtn').setAttribute('aria-expanded', String(open)); }
+function drawMSel(){
+  const box = $('#mSel');
+  if (sel == null){ box.innerHTML = '<span class="mhint">Toque numa peça da mesa para editar. As novas encaixam na seta amarela.</span>'; return; }
+  if (sel === 0){ box.innerHTML = '<b class="mname">1 · Largada</b><button class="btn" data-act="rotate">Girar 90°</button><button class="btn" data-act="desel">Soltar</button>'; return; }
+  const p = state.pieces[sel], curve = PIECES[p.type].kind === 'curve';
+  box.innerHTML = `<b class="mname">${sel + 1} · ${PIECES[p.type].name}</b>${curve ? '<button class="btn" data-act="flip">Inverter</button>' : ''}<button class="btn danger" data-act="remove">Remover</button>`
+    + [[1, 'Sobe'], [0, 'Plana'], [-1, 'Desce']].map(([r, t]) => `<button class="seg${(p.rise || 0) === r ? ' on' : ''}" data-rise="${r}">${t}</button>`).join('')
+    + '<button class="btn" data-act="desel">Soltar</button>';
+}
+// Botão principal da prova, entre a mesa e o controle do jogador 1.
+function running(){ return race.phase === 'countdown' || race.phase === 'running'; }
+function drawMBar(){
+  $('#sheetTitle').textContent = { build:'Construtor', race:'Corrida', champ:'Campeonato' }[mode];
+  const go = $('#mGo'), ph = race.phase;
+  if (go.dataset.armed) return;
+  const h = mode === 'champ' ? champHeat() : null;
+  go.textContent = mode === 'race' ? (ph === 'idle' ? 'Largar' : 'Nova largada')
+    : !CH.active ? 'Montar campeonato' : !h ? 'Ver resultado'
+    : ph === 'idle' ? 'Largar' : ph === 'done' ? 'Salvar e seguir' : 'Recomeçar bateria';
+  go.disabled = (mode === 'race' || (h && ph === 'idle')) && !info.closed;
+  go.classList.toggle('primary', !running());       // no meio da prova, fica discreto
+}
+$('#mGo').onclick = function(){
+  if (mode === 'champ' && !champHeat()) return setSheet(true);
+  // No meio da prova, recomeçar pede um segundo toque: o botão fica perto do acelerador.
+  if (running() && !this.dataset.armed){
+    this.dataset.armed = '1'; this.textContent = 'Recomeçar? Toque de novo';
+    clearTimeout(this.t); this.t = setTimeout(() => { delete this.dataset.armed; drawMBar(); }, 3000);
+    return;
+  }
+  delete this.dataset.armed; clearTimeout(this.t);
+  if (mode === 'race') startRace();
+  else if (race.phase === 'idle') champStart();
+  else if (race.phase === 'done') champSave();
+  else champRestart();
+  drawMBar();
+};
+$('#mFace').onclick = () => { face = !face; try { localStorage.setItem(MKEY, JSON.stringify({ face })); } catch (e){} placeUI(); };
+$('#menuBtn').onclick = () => setSheet(!root.classList.contains('sheet'));
+$('#sheetClose').onclick = $('#scrim').onclick = () => setSheet(false);
+// Ações da gaveta que mudam o que está na mesa fecham a gaveta, para ver o resultado.
+['#startRace', '#sample', '#sampleBridge', '#cStart'].forEach(id => $(id).addEventListener('click', () => setSheet(false)));
+['#libList', '#cActs'].forEach(id => $(id).addEventListener('click', e => { if (e.target.closest('[data-open],[data-c="start"],[data-c="save"]')) setSheet(false); }));
+$('.tabs').addEventListener('click', () => setSheet(false));
+window.addEventListener('keydown', e => { if (e.key === 'Escape' && root.classList.contains('sheet')) setSheet(false); });
+PHONE.addEventListener('change', () => { placeUI(); requestAnimationFrame(fitTrack); });
+placeUI();
+
+/* ---------- Início ---------- */
+buildPalette();
+growBoard();
+render();
+// Na corrida, a pista sempre cabe inteira: se a mesa muda de tamanho (girar o celular, abrir o teclado), enquadra de novo.
+let fitted = false, lastSize = '';
+new ResizeObserver(() => {
+  const size = svg.clientWidth + 'x' + svg.clientHeight;
+  if (!fitted && svg.clientWidth){ fitted = true; fitTrack(); }
+  else if (mode !== 'build' && size !== lastSize) fitTrack();
+  else drawRulers();
+  lastSize = size;
+}).observe(svg);
+})();
+</script>
+</body>
+</html>
