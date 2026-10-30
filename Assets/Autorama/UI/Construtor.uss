@@ -1,0 +1,299 @@
+/* Painel do construtor — mesma família visual do construtor em HTML (tema escuro da barra lateral). */
+
+.root { flex-grow: 1; }
+
+/* ---------- Barra lateral ---------- */
+.side {
+    position: absolute; left: 0; top: 0; bottom: 0; width: 340px;
+    background-color: rgba(22, 28, 25, 0.97);
+    border-right-width: 1px; border-color: rgb(41, 50, 45);
+}
+.side-scroll { flex-grow: 1; }
+.side-content { padding: 14px 16px 28px 16px; }
+
+.title-row { flex-direction: row; align-items: center; justify-content: space-between; }
+.titles { flex-shrink: 1; flex-grow: 1; margin-right: 8px; }
+.title { font-size: 18px; -unity-font-style: bold; color: rgb(229, 235, 227); margin: 0; padding: 0; white-space: normal; }
+.subtitle { font-size: 10px; color: rgb(148, 161, 151); letter-spacing: 1px; margin: 0; padding: 0; }
+
+.status {
+    flex-direction: row; align-items: center; align-self: flex-start;
+    margin-top: 10px; padding: 6px 12px; border-radius: 14px;
+    background-color: rgb(31, 39, 35); border-width: 1px; border-color: rgb(46, 56, 51);
+}
+.status-dot { width: 9px; height: 9px; border-radius: 5px; margin-right: 8px; background-color: rgb(245, 194, 27); }
+.status-text { font-size: 13px; -unity-font-style: bold; color: rgb(229, 235, 227); white-space: normal; margin: 0; padding: 0; }
+.status--ok .status-dot { background-color: rgb(61, 190, 116); }
+.status--ok .status-text { color: rgb(61, 190, 116); }
+.status--warn .status-dot { background-color: rgb(240, 122, 58); }
+.status--warn .status-text { color: rgb(240, 122, 58); }
+
+.section { margin-top: 16px; padding-top: 12px; border-top-width: 1px; border-color: rgb(41, 50, 45); }
+.h2 { font-size: 13px; -unity-font-style: bold; color: rgb(245, 194, 27); letter-spacing: 2px; margin: 0 0 8px 0; padding: 0; }
+.hint { font-size: 12px; color: rgb(148, 161, 151); white-space: normal; margin: 0 0 8px 0; padding: 0; }
+.body { font-size: 13px; color: rgb(229, 235, 227); white-space: normal; margin: 0; padding: 0; }
+.small { font-size: 11px; color: rgb(148, 161, 151); white-space: normal; margin: 0; padding: 0; }
+.row { flex-direction: row; flex-wrap: wrap; }
+
+/* ---------- Paleta ---------- */
+.palette { flex-direction: row; flex-wrap: wrap; justify-content: space-between; }
+.tile {
+    width: 49%; height: 54px; flex-direction: row; align-items: center;
+    margin: 0 0 6px 0; padding: 4px 6px;
+    background-color: rgb(30, 38, 34); border-width: 1px; border-color: rgb(46, 56, 51); border-radius: 8px;
+}
+.tile:hover { border-color: rgb(245, 194, 27); background-color: rgb(42, 43, 28); }
+.tile-icon { width: 40px; height: 40px; flex-shrink: 0; }
+.tile-texts { flex-grow: 1; flex-shrink: 1; margin-left: 6px; }
+.tile-name { font-size: 11px; -unity-font-style: bold; color: rgb(229, 235, 227); white-space: normal; margin: 0; padding: 0; }
+.tile-sub { font-size: 11px; color: rgb(148, 161, 151); margin: 0; padding: 0; }
+.key {
+    position: absolute; right: 5px; top: 4px; font-size: 10px; color: rgb(148, 161, 151);
+    border-width: 1px; border-color: rgb(58, 71, 64); border-radius: 4px; padding: 0 4px; margin: 0;
+}
+
+/* ---------- Botões ---------- */
+.btn {
+    height: 28px; padding: 0 10px; margin: 0 6px 6px 0; font-size: 12px; -unity-font-style: bold;
+    color: rgb(229, 235, 227); background-color: rgb(34, 43, 39);
+    border-width: 1px; border-color: rgb(53, 65, 59); border-radius: 6px;
+}
+.btn:hover { border-color: rgb(90, 107, 98); background-color: rgb(40, 50, 45); }
+.btn:disabled { opacity: 0.4; }
+.btn--primary { background-color: rgb(229, 235, 227); color: rgb(22, 28, 25); border-color: rgb(229, 235, 227); }
+.btn--primary:hover { background-color: rgb(255, 255, 255); }
+.btn--danger { color: rgb(240, 122, 58); }
+.btn--on { background-color: rgb(245, 194, 27); color: rgb(27, 22, 0); border-color: rgb(245, 194, 27); }
+.icon-btn { width: 30px; height: 28px; padding: 0; margin: 0; }
+
+/* ---------- Peça selecionada ---------- */
+.sel-head { flex-direction: row; align-items: center; margin-bottom: 8px; }
+.sel-icon { width: 42px; height: 42px; margin-right: 10px; flex-shrink: 0; }
+.sel-texts { flex-shrink: 1; flex-grow: 1; }
+.segmented { flex-direction: row; align-items: center; margin-top: 2px; }
+.segmented .btn { margin-right: 4px; }
+.seg-label { font-size: 11px; color: rgb(148, 161, 151); width: 48px; margin: 0; padding: 0; }
+
+/* ---------- Resumo ---------- */
+.stats-row { flex-direction: row; justify-content: space-between; margin-bottom: 3px; }
+.stats-key { font-size: 12px; color: rgb(148, 161, 151); margin: 0; padding: 0; }
+.stats-val { font-size: 12px; color: rgb(229, 235, 227); -unity-text-align: middle-right; margin: 0; padding: 0; }
+.swatch { width: 9px; height: 9px; border-radius: 2px; margin-right: 6px; }
+.swatch--a { background-color: rgb(240, 74, 63); }
+.swatch--b { background-color: rgb(80, 137, 242); }
+
+/* ---------- Sequência ---------- */
+.seq { flex-direction: row; flex-wrap: wrap; }
+.chip {
+    width: 38px; height: 44px; margin: 0 4px 4px 0; padding: 2px;
+    background-color: rgb(30, 38, 34); border-width: 1px; border-color: rgb(46, 56, 51); border-radius: 6px;
+    align-items: center; justify-content: center;
+}
+.chip:hover { border-color: rgb(90, 107, 98); }
+.chip--on { border-color: rgb(245, 194, 27); background-color: rgb(58, 53, 23); }
+.chip--bad { border-color: rgb(240, 122, 58); }
+.chip-icon { width: 22px; height: 22px; }
+.chip-num { font-size: 10px; color: rgb(148, 161, 151); -unity-text-align: middle-center; margin: 0; padding: 0; }
+
+/* ---------- Minhas pistas ---------- */
+.name-row { flex-direction: row; align-items: center; margin-bottom: 8px; }
+.name-field { flex-grow: 1; margin: 0 6px 0 0; }
+.name-field .unity-text-field__input, .name-field .unity-base-text-field__input {
+    background-color: rgb(16, 21, 19); border-color: rgb(53, 65, 59); color: rgb(229, 235, 227);
+    border-radius: 6px; font-size: 13px; padding: 4px 8px; min-height: 28px;
+}
+.lib-item {
+    flex-direction: row; align-items: center; padding: 6px; margin-bottom: 6px;
+    background-color: rgb(30, 38, 34); border-width: 1px; border-color: rgb(46, 56, 51); border-radius: 8px;
+}
+.lib-item--on { border-color: rgb(245, 194, 27); }
+.thumb { width: 56px; height: 42px; margin-right: 8px; background-color: rgb(16, 21, 19); border-radius: 5px; flex-shrink: 0; }
+.lib-texts { flex-grow: 1; flex-shrink: 1; }
+.lib-name { font-size: 13px; -unity-font-style: bold; color: rgb(229, 235, 227); overflow: hidden; text-overflow: ellipsis; margin: 0; padding: 0; }
+.lib-item .btn { margin: 0 0 0 4px; height: 24px; padding: 0 8px; font-size: 11px; }
+.bad { color: rgb(240, 122, 58); }
+
+/* ---------- Sobre a mesa ---------- */
+.show-tab { position: absolute; left: 10px; top: 10px; }
+.ruler-top {
+    position: absolute; top: 0; right: 0; height: 20px;
+    background-color: rgba(248, 250, 246, 0.92); border-bottom-width: 1px; border-color: rgb(207, 215, 204);
+}
+.ruler-left {
+    position: absolute; top: 20px; bottom: 0; width: 26px;
+    background-color: rgba(248, 250, 246, 0.92); border-right-width: 1px; border-color: rgb(207, 215, 204);
+}
+.ruler-label {
+    position: absolute; width: 24px; height: 16px; font-size: 10px; color: rgb(91, 103, 95);
+    -unity-text-align: middle-center; margin: 0; padding: 0;
+}
+.ruler-top .ruler-label { top: 2px; }
+.ruler-left .ruler-label { left: 1px; }
+.ruler-label--on { background-color: rgb(233, 168, 0); color: rgb(27, 22, 0); border-radius: 3px; }
+
+.info {
+    position: absolute; bottom: 10px; flex-direction: row; align-items: center; padding: 5px 10px;
+    background-color: rgba(248, 250, 246, 0.95); border-radius: 6px; border-width: 1px; border-color: rgb(207, 215, 204);
+}
+.info-text { font-size: 12px; color: rgb(24, 32, 28); margin: 0 12px 0 0; padding: 0; }
+.scale-bar { height: 6px; border-left-width: 2px; border-right-width: 2px; border-bottom-width: 2px; border-color: rgb(24, 32, 28); margin-right: 6px; }
+.scale-text { font-size: 12px; color: rgb(24, 32, 28); margin: 0; padding: 0; }
+
+.view-badge {
+    position: absolute; top: 10px; right: 12px; padding: 5px 10px; border-radius: 6px;
+    background-color: rgba(22, 28, 25, 0.9); color: rgb(229, 235, 227); font-size: 12px;
+}
+.toast {
+    position: absolute; bottom: 12px; right: 16px; padding: 8px 14px; border-radius: 8px;
+    background-color: rgb(22, 28, 25); color: rgb(229, 235, 227); font-size: 13px;
+}
+
+/* ---------- Abas ---------- */
+.tabs { flex-direction: row; margin-top: 10px; padding: 3px; border-radius: 8px; background-color: rgb(16, 21, 19); border-width: 1px; border-color: rgb(46, 56, 51); }
+.tab {
+    flex-grow: 1; height: 28px; margin: 0; padding: 0 4px; border-width: 0; border-radius: 6px; font-size: 12px; -unity-font-style: bold;
+    letter-spacing: 0.5px; color: rgb(148, 161, 151); background-color: rgba(0, 0, 0, 0);
+}
+.tab:hover { color: rgb(229, 235, 227); }
+.tab--on { background-color: rgb(229, 235, 227); color: rgb(22, 28, 25); }
+.tab--on:hover { color: rgb(22, 28, 25); }
+
+/* ---------- Corrida: barra lateral ---------- */
+.pick { height: auto; -unity-text-align: middle-left; }
+.pick:disabled { opacity: 0.45; }
+.clock { font-size: 15px; -unity-font-style: bold; color: rgb(229, 235, 227); margin: 0; padding: 0; }
+.score { margin-top: 8px; }
+.score-row { flex-direction: row; padding: 5px 0; border-top-width: 1px; border-color: rgb(41, 50, 45); }
+.score-head { border-top-width: 0; }
+.score-cell { width: 15%; font-size: 12px; color: rgb(229, 235, 227); -unity-text-align: middle-right; margin: 0; padding: 0; }
+.score-cell--name { width: 25%; -unity-text-align: middle-left; }
+.score-head .score-cell { font-size: 10px; color: rgb(148, 161, 151); letter-spacing: 1px; }
+.score-a .score-cell--name { color: rgb(240, 74, 63); -unity-font-style: bold; }
+.score-b .score-cell--name { color: rgb(80, 137, 242); -unity-font-style: bold; }
+.score-win .score-cell { -unity-font-style: bold; }
+.setting { margin: 0 0 8px 0; }
+.setting .unity-label { color: rgb(229, 235, 227); font-size: 12px; min-width: 150px; }
+.setting .unity-base-slider__dragger { background-color: rgb(245, 194, 27); border-color: rgb(245, 194, 27); }
+
+/* ---------- Corrida: sobre a mesa ---------- */
+.race-top { position: absolute; top: 12px; left: 0; right: 0; align-items: center; }
+.lights { flex-direction: row; padding: 8px 10px; border-radius: 10px; background-color: rgb(14, 17, 16); }
+.light { width: 26px; height: 26px; margin: 0 4px; border-radius: 13px; background-color: rgb(42, 47, 45); }
+.light--red { background-color: rgb(224, 55, 44); }
+.light--green { background-color: rgb(43, 193, 103); }
+.banner { align-items: center; padding: 10px 20px; border-radius: 12px; background-color: rgba(22, 28, 25, 0.94); }
+.banner-title { font-size: 24px; -unity-font-style: bold; color: rgb(229, 235, 227); letter-spacing: 1px; margin: 0; padding: 0; }
+.banner-title--a { color: rgb(240, 74, 63); }
+.banner-title--b { color: rgb(80, 137, 242); }
+.banner-sub { font-size: 13px; color: rgb(148, 161, 151); margin: 4px 0 0 0; padding: 0; }
+
+.pads { position: absolute; bottom: 12px; right: 12px; flex-direction: row; }
+.pad {
+    flex-grow: 1; flex-basis: 0; margin-right: 12px; padding: 8px 10px 10px 10px; border-radius: 12px;
+    background-color: rgba(22, 28, 25, 0.94); border-top-width: 4px; border-color: rgb(240, 74, 63);
+}
+.pad--b { border-color: rgb(80, 137, 242); margin-right: 0; }
+.pad-head { flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.pad-name { font-size: 14px; -unity-font-style: bold; letter-spacing: 1px; color: rgb(229, 235, 227); margin: 0; padding: 0; }
+.pad-state { font-size: 12px; color: rgb(148, 161, 151); margin: 0; padding: 0; }
+.pad-state--alert { color: rgb(240, 122, 58); -unity-font-style: bold; }
+.pad-body { flex-direction: row; }
+.gas {
+    flex-grow: 1; height: 84px; margin-right: 10px; border-radius: 10px; overflow: hidden;
+    background-color: rgb(16, 21, 19); border-width: 2px; border-color: rgb(240, 74, 63); justify-content: center; align-items: center;
+}
+.pad--b .gas { border-color: rgb(80, 137, 242); }
+.gas-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background-color: rgba(240, 74, 63, 0.35); }
+.pad--b .gas-fill { background-color: rgba(80, 137, 242, 0.35); }
+.pad--held .gas { background-color: rgb(30, 36, 33); }
+.gas-text { font-size: 18px; -unity-font-style: bold; letter-spacing: 2px; color: rgb(229, 235, 227); margin: 0; padding: 0; }
+.pad-side { width: 150px; }
+.meter-label { font-size: 11px; color: rgb(148, 161, 151); margin: 0 0 2px 0; padding: 0; }
+.meter { height: 8px; margin-bottom: 6px; border-radius: 4px; background-color: rgb(16, 21, 19); border-width: 1px; border-color: rgb(53, 65, 59); overflow: hidden; }
+.meter-fill { height: 100%; width: 0; background-color: rgb(229, 235, 227); }
+.reslot { margin: 2px 0 0 0; }
+.reslot--ready { background-color: rgb(245, 194, 27); color: rgb(27, 22, 0); border-color: rgb(245, 194, 27); }
+
+/* ---------- Fechar circuito ---------- */
+.close-btn { align-self: flex-start; margin: 8px 0 0 0; height: 30px; }
+.btn--accent { background-color: rgb(245, 194, 27); color: rgb(27, 22, 0); border-color: rgb(245, 194, 27); }
+.btn--accent:hover { background-color: rgb(255, 210, 60); }
+.toast { max-width: 520px; white-space: normal; }
+
+/* ---------- Campeonato ---------- */
+.h3 { font-size: 11px; -unity-font-style: bold; color: rgb(148, 161, 151); letter-spacing: 1px; margin: 10px 0 6px 0; padding: 0; }
+.plan { margin: 10px 0 8px 0; }
+.ok { color: rgb(61, 190, 116); }
+.ptag {
+    font-size: 10px; -unity-font-style: bold; letter-spacing: 0.5px; margin: 0 4px 0 0; padding: 1px 4px;
+    border-radius: 3px; -unity-text-align: middle-center; flex-shrink: 0;
+}
+.pdot { width: 10px; height: 10px; border-radius: 5px; margin-right: 6px; flex-shrink: 0; }
+.aib {
+    font-size: 10px; color: rgb(148, 161, 151); margin: 0 4px 0 0; padding: 1px 4px;
+    border-width: 1px; border-color: rgb(90, 107, 98); border-radius: 3px; flex-shrink: 0;
+}
+.prow {
+    flex-direction: row; align-items: center; padding: 5px 6px; margin-bottom: 6px;
+    background-color: rgb(30, 38, 34); border-width: 1px; border-color: rgb(46, 56, 51); border-radius: 8px;
+}
+.prow--on { border-color: rgb(229, 235, 227); }
+.prow-check { margin: 0 6px 0 0; }
+.prow-info { flex-direction: row; flex-wrap: wrap; align-items: center; flex-grow: 1; flex-shrink: 1; }
+.prow-info .small { margin-right: 4px; }
+.prow-name { font-size: 13px; -unity-font-style: bold; color: rgb(229, 235, 227); margin: 0 6px 0 0; padding: 0; }
+.prow-acts { flex-direction: row; flex-shrink: 0; }
+.prow-acts .btn { height: 22px; padding: 0 6px; margin: 0 0 0 4px; font-size: 11px; }
+.pform { padding: 2px 10px 10px 10px; border-width: 1px; border-color: rgb(53, 65, 59); border-radius: 8px; }
+.pf-row { flex-direction: row; margin-bottom: 8px; }
+.pf-name { flex-grow: 1; }
+.pf-tag { width: 64px; flex-grow: 0; margin-right: 0; }
+.swatches { flex-direction: row; flex-wrap: wrap; margin-bottom: 8px; }
+.swatch { width: 24px; height: 24px; padding: 0; margin: 0 6px 6px 0; border-radius: 12px; border-width: 2px; border-color: rgb(22, 28, 25); }
+.swatch--on { border-color: rgb(229, 235, 227); }
+.swatch--used { opacity: 0.35; }
+.ai-toggle .unity-label { min-width: 0; -unity-font-style: bold; }
+.stage-ctl { align-items: flex-end; flex-shrink: 0; }
+.stepper { flex-direction: row; align-items: center; margin-bottom: 4px; }
+.step-btn { width: 22px; height: 22px; padding: 0; margin: 0 0 0 3px; font-size: 12px; }
+.lib-item .step-btn { margin: 0 0 0 3px; height: 22px; padding: 0; }
+.step-val { font-size: 11px; color: rgb(229, 235, 227); width: 58px; -unity-text-align: middle-center; margin: 0; padding: 0; }
+.pick-plus { font-size: 18px; color: rgb(148, 161, 151); margin: 0 4px 0 0; padding: 0; }
+
+.heat { padding: 8px; margin-bottom: 8px; border-radius: 8px; background-color: rgb(30, 38, 34); border-width: 1px; border-color: rgb(46, 56, 51); }
+.heat-stage { font-size: 10px; letter-spacing: 1px; color: rgb(148, 161, 151); margin: 0 0 6px 0; padding: 0; }
+.vs { flex-direction: row; align-items: center; }
+.vs-x { font-size: 14px; color: rgb(148, 161, 151); margin: 0 6px; padding: 0; }
+.hp { flex-grow: 1; flex-basis: 0; padding: 4px 6px; border-radius: 6px; background-color: rgb(22, 28, 25); border-left-width: 4px; }
+.hp-name { font-size: 15px; -unity-font-style: bold; color: rgb(229, 235, 227); margin: 1px 0; padding: 0; overflow: hidden; text-overflow: ellipsis; }
+
+.stand { margin-top: 2px; }
+.st-row { flex-direction: row; align-items: center; padding: 4px 0; border-top-width: 1px; border-color: rgb(41, 50, 45); }
+.st-head { border-top-width: 0; }
+.st-cell { width: 34px; font-size: 12px; color: rgb(229, 235, 227); -unity-text-align: middle-right; margin: 0; padding: 0; flex-shrink: 0; }
+.st-head .st-cell { font-size: 10px; color: rgb(148, 161, 151); letter-spacing: 1px; }
+.st-cell--name { flex-grow: 1; flex-shrink: 1; width: auto; flex-direction: row; align-items: center; -unity-text-align: middle-left; overflow: hidden; }
+.st-pos { width: 18px; -unity-text-align: middle-left; }
+.st-time { width: 58px; }
+.st-pts { -unity-font-style: bold; }
+.st-star { color: rgb(245, 194, 27); }
+.st-label { width: 62px; -unity-text-align: middle-left; color: rgb(148, 161, 151); }
+.st-name { font-size: 12px; color: rgb(229, 235, 227); margin: 0 4px 0 0; padding: 0; overflow: hidden; text-overflow: ellipsis; }
+.st-lead { background-color: rgba(245, 194, 27, 0.10); }
+.st-up { font-size: 10px; color: rgb(61, 190, 116); margin: 0; padding: 0; }
+.st-down { font-size: 10px; color: rgb(240, 122, 58); margin: 0; padding: 0; }
+
+.podium { flex-direction: row; align-items: flex-end; margin: 4px 0 10px 0; }
+.pod { flex-grow: 1; flex-basis: 0; margin: 0 3px; padding: 6px 4px; border-radius: 8px; align-items: center; background-color: rgb(30, 38, 34); border-top-width: 4px; }
+.pod--1 { padding-top: 16px; }
+.pod-place { font-size: 20px; -unity-font-style: bold; color: rgb(229, 235, 227); margin: 0; padding: 0; }
+.pod-name { font-size: 12px; -unity-font-style: bold; color: rgb(229, 235, 227); margin: 0; padding: 0; }
+.award { flex-direction: row; align-items: center; flex-wrap: wrap; margin-bottom: 4px; }
+.award-label { font-size: 12px; color: rgb(148, 161, 151); width: 116px; margin: 0; padding: 0; }
+.hist { margin-bottom: 6px; }
+.hist .unity-foldout__text { color: rgb(229, 235, 227); font-size: 12px; }
+
+.pad-state--rec { background-color: rgb(245, 194, 27); color: rgb(27, 22, 0); -unity-font-style: bold; padding: 1px 5px; border-radius: 4px; }
+.pad-state--pb { color: rgb(61, 190, 116); -unity-font-style: bold; }
+.gas--ai { border-color: rgb(90, 107, 98); }
+.gas--ai .gas-text { font-size: 14px; color: rgb(148, 161, 151); }

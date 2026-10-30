@@ -1,0 +1,43 @@
+# Unity: pastas que o Editor gera sozinho
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Mm]emoryCaptures/
+/[Rr]ecordings/
+
+# Capturas de teste temporárias
+/Assets/Temp/
+/Assets/Temp.meta
+
+# Projetos de IDE (o Unity recria)
+.vs/
+.vscode/
+.idea/
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# Builds e pacotes
+*.apk
+*.aab
+*.unitypackage
+*.app
+crashlytics-build.properties
+
+# Sistema
+.DS_Store
+Thumbs.db

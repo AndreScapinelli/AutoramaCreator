@@ -1,0 +1,19 @@
+# Texto com fim de linha normalizado; cenas e assets do Unity são YAML (merge de texto, sem mexer no fim de linha).
+* text=auto
+*.cs text diff=csharp
+*.uss text
+*.uxml text
+*.md text
+*.unity text eol=lf -merge
+*.prefab text eol=lf -merge
+*.asset text eol=lf -merge
+*.mat text eol=lf -merge
+*.meta text eol=lf -merge
+
+# Binários
+*.png binary
+*.jpg binary
+*.psd binary
+*.fbx binary
+*.ttf binary
+*.otf binary
