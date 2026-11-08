@@ -1346,12 +1346,12 @@ Para melhorar a leitura dos carrinhos, a aba Corrida ganhou um seletor `Câmera`
      - Câmera de perseguição atrás de um carrinho (alvo escolhido em `Third person`: jogador 1 ou 2).
      - A roda do mouse ajusta só a distância de perseguição.
 4. **Auto (2 carros)**
-     - Mantém os dois carrinhos no quadro com câmera ortográfica.
-    - Em corrida entre dois humanos, o centro acompanha o ponto médio entre os carros.
-    - Em corrida livre com o robô, o enquadramento dá 72% do peso ao jogador 1 e mantém o robô visível; o foco não fica dividido igualmente quando o robô abre distância.
-    - O zoom (`orthographicSize`) sobe/desce automaticamente conforme a separação entre eles e o foco escolhido.
+    - Usa câmera ortográfica.
+    - Em corrida entre dois humanos, o centro acompanha o ponto médio e o zoom enquadra ambos.
+    - Em corrida livre contra o robô, acompanha apenas o jogador 1; posição e distância do robô não afetam o centro nem o zoom. O enquadramento-base é `5.5` células, ajustável pelo slider de distância.
+    - Em multiplayer, o zoom (`orthographicSize`) varia automaticamente para manter os dois carrinhos no quadro.
 
-O slider **Distância da câmera** fica abaixo dos seletores e vale para todos os modos: `100%` é o enquadramento padrão, valores menores aproximam e valores maiores afastam. A faixa é `70%–160%`; no modo Auto, valores menores podem fazer um carrinho sair do quadro, enquanto valores maiores deixam mais espaço ao redor dos dois.
+O slider **Distância da câmera** fica abaixo dos seletores e vale para todos os modos: `100%` é o enquadramento padrão, valores menores aproximam e valores maiores afastam. A faixa é `70%–160%`; no Auto multiplayer, valores menores podem fazer um carrinho sair do quadro, enquanto valores maiores deixam mais espaço ao redor dos dois.
 
 Implementação Unity:
 
@@ -1378,7 +1378,7 @@ Parâmetros usados no first pass (podem ser refinados com playtest):
 - Auto (2 carros):
     - margem horizontal `+1.3` célula
     - margem vertical `+1.1` célula
-    - single player: centro interpolado para 72% do jogador 1 e 28% do robô
+    - single player: centra no jogador 1, usa enquadramento-base de `5.5` células e ignora a posição do robô
     - zoom limitado por `minSize/maxSize` da câmera
     - suavização exponencial para centro e zoom.
 - Distância global da câmera:

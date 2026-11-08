@@ -200,12 +200,18 @@ namespace Autorama
         void ApplyAutoDoisCarros()
         {
             Vector3 a = raceCarPos[0], b = raceCarPos[1];
-            Vector3 center = prioritizeFirstCar ? Vector3.Lerp(b, a, 0.72f) : (a + b) * 0.5f;
-
-            // No single player, mantém o humano mais perto do centro sem deixar o robô sair do quadro.
-            float halfX = Mathf.Max(Mathf.Abs(a.x - center.x), Mathf.Abs(b.x - center.x)) + 1.3f;
-            float halfZ = Mathf.Max(Mathf.Abs(a.z - center.z), Mathf.Abs(b.z - center.z)) + 1.1f;
-            float needed = Mathf.Max(halfZ, halfX / Mathf.Max(0.1f, cam.aspect));
+            Vector3 center = prioritizeFirstCar ? a : (a + b) * 0.5f;
+            float needed;
+            if (prioritizeFirstCar)
+            {
+                needed = 5.5f;
+            }
+            else
+            {
+                float halfX = Mathf.Max(Mathf.Abs(a.x - center.x), Mathf.Abs(b.x - center.x)) + 1.3f;
+                float halfZ = Mathf.Max(Mathf.Abs(a.z - center.z), Mathf.Abs(b.z - center.z)) + 1.1f;
+                needed = Mathf.Max(halfZ, halfX / Mathf.Max(0.1f, cam.aspect));
+            }
             needed = Mathf.Clamp(needed * distanceScale, Mathf.Max(minSize, 3f), maxSize);
 
             float dt = Time.unscaledDeltaTime;
