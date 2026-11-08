@@ -158,7 +158,7 @@ namespace Autorama
             for (int i = 0; i < list.Count; i++)
             {
                 var o = list[i];
-                try { var segs = TrackLayout.Build(o.save.Origin, o.save.Pieces()); o.closed = TrackLayout.Analyze(o.save.Origin, segs).closed; }
+                try { var segs = TrackLayout.Build(o.save.Origin, o.save.Pieces(), o.save.Tail); o.closed = TrackLayout.Analyze(o.save.Origin, segs, o.save.Tail).closed; }
                 catch { o.closed = false; }
                 list[i] = o;
             }

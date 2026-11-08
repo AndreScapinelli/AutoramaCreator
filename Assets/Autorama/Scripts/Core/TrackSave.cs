@@ -21,6 +21,7 @@ namespace Autorama
         public float escalaCm = 15f;
         public OriginSave largada = new OriginSave();
         public List<PieceSave> pecas = new List<PieceSave>();
+        public int atras;                 // quantas das últimas peças de "pecas" ficam atrás da largada
 
         public string ToJson(bool pretty = true) => JsonUtility.ToJson(this, pretty);
 
@@ -37,6 +38,8 @@ namespace Autorama
 
         public Pose2 Origin => TrackMath.SnapStart(new Pose2(new Vector2(largada.x, mesa.h - largada.y), -largada.h));
 
+        public int Tail => Mathf.Clamp(atras, 0, pecas.Count);
+
         public List<TrackPiece> Pieces()
         {
             var list = new List<TrackPiece> { new TrackPiece(PieceCatalog.Start.Id) };
@@ -51,13 +54,14 @@ namespace Autorama
             return list;
         }
 
-        public static TrackSave From(string name, Vector2Int board, float cellCm, Pose2 origin, IList<TrackPiece> pieces)
+        public static TrackSave From(string name, Vector2Int board, float cellCm, Pose2 origin, IList<TrackPiece> pieces, int tail = 0)
         {
             var s = new TrackSave
             {
                 nome = name ?? "",
                 mesa = new BoardSave { w = board.x, h = board.y },
                 escalaCm = cellCm,
+                atras = tail,
                 largada = new OriginSave { x = origin.pos.x, y = board.y - origin.pos.y, h = TrackMath.Normalize(-origin.heading) },
             };
             for (int i = 1; i < pieces.Count; i++)              // a largada não vai na lista

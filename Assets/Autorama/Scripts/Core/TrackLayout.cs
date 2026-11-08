@@ -34,12 +34,15 @@ namespace Autorama
     public static class TrackLayout
     {
         // Cada peça herda a pose e a altura de onde a anterior terminou; rampas sobem ou descem um nível.
-        public static List<Segment> Build(Pose2 origin, IList<TrackPiece> pieces)
+        // As últimas "tail" peças da lista ficam ATRÁS da largada: são colocadas de ré a partir dela (a última da lista
+        // encosta na largada), no chão. Na ordem da lista é a mesma volta: largada, frente..., atrás... e a largada de novo.
+        public static List<Segment> Build(Pose2 origin, IList<TrackPiece> pieces, int tail = 0)
         {
             var list = new List<Segment>(pieces.Count);
             var conn = origin;
             int z = 0;
-            for (int i = 0; i < pieces.Count; i++)
+            int front = pieces.Count - tail;
+            for (int i = 0; i < front; i++)
             {
                 var p = pieces[i];
                 var d = p.Def;
@@ -50,17 +53,33 @@ namespace Autorama
                 conn = b;
                 z = zOut;
             }
+            var behind = new List<Segment>(tail);
+            var c = new Pose2(origin.pos, TrackMath.Normalize(origin.heading));
+            for (int i = pieces.Count - 1; i >= front; i--)
+            {
+                var p = pieces[i];
+                var a = TrackMath.EntryFor(c, p.Def, p.dir);
+                a.heading = TrackMath.Normalize(a.heading);
+                behind.Add(new Segment { index = i, piece = p, def = p.Def, a = a, b = c, zIn = 0, zOut = 0 });
+                c = a;
+            }
+            behind.Reverse();
+            list.AddRange(behind);
             return list;
         }
 
-        public static TrackAnalysis Analyze(Pose2 origin, List<Segment> segs)
+        // tail = quantas das últimas peças ficam atrás da largada. A pista da frente fecha quando a ponta dela
+        // chega na entrada da peça de trás mais afastada (ou na largada, se não há peças atrás).
+        public static TrackAnalysis Analyze(Pose2 origin, List<Segment> segs, int tail = 0)
         {
             var r = new TrackAnalysis();
-            var last = segs[segs.Count - 1];
-            r.gap = Vector2.Distance(last.b.pos, origin.pos);
-            float dh = Mathf.Abs(Mathf.DeltaAngle(last.b.heading, origin.heading));
+            int fe = segs.Count - tail;
+            var tip = segs[fe - 1];
+            var target = tail > 0 ? segs[fe].a : origin;
+            r.gap = Vector2.Distance(tip.b.pos, target.pos);
+            float dh = Mathf.Abs(Mathf.DeltaAngle(tip.b.heading, target.heading));
             r.closedXY = segs.Count > 1 && r.gap < 0.02f && dh < 0.5f;
-            r.endZ = last.zOut;
+            r.endZ = tip.zOut;
             r.closed = r.closedXY && r.endZ == 0;
 
             // Pontos da linha central a cada 0,25 célula (x, z da mesa, altura em níveis).
@@ -92,9 +111,11 @@ namespace Autorama
             // Retas lado a lado (distância 1,0) são permitidas; uma ponte (nível 1) passa sobre o chão (nível 0).
             const float minSqr = 0.92f * 0.92f;
             for (int i = 0; i < n; i++)
-            for (int j = i + 2; j < n; j++)
+            for (int j = i + 1; j < n; j++)
             {
-                if (r.closed && i == 0 && j == n - 1) continue;    // vizinhas pelo fechamento
+                // Vizinhas da lista se encostam; só a ponta da frente e a de trás, quando abertas, podem estar sobrepostas.
+                if (j == i + 1 && !(tail > 0 && i == fe - 1 && !r.closed)) continue;
+                if ((r.closed || tail > 0) && i == 0 && j == n - 1) continue;    // vizinhas pelo fechamento
                 Rect a = boxes[i], b = boxes[j];
                 if (a.xMax + 1 < b.xMin || b.xMax + 1 < a.xMin || a.yMax + 1 < b.yMin || b.yMax + 1 < a.yMin) continue;
                 if (Touches(pts[i], pts[j], minSqr)) { r.overlaps.Add(i); r.overlaps.Add(j); }
@@ -116,14 +137,17 @@ namespace Autorama
         }
 
         // Marca em cada curva inclinada se a vizinha continua a inclinação (aí não há rampa de transição naquela ponta).
-        public static void ComputeBanking(List<Segment> segs, bool closed)
+        public static void ComputeBanking(List<Segment> segs, bool closed, int tail = 0)
         {
-            int n = segs.Count;
+            int n = segs.Count, fe = n - tail;
             for (int i = 0; i < n; i++)
             {
                 var s = segs[i];
-                s.bankIn = i > 0 ? SameBank(segs[i - 1], s) : closed && SameBank(segs[n - 1], s);
-                s.bankOut = i < n - 1 ? SameBank(segs[i + 1], s) : closed && SameBank(segs[0], s);
+                // Entre a ponta da frente e a peça de trás mais afastada só há ligação se a pista está fechada.
+                bool prevLinked = i == 0 ? closed || tail > 0 : i == fe && tail > 0 ? closed : true;
+                bool nextLinked = i == n - 1 ? closed || tail > 0 : i == fe - 1 && tail > 0 ? closed : true;
+                s.bankIn = prevLinked && SameBank(segs[i == 0 ? n - 1 : i - 1], s);
+                s.bankOut = nextLinked && SameBank(segs[i == n - 1 ? 0 : i + 1], s);
             }
         }
 

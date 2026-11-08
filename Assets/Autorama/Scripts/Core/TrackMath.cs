@@ -65,5 +65,12 @@ namespace Autorama
                 ? new Pose2(new Vector2(Mathf.Round(o.pos.x), Mathf.Floor(o.pos.y) + 0.5f), h)
                 : new Pose2(new Vector2(Mathf.Floor(o.pos.x) + 0.5f, Mathf.Round(o.pos.y)), h);
         }
+
+        // Pose de entrada de uma peça que termina em c: a peça percorrida de ré (as curvas viram para o outro lado).
+        public static Pose2 EntryFor(Pose2 c, PieceDef d, int dir)
+        {
+            var e = PoseAt(new Pose2(c.pos, c.heading + 180f), d, -dir, 1f);
+            return new Pose2(e.pos, e.heading + 180f);
+        }
     }
 }

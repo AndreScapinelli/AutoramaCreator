@@ -59,7 +59,7 @@ namespace Autorama
             buildBox.style.display = m == Mode.Build ? DisplayStyle.Flex : DisplayStyle.None;
             raceBox.style.display = m == Mode.Race ? DisplayStyle.Flex : DisplayStyle.None;
             champBox.style.display = m == Mode.Champ ? DisplayStyle.Flex : DisplayStyle.None;
-            if (RaceMode) { builder.HideGhost(); builder.SetHoverCell(null); hover = null; }
+            if (RaceMode) { builder.CancelAutoClose(); builder.HideGhost(); builder.SetHoverCell(null); hover = null; }
             root.focusController?.focusedElement?.Blur();
             ModeChanged?.Invoke(m);
             Refresh();
@@ -81,13 +81,42 @@ namespace Autorama
         VisualElement statusBox, statusDot, selectedBox, summaryBox, seqBox, libList;
         Label statusText, hint, cellLabel, scaleText, toast, viewBadge;
         TextField nameField;
-        Button undoBtn, redoBtn, viewBtn, saveAsBtn, closeBtn;
+        Button undoBtn, redoBtn, viewBtn, saveAsBtn, closeBtn, endFrontBtn, endBackBtn;
 
+        VisualElement closeBox, closeFill;
+        Label closeLabel;
+        bool wasClosing;
+
+        // A busca roda aos poucos, quadro a quadro (PumpClose), com barra de progresso e botão de cancelar.
         void AutoClose()
         {
-            string msg = builder.AutoClose();
+            string msg = builder.BeginAutoClose();
             if (!string.IsNullOrEmpty(msg)) Say(msg);
-            if (builder.Info != null && builder.Info.closed) FrameTrack();
+            UpdateCloseBox();
+        }
+
+        void PumpClose()
+        {
+            if (builder.Closing)
+            {
+                if (builder.PumpAutoClose(8) && builder.Info != null && builder.Info.closed) FrameTrack();
+            }
+            UpdateCloseBox();
+        }
+
+        void UpdateCloseBox()
+        {
+            var job = builder.CloseJob;
+            bool on = job != null;
+            closeBox.style.display = on ? DisplayStyle.Flex : DisplayStyle.None;
+            if (on)
+            {
+                closeBtn.style.display = DisplayStyle.None;
+                closeLabel.text = $"{job.Status}  ({job.Elapsed:0} s)";
+                closeFill.style.width = Length.Percent(Mathf.Clamp01(job.Progress) * 100f);
+            }
+            if (wasClosing && !on) Refresh();                 // volta o botão de fechar
+            wasClosing = on;
         }
         readonly List<Label> colLabels = new List<Label>(), rowLabels = new List<Label>();
         List<TrackLibrary.Entry> library = new List<TrackLibrary.Entry>();
@@ -111,6 +140,7 @@ namespace Autorama
             root.pickingMode = PickingMode.Ignore;
             BuildLayout();
             builder.Changed += Refresh;
+            builder.Notice += Say;
             builder.Shifted += cam.Nudge;
             RefreshLibrary();
             Refresh();
@@ -119,7 +149,7 @@ namespace Autorama
 
         void OnDisable()
         {
-            if (builder) { builder.Changed -= Refresh; builder.Shifted -= cam.Nudge; }
+            if (builder) { builder.Changed -= Refresh; builder.Notice -= Say; builder.Shifted -= cam.Nudge; }
             if (instance == this) instance = null;
         }
 
@@ -205,6 +235,12 @@ namespace Autorama
             closeBtn = Btn("Fechar circuito (Q)", AutoClose, "btn btn--accent close-btn", content);
             closeBtn.tooltip = "Completa a pista da ponta até a largada com o mínimo de peças, sem passar por cima da pista. Ctrl+Z desfaz.";
 
+            closeBox = El("close-box", content);
+            closeLabel = Text("", "meter-label", closeBox);
+            closeFill = El("meter-fill", El("meter", closeBox));
+            Btn("Cancelar (Esc)", () => builder.CancelAutoClose(), "btn", closeBox).tooltip = "Para a busca. A pista fica como estava.";
+            closeBox.style.display = DisplayStyle.None;
+
             buildBox = El(null, content);
             raceBox = El(null, content);
             raceBox.style.display = DisplayStyle.None;
@@ -214,6 +250,11 @@ namespace Autorama
             // Paleta
             var pal = Section("PEÇAS");
             hint = Text("", "hint", pal);
+            var endRow = El("row", pal);
+            endFrontBtn = Btn("Frente ▸", () => builder.SetBack(false), "btn", endRow);
+            endBackBtn = Btn("◂ Trás", () => builder.SetBack(true), "btn", endRow);
+            endFrontBtn.tooltip = "Encaixa no fim da pista, na seta amarela (E alterna)";
+            endBackBtn.tooltip = "Encaixa atrás da largada (E alterna)";
             var grid = El("palette", pal);
             foreach (var e in TrackBuilder.Palette)
             {
@@ -256,11 +297,7 @@ namespace Autorama
             Btn("Exemplo: oval", () => Open(TrackSave.Oval()), "btn", libRow);
             Btn("Exemplo: 8 com ponte", () => Open(TrackSave.Eight()), "btn", libRow);
             var newBtn = Btn("Nova pista", null, "btn btn--danger", libRow);
-            newBtn.clicked += () =>
-            {
-                if (Confirm("nova")) { builder.NewTrack(); newBtn.text = "Nova pista"; }
-                else { newBtn.text = "Apagar tudo?"; newBtn.schedule.Execute(() => newBtn.text = "Nova pista").ExecuteLater(3000); }
-            };
+            newBtn.clicked += () => builder.NewTrack();
             Text("Pasta: " + TrackLibrary.Folder, "small", lib);
 
             // Vista e edição
@@ -273,7 +310,7 @@ namespace Autorama
 
             var keys = Section("ATALHOS");
             Text("<b>1–0, T</b> peças · <b>X/B</b> cruzamento · <b>U/D</b> rampa\n" +
-                 "<b>Clique</b> seleciona · <b>F</b> inverte a curva · <b>R</b> gira a largada\n" +
+                 "<b>Clique</b> seleciona · <b>F</b> inverte a curva · <b>R</b> gira a largada · <b>E</b> ponta: frente/trás\n" +
                  "<b>Del</b> remove a selecionada · <b>⌫</b> remove a última · <b>Esc</b> solta\n" +
                  "<b>Q</b> fecha o circuito · <b>Ctrl+Z / Ctrl+Y</b> desfazer / refazer\n" +
                  "<b>C</b> enquadra · <b>V</b> vista 3D\n" +
@@ -309,9 +346,13 @@ namespace Autorama
             // O botão de fechar aparece só quando há o que fechar.
             closeBtn.style.display = !i.closed && builder.pieces.Count > 1 ? DisplayStyle.Flex : DisplayStyle.None;
 
-            hint.text = builder.Selected < 0
+            hint.text = builder.Back
+                ? "Encaixando na <b>ponta de trás</b>, atrás da largada (seta amarela atrás dela). A largada não sai do lugar."
+                : builder.Selected < 0
                 ? "Clique para encaixar no <b>fim da pista</b>, onde está a seta amarela. Passe o mouse para ver a peça."
                 : $"Encaixando <b>depois da peça {builder.Selected + 1}</b> ({builder.pieces[builder.Selected].Describe().ToLowerInvariant()}).";
+            endFrontBtn.EnableInClassList("btn--on", !builder.Back);
+            endBackBtn.EnableInClassList("btn--on", builder.Back);
 
             DrawSelected();
             DrawSummary();
@@ -501,6 +542,8 @@ namespace Autorama
         void Update()
         {
             var kb = Keyboard.current;
+            if (kb != null && kb.escapeKey.wasPressedThisFrame && builder.Closing) builder.CancelAutoClose();
+            PumpClose();
             if (kb != null && !IsTyping)
             {
                 if (kb.tabKey.wasPressedThisFrame) SetSide(!sideVisible);
@@ -618,8 +661,8 @@ namespace Autorama
             try
             {
                 var o = s.Origin;
-                var segs = TrackLayout.Build(o, s.Pieces());
-                var a = TrackLayout.Analyze(o, segs);
+                var segs = TrackLayout.Build(o, s.Pieces(), s.Tail);
+                var a = TrackLayout.Analyze(o, segs, s.Tail);
                 return $"{segs.Count} peças · {Num(a.centerLength * s.escalaCm / 100f)} m · " + (a.closed ? "fechada" : "<color=#F07A3A>aberta</color>");
             }
             catch { return "não deu para ler"; }
@@ -654,7 +697,7 @@ namespace Autorama
             pickingMode = PickingMode.Ignore;
             try
             {
-                var segs = TrackLayout.Build(s.Origin, s.Pieces());
+                var segs = TrackLayout.Build(s.Origin, s.Pieces(), s.Tail);
                 foreach (var sg in segs)
                 {
                     int n = TrackMath.Steps(sg.def, 10f);

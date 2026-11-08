@@ -38,6 +38,7 @@ namespace Autorama
                 if (kb[e.key].wasPressedThisFrame) builder.Add(e);
 
             if (kb.fKey.wasPressedThisFrame) builder.FlipSelected();
+            if (kb.eKey.wasPressedThisFrame) builder.SetBack(!builder.Back);
             if (kb.rKey.wasPressedThisFrame) builder.RotateStart();
             if (kb.deleteKey.wasPressedThisFrame) builder.RemoveSelected();
             if (kb.backspaceKey.wasPressedThisFrame) { if (builder.Selected > 0) builder.RemoveSelected(); else builder.RemoveLast(); }

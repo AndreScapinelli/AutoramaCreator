@@ -216,6 +216,9 @@
 
 /* ---------- Fechar circuito ---------- */
 .close-btn { align-self: flex-start; margin: 8px 0 0 0; height: 30px; }
+.close-box { margin: 8px 0 0 0; }
+.close-box .meter { height: 10px; margin-bottom: 6px; }
+.close-box .meter-fill { background-color: rgb(245, 194, 27); }
 .btn--accent { background-color: rgb(245, 194, 27); color: rgb(27, 22, 0); border-color: rgb(245, 194, 27); }
 .btn--accent:hover { background-color: rgb(255, 210, 60); }
 .toast { max-width: 520px; white-space: normal; }

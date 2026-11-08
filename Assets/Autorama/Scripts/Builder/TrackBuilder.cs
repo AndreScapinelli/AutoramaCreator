@@ -57,7 +57,7 @@ namespace Autorama
         readonly List<TrackPieceView> views = new List<TrackPieceView>();
         readonly Stack<string> undo = new Stack<string>(), redo = new Stack<string>();
         GameObject generated;              // raiz das peças geradas (fora da cena salva)
-        Transform arrow, hoverCell;
+        Transform arrow, arrow2, hoverCell;
         TrackPieceView ghost;
 
         void OnEnable() => LoadDraftAndBuild();
@@ -84,7 +84,7 @@ namespace Autorama
             TrackPieceView.Kill(generated);
             generated = null;
             views.Clear();
-            arrow = hoverCell = null;
+            arrow = arrow2 = hoverCell = null;
             ghost = null;
         }
 
@@ -103,27 +103,75 @@ namespace Autorama
 
         // ---------- Ações ----------
 
-        public int InsertIndex => Selected < 0 ? pieces.Count : Selected + 1;
-        public Pose2 InsertPose => Selected < 0 ? Segments[Segments.Count - 1].b : Segments[Selected].b;
-        public int InsertLevel => Selected < 0 ? Segments[Segments.Count - 1].zOut : Segments[Selected].zOut;
+        // A frente termina em FrontEnd - 1; dali até o fim da lista ficam as peças de trás (Tail), que encostam na largada.
+        public int Tail { get; private set; }
+        public int FrontEnd => pieces.Count - Tail;
 
-        public void Add(PaletteEntry e) => Commit(() =>
+        public int InsertIndex => Selected < 0 ? FrontEnd : Selected + 1;
+        public Pose2 InsertPose => Back ? BackPose : FrontPose;
+        public int InsertLevel => Back ? 0 : Selected < 0 ? Segments[FrontEnd - 1].zOut : Segments[Selected].zOut;
+
+        // Ponta de trás: a entrada da peça mais afastada atrás da largada (ou da própria largada), apontando para fora.
+        public Pose2 BackPose
         {
-            int at = InsertIndex;
-            pieces.Insert(at, new TrackPiece(e.def.Id, e.dir, e.rise));
-            if (Selected >= 0) Selected = at;     // continua encaixando em sequência
-        });
+            get
+            {
+                var c = Tail > 0 ? Segments[FrontEnd].a : Origin;
+                return new Pose2(c.pos, c.heading + 180f);
+            }
+        }
+        public Pose2 FrontPose => Selected < 0 ? Segments[FrontEnd - 1].b : Segments[Selected].b;
+
+        // Ponta onde as peças encaixam: frente (fim da pista, ou depois da selecionada) ou trás (atrás da largada).
+        public bool Back { get; private set; }
+        public void SetBack(bool back) { Back = back; Rebuild(); }
+        public event Action<string> Notice;
+
+        public void Add(PaletteEntry e)
+        {
+            if (Back) { AddBack(e); return; }
+            Commit(() =>
+            {
+                int at = InsertIndex;
+                if (at > FrontEnd) Tail++;                // inserida entre as peças de trás
+                pieces.Insert(at, new TrackPiece(e.def.Id, e.dir, e.rise));
+                if (Selected >= 0) Selected = at;         // continua encaixando em sequência
+            });
+        }
+
+        // Atrás da largada: a peça encosta na ponta de trás (a largada não sai do lugar) e vira a nova ponta.
+        // Na lista ela entra logo antes das que já estavam atrás, porque a volta continua sendo largada, frente, trás.
+        void AddBack(PaletteEntry e)
+        {
+            if (e.rise != 0) { Notice?.Invoke(NoRampBehind); return; }
+            Commit(() =>
+            {
+                int at = FrontEnd;
+                pieces.Insert(at, new TrackPiece(e.def.Id, e.dir, 0));
+                Tail++;
+                if (Selected >= at) Selected++;
+            });
+        }
+
+        const string NoRampBehind = "Rampa não encaixa atrás da largada: ela fica no chão.";
 
         public void RemoveSelected()
         {
             if (Selected <= 0) return;            // a largada não sai
-            Commit(() => { pieces.RemoveAt(Selected); Selected--; });
+            Commit(() => { if (Selected >= FrontEnd) Tail--; pieces.RemoveAt(Selected); Selected--; });
         }
 
         public void RemoveLast()
         {
-            if (pieces.Count < 2) return;
-            Commit(() => { pieces.RemoveAt(pieces.Count - 1); if (Selected >= pieces.Count) Selected = -1; });
+            // Tira a última peça da ponta ativa (na de trás, a mais afastada da largada).
+            int at = Back && Tail > 0 ? FrontEnd : FrontEnd - 1;
+            if (at < 1) return;
+            Commit(() =>
+            {
+                if (at >= FrontEnd) Tail--;
+                pieces.RemoveAt(at);
+                if (Selected >= 0) Selected = Selected == at ? -1 : Selected > at ? Selected - 1 : Selected;
+            });
         }
 
         public void FlipSelected()
@@ -135,6 +183,7 @@ namespace Autorama
         public void SetRise(int rise)
         {
             if (Selected <= 0) return;
+            if (rise != 0 && Selected >= FrontEnd) { Notice?.Invoke(NoRampBehind); return; }
             Commit(() => pieces[Selected].rise = rise);
         }
 
@@ -147,7 +196,7 @@ namespace Autorama
         });
 
         // Arrastar a largada: BeginEdit uma vez no começo, MoveStart a cada passo.
-        public void BeginEdit() { undo.Push(Snapshot()); redo.Clear(); }
+        public void BeginEdit() { CancelAutoClose(); undo.Push(Snapshot()); redo.Clear(); }
         public void EndEdit() { if (GrowBoard()) Rebuild(); }     // arrastando, a mesa espera: cresce quando solta
         public void MoveStart(Vector2 pos)
         {
@@ -163,13 +212,14 @@ namespace Autorama
         {
             pieces.Clear();
             pieces.Add(new TrackPiece(PieceCatalog.Start.Id));
+            Tail = 0;
             TrackName = "";
             Selected = -1;
         });
 
         public void Load(TrackSave s) => Commit(() => { Apply(s); Selected = -1; });
 
-        public TrackSave ToSave() => TrackSave.From(TrackName, boardSize, cellCm, Origin, pieces);
+        public TrackSave ToSave() => TrackSave.From(TrackName, boardSize, cellCm, Origin, pieces, Tail);
 
         // ---------- Desfazer ----------
 
@@ -177,12 +227,20 @@ namespace Autorama
 
         void Commit(Action change)
         {
+            CancelAutoClose();
             undo.Push(Snapshot());
             if (undo.Count > 300) TrimUndo();
             redo.Clear();
             change();
             GrowBoard();
+            SettleTail();
             Rebuild();
+        }
+
+        // Pista fechada é a mesma volta de qualquer jeito: já não há ponta de trás, então as peças voltam a contar a partir da largada.
+        void SettleTail()
+        {
+            if (Tail > 0 && TrackLayout.Analyze(Origin, TrackLayout.Build(Origin, pieces, Tail), Tail).closed) Tail = 0;
         }
 
         // A mesa cresce com a pista: se a pista passa da borda, a mesa ganha células (com 1 de folga). Se passou da
@@ -192,7 +250,7 @@ namespace Autorama
         bool GrowBoard()
         {
             if (pieces.Count == 0) return false;
-            var b = TrackLayout.Analyze(Origin, TrackLayout.Build(Origin, pieces)).bounds;
+            var b = TrackLayout.Analyze(Origin, TrackLayout.Build(Origin, pieces, Tail), Tail).bounds;
             int dx = b.xMin < -0.01f ? Mathf.CeilToInt(-b.xMin) + BoardMargin : 0;
             int dz = b.yMin < -0.01f ? Mathf.CeilToInt(-b.yMin) + BoardMargin : 0;
             int w = boardSize.x + dx, h = boardSize.y + dz;
@@ -209,8 +267,8 @@ namespace Autorama
             return true;
         }
 
-        public void Undo() { if (undo.Count == 0) return; redo.Push(Snapshot()); Apply(TrackSave.FromJson(undo.Pop())); Rebuild(); }
-        public void Redo() { if (redo.Count == 0) return; undo.Push(Snapshot()); Apply(TrackSave.FromJson(redo.Pop())); Rebuild(); }
+        public void Undo() { if (undo.Count == 0) return; CancelAutoClose(); redo.Push(Snapshot()); Apply(TrackSave.FromJson(undo.Pop())); Rebuild(); }
+        public void Redo() { if (redo.Count == 0) return; CancelAutoClose(); undo.Push(Snapshot()); Apply(TrackSave.FromJson(redo.Pop())); Rebuild(); }
 
         void TrimUndo()
         {
@@ -225,6 +283,8 @@ namespace Autorama
             pieces.Clear();
             pieces.AddRange(list);
             Origin = s.Origin;
+            Tail = s.Tail;
+            if (Tail > 0 && TrackLayout.Analyze(Origin, TrackLayout.Build(Origin, pieces, Tail), Tail).closed) Tail = 0;
             boardSize = new Vector2Int(Mathf.Clamp(s.mesa.w, 8, 120), Mathf.Clamp(s.mesa.h, 8, 120));
             cellCm = s.escalaCm > 0 ? s.escalaCm : 15f;
             TrackName = s.nome ?? "";
@@ -237,8 +297,8 @@ namespace Autorama
         {
             if (theme == null || pieces.Count == 0) return;
             if (Selected >= pieces.Count) Selected = -1;
-            Segments = TrackLayout.Build(Origin, pieces);
-            Info = TrackLayout.Analyze(Origin, Segments);
+            Segments = TrackLayout.Build(Origin, pieces, Tail);
+            Info = TrackLayout.Analyze(Origin, Segments, Tail);
 
             views.RemoveAll(v => v == null);
             while (views.Count < Segments.Count)
@@ -249,7 +309,7 @@ namespace Autorama
             }
             while (views.Count > Segments.Count) { TrackPieceView.Kill(views[views.Count - 1].gameObject); views.RemoveAt(views.Count - 1); }
 
-            TrackLayout.ComputeBanking(Segments, Info.closed);
+            TrackLayout.ComputeBanking(Segments, Info.closed, Tail);
             for (int i = 0; i < Segments.Count; i++)
             {
                 var s = Segments[i];
@@ -262,6 +322,7 @@ namespace Autorama
 
             UpdateArrow();
             if (arrow) arrow.gameObject.SetActive(!RaceMode);
+            if (arrow2) arrow2.gameObject.SetActive(!RaceMode);
             if (ghostEntry.HasValue && !RaceMode) ShowGhost(ghostEntry.Value); else if (ghost) ghost.gameObject.SetActive(false);
             if (RaceMode) SetHoverCell(null);
             if (board) board.Build(boardSize);
@@ -277,19 +338,72 @@ namespace Autorama
 
         // ---------- Fechar o circuito sozinho ----------
 
-        // Completa a pista da ponta até a largada (uma ação só: Ctrl+Z desfaz tudo). Devolve a mensagem para o jogador.
-        public string AutoClose()
+        // A busca anda aos poucos (BuilderPanel chama PumpAutoClose a cada quadro) e pode ser cancelada.
+        public TrackCloser.Job CloseJob { get; private set; }
+        public bool Closing => CloseJob != null;
+
+        // Começa a fechar a pista da ponta até a largada. Devolve a mensagem se não há o que buscar, ou null se começou.
+        public string BeginAutoClose()
         {
             if (Info == null) return "";
+            if (Closing) return null;
             if (Info.closed) return "A pista já está fechada.";
             if (pieces.Count < 2) return "Coloque algumas peças antes: o fechamento parte da ponta da pista.";
             // Segue o estilo da pista: se ela usa mais curvas inclinadas, fecha com inclinadas.
             int banked = 0, plain = 0;
             foreach (var p in pieces) { var d = p.Def; if (d.IsCurve) { if (d.Banked) banked++; else plain++; } }
-            var r = TrackCloser.Close(Origin, pieces, banked > plain);
-            if (!r.ok) return r.message;
-            Commit(() => { pieces.AddRange(r.pieces); Selected = -1; });
-            return r.message;
+            // Fecha da ponta da frente até a ponta de trás (a largada, se não há peças atrás dela).
+            int fe = FrontEnd;
+            CloseJob = TrackCloser.Start(Origin, pieces.GetRange(0, fe), pieces.GetRange(fe, Tail), banked > plain);
+            return null;
+        }
+
+        public void CancelAutoClose()
+        {
+            if (CloseJob == null) return;
+            CloseJob.Cancel();
+            CloseJob = null;
+            Notice?.Invoke("Busca cancelada.");
+        }
+
+        // Trabalha na busca por até budgetMs. Quando acaba, entra na pista (uma ação só: Ctrl+Z desfaz tudo)
+        // e avisa o jogador. Devolve true no quadro em que terminou.
+        public bool PumpAutoClose(long budgetMs)
+        {
+            if (CloseJob == null) return false;
+            var job = CloseJob;
+            try { if (job.Pump(budgetMs)) return false; }
+            catch (Exception e)
+            {
+                CloseJob = null;
+                Debug.LogError("Fechar circuito falhou: " + e);
+                Notice?.Invoke("Não deu para fechar o circuito.");
+                return true;
+            }
+            CloseJob = null;
+            var r = job.Result;
+            if (r.ok)
+            {
+                int fe = FrontEnd;
+                Commit(() => { pieces.InsertRange(fe, r.pieces); Selected = -1; });
+            }
+            Notice?.Invoke(r.message);
+            return true;
+        }
+
+        // De uma vez só (scripts e testes): busca inteira sem devolver o controle. Devolve a mensagem para o jogador.
+        public string AutoClose()
+        {
+            string msg = BeginAutoClose();
+            if (msg != null) return msg;
+            var job = CloseJob;
+            job.Pump(long.MaxValue);
+            string result = null;
+            void Keep(string m) => result = m;
+            Notice += Keep;
+            PumpAutoClose(0);
+            Notice -= Keep;
+            return result;
         }
 
         // ---------- Modo corrida ----------
@@ -300,6 +414,7 @@ namespace Autorama
         // Mostra uma pista sem passar pelo desfazer (troca de pista na corrida, volta ao construtor).
         public void ShowTrack(TrackSave s)
         {
+            CancelAutoClose();
             Apply(s);
             GrowBoard();
             Selected = -1;
@@ -319,15 +434,22 @@ namespace Autorama
             return go.transform;
         }
 
-        // Seta amarela no ponto onde a próxima peça vai encaixar.
+        // Seta amarela no ponto onde a próxima peça vai encaixar; uma menor marca a outra ponta (frente × trás).
         void UpdateArrow()
         {
             if (!arrow) { arrow = Quad("Seta de inserção", theme.arrow, 0f); arrow.localScale = new Vector3(1.28f, 1.28f, 1f); }
-            var p = InsertPose;
+            if (!arrow2) { arrow2 = Quad("Seta da outra ponta", theme.arrow, 0f); arrow2.localScale = new Vector3(0.8f, 0.8f, 1f); }
+            PlaceArrow(arrow, InsertPose, InsertLevel);
+            var tip = Segments[FrontEnd - 1];
+            PlaceArrow(arrow2, Back ? tip.b : BackPose, Back ? tip.zOut : 0);
+        }
+
+        static void PlaceArrow(Transform t, Pose2 p, int level)
+        {
             // A imagem aponta para +X e o centro dela fica 0,25 célula à frente da linha.
             var c = p.pos + TrackMath.Dir(p.heading) * 0.25f;
-            arrow.localPosition = new Vector3(c.x, InsertLevel * TrackMath.LevelHeight + 0.03f, c.y);
-            arrow.localRotation = Quaternion.Euler(0f, -p.heading, 0f) * Quaternion.Euler(90f, 0f, 0f);
+            t.localPosition = new Vector3(c.x, level * TrackMath.LevelHeight + 0.03f, c.y);
+            t.localRotation = Quaternion.Euler(0f, -p.heading, 0f) * Quaternion.Euler(90f, 0f, 0f);
         }
 
         // ---------- Peça fantasma e célula sob o mouse ----------
@@ -347,12 +469,13 @@ namespace Autorama
                 ghost = go.GetComponent<TrackPieceView>();
             }
             int zIn = InsertLevel;
+            int gdir = Back ? -e.dir : e.dir, grise = Back ? 0 : e.rise;
             var seg = new Segment
             {
-                index = -1, piece = new TrackPiece(e.def.Id, e.dir, e.rise), def = e.def, a = InsertPose,
-                zIn = zIn, zOut = Mathf.Clamp(zIn + e.rise, 0, TrackMath.MaxLevel),
+                index = -1, piece = new TrackPiece(e.def.Id, gdir, grise), def = e.def, a = InsertPose,
+                zIn = zIn, zOut = Mathf.Clamp(zIn + grise, 0, TrackMath.MaxLevel),
             };
-            seg.b = TrackMath.PoseAt(seg.a, seg.def, e.dir, 1f);
+            seg.b = TrackMath.PoseAt(seg.a, seg.def, gdir, 1f);
             ghost.gameObject.SetActive(true);
             ghost.Build(seg, theme, theme.selected);
         }

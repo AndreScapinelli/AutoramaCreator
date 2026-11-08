@@ -234,7 +234,7 @@ namespace Autorama
             foreach (var s in stages)
             {
                 float len = 0f;
-                try { len = TrackLayout.Analyze(s.data.Origin, TrackLayout.Build(s.data.Origin, s.data.Pieces())).centerLength; } catch { }
+                try { len = TrackLayout.Analyze(s.data.Origin, TrackLayout.Build(s.data.Origin, s.data.Pieces(), s.data.Tail), s.data.Tail).centerLength; } catch { }
                 sec += nPilots * (s.laps * len / (0.6f * vmax) + 10f);
             }
             return Mathf.Max(1, Mathf.RoundToInt(sec / 60f));

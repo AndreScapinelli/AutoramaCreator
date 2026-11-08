@@ -1735,16 +1735,34 @@ Já está no projeto: `Core/TrackCloser.cs`, chamado pelo botão **Fechar circui
 - **Altura e estilo.** Se a ponta está no alto, encaixa rampas que descem: primeiro na reta comprida, depois na curta, depois em qualquer reta. Se a pista usa mais curvas inclinadas que planas, o fechamento também usa inclinadas.
 - **Desfazer.** O fechamento entra como uma ação só: Ctrl+Z tira tudo.
 
+- **Cancelável, com indicador.** A busca não roda de uma vez: ela anda aos poucos e dá para parar a qualquer hora. Em pistas sem fechamento curto, a busca de profundidade 12/15 é pesada (nos testes, 3,4 GB de memória e 37 s no Node para uma ponta longe da largada), e rodar de uma vez travava a máquina.
+  - **Fatias de ~8–10 ms por quadro.** O trabalho vira um iterador (`IEnumerator` na Unity, função geradora `function*` no HTML) que dá `yield` a cada 32 estados expandidos, a cada 64 estados juntados e a cada candidato testado. Quem chama dá `Pump(ms)`/`pump(ms)`; a tela continua respondendo entre as fatias.
+  - **Indicador.** Enquanto roda, o botão **Fechar circuito** dá lugar a um quadro com o texto (`Procurando com até 18 peças… testando 230 de 600`), os segundos decorridos, uma barra de progresso e o botão **Cancelar (Esc)**. No HTML o quadro flutua no canto da mesa, no lugar do aviso.
+  - **Barra.** Cada profundidade tem um peso (`1, 2, 4, 8`, porque o custo cresce rápido). Dentro dela: 0–20% expandir a frente, 20–40% expandir a ré, 40–50% juntar, 50–100% testar candidatos.
+  - **Cancelar.** Botão, tecla **Esc**, ou qualquer edição da pista (colocar/remover peça, desfazer, refazer, arrastar a largada, trocar de aba): a busca para na hora, nada entra na pista e aparece "Busca cancelada." Quando termina sozinha, as peças entram como uma ação só.
+  - **Candidatos por grupo.** Em vez de ordenar todos os candidatos de uma vez, eles ficam em grupos por número de peças (com os critérios já calculados) e só se ordena o grupo da vez. A ordem final é a mesma; quase nunca os grupos maiores são tocados.
+  - **Passou por cima da pista.** Se um fechamento curto só fecha passando por cima da pista, a busca continua em profundidades maiores (HTML e Unity iguais) e só avisa "Todo fechamento curto passa por cima da pista" se nenhuma achar.
+
 **Implementação (C#):**
-- `Close()`: entry point, chamado pelo painel. Tenta progressivamente `CloseAtDepth()` com profundidades crescentes.
-- `CloseAtDepth()`: realiza a busca bidireccional com profundidade e limite de verificações específicos.
-- `ExpandAt()`: expande até `maxDepth` peças a partir de um estado, retorna mapa de (estado → lista de sequências).
+- `TrackCloser.Start(origin, frente, tras, preferBanked)`: devolve um `TrackCloser.Job` sem rodar nada. O `Job` tem `Pump(ms)`, `Cancel()`, `Done`, `Cancelled`, `Result`, `Progress` (0..1), `Status` e `Elapsed`.
+- `TrackCloser.Close(...)`: a versão de uma vez só (`Start` + `Pump(long.MaxValue)`), para testes e scripts.
+- `CloseAtDepth()`: iterador da busca bidirecional com profundidade e limite de verificações de uma etapa.
+- `ExpandAt()`: iterador que expande até `maxDepth` peças a partir de um estado e enche o mapa (estado → lista de sequências).
+- `TrackBuilder`: `BeginAutoClose()` (devolve a mensagem se não há o que buscar), `PumpAutoClose(ms)` (a cada quadro; quando acaba, entra na pista com `Commit` e avisa), `CancelAutoClose()`, `CloseJob`/`Closing`, e `AutoClose()` de uma vez só. `Commit`, `Undo`, `Redo`, `BeginEdit` e `ShowTrack` cancelam a busca.
+- `BuilderPanel`: `PumpClose()` no `Update` (8 ms por quadro), `closeBox` com `meter`/`meter-fill` (classes `.close-box` no USS) e botão Cancelar; Esc cancela; trocar para Corrida/Campeonato cancela.
+
+**Implementação (HTML):** `Closer.start(origin, frente, banked, tras)` devolve o job (`pump`, `cancel`, `done`, `result`, `progress`, `status`, `elapsed`); `Closer.close(...)` roda de uma vez. `autoClose()` bombeia o job com `setTimeout` em fatias de 10 ms e mostra `#closing`; `cancelClose()` é chamado por `commit`, `undo`, `redo`, `setMode`, pelo botão e por Esc.
 
 **Constantes progressivas** (em `TrackCloser.cs`):
 ```csharp
 static readonly int[] ProgressiveDepths = { 6, 9, 12, 15 };
 static readonly int[] ProgressiveChecks = { 200, 600, 1500, 3000 };
+static readonly float[] StageWeights = { 1f, 2f, 4f, 8f };   // peso de cada etapa na barra
 ```
+
+**Testes feitos:**
+- HTML (`ferramentas/teste-html.js`): mesmas respostas de antes nas 4 pistas de teste (5, 12, 9 e 17 peças). Com `performance.now` real, `pump(10)` nunca passou de ~50 ms por fatia na pista de 17 peças (31 s no total); `cancel()` para na hora. `autoClose` → `cancelClose` deixa a pista intacta; concluir fecha (5 → 10 peças) e Ctrl+Z volta; editar durante a busca cancela.
+- Unity (`script eval`): a pista de 12 peças dá a mesma resposta do HTML (curva longa · direita, meia curva · direita, reta comprida, reta curtinha, …). Na pista pesada, `Pump(10)` + `Cancel()` funcionam, mas o coletor de lixo do Mono faz algumas fatias passarem de 500 ms quando a busca fica grande: é a hora de cancelar.
 
 ## 18. Cruzamento (X)
 
@@ -2192,3 +2210,44 @@ bool GrowBoard()
 **Testes:**
 - **HTML, oval:** 8 retas compridas para a direita levaram a mesa de 32 × 20 para 44 × 20. Virando para cima com 5 retas, a pista desceu 17 células e a mesa foi para 46 × 37. Desfazendo, a mesa voltou para 44 × 20.
 - **Unity:** 8 retas levaram a mesa de 32 para 44. Virando e passando da borda, ela foi para 46 × 37. Saindo pela borda de baixo, a pista foi empurrada para cima e o aviso `Shifted` saiu a cada empurrão (é ele que move a câmera).
+
+## 22. As duas pontas: encaixar na frente ou atrás da largada
+
+A pista tem duas pontas: a **da frente** (o fim da pista, onde fica a seta amarela) e a **de trás** (a entrada da peça mais afastada atrás da largada, ou da própria largada, apontando para fora). O seletor **Frente ▸ / ◂ Trás** do painel de peças (HTML: no cabeçalho; tecla **E** nos dois) diz em qual delas a próxima peça encaixa. A ponta ativa tem a seta grande (no HTML ela pisca e a outra fica apagada; na Unity a outra é uma seta menor, `arrow2`). **A largada nunca sai do lugar.**
+
+**Como fica guardado.** A largada continua sendo a peça 0 e a origem do layout. A lista de peças segue a ordem da volta: largada, peças da frente, peças de trás. As últimas `atras` (HTML `state.atras`; Unity `Tail`) peças da lista ficam **atrás** da largada: são posicionadas de ré a partir dela, e a última da lista encosta na largada. Num circuito fechado isso é a mesma volta de sempre. Por isso, ao fechar, `atras` volta a 0 (`settleBack` / `SettleTail`, a cada edição e ao abrir): a geometria é idêntica e corrida, campeonato, recordes e a identidade da pista não mudam.
+
+```csharp
+// TrackLayout.Build(origin, pieces, tail): frente a partir da origem, trás de ré a partir dela
+int front = pieces.Count - tail;
+/* ... frente como sempre, de 0 a front-1 ... */
+var c = new Pose2(origin.pos, TrackMath.Normalize(origin.heading));
+for (int i = pieces.Count - 1; i >= front; i--)
+{
+    var a = TrackMath.EntryFor(c, p.Def, p.dir);          // pose de entrada da peça que termina em c
+    /* segmento: a = a, b = c, no chão */
+    c = a;
+}
+
+// TrackMath: a peça percorrida de ré (curva espelhada)
+public static Pose2 EntryFor(Pose2 c, PieceDef d, int dir)
+{
+    var e = PoseAt(new Pose2(c.pos, c.heading + 180f), d, -dir, 1f);
+    return new Pose2(e.pos, e.heading + 180f);
+}
+```
+
+(HTML: `layout(origin, pieces, nb)` e `backOf`.)
+
+- **Fechou?** `Analyze(origin, segs, tail)` (HTML `ends`/`analyze`): a ponta da frente tem de chegar na **entrada da peça de trás mais afastada** (na largada, se não há peças atrás), no chão. As peças vizinhas na lista não contam como sobrepostas, menos a ponta da frente com a de trás enquanto abertas; a largada e a última de trás se encostam.
+- **Encaixar.** Frente: como antes, no fim da frente (`FrontEnd`) ou depois da selecionada; se a selecionada está entre as de trás, a peça nova entra ali e `atras` sobe. Trás: entra no índice `FrontEnd` (antes das de trás já postas) e `atras` sobe. A peça selecionada continua a mesma.
+- **Apagar.** `Del` apaga a selecionada (`atras` desce se era de trás). `⌫` sem seleção apaga a última da ponta ativa: a de trás mais afastada, se o seletor está em Trás.
+- **Rampas não entram atrás:** a largada fica no chão, então `rise` ≠ 0 em peça de trás só avisa "Rampa não encaixa atrás da largada" (encaixar, trocar por rampa e o botão Sobe/Desce).
+- **Fantasma** atrás: a peça espelhada (`-dir`) a partir da ponta de trás.
+- **Fechar circuito (Q)** parte da ponta da frente e vai até a ponta de trás (`TrackCloser.Close(origin, frente, tras, preferBanked)`; HTML `Closer.close(origin, frente, banked, tras)`). A busca de ré começa no destino, que é a largada andada de ré pelas peças de trás, com as curvas espelhadas, em aritmética exata. As peças achadas entram entre a frente e as de trás. A busca roda aos poucos, com barra de progresso e botão **Cancelar (Esc)** (§17).
+- **JSON.** O campo opcional `atras` (número) diz quantas das últimas peças de `pecas` ficam atrás da largada. Fora isso é o mesmo formato; sem o campo vale 0.
+- **Mover e girar a largada** levam a pista toda (frente e trás), como antes.
+
+**Testes feitos.**
+- **HTML** (`ferramentas/teste-html.js`), oval de exemplo com uma reta comprida atrás da largada: a largada continuou em (8; 7,5; 0), as 12 peças da frente ficaram nas mesmas posições, a nova terminou na largada (de (4; 7,5) a (8; 7,5)) e a pista ficou aberta. Depois, uma curva atrás dela e desfazer, passo a passo, até o oval fechado. Pista nova com 3 peças atrás (reta, meia, meia) e 3 na frente (reta, curva, curva): `Q` fechou e `atras` voltou a 0. Importar JSON com `atras: 2`, `trackInfo` e `sanitize`, e remover as peças de trás.
+- **Unity** (`script eval`, sem cena): largada + reta comprida + curva longa na frente e reta comprida + curva longa atrás. A abertura (gap) deu 11,7047, igual à do HTML (11,705), e o fechamento achou as mesmas 5 peças nos dois: reta comprida, curva longa, reta comprida, reta curta, curva longa.

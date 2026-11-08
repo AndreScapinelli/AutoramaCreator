@@ -68,6 +68,11 @@ kbd{font:500 10px/1 var(--f-mono);color:var(--muted);border:1px solid var(--line
 .btn.danger{color:var(--warn)}
 .btn.accent{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .btn.accent kbd{background:transparent;color:inherit;border-color:currentColor;opacity:.7}
+.closing{position:absolute;right:12px;bottom:44px;width:min(320px,calc(100% - 24px));display:grid;gap:7px;padding:10px 14px;border-radius:8px;background:var(--panel);color:var(--ink);border:1px solid var(--line);font-size:13px;line-height:1.35;box-shadow:0 4px 18px rgba(0,0,0,.18)}
+.closing[hidden]{display:none}
+.closing .bar{height:8px;border-radius:4px;background:var(--board);border:1px solid var(--line);overflow:hidden}
+.closing .bar i{display:block;height:100%;width:0;background:var(--accent)}
+.closing .btn{justify-self:start}
 .toast{position:absolute;right:12px;bottom:44px;max-width:min(460px,calc(100% - 24px));padding:9px 14px;border-radius:8px;background:var(--ink);color:var(--panel);font-size:13px;line-height:1.35;box-shadow:0 4px 18px rgba(0,0,0,.18)}
 .btn svg{width:12px;height:12px;fill:currentColor}
 button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -190,6 +195,9 @@ button.titem:disabled{opacity:.5;cursor:default}
 .ghost{fill:var(--accent);fill-opacity:.25;stroke:var(--accent);stroke-width:.05px;stroke-dasharray:.16px .1px}
 .ins path{fill:none;stroke:var(--accent);stroke-width:.09px;stroke-linecap:round;stroke-linejoin:round}
 .ins{animation:pulse 1.4s ease-in-out infinite}
+.ins.off{animation:none;opacity:.3}
+.endsw{display:inline-flex;align-items:center;gap:4px;margin-right:6px}
+.endsw span{font-size:12px;color:var(--muted);margin-right:2px}
 @keyframes pulse{50%{opacity:.35}}
 @media (prefers-reduced-motion: reduce){.ins{animation:none}}
 .car .cb{stroke:var(--slot);stroke-width:.025px}
@@ -408,7 +416,7 @@ h2 .count{font:500 12px var(--f-mono);letter-spacing:0;color:var(--muted);text-t
 .phone .stage{flex:1 1 0;height:auto;min-height:140px}
 .phone .hud-bl{display:none}
 .phone .hud-tr{top:26px;right:6px} .phone .hud-tr .btn{padding:8px 11px;font-size:14px} .phone .hud-tr .btn span{display:none}
-.phone .toast{bottom:10px}
+.phone .toast,.phone .closing{bottom:10px}
 /* Gaveta */
 .phone .side{position:fixed;left:0;right:0;bottom:0;z-index:20;max-height:86dvh;overflow:auto;overscroll-behavior:contain;border-radius:16px 16px 0 0;border-bottom:0;
   padding-bottom:env(safe-area-inset-bottom,0px);box-shadow:0 -8px 30px rgba(0,0,0,.25);transform:translateY(105%);visibility:hidden;transition:transform .22s ease,visibility 0s .22s}
@@ -472,6 +480,7 @@ h2 .count{font:500 12px var(--f-mono);letter-spacing:0;color:var(--muted);text-t
     </div>
     <button class="btn" id="menuBtn" aria-expanded="false" aria-controls="side">☰ Menu</button>
     <div class="actions" id="buildActions">
+      <div class="endsw" role="group" aria-label="Ponta onde as peças encaixam"><span>Encaixar na ponta</span><button class="seg on" id="endFront" aria-pressed="true" title="Frente: no fim da pista, na seta amarela (E alterna)">Frente ▸</button><button class="seg" id="endBack" aria-pressed="false" title="Trás: atrás da largada (E alterna)">◂ Trás</button></div>
       <button class="btn accent" id="closeTrack" title="Completa a pista da ponta até a largada com o mínimo de peças, sem passar por cima da pista. Ctrl+Z desfaz." hidden>Fechar circuito <kbd>Q</kbd></button>
       <button class="btn" id="undo" title="Desfazer (Ctrl+Z)">Desfazer</button>
       <button class="btn" id="redo" title="Refazer (Ctrl+Y)">Refazer</button>
@@ -549,6 +558,7 @@ h2 .count{font:500 12px var(--f-mono);letter-spacing:0;color:var(--muted);text-t
           <dt><kbd>U</kbd> · <kbd>D</kbd></dt><dd>Rampa que sobe · que desce</dd>
           <dt>Clique</dt><dd>Selecionar peça (insere depois dela)</dd>
           <dt><kbd>F</kbd></dt><dd>Inverter curva selecionada</dd>
+          <dt><kbd>E</kbd></dt><dd>Alternar a ponta onde as peças encaixam: frente · trás (atrás da largada)</dd>
           <dt><kbd>R</kbd></dt><dd>Girar a largada 90°</dd>
           <dt><kbd>Del</kbd></dt><dd>Remover peça selecionada</dd>
           <dt><kbd>⌫</kbd></dt><dd>Remover a última peça</dd>
@@ -718,6 +728,7 @@ h2 .count{font:500 12px var(--f-mono);letter-spacing:0;color:var(--muted);text-t
       </svg>
       <div class="lights" id="lights" hidden><i></i><i></i><i></i></div>
       <div class="toast" id="toast" role="status" hidden></div>
+      <div class="closing" id="closing" role="status" hidden><span id="closingTxt"></span><div class="bar"><i id="closingBar"></i></div><button class="btn" id="closingCancel" title="Para a busca. A pista fica como estava.">Cancelar <kbd>Esc</kbd></button></div>
       <div class="banner" id="banner" hidden></div>
       <div class="hud hud-tr">
         <button class="btn" id="zout" title="Afastar" aria-label="Afastar">−</button>
@@ -863,6 +874,11 @@ function snapOrigin(o){
   const h = norm(Math.round(o.h / 90) * 90);
   return h % 180 === 0 ? { x:Math.round(o.x), y:Math.floor(o.y) + .5, h } : { x:Math.floor(o.x) + .5, y:Math.round(o.y), h };
 }
+// Pose de entrada de uma peça que termina em c (a peça percorrida de ré: as curvas viram para o outro lado).
+function backOf(c, p){
+  const e = poseAt({ x:c.x, y:c.y, h:c.h + 180 }, { ...p, dir:-p.dir }, 1);
+  return { x:e.x, y:e.y, h:e.h + 180 };
+}
 function rowName(r){ let s = ''; r += 1; while (r > 0){ const m = (r - 1) % 26; s = String.fromCharCode(65 + m) + s; r = Math.floor((r - 1) / 26); } return s; }
 function cellName(x, y){ return rowName(Math.floor(y)) + (Math.floor(x) + 1); }
 const COMPASS = { 0:'leste →', 90:'sul ↓', 180:'oeste ←', 270:'norte ↑' };
@@ -894,9 +910,13 @@ function sanitize(o){
   if (!o || !Array.isArray(o.pieces) || !o.origin) return null;
   const pieces = o.pieces.filter(p => p && PIECES[p.type] && p.type !== 'start')
     .map(p => P(p.type, PIECES[p.type].kind === 'curve' ? (p.dir < 0 ? -1 : 1) : 0, p.rise > 0 ? 1 : p.rise < 0 ? -1 : 0));
+  const origin = snapOrigin({ x:+o.origin.x || 0, y:+o.origin.y || 0, h:+o.origin.h || 0 }), all = [P('start'), ...pieces];
+  let atras = intIn(o.atras, 0, pieces.length, 0);      // quantas das últimas peças ficam atrás da largada
+  if (atras && ends(layout(origin, all, atras), atras, origin).closed) atras = 0;
   return {
-    origin: snapOrigin({ x:+o.origin.x || 0, y:+o.origin.y || 0, h:+o.origin.h || 0 }),
-    pieces: [P('start'), ...pieces],
+    origin,
+    pieces: all,
+    atras,
     board: { w:intIn(o.board && o.board.w, 8, 120, 32), h:intIn(o.board && o.board.h, 8, 120, 20) },
     scaleCm: numIn(o.scaleCm, 1, 100, 15),
     libId: typeof o.libId === 'string' ? o.libId : null,       // de qual pista salva ela veio
@@ -917,27 +937,23 @@ function loadLib(){
 }
 function saveLib(){ try { localStorage.setItem(LKEY, JSON.stringify(lib)); return true; } catch (e){ return false; } }
 let lib = loadLib();
-const trackData = () => ({ origin:{ ...state.origin }, pieces:state.pieces.map(p => ({ ...p })), board:{ ...state.board }, scaleCm:state.scaleCm });
-const sameTrack = (a, b) => JSON.stringify([a.origin, a.pieces]) === JSON.stringify([b.origin, b.pieces]);
+const trackData = () => ({ origin:{ ...state.origin }, pieces:state.pieces.map(p => ({ ...p })), atras:state.atras || 0, board:{ ...state.board }, scaleCm:state.scaleCm });
+const sameTrack = (a, b) => JSON.stringify([a.origin, a.pieces, a.atras || 0]) === JSON.stringify([b.origin, b.pieces, b.atras || 0]);
 function setState(d){
-  state.origin = { ...d.origin }; state.pieces = d.pieces.map(p => ({ ...p }));
+  state.origin = { ...d.origin }; state.pieces = d.pieces.map(p => ({ ...p })); state.atras = d.atras || 0;
   state.board = { ...d.board }; state.scaleCm = d.scaleCm; state.libId = d.libId ?? null; state.name = d.name ?? '';
   growBoard();
 }
 // Linha central, comprimento e se fecha, sem mexer na pista aberta (para miniaturas e listas).
 function trackInfo(d){
-  let conn = { ...d.origin }, z = 0, len = 0;
-  const pts = [], hi = [];
-  d.pieces.forEach((p, i) => {
-    const n = steps(p, 10), zIn = z;
-    z = clamp(z + (i ? p.rise || 0 : 0), 0, MAX_Z);
-    for (let k = i ? 1 : 0; k <= n; k++){ const q = poseAt(conn, p, k / n); pts.push([q.x, q.y]); hi.push(zIn > 0 || z > 0); }
-    len += pieceLen(p);
-    conn = poseAt(conn, p, 1); conn.h = norm(conn.h);
+  const nb = d.atras || 0, L = layout(d.origin, d.pieces, nb), pts = [], hi = [];
+  let len = 0;
+  L.forEach((sg, i) => {
+    const n = steps(sg.p, 10);
+    for (let k = i ? 1 : 0; k <= n; k++){ const q = poseAt(sg.a, sg.p, k / n); pts.push([q.x, q.y]); hi.push(sg.zIn > 0 || sg.zOut > 0); }
+    len += pieceLen(sg.p);
   });
-  const o = d.origin; let dh = Math.abs(norm(conn.h) - norm(o.h)); dh = Math.min(dh, 360 - dh);
-  const closed = d.pieces.length > 1 && Math.hypot(conn.x - o.x, conn.y - o.y) < .02 && dh < .5 && z === 0;
-  return { pts, hi, len, closed };
+  return { pts, hi, len, closed:ends(L, nb, d.origin).closed };
 }
 function thumbSVG(d){
   const { pts, hi } = trackInfo(d);
@@ -964,18 +980,23 @@ function trackLine(d){
 
 let state = load() || sampleState();
 let sel = null;            // índice da peça selecionada (novas peças entram depois dela)
+let back = false;          // ponta onde as peças encaixam: false = frente (fim da pista), true = trás (antes da largada)
 let view = { s:30, x:40, y:40 };
 let undoStack = [], redoStack = [];
 let hoverAdd = null, hoverCell = null;
 let segs = [], info = null;
 
 // O desfazer guarda também a mesa: ela pode ter crescido junto com a pista.
-const snap = () => JSON.stringify({ origin:state.origin, pieces:state.pieces, board:state.board });
-function restore(str){ const o = JSON.parse(str); state.origin = o.origin; state.pieces = o.pieces; if (o.board) state.board = o.board; if (sel != null && sel >= state.pieces.length) sel = null; }
+const snap = () => JSON.stringify({ origin:state.origin, pieces:state.pieces, atras:state.atras || 0, board:state.board });
+function restore(str){ const o = JSON.parse(str); state.origin = o.origin; state.pieces = o.pieces; state.atras = o.atras || 0; if (o.board) state.board = o.board; if (sel != null && sel >= state.pieces.length) sel = null; }
+let closing = null;   // a busca do "Fechar circuito" em andamento (ver autoClose)
 function commit(fn){
+  cancelClose();
   undoStack.push(snap()); if (undoStack.length > 300) undoStack.shift();
-  redoStack.length = 0; fn(); growBoard(); resetRace(); save(); render();
+  redoStack.length = 0; fn(); growBoard(); settleBack(); resetRace(); save(); render();
 }
+// Pista fechada é a mesma volta de qualquer jeito: já não há ponta de trás, então as peças voltam a contar a partir da largada.
+function settleBack(){ if (state.atras && ends(layout(), state.atras, state.origin).closed) state.atras = 0; }
 // A mesa cresce com a pista: se a pista passa da borda, a mesa ganha células (com 1 de folga). Se passou da
 // esquerda ou de cima, a pista inteira é empurrada para dentro (células inteiras, a largada continua encaixada)
 // e a vista acompanha, para nada pular na tela. A mesa nunca encolhe sozinha.
@@ -994,30 +1015,43 @@ function growBoard(){
   state.board = { w, h };
   return true;
 }
-function undo(){ if (!undoStack.length) return; redoStack.push(snap()); restore(undoStack.pop()); resetRace(); save(); render(); }
-function redo(){ if (!redoStack.length) return; undoStack.push(snap()); restore(redoStack.pop()); resetRace(); save(); render(); }
+function undo(){ if (!undoStack.length) return; cancelClose(); redoStack.push(snap()); restore(undoStack.pop()); resetRace(); save(); render(); }
+function redo(){ if (!redoStack.length) return; cancelClose(); undoStack.push(snap()); restore(redoStack.pop()); resetRace(); save(); render(); }
 
 /* ---------- Cálculos ---------- */
 // Cada peça herda a altura de onde a anterior terminou; rampas sobem ou descem um nível.
 // Sem argumentos usa a pista aberta; o fechamento automático passa outras pistas para testar.
-function layout(origin = state.origin, pieces = state.pieces){
+// As últimas nb peças da lista ficam ATRÁS da largada: são colocadas de ré a partir dela (a última da lista encosta
+// na largada), no chão. Na ordem da lista é a mesma volta: largada, frente..., atrás... e de novo a largada.
+function layout(origin = state.origin, pieces = state.pieces, nb = state.atras || 0){
+  const fe = pieces.length - nb;
   let conn = { ...origin }, z = 0;
-  return pieces.map((p, i) => {
+  const out = pieces.slice(0, fe).map((p, i) => {
     const a = conn, b = poseAt(a, p, 1); b.h = norm(b.h);
     const zIn = z, zOut = clamp(z + (i ? p.rise || 0 : 0), 0, MAX_Z);
     conn = b; z = zOut;
     return { p, i, a, b, zIn, zOut };
   });
+  const bk = []; let c = { ...origin, h:norm(origin.h) };
+  for (let i = pieces.length - 1; i >= fe; i--){
+    const a = backOf(c, pieces[i]); a.h = norm(a.h);
+    bk.push({ p:pieces[i], i, a, b:c, zIn:0, zOut:0 });
+    c = a;
+  }
+  return out.concat(bk.reverse());
+}
+// Onde a pista da frente termina e onde ela tem de chegar para fechar (a largada, ou a peça de trás mais afastada).
+function ends(list, nb, o){
+  const fe = list.length - nb, tip = list[fe - 1].b, tgt = nb ? list[fe].a : o;
+  const gap = Math.hypot(tip.x - tgt.x, tip.y - tgt.y);
+  let dh = Math.abs(norm(tip.h) - norm(tgt.h)); dh = Math.min(dh, 360 - dh);
+  const closedXY = list.length > 1 && gap < .02 && dh < .5, endZ = list[fe - 1].zOut;
+  return { fe, tip, gap, dh, closedXY, endZ, closed:closedXY && endZ === 0 };   // fecha no chão, na mesma altura da largada
 }
 const zAt = (sg, t) => sg.zIn + (sg.zOut - sg.zIn) * t;
 const layerOf = sg => Math.round(Math.max(sg.zIn, sg.zOut));
-function analyze(list = segs, o = state.origin){
-  const last = list[list.length - 1].b;
-  const gap = Math.hypot(last.x - o.x, last.y - o.y);
-  let dh = Math.abs(norm(last.h) - norm(o.h)); dh = Math.min(dh, 360 - dh);
-  const closedXY = list.length > 1 && gap < .02 && dh < .5;
-  const endZ = list[list.length - 1].zOut;
-  const closed = closedXY && endZ === 0;      // fecha no chão, na mesma altura da largada
+function analyze(list = segs, o = state.origin, nb = state.atras || 0){
+  const { fe, gap, dh, closedXY, endZ, closed } = ends(list, nb, o);
 
   const S = list.map(sg => {
     const n = Math.max(2, Math.ceil(pieceLen(sg.p) / .25));
@@ -1027,8 +1061,10 @@ function analyze(list = segs, o = state.origin){
     return { pts, bb };
   });
   const clash = new Set(), N = list.length;
-  for (let i = 0; i < N; i++) for (let j = i + 2; j < N; j++){
-    if (closed && i === 0 && j === N - 1) continue;
+  for (let i = 0; i < N; i++) for (let j = i + 1; j < N; j++){
+    // Vizinhas da lista se encostam; só a ponta da frente e a de trás, quando abertas, podem estar sobrepostas.
+    if (j === i + 1 && !(nb && i === fe - 1 && !closed)) continue;
+    if ((closed || nb) && i === 0 && j === N - 1) continue;
     const A = S[i], B = S[j];
     if (A.bb.x1 + 1 < B.bb.x0 || B.bb.x1 + 1 < A.bb.x0 || A.bb.y1 + 1 < B.bb.y0 || B.bb.y1 + 1 < A.bb.y0) continue;
     // Só bate se estiverem na mesma altura: uma ponte (nível 1) passa por cima do chão (nível 0).
@@ -1093,19 +1129,24 @@ const Closer = (() => {
     return d.angle === 45 ? (p.dir > 0 ? 4 : 5) : (p.dir > 0 ? 2 : 3);
   }
   // Todas as sequências de até maxDepth peças a partir de s; por estado, guarda só as mais curtas.
-  function expandAt(s, maxDepth, keepPerState){
+  // Gerador: devolve o controle de tempos em tempos (yield) e leva o progresso de p0 até p1.
+  function* expandAt(job, s, maxDepth, keepPerState, p0, p1){
     const map = new Map([[key(s), [[]]]]);
-    let frontier = [[s, []]];
+    let frontier = [[s, []]], work = 0;
     for (let d = 1; d <= maxDepth; d++){
       const next = [];
-      for (const [st, seq] of frontier) for (let m = 0; m < MOVE.length; m++){
-        const ns = apply(st, m), k = key(ns);
-        let list = map.get(k);
-        if (!list){ list = []; map.set(k, list); }
-        if (list.length >= keepPerState) continue;
-        const nseq = seq.concat(m);
-        list.push(nseq);
-        next.push([ns, nseq]);
+      for (let i = 0; i < frontier.length; i++){
+        if ((++work & 31) === 0){ job.progress = p0 + (p1 - p0) * ((d - 1) + i / frontier.length) / maxDepth; yield; }
+        const [st, seq] = frontier[i];
+        for (let m = 0; m < MOVE.length; m++){
+          const ns = apply(st, m), k = key(ns);
+          let list = map.get(k);
+          if (!list){ list = []; map.set(k, list); }
+          if (list.length >= keepPerState) continue;
+          const nseq = seq.concat(m);
+          list.push(nseq);
+          next.push([ns, nseq]);
+        }
       }
       frontier = next;
       if (frontier.length === 0) break;
@@ -1127,72 +1168,130 @@ const Closer = (() => {
     return need > 0 ? null : list;
   }
 
-  function closeAtDepth(origin, pieces, banked, maxDepth, keepPerState, maxChecks){
+  // tail: as peças que já ficam atrás da largada; a pista da frente tem de chegar na ponta de trás delas.
+  // Gerador: cada yield devolve o controle (ver start). Retorna o resultado da etapa, ou null se esta profundidade não achou nada.
+  function* closeAtDepth(job, origin, pieces, tail, banked, stage){
+    const maxDepth = PROGRESSIVE_DEPTHS[stage], maxChecks = PROGRESSIVE_CHECKS[stage], keepPerState = 8;
+    const p0 = stageFrom(stage), span = stageSpan(stage);
+    job.progress = p0;
+    job.status = `Procurando com até ${maxDepth * 2} peças…`;
     table();
     const start = { xa:Math.round(origin.x * 8), xb:0, ya:Math.round(origin.y * 8), yb:0, h:mod8(Math.round(origin.h / 45)) };
     let end = start;
     pieces.forEach(p => { end = apply(end, moveOf(p)); });
-    if (key(end) === key(start)) return { ok:false, msg:'A ponta já está na largada.' };
-    const base = layout(origin, pieces), endZ = base[base.length - 1].zOut, before = analyze(base, origin).clash.size;
-
-    const fwd = expandAt(end, maxDepth, keepPerState), back = expandAt({ ...start, h:mod8(start.h + 4) }, maxDepth, keepPerState);
-    const cands = [];
-    for (const [k, bl] of back){
-      const [xa, xb, ya, yb, h] = k.split(',').map(Number);
-      const fl = fwd.get(`${xa},${xb},${ya},${yb},${mod8(h + 4)}`);   // estado de ré → mesmo estado de frente
-      if (!fl) continue;
-      for (const f of fl) for (const b of bl){
-        const seq = f.concat(b.slice().reverse().map(m => MIRROR[m]));
-        if (seq.length) cands.push(seq);
-      }
+    // O destino, de ré: da largada, voltando peça por peça pelas de trás (a última da lista encosta na largada).
+    let goal = { ...start, h:mod8(start.h + 4) };
+    for (let i = tail.length - 1; i >= 0; i--) goal = apply(goal, MIRROR[moveOf(tail[i])]);
+    if (key(end) === key({ ...goal, h:mod8(goal.h + 4) })){
+      job.stop = true;
+      return { ok:false, msg:tail.length ? 'A ponta já encosta na pista de trás.' : 'A ponta já está na largada.' };
     }
-    if (!cands.length) return null;  // Nenhuma solução nesta profundidade
+    const base = layout(origin, pieces.concat(tail), tail.length), endZ = base[pieces.length - 1].zOut, before = analyze(base, origin, tail.length).clash.size;
+
+    const fwd = yield* expandAt(job, end, maxDepth, keepPerState, p0, p0 + span * .2);
+    const back = yield* expandAt(job, goal, maxDepth, keepPerState, p0 + span * .2, p0 + span * .4);
 
     const len = s => s.reduce((t, m) => t + pieceLen(MOVE[m]), 0);
     const curves = s => s.filter(m => m >= 2 && m <= 5).length;
     const straights = s => s.filter(m => m === 0 || m === 1 || m === 6).length;
     const halfCurves = s => s.filter(m => m === 4 || m === 5).length;
-    
-    cands.sort((p, q) => {
-      const pc = curves(p), qc = curves(q);
-      const plen = p.length, qlen = q.length;
-      const pl = len(p), ql = len(q);
-      const ph = halfCurves(p), qh = halfCurves(q);
-      
-      if (plen !== qlen) return plen - qlen;
-      if (pc !== qc) return pc - qc;
-      if (pl !== ql) return pl - ql;
-      if (ph !== qh) return ph - qh;
-      return straights(q) - straights(p);
-    });
-    
-    const seen = new Set();
-    let checks = 0, crosses = false;
-    for (const seq of cands){
-      const sk = seq.join();
-      if (seen.has(sk)) continue;
-      seen.add(sk);
-      if (++checks > maxChecks) break;
-      const add = toPieces(seq, endZ, banked);
-      if (!add) continue;
-      const a2 = analyze(layout(origin, pieces.concat(add)), origin);
-      if (!a2.closed) continue;
-      if (a2.clash.size <= before)
-        return { ok:true, pieces:add, msg:`Circuito fechado com ${add.length} ${add.length === 1 ? 'peça' : 'peças'}: ${add.map(p => pieceName(p).toLowerCase()).join(', ')}. Ctrl+Z desfaz.` };
-      crosses = true;
+
+    // Junta os dois lados. Os candidatos ficam separados pelo número de peças, com os critérios já calculados,
+    // e só se ordena um grupo quando chega a vez dele (quase sempre os maiores nem são tocados).
+    const byLen = [];
+    let total = 0, visited = 0;
+    for (const [k, bl] of back){
+      if ((++visited & 63) === 0){ job.progress = p0 + span * (.4 + .1 * visited / back.size); yield; }
+      const [xa, xb, ya, yb, h] = k.split(',').map(Number);
+      const fl = fwd.get(`${xa},${xb},${ya},${yb},${mod8(h + 4)}`);   // estado de ré → mesmo estado de frente
+      if (!fl) continue;
+      for (const f of fl) for (const b of bl){
+        const seq = f.concat(b.slice().reverse().map(m => MIRROR[m]));
+        if (!seq.length) continue;
+        (byLen[seq.length] ||= []).push({ seq, c:curves(seq), l:len(seq), h:halfCurves(seq), s:straights(seq) });
+        total++;
+      }
     }
-    return crosses ? { ok:false, msg:'Todo fechamento curto passa por cima da pista. Mexa um pouco a ponta (ou faça uma ponte) e tente de novo.' } : null;
+    if (!total) return null;  // Nenhuma solução nesta profundidade
+
+    // Menos peças, depois menos curvas, comprimento menor, menos meias-curvas, mais retas.
+    const seen = new Set(), planned = Math.min(total, maxChecks);
+    let checks = 0, crosses = false;
+    search: for (const group of byLen){
+      if (!group) continue;
+      group.sort((p, q) => p.c - q.c || p.l - q.l || p.h - q.h || q.s - p.s);
+      for (const { seq } of group){
+        const sk = seq.join();
+        if (seen.has(sk)) continue;
+        seen.add(sk);
+        if (++checks > maxChecks) break search;
+        job.progress = p0 + span * (.5 + .5 * checks / planned);
+        job.status = `Procurando com até ${maxDepth * 2} peças… testando ${checks} de ${planned}`;
+        yield;
+        const add = toPieces(seq, endZ, banked);
+        if (!add) continue;
+        const a2 = analyze(layout(origin, pieces.concat(add, tail), tail.length), origin, tail.length);
+        if (!a2.closed) continue;
+        if (a2.clash.size <= before)
+          return { ok:true, pieces:add, msg:`Circuito fechado com ${add.length} ${add.length === 1 ? 'peça' : 'peças'}: ${add.map(p => pieceName(p).toLowerCase()).join(', ')}. Ctrl+Z desfaz.` };
+        crosses = true;
+      }
+    }
+    // Passou por cima da pista: uma profundidade maior ainda pode achar um que não passe.
+    if (crosses) job.crossed = true;
+    return null;
   }
 
-  function close(origin, pieces, banked){
-    // Tenta progressivamente em profundidades maiores
+  // O custo cresce muito com a profundidade: o peso de cada etapa na barra de progresso.
+  const STAGE_WEIGHTS = [1, 2, 4, 8], STAGE_TOTAL = STAGE_WEIGHTS.reduce((a, b) => a + b, 0);
+  const stageFrom = i => STAGE_WEIGHTS.slice(0, i).reduce((a, b) => a + b, 0) / STAGE_TOTAL;
+  const stageSpan = i => STAGE_WEIGHTS[i] / STAGE_TOTAL;
+  const NOT_FOUND = 'Não achei um fechamento que funcione daqui. Leve a ponta mais perto da largada e tente de novo.';
+  const CROSSES = 'Todo fechamento curto passa por cima da pista. Mexa um pouco a ponta (ou faça uma ponte) e tente de novo.';
+
+  function* run(job, origin, pieces, banked, tail){
     for (let i = 0; i < PROGRESSIVE_DEPTHS.length; i++){
-      const result = closeAtDepth(origin, pieces, banked, PROGRESSIVE_DEPTHS[i], 8, PROGRESSIVE_CHECKS[i]);
-      if (result) return result;
+      const r = yield* closeAtDepth(job, origin, pieces, tail, banked, i);
+      if (r) return r;
+      if (job.stop) break;
     }
-    return { ok:false, msg:'Não achei um fechamento que funcione daqui. Leve a ponta mais perto da largada e tente de novo.' };
+    return { ok:false, msg:job.crossed ? CROSSES : NOT_FOUND };
   }
-  return { close };
+
+  // Uma busca em andamento: ela anda aos poucos (pump), mostra progress/status/elapsed e pode ser cancelada.
+  // Assim a página não congela em pistas que não têm fechamento.
+  function start(origin, pieces, banked, tail = []){
+    const job = {
+      done:false, cancelled:false, result:null, progress:0, status:'Começando…', stop:false, crossed:false,
+      t0:performance.now(), t1:0,
+      get elapsed(){ return ((job.t1 || performance.now()) - job.t0) / 1000; },
+      // Trabalha por até ms milissegundos. Devolve true enquanto ainda não acabou.
+      pump(ms){
+        if (job.done) return false;
+        const t = performance.now();
+        do {
+          const s = job.gen.next();
+          if (s.done){ job.done = true; job.result = s.value; job.progress = 1; job.t1 = performance.now(); return false; }
+        } while (performance.now() - t < ms);
+        return true;
+      },
+      cancel(){
+        if (job.done) return;
+        job.done = job.cancelled = true; job.t1 = performance.now();
+        job.result = { ok:false, msg:'Busca cancelada.' };
+      },
+    };
+    job.gen = run(job, origin, pieces.slice(), banked, tail.slice());
+    return job;
+  }
+
+  // De uma vez só (testes): roda a busca inteira sem devolver o controle.
+  function close(origin, pieces, banked, tail = []){
+    const job = start(origin, pieces, banked, tail);
+    job.pump(Infinity);
+    return job.result;
+  }
+  return { close, start };
 })();
 
 /* ---------- Desenho ---------- */
@@ -1308,16 +1407,20 @@ function pieceSVG(sg){
   if (i === sel) g += `<path class="selo" d="${band}"/>`;
   return g + '</g>';
 }
-function insertConn(){ return sel == null ? segs[segs.length - 1].b : segs[sel].b; }
+function insertConn(){ return sel == null ? segs[frontEnd() - 1].b : segs[sel].b; }
+// Ponta de trás: a entrada da peça mais afastada atrás da largada (ou da própria largada), apontando para fora.
+function backConn(){ const c = state.atras ? segs[frontEnd()].a : state.origin; return { x:c.x, y:c.y, h:norm(c.h + 180) }; }
+const arrowG = (c, off) => `<g class="ins${off ? ' off' : ''}" transform="translate(${f(c.x)} ${f(c.y)}) rotate(${f(c.h)})"><path d="M0 -.6V.6"/><path d="M.2 -.28L.48 0L.2 .28"/></g>`;
 function drawOverlay(){
   if (mode !== 'build'){ overlayG.innerHTML = ''; return; }
-  const at = insertConn();
+  const fwd = insertConn(), bk = backConn(), at = back ? bk : fwd;
   let s = '';
   if (hoverAdd){
-    const p = P(hoverAdd.type, hoverAdd.dir), poses = samplePiece(at, p, steps(p, 4));
+    const p = P(hoverAdd.type, back ? -hoverAdd.dir : hoverAdd.dir), poses = samplePiece(at, p, steps(p, 4));
     s += `<path class="ghost" d="${bandPath(poses, -.5, .5)}"/>`;
   }
-  s += `<g class="ins" transform="translate(${f(at.x)} ${f(at.y)}) rotate(${f(at.h)})"><path d="M0 -.6V.6"/><path d="M.2 -.28L.48 0L.2 .28"/></g>`;
+  // As duas pontas: a ativa pisca, a outra fica apagada.
+  s += arrowG(back ? segs[frontEnd() - 1].b : bk, true) + arrowG(at, false);
   overlayG.innerHTML = s;
 }
 
@@ -1837,7 +1940,7 @@ const aiBadge = p => p.ai ? `<span class="aib" title="Piloto IA, qualidade ${p.s
 let roster = (Array.isArray(loadJSON(PKEY, [])) ? loadJSON(PKEY, []) : []).map(cleanPilot).filter(Boolean);
 const savePilots = () => saveJSON(PKEY, roster);
 
-const pickTrack = d => ({ origin:{ ...d.origin }, pieces:d.pieces.map(p => ({ ...p })), board:{ ...d.board }, scaleCm:d.scaleCm });
+const pickTrack = d => ({ origin:{ ...d.origin }, pieces:d.pieces.map(p => ({ ...p })), atras:d.atras || 0, board:{ ...d.board }, scaleCm:d.scaleCm });
 function cleanStage(s){
   const data = s && sanitize(s.data);
   return data ? { name:String(s.name || 'Pista').slice(0, 60), laps:intIn(s.laps, 1, 30, 5), data, hash:trackHash(data) } : null;
@@ -2203,6 +2306,7 @@ function setAiForm(on, skill){
 
 function setMode(m){
   if (m === mode) return;
+  cancelClose();
   const from = mode; mode = m;
   $('#tabBuild').setAttribute('aria-selected', String(m === 'build'));
   $('#tabRace').setAttribute('aria-selected', String(m === 'race'));
@@ -2299,9 +2403,13 @@ function buildPalette(){
     `<button class="pc" data-k="${k}" title="${q.label} · ${q.sub} (tecla ${q.key.toUpperCase()})">${iconSVG(q.type, q.dir, true, q.rise)}<span><b>${q.label}</b><small>${q.sub}</small></span><kbd>${q.key.toUpperCase()}</kbd></button>`).join('');
 }
 function drawSide(){
-  $('#insertHint').innerHTML = sel == null
+  $('#insertHint').innerHTML = back
+    ? 'Encaixando na <b>ponta de trás</b>, atrás da largada (seta amarela atrás dela). A largada não sai do lugar.'
+    : sel == null
     ? 'Clique para encaixar no <b>fim da pista</b>, onde está a seta amarela.'
     : `Encaixando <b>depois da peça ${sel + 1}</b> (${pieceName(state.pieces[sel]).toLowerCase()}).`;
+  $('#endFront').classList.toggle('on', !back); $('#endFront').setAttribute('aria-pressed', String(!back));
+  $('#endBack').classList.toggle('on', back); $('#endBack').setAttribute('aria-pressed', String(back));
 
   const box = $('#selBody');
   if (sel == null){
@@ -2397,15 +2505,50 @@ function render(){
 const drawModeSide = () => mode === 'champ' ? drawChampSide() : drawRaceSide();
 
 /* ---------- Ações ---------- */
+// A frente termina em frontEnd() - 1; dali até o fim da lista ficam as peças de trás (state.atras).
+const frontEnd = () => state.pieces.length - (state.atras || 0);
 function addPiece(type, dir, rise = 0){
-  commit(() => { const at = sel == null ? state.pieces.length : sel + 1; state.pieces.splice(at, 0, P(type, dir, rise)); if (sel != null) sel = at; });
+  if (back) return addBack(type, dir, rise);
+  commit(() => {
+    const at = sel == null ? frontEnd() : sel + 1;
+    if (at > frontEnd()) state.atras = (state.atras || 0) + 1;       // inserida entre as peças de trás
+    state.pieces.splice(at, 0, P(type, dir, rise)); if (sel != null) sel = at;
+  });
 }
-function removeSel(){ if (sel == null || sel === 0) return; commit(() => { state.pieces.splice(sel, 1); sel = sel - 1; }); }
-function removeLast(){ if (state.pieces.length < 2) return; commit(() => { state.pieces.pop(); if (sel != null && sel >= state.pieces.length) sel = null; }); }
+// Atrás da largada: a peça encosta na ponta de trás (a largada não sai do lugar) e vira a nova ponta.
+// Na lista ela entra logo antes das que já estavam atrás, porque a volta continua sendo largada, frente, trás.
+function addBack(type, dir, rise){
+  if (rise) return toast('Rampa não encaixa atrás da largada: ela fica no chão.');
+  commit(() => {
+    const at = frontEnd();
+    state.pieces.splice(at, 0, P(type, dir)); state.atras = (state.atras || 0) + 1;
+    if (sel != null && sel >= at) sel++;
+  });
+}
+function setBack(v){ back = v; hoverAdd = null; render(); }
+function removeSel(){ if (sel == null || sel === 0) return; commit(() => { if (sel >= frontEnd()) state.atras--; state.pieces.splice(sel, 1); sel = sel - 1; }); }
+// Tira a última peça da ponta ativa (na de trás, a mais afastada da largada).
+function removeLast(){
+  const fe = frontEnd(), at = back && state.atras ? fe : fe - 1;
+  if (at < 1) return;
+  commit(() => {
+    if (at >= fe) state.atras--;
+    state.pieces.splice(at, 1);
+    if (sel != null) sel = sel === at ? null : sel > at ? sel - 1 : sel;
+  });
+}
 function flipSel(){ if (sel == null || PIECES[state.pieces[sel].type].kind !== 'curve') return; commit(() => { state.pieces[sel].dir *= -1; }); }
 // Trocar mantém a altura da peça, a não ser que a troca seja por uma rampa.
-function swapSel(k){ if (sel == null || sel === 0) return; const q = PAL[k]; commit(() => { state.pieces[sel] = P(q.type, q.dir, q.rise ?? state.pieces[sel].rise ?? 0); }); }
-function setRise(r){ if (sel == null || sel === 0) return; commit(() => { state.pieces[sel].rise = r; }); }
+function swapSel(k){
+  if (sel == null || sel === 0) return; const q = PAL[k], atras = sel >= frontEnd();
+  if (atras && q.rise) return toast('Rampa não encaixa atrás da largada: ela fica no chão.');
+  commit(() => { state.pieces[sel] = P(q.type, q.dir, atras ? 0 : q.rise ?? state.pieces[sel].rise ?? 0); });
+}
+function setRise(r){
+  if (sel == null || sel === 0) return;
+  if (r && sel >= frontEnd()) return toast('Rampa não encaixa atrás da largada: ela fica no chão.');
+  commit(() => { state.pieces[sel].rise = r; });
+}
 function rotateStart(){
   commit(() => {
     const o = state.origin, [cx, cy] = dirv(o.h), mid = { x:o.x + cx, y:o.y + cy }, h = o.h + 90, [nx, ny] = dirv(h);
@@ -2418,6 +2561,7 @@ function select(i){ sel = (i == null || i === sel) ? null : i; render(); }
 function exportJSON(){
   return JSON.stringify({
     formato:'autorama-pista', versao:1, nome:state.name || undefined, mesa:state.board, escalaCm:state.scaleCm, largada:state.origin,
+    atras: state.atras || undefined,       // quantas das últimas peças de "pecas" ficam atrás da largada
     pecas: state.pieces.slice(1).map(p => {
       const o = { tipo:TYPE_OUT[p.type] };
       if (p.dir) o.sentido = p.dir < 0 ? 'esquerda' : 'direita';
@@ -2438,6 +2582,7 @@ function importJSON(txt){
   }
   commit(() => {
     state.pieces = [P('start'), ...pieces];
+    state.atras = intIn(o.atras, 0, pieces.length, 0);
     if (o.largada) state.origin = snapOrigin({ x:+o.largada.x || 0, y:+o.largada.y || 0, h:+o.largada.h || 0 });
     if (o.mesa) state.board = { w:intIn(o.mesa.w, 8, 120, state.board.w), h:intIn(o.mesa.h, 8, 120, state.board.h) };
     if (o.escalaCm) state.scaleCm = numIn(o.escalaCm, 1, 100, state.scaleCm);
@@ -2466,6 +2611,7 @@ $('#selBody').addEventListener('click', selClick);
 $('#mSel').addEventListener('click', selClick);
 $('#seq').addEventListener('click', e => { const b = e.target.closest('.chip'); if (b) select(+b.dataset.i); });
 $('#undo').onclick = undo; $('#redo').onclick = redo;
+$('#endFront').onclick = () => setBack(false); $('#endBack').onclick = () => setBack(true);
 
 // Fechar circuito: completa da ponta até a largada (uma ação só no desfazer).
 function toast(text){
@@ -2473,20 +2619,43 @@ function toast(text){
   el.textContent = text; el.hidden = false;
   clearTimeout(toast.t); toast.t = setTimeout(() => { el.hidden = true; }, 5000);
 }
+// A busca anda aos poucos (fatias de ~10 ms), então a página não congela; dá para cancelar a qualquer hora.
+function drawClosing(job){
+  $('#closing').hidden = !job;
+  if (!job) return;
+  $('#closingTxt').textContent = `${job.status}  (${Math.floor(job.elapsed)} s)`;
+  $('#closingBar').style.width = `${Math.round(job.progress * 100)}%`;
+}
+function cancelClose(){
+  if (!closing) return;
+  closing.cancel(); closing = null;
+  drawClosing(null); toast('Busca cancelada.');
+}
 function autoClose(){
-  if (mode !== 'build') return;
+  if (mode !== 'build' || closing) return;
   if (info.closed) return toast('A pista já está fechada.');
   if (state.pieces.length < 2) return toast('Coloque algumas peças antes: o fechamento parte da ponta da pista.');
   // Segue o estilo da pista: se ela usa mais curvas inclinadas, fecha com inclinadas.
   let banked = 0, plain = 0;
   state.pieces.forEach(p => { const d = PIECES[p.type]; if (d.kind === 'curve') { if (d.bank) banked++; else plain++; } });
-  const r = Closer.close(state.origin, state.pieces, banked > plain);
-  if (!r.ok) return toast(r.msg);
-  commit(() => { state.pieces.push(...r.pieces); sel = null; });
-  fitTrack();
-  toast(r.msg);
+  // Fecha da ponta da frente até a ponta de trás (a largada, se não há peças atrás dela).
+  const fe = frontEnd();
+  const job = closing = Closer.start(state.origin, state.pieces.slice(0, fe), banked > plain, state.pieces.slice(fe));
+  const tick = () => {
+    if (closing !== job) return;
+    if (job.pump(10)){ drawClosing(job); return setTimeout(tick, 0); }
+    closing = null; drawClosing(null);
+    const r = job.result;
+    if (!r.ok) return toast(r.msg);
+    commit(() => { state.pieces.splice(fe, 0, ...r.pieces); sel = null; });
+    fitTrack();
+    toast(r.msg);
+  };
+  drawClosing(job);
+  setTimeout(tick, 0);
 }
 $('#closeTrack').onclick = autoClose;
+$('#closingCancel').onclick = cancelClose;
 $('#tabBuild').onclick = () => setMode('build');
 $('#tabRace').onclick = () => setMode('race');
 $('#tabChamp').onclick = () => setMode('champ');
@@ -2654,9 +2823,7 @@ $('#cQuit').onclick = function(){
   CH.active = null; saveCH(); refreshChamp(true);
 };
 $('#clear').onclick = function(){
-  if (!this.dataset.armed){ this.dataset.armed = '1'; this.textContent = 'Apagar tudo?'; setTimeout(() => { delete this.dataset.armed; this.textContent = 'Nova pista'; }, 3000); return; }
-  delete this.dataset.armed; this.textContent = 'Nova pista';
-  commit(() => { state.pieces = [P('start')]; state.libId = null; state.name = ''; sel = null; });
+  commit(() => { state.pieces = [P('start')]; state.atras = 0; state.libId = null; state.name = ''; sel = null; });
 };
 
 // Mesa: clique seleciona, arrastar o fundo move a vista, arrastar a largada move a pista, pinça dá zoom.
@@ -2739,11 +2906,12 @@ window.addEventListener('keydown', e => {
   const q = PAL.find(p => p.key === k.toLowerCase());
   if (q){ e.preventDefault(); return addPiece(q.type, q.dir, q.rise || 0); }
   if (k === 'f' || k === 'F') return flipSel();
+  if (k === 'e' || k === 'E') return setBack(!back);
   if (k === 'r' || k === 'R') return rotateStart();
   if (k === 'Delete') return removeSel();
   if (k === 'Backspace'){ e.preventDefault(); return sel != null && sel > 0 ? removeSel() : removeLast(); }
   if (k === 'q' || k === 'Q'){ e.preventDefault(); return autoClose(); }
-  if (k === 'Escape') return select(null);
+  if (k === 'Escape') return closing ? cancelClose() : select(null);
 });
 window.addEventListener('keyup', e => {
   const key = e.key.toLowerCase();
