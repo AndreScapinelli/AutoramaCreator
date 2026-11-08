@@ -9,12 +9,22 @@ namespace Autorama
     [RequireComponent(typeof(Camera))]
     public class TopDownCamera : MonoBehaviour
     {
+        public enum RaceViewMode
+        {
+            Atual = 0,
+            ThreeD = 1,
+            ThirdPerson = 2,
+            AutoDoisCarros = 3,
+        }
+
         public float minSize = 2f, maxSize = 40f;
         public float tiltPitch = 52f, fieldOfView = 32f;
 
         public bool Tilted { get; private set; }
         public bool IsTopView => blend <= 0.001f;      // réguas e células só fazem sentido na vista de cima
         public Camera Cam => cam;
+        public RaceViewMode RaceMode { get; private set; } = RaceViewMode.Atual;
+        public int ThirdPersonCar { get; private set; }
 
         Camera cam;
         Vector3 focus;                 // ponto da mesa no centro da vista
@@ -24,6 +34,14 @@ namespace Autorama
         Vector3 dragOrigin;
         bool panning, orbiting;
         Vector2 lastMouse;
+        readonly Vector3[] raceCarPos = new Vector3[2];
+        readonly float[] raceCarHeading = new float[2];
+        bool hasRaceTargets;
+        bool prioritizeFirstCar;
+
+        float thirdDistance = 7f, thirdHeight = 2.2f;
+        float autoSize = 11f;
+        float distanceScale = 1f;
 
         void Awake()
         {
@@ -34,6 +52,27 @@ namespace Autorama
         }
 
         public void ToggleTilt() => Tilted = !Tilted;
+
+        public void SetRaceViewMode(RaceViewMode mode)
+        {
+            RaceMode = mode;
+            if (mode == RaceViewMode.ThreeD) Tilted = true;
+            panning = orbiting = false;
+        }
+
+        public void SetThirdPersonCar(int idx) => ThirdPersonCar = Mathf.Clamp(idx, 0, 1);
+
+        public void SetDistanceScale(float scale) => distanceScale = Mathf.Clamp(scale, 0.7f, 1.6f);
+
+        public void SetRaceTargets(Vector3 car0Pos, float car0Heading, Vector3 car1Pos, float car1Heading, bool prioritizeFirst = false)
+        {
+            raceCarPos[0] = car0Pos;
+            raceCarPos[1] = car1Pos;
+            raceCarHeading[0] = car0Heading;
+            raceCarHeading[1] = car1Heading;
+            prioritizeFirstCar = prioritizeFirst;
+            hasRaceTargets = true;
+        }
 
         // A pista foi empurrada na mesa: a vista anda junto, para nada pular na tela.
         public void Nudge(Vector2 cells) => focus += new Vector3(cells.x, 0f, cells.y);
@@ -65,8 +104,11 @@ namespace Autorama
         {
             var m = Mouse.current;
             var kb = Keyboard.current;
-            if (kb != null && kb.vKey.wasPressedThisFrame && !BuilderPanel.IsTyping) ToggleTilt();
+            bool allowTiltToggle = RaceMode == RaceViewMode.Atual || RaceMode == RaceViewMode.ThreeD;
+            if (allowTiltToggle && kb != null && kb.vKey.wasPressedThisFrame && !BuilderPanel.IsTyping) ToggleTilt();
             if (m == null) return;
+
+            bool autoFollow = RaceMode == RaceViewMode.ThirdPerson || RaceMode == RaceViewMode.AutoDoisCarros;
 
             Vector2 mouse = m.position.ReadValue();
             bool overUi = BuilderPanel.PointerOverUI(mouse);
@@ -75,7 +117,12 @@ namespace Autorama
             if (!overUi && Mathf.Abs(scroll) > 0.01f)
             {
                 float k = Mathf.Pow(0.9f, Mathf.Sign(scroll));
-                if (Tilted) distance = Mathf.Clamp(distance * k, 4f, 150f);
+                if (RaceMode == RaceViewMode.ThirdPerson) thirdDistance = Mathf.Clamp(thirdDistance * k, 4f, 18f);
+                else if (RaceMode == RaceViewMode.AutoDoisCarros)
+                {
+                    // Neste modo o zoom é automático, então ignoramos a roda para manter previsibilidade.
+                }
+                else if (Tilted) distance = Mathf.Clamp(distance * k, 4f, 150f);
                 else
                 {
                     Vector3 before = MouseOnTable();
@@ -84,6 +131,8 @@ namespace Autorama
                     focus += before - MouseOnTable();         // mantém o ponto sob o mouse
                 }
             }
+
+            if (autoFollow) return;
 
             // Botão do meio sempre move a vista; o direito move na vista de cima e gira na 3D.
             bool right = m.rightButton.isPressed, middle = m.middleButton.isPressed;
@@ -112,8 +161,61 @@ namespace Autorama
 
         void LateUpdate()
         {
-            blend = Mathf.MoveTowards(blend, Tilted ? 1f : 0f, Time.unscaledDeltaTime * 2.5f);
+            if (RaceMode == RaceViewMode.ThirdPerson && hasRaceTargets)
+            {
+                ApplyThirdPerson();
+                return;
+            }
+            if (RaceMode == RaceViewMode.AutoDoisCarros && hasRaceTargets)
+            {
+                ApplyAutoDoisCarros();
+                return;
+            }
+
+            float targetBlend = RaceMode == RaceViewMode.ThreeD ? 1f : Tilted ? 1f : 0f;
+            blend = Mathf.MoveTowards(blend, targetBlend, Time.unscaledDeltaTime * 2.5f);
             Apply();
+        }
+
+        void ApplyThirdPerson()
+        {
+            int k = Mathf.Clamp(ThirdPersonCar, 0, 1);
+            float rad = raceCarHeading[k] * Mathf.Deg2Rad;
+            Vector3 fwd = new Vector3(Mathf.Cos(rad), 0f, Mathf.Sin(rad));
+            Vector3 target = raceCarPos[k] + fwd * 1.4f + Vector3.up * 0.25f;
+            Vector3 desired = raceCarPos[k] - fwd * thirdDistance * distanceScale + Vector3.up * thirdHeight * distanceScale;
+
+            float dt = Time.unscaledDeltaTime;
+            float posLerp = 1f - Mathf.Exp(-7f * dt);
+            transform.position = Vector3.Lerp(transform.position, desired, posLerp);
+
+            var look = Quaternion.LookRotation((target - transform.position).normalized, Vector3.up);
+            float rotLerp = 1f - Mathf.Exp(-9f * dt);
+            transform.rotation = Quaternion.Slerp(transform.rotation, look, rotLerp);
+
+            cam.orthographic = false;
+            cam.fieldOfView = 50f;
+        }
+
+        void ApplyAutoDoisCarros()
+        {
+            Vector3 a = raceCarPos[0], b = raceCarPos[1];
+            Vector3 center = prioritizeFirstCar ? Vector3.Lerp(b, a, 0.72f) : (a + b) * 0.5f;
+
+            // No single player, mantém o humano mais perto do centro sem deixar o robô sair do quadro.
+            float halfX = Mathf.Max(Mathf.Abs(a.x - center.x), Mathf.Abs(b.x - center.x)) + 1.3f;
+            float halfZ = Mathf.Max(Mathf.Abs(a.z - center.z), Mathf.Abs(b.z - center.z)) + 1.1f;
+            float needed = Mathf.Max(halfZ, halfX / Mathf.Max(0.1f, cam.aspect));
+            needed = Mathf.Clamp(needed * distanceScale, Mathf.Max(minSize, 3f), maxSize);
+
+            float dt = Time.unscaledDeltaTime;
+            float blendPos = 1f - Mathf.Exp(-8f * dt);
+            focus = Vector3.Lerp(focus, new Vector3(center.x, 0f, center.z), blendPos);
+            autoSize = Mathf.Lerp(autoSize, needed, 1f - Mathf.Exp(-6f * dt));
+
+            cam.orthographic = true;
+            cam.orthographicSize = autoSize;
+            transform.SetPositionAndRotation(focus + Vector3.up * 30f, Quaternion.Euler(90f, 0f, 0f));
         }
 
         void Apply()
@@ -122,7 +224,7 @@ namespace Autorama
             if (blend <= 0.001f)
             {
                 cam.orthographic = true;
-                cam.orthographicSize = size;
+                cam.orthographicSize = Mathf.Clamp(size * distanceScale, minSize, maxSize);
                 transform.SetPositionAndRotation(focus + Vector3.up * 30f, Quaternion.Euler(90f, 0f, 0f));
                 return;
             }
@@ -130,9 +232,9 @@ namespace Autorama
             float e = Mathf.SmoothStep(0f, 1f, blend);
             cam.orthographic = false;
             cam.fieldOfView = fieldOfView;
-            float topDistance = size / Mathf.Tan(fieldOfView * 0.5f * Mathf.Deg2Rad);
+            float topDistance = size * distanceScale / Mathf.Tan(fieldOfView * 0.5f * Mathf.Deg2Rad);
             var rot = Quaternion.Euler(Mathf.Lerp(89.9f, pitch, e), Mathf.Lerp(0f, yaw, e), 0f);
-            float d = Mathf.Lerp(topDistance, distance, e);
+            float d = Mathf.Lerp(topDistance, distance * distanceScale, e);
             transform.SetPositionAndRotation(focus - rot * Vector3.forward * d, rot);
         }
     }

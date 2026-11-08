@@ -18,6 +18,8 @@ namespace Autorama
 
         static readonly Key[] GasKeys = { Key.A, Key.L }, ReslotKeys = { Key.S, Key.K };
         static readonly string[] LaneNames = { "Trilho 1", "Trilho 2" };
+        static readonly List<string> CamModes = new List<string> { "Atual", "3D", "Third person", "Auto (2 carros)" };
+        static readonly List<string> CamTargets = new List<string> { "Seguir jogador 1", "Seguir jogador 2" };
 
         RaceSettings set;
         RaceSim sim;
@@ -34,6 +36,8 @@ namespace Autorama
         VisualElement pickList, scoreBox, padsBox, topBox, lights, banner;
         Label raceHint, clock, gripHint, bannerTitle, bannerSub;
         Button startBtn;
+        DropdownField camModeDrop, camTargetDrop;
+        SliderInt cameraDistanceSlider;
         readonly List<VisualElement> lightDots = new List<VisualElement>();
 
         // ---------- Início ----------
@@ -118,12 +122,18 @@ namespace Autorama
             {
                 sim.set = set; sim.cutoff = null;
                 SetBot();
+                ApplyCameraSettings();
                 UseTrack(set.track);
             }
-            else if (m == BuilderPanel.Mode.Champ) UseChampTrack();
+            else if (m == BuilderPanel.Mode.Champ)
+            {
+                ApplyCameraSettings();
+                UseChampTrack();
+            }
             else
             {
                 sim.set = set; sim.cutoff = null; sim.aiSkill[0] = sim.aiSkill[1] = 0;
+                cam.SetRaceViewMode(TopDownCamera.RaceViewMode.Atual);
                 if (builderStash != null) builder.ShowTrack(builderStash);
                 builderStash = null;
                 panel.FrameTrack();
@@ -215,12 +225,22 @@ namespace Autorama
 
         void PlaceCars()
         {
+            Vector3 p0 = Vector3.zero, p1 = Vector3.zero;
+            float h0 = 0f, h1 = 0f;
             for (int k = 0; k < 2; k++)
             {
                 var p = sim.CarPose(k, out float y, out float pitch);
-                cars[k].position = new Vector3(p.pos.x, y + 0.035f, p.pos.y);
+                var pos = new Vector3(p.pos.x, y + 0.035f, p.pos.y);
+                cars[k].position = pos;
                 // Deitado, frente para +X; inclina na rampa e gira para o rumo.
                 cars[k].rotation = Quaternion.Euler(0f, -p.heading, 0f) * Quaternion.Euler(0f, 0f, pitch) * Quaternion.Euler(90f, 0f, 0f);
+                if (k == 0) { p0 = pos; h0 = p.heading; }
+                else { p1 = pos; h1 = p.heading; }
+            }
+            if (panel != null && panel.RaceMode)
+            {
+                bool singlePlayer = panel.CurrentMode == BuilderPanel.Mode.Race && set.bot;
+                cam.SetRaceTargets(p0, h0, p1, h1, singlePlayer);
             }
         }
 
@@ -258,6 +278,40 @@ namespace Autorama
             bot.RegisterValueChangedCallback(e => { set.bot = e.newValue; set.Save(); BotLabels(); SetBot(); });
             botSkill.RegisterValueChangedCallback(e => { set.botSkill = e.newValue; set.Save(); BotLabels(); SetBot(); });
             BotLabels();
+
+            camModeDrop = new DropdownField("Câmera", CamModes, Mathf.Clamp(set.cameraMode, 0, CamModes.Count - 1));
+            camModeDrop.AddToClassList("setting");
+            race.Add(camModeDrop);
+            camModeDrop.RegisterValueChangedCallback(e =>
+            {
+                int idx = CamModes.IndexOf(e.newValue);
+                set.cameraMode = Mathf.Clamp(idx < 0 ? 0 : idx, 0, CamModes.Count - 1);
+                set.Save();
+                ApplyCameraSettings();
+            });
+
+            camTargetDrop = new DropdownField("Third person", CamTargets, Mathf.Clamp(set.cameraTarget, 0, CamTargets.Count - 1));
+            camTargetDrop.AddToClassList("setting");
+            race.Add(camTargetDrop);
+            camTargetDrop.RegisterValueChangedCallback(e =>
+            {
+                int idx = CamTargets.IndexOf(e.newValue);
+                set.cameraTarget = Mathf.Clamp(idx < 0 ? 0 : idx, 0, CamTargets.Count - 1);
+                set.Save();
+                ApplyCameraSettings();
+            });
+
+            cameraDistanceSlider = new SliderInt(70, 160) { value = Mathf.Clamp(set.cameraDistance, 70, 160) };
+            cameraDistanceSlider.AddToClassList("setting");
+            race.Add(cameraDistanceSlider);
+            cameraDistanceSlider.RegisterValueChangedCallback(e =>
+            {
+                set.cameraDistance = e.newValue;
+                set.Save();
+                ApplyCameraSettings();
+            });
+            ApplyCameraSettings();
+
             var clockRow = El("row", race);
             Text("Tempo de prova", "stats-key", clockRow).style.marginRight = 8;
             clock = Text("0,00 s", "clock", clockRow);
@@ -267,7 +321,7 @@ namespace Autorama
             Text("<b>Segure</b> Acelerar e o acelerador sobe de 0 a 100%. <b>Soltou, zerou</b>: o carrinho freia.\n" +
                  "Rápido demais na curva, a traseira escorrega e a barra de <b>derrapagem</b> enche. Cheia, o carrinho sai da pista.\n" +
                  "<b>Recolocar</b> devolve o carrinho ao trilho, um pouco antes de onde ele saiu.\n\n" +
-                 "<b>A · S</b> jogador 1: acelerar · recolocar\n<b>L · K</b> jogador 2: acelerar · recolocar\n<b>Enter</b> largar · <b>V</b> vista 3D", "small", how);
+                  "<b>A · S</b> jogador 1: acelerar · recolocar\n<b>L · K</b> jogador 2: acelerar · recolocar\n<b>Enter</b> largar · câmera no seletor acima", "small", how);
 
             var adj = Section(box, "AJUSTES");
             var laps = new SliderInt(1, 20) { value = set.laps };
@@ -309,6 +363,34 @@ namespace Autorama
             padsBox.style.display = DisplayStyle.None;
             topBox.style.display = DisplayStyle.None;
             DrawPicker(Options());
+        }
+
+        void ApplyCameraSettings()
+        {
+            int mode = Mathf.Clamp(set.cameraMode, 0, CamModes.Count - 1);
+            int target = Mathf.Clamp(set.cameraTarget, 0, CamTargets.Count - 1);
+            set.cameraDistance = Mathf.Clamp(set.cameraDistance, 70, 160);
+            set.cameraMode = mode;
+            set.cameraTarget = target;
+
+            int appliedMode = mode;
+            if (panel != null && !panel.RaceMode) appliedMode = (int)TopDownCamera.RaceViewMode.Atual;
+
+            cam.SetRaceViewMode((TopDownCamera.RaceViewMode)appliedMode);
+            cam.SetThirdPersonCar(target);
+            cam.SetDistanceScale(set.cameraDistance / 100f);
+
+            if (camModeDrop != null) camModeDrop.SetValueWithoutNotify(CamModes[mode]);
+            if (camTargetDrop != null)
+            {
+                camTargetDrop.SetValueWithoutNotify(CamTargets[target]);
+                camTargetDrop.style.display = mode == (int)TopDownCamera.RaceViewMode.ThirdPerson ? DisplayStyle.Flex : DisplayStyle.None;
+            }
+            if (cameraDistanceSlider != null)
+            {
+                cameraDistanceSlider.SetValueWithoutNotify(set.cameraDistance);
+                cameraDistanceSlider.label = $"Distância da câmera: {set.cameraDistance}%";
+            }
         }
 
         static VisualElement Section(VisualElement parent, string title)

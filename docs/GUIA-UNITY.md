@@ -1332,6 +1332,64 @@ Por jogador, o mínimo:
 
 No meio da tela, as **três luzes** da largada e o **aviso de vitória**.
 
+### 15.7.1 Modos de câmera na corrida
+
+Para melhorar a leitura dos carrinhos, a aba Corrida ganhou um seletor `Câmera` com 4 modos:
+
+1. **Atual**
+     - Mantém o comportamento original da `TopDownCamera` (topo + alternância para inclinada com `V`).
+     - Pan com botão direito/meio e zoom na roda continuam ativos.
+2. **3D**
+     - Força a câmera inclinada em perspectiva.
+     - Pan/órbita/zoom manuais continuam ativos.
+3. **Third person**
+     - Câmera de perseguição atrás de um carrinho (alvo escolhido em `Third person`: jogador 1 ou 2).
+     - A roda do mouse ajusta só a distância de perseguição.
+4. **Auto (2 carros)**
+     - Mantém os dois carrinhos no quadro com câmera ortográfica.
+    - Em corrida entre dois humanos, o centro acompanha o ponto médio entre os carros.
+    - Em corrida livre com o robô, o enquadramento dá 72% do peso ao jogador 1 e mantém o robô visível; o foco não fica dividido igualmente quando o robô abre distância.
+    - O zoom (`orthographicSize`) sobe/desce automaticamente conforme a separação entre eles e o foco escolhido.
+
+O slider **Distância da câmera** fica abaixo dos seletores e vale para todos os modos: `100%` é o enquadramento padrão, valores menores aproximam e valores maiores afastam. A faixa é `70%–160%`; no modo Auto, valores menores podem fazer um carrinho sair do quadro, enquanto valores maiores deixam mais espaço ao redor dos dois.
+
+Implementação Unity:
+
+- `TopDownCamera` agora expõe `RaceViewMode` (`Atual`, `ThreeD`, `ThirdPerson`, `AutoDoisCarros`) e os métodos:
+    - `SetRaceViewMode(...)`
+    - `SetThirdPersonCar(...)`
+    - `SetRaceTargets(...)`
+- `RaceController`:
+    - adiciona os dois `DropdownField` na seção Corrida;
+    - grava os valores em `RaceSettings`;
+    - alimenta a câmera com pose dos dois carros no `PlaceCars`.
+- `RaceSettings` salva:
+    - `cameraMode` (0..3)
+    - `cameraTarget` (0..1)
+    - `cameraDistance` (70..160, padrão 100)
+
+Parâmetros usados no first pass (podem ser refinados com playtest):
+
+- Third person:
+    - distância inicial `7.0`
+    - altura `2.2`
+    - `fieldOfView = 50`
+    - suavização exponencial de posição/rotação.
+- Auto (2 carros):
+    - margem horizontal `+1.3` célula
+    - margem vertical `+1.1` célula
+    - single player: centro interpolado para 72% do jogador 1 e 28% do robô
+    - zoom limitado por `minSize/maxSize` da câmera
+    - suavização exponencial para centro e zoom.
+- Distância global da câmera:
+    - escala aplicada a enquadramento ortográfico, distância em perspectiva, third person e zoom automático
+    - faixa `0.70×–1.60×`, padrão `1.00×`
+
+Teste rápido realizado:
+
+- Compilação C# sem erros nos arquivos alterados (`TopDownCamera`, `RaceController`, `RaceSim`).
+- Troca de modo em runtime não altera física, trilhos, voltas nem regras da IA; afeta só a visualização.
+
 ### 15.8 Colisão entre os carrinhos
 
 Os dois carrinhos correm em trilhos separados. Na reta e dentro do limite, eles **nunca** se tocam. A colisão aparece em dois casos, os mesmos do autorama de verdade:

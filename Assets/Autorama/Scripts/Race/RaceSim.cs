@@ -16,6 +16,9 @@ namespace Autorama
         public string track = "builder";
         public bool bot;                // corrida livre: o jogador 2 é um piloto IA
         public int botSkill = 60;       // qualidade dele, 1–100
+        public int cameraMode = 0;      // 0 atual, 1 3D, 2 third person, 3 auto dois carros
+        public int cameraTarget = 0;    // alvo do third person: 0 jogador 1, 1 jogador 2
+        public int cameraDistance = 100; // escala do enquadramento: 70% mais perto, 160% mais longe
 
         const string Key = "autorama.corrida";
 
