@@ -110,13 +110,34 @@ namespace Autorama
 
         // ---------- Busca ----------
 
-        const int Depth = 15;              // peças de cada lado: até 30 no total (era 6)
-        const int KeepPerState = 8;        // sequências guardadas por estado (era 3)
-        const int MaxChecks = 3000;        // candidatos testados contra sobreposição (era 600)
+        const int MaxDepth = 15;            // máximo de peças de cada lado: até 30 no total
+        const int KeepPerState = 8;        // sequências guardadas por estado
+        const int MaxChecks = 3000;        // máximo de candidatos testados
+        
+        // Busca progressiva para não travar a Unity:
+        // Tenta primeiro com valores pequenos (rápido), depois aumenta se não achar.
+        static readonly int[] ProgressiveDepths = { 6, 9, 12, 15 };
+        static readonly int[] ProgressiveChecks = { 200, 600, 1500, 3000 };
 
         public static Result Close(Pose2 origin, IList<TrackPiece> existing, bool preferBanked)
         {
             BuildTables();
+            
+            // Tenta progressivamente com profundidades crescentes
+            // Isso evita travar a Unity em pistas simples
+            for (int i = 0; i < ProgressiveDepths.Length; i++)
+            {
+                var result = CloseAtDepth(origin, existing, preferBanked, ProgressiveDepths[i], ProgressiveChecks[i]);
+                if (result.ok) return result;
+                // Se falhou, tenta com profundidade maior no próximo loop
+            }
+            
+            // Esgotou todas as tentativas
+            return new Result { ok = false, message = "Não achei um fechamento que funcione. Leve a ponta mais perto da largada e tente de novo." };
+        }
+
+        static Result CloseAtDepth(Pose2 origin, IList<TrackPiece> existing, bool preferBanked, int depth, int maxChecks)
+        {
             int ho = Mod8(Mathf.RoundToInt(origin.heading / 45f));
             var start = new State { x = new Q((long)Mathf.Round(origin.pos.x * 8f), 0), y = new Q((long)Mathf.Round(origin.pos.y * 8f), 0), h = ho };
 
@@ -131,9 +152,9 @@ namespace Autorama
             var before = TrackLayout.Analyze(origin, segs);
 
             // Para a frente, a partir da ponta.
-            var fwd = Expand(end, false);
+            var fwd = ExpandAt(end, false, depth);
             // Para trás, a partir da largada: anda de ré (rumo + 180°) com as curvas espelhadas.
-            var back = Expand(new State { x = start.x, y = start.y, h = Mod8(start.h + 4) }, true);
+            var back = ExpandAt(new State { x = start.x, y = start.y, h = Mod8(start.h + 4) }, true, depth);
 
             // Junta: estado alcançado pelos dois lados.
             var candidates = new List<List<int>>();
@@ -152,7 +173,7 @@ namespace Autorama
                 }
             }
             if (candidates.Count == 0)
-                return new Result { ok = false, message = $"Não achei um fechamento com até {Depth * 2} peças. Leve a ponta mais perto da largada e tente de novo." };
+                return new Result { ok = false, message = $"Não achei um fechamento com até {depth * 2} peças. Leve a ponta mais perto da largada e tente de novo." };
 
             // Critério muito melhorado: menos peças, depois menos curvas (melhor para velocidade),
             // depois menor comprimento, depois menos meias-curvas, depois mais retas.
@@ -178,7 +199,7 @@ namespace Autorama
             {
                 string key = string.Join(",", seq);
                 if (!seen.Add(key)) continue;
-                if (++checks > MaxChecks) break;
+                if (++checks > maxChecks) break;
                 var add = ToPieces(seq, endZ, preferBanked);
                 if (add == null) continue;                        // poucas peças para descer da ponte
                 var all = new List<TrackPiece>(existing);
@@ -195,12 +216,12 @@ namespace Autorama
             return new Result { ok = false, message = "Não achei um fechamento que funcione daqui. Leve a ponta mais perto da largada e tente de novo." };
         }
 
-        // Todas as sequências de até Depth peças a partir de s; para cada estado, guarda as mais curtas.
-        static Dictionary<State, List<int[]>> Expand(State s, bool reverse)
+        // Todas as sequências de até maxDepth peças a partir de s; para cada estado, guarda as mais curtas.
+        static Dictionary<State, List<int[]>> ExpandAt(State s, bool reverse, int maxDepth)
         {
             var map = new Dictionary<State, List<int[]>>(new StateEq()) { [s] = new List<int[]> { new int[0] } };
             var frontier = new List<(State st, int[] seq)> { (s, new int[0]) };
-            for (int depth = 1; depth <= Depth; depth++)
+            for (int depth = 1; depth <= maxDepth; depth++)
             {
                 var next = new List<(State, int[])>();
                 foreach (var (st, seq) in frontier)
@@ -219,6 +240,12 @@ namespace Autorama
                 if (frontier.Count == 0) break;  // nenhuma exploração a fazer
             }
             return map;
+        }
+
+        // Versão antiga - não usada, mantida por compatibilidade
+        static Dictionary<State, List<int[]>> Expand(State s, bool reverse)
+        {
+            return ExpandAt(s, reverse, MaxDepth);
         }
 
         // Curva à direita percorrida de ré vira curva à esquerda (e vice-versa); retas não mudam.

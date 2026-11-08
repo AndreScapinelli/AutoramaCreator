@@ -1053,15 +1053,16 @@ function analyze(list = segs, o = state.origin){
 }
 
 /* ---------- Fechar o circuito sozinho ---------- */
-// O mesmo algoritmo do TrackCloser da Unity, mas com busca muito mais agressiva.
+// O mesmo algoritmo do TrackCloser da Unity, com busca PROGRESSIVA para evitar travar.
 // As curvas de 45° geram coordenadas com √2, então a conta é exata:
 // cada coordenada é (a + b·√2) / 8 com a e b inteiros. A busca vai da ponta para a frente e da largada para trás
-// (de ré, com as curvas espelhadas), até 15 peças de cada lado, e junta onde se encontram.
-// Ordena melhor para priorizar: sem sobreposição, menos peças, comprimento menor, menos curvas,
-// e tenta aumentar progressivamente a profundidade se a busca falhar.
+// (de ré, com as curvas espelhadas), tentando progressivamente com profundidades 6 → 9 → 12 → 15.
+// Ordena melhor para priorizar: menos peças, menos curvas, comprimento menor, menos meias-curvas, mais retas.
 const Closer = (() => {
-  const SQ2 = Math.SQRT2, DEPTH = 15, KEEP = 8, MAX_CHECKS = 3000;
-  const MOVES = [P('long'), P('short'), P('curve', 1), P('curve', -1), P('half', 1), P('half', -1), P('tiny')];
+  const SQ2 = Math.SQRT2;
+  const PROGRESSIVE_DEPTHS = [6, 9, 12, 15];
+  const PROGRESSIVE_CHECKS = [200, 600, 1500, 3000];
+  const MOVE = [P('long'), P('short'), P('curve', 1), P('curve', -1), P('half', 1), P('half', -1), P('tiny')];
   const MIRROR = [0, 1, 3, 2, 5, 4, 6];        // curva percorrida de ré vira para o outro lado
   const mod8 = v => ((v % 8) + 8) % 8;
   let tab = null;
@@ -1077,7 +1078,7 @@ const Closer = (() => {
   // Deslocamento e rumo final de cada peça saindo de cada um dos 8 rumos (múltiplos de 45°).
   function table(){
     if (tab) return tab;
-    tab = MOVES.map(m => Array.from({ length:8 }, (_, h) => {
+    tab = MOVE.map(m => Array.from({ length:8 }, (_, h) => {
       const b = poseAt({ x:0, y:0, h:h * 45 }, m, 1), [xa, xb] = toQ(b.x), [ya, yb] = toQ(b.y);
       return { xa, xb, ya, yb, h:mod8(Math.round(b.h / 45)) };
     }));
@@ -1091,17 +1092,17 @@ const Closer = (() => {
     if (d.kind === 'straight') return d.len === 4 ? 0 : d.len === 2 ? 1 : 6;
     return d.angle === 45 ? (p.dir > 0 ? 4 : 5) : (p.dir > 0 ? 2 : 3);
   }
-  // Todas as sequências de até DEPTH peças a partir de s; por estado, guarda só as mais curtas.
-  function expand(s){
+  // Todas as sequências de até maxDepth peças a partir de s; por estado, guarda só as mais curtas.
+  function expandAt(s, maxDepth, keepPerState){
     const map = new Map([[key(s), [[]]]]);
     let frontier = [[s, []]];
-    for (let d = 1; d <= DEPTH; d++){
+    for (let d = 1; d <= maxDepth; d++){
       const next = [];
-      for (const [st, seq] of frontier) for (let m = 0; m < MOVES.length; m++){
+      for (const [st, seq] of frontier) for (let m = 0; m < MOVE.length; m++){
         const ns = apply(st, m), k = key(ns);
         let list = map.get(k);
         if (!list){ list = []; map.set(k, list); }
-        if (list.length >= KEEP) continue;
+        if (list.length >= keepPerState) continue;
         const nseq = seq.concat(m);
         list.push(nseq);
         next.push([ns, nseq]);
@@ -1114,8 +1115,8 @@ const Closer = (() => {
   // Vira peças; se a ponta está no alto, a rampa de descida vai na reta mais suave (comprida, curta, qualquer).
   function toPieces(seq, endZ, banked){
     const list = seq.map(m => {
-      const t = MOVES[m].type;
-      return P(banked && t === 'curve' ? 'curveB' : banked && t === 'half' ? 'halfB' : t, MOVES[m].dir);
+      const t = MOVE[m].type;
+      return P(banked && t === 'curve' ? 'curveB' : banked && t === 'half' ? 'halfB' : t, MOVE[m].dir);
     });
     let need = endZ;
     for (const pass of [0, 1, 2]) for (const p of list){
@@ -1126,7 +1127,7 @@ const Closer = (() => {
     return need > 0 ? null : list;
   }
 
-  function close(origin, pieces, banked){
+  function closeAtDepth(origin, pieces, banked, maxDepth, keepPerState, maxChecks){
     table();
     const start = { xa:Math.round(origin.x * 8), xb:0, ya:Math.round(origin.y * 8), yb:0, h:mod8(Math.round(origin.h / 45)) };
     let end = start;
@@ -1134,7 +1135,7 @@ const Closer = (() => {
     if (key(end) === key(start)) return { ok:false, msg:'A ponta já está na largada.' };
     const base = layout(origin, pieces), endZ = base[base.length - 1].zOut, before = analyze(base, origin).clash.size;
 
-    const fwd = expand(end), back = expand({ ...start, h:mod8(start.h + 4) });
+    const fwd = expandAt(end, maxDepth, keepPerState), back = expandAt({ ...start, h:mod8(start.h + 4) }, maxDepth, keepPerState);
     const cands = [];
     for (const [k, bl] of back){
       const [xa, xb, ya, yb, h] = k.split(',').map(Number);
@@ -1145,25 +1146,19 @@ const Closer = (() => {
         if (seq.length) cands.push(seq);
       }
     }
-    if (!cands.length) return { ok:false, msg:`Não achei um fechamento com até ${DEPTH * 2} peças. Leve a ponta mais perto da largada e tente de novo.` };
+    if (!cands.length) return null;  // Nenhuma solução nesta profundidade
 
-    const len = s => s.reduce((t, m) => t + pieceLen(MOVES[m]), 0);
+    const len = s => s.reduce((t, m) => t + pieceLen(MOVE[m]), 0);
     const curves = s => s.filter(m => m >= 2 && m <= 5).length;
     const straights = s => s.filter(m => m === 0 || m === 1 || m === 6).length;
     const halfCurves = s => s.filter(m => m === 4 || m === 5).length;
     
-    // Ordena muito melhor: menos peças DEPOIS menos curvas, prioriza retas compridas e meias-curvas
     cands.sort((p, q) => {
       const pc = curves(p), qc = curves(q);
       const plen = p.length, qlen = q.length;
       const pl = len(p), ql = len(q);
       const ph = halfCurves(p), qh = halfCurves(q);
       
-      // 1. Prioriza sequências que fecham sem problemas, depois mais curtas
-      // 2. Menos curvas completas (melhor para velocidade)
-      // 3. Menos comprimento total (mais elegante)
-      // 4. Menos meias-curvas (mais direto)
-      // 5. Menos peças (mais simples)
       if (plen !== qlen) return plen - qlen;
       if (pc !== qc) return pc - qc;
       if (pl !== ql) return pl - ql;
@@ -1177,7 +1172,7 @@ const Closer = (() => {
       const sk = seq.join();
       if (seen.has(sk)) continue;
       seen.add(sk);
-      if (++checks > MAX_CHECKS) break;
+      if (++checks > maxChecks) break;
       const add = toPieces(seq, endZ, banked);
       if (!add) continue;
       const a2 = analyze(layout(origin, pieces.concat(add)), origin);
@@ -1186,8 +1181,16 @@ const Closer = (() => {
         return { ok:true, pieces:add, msg:`Circuito fechado com ${add.length} ${add.length === 1 ? 'peça' : 'peças'}: ${add.map(p => pieceName(p).toLowerCase()).join(', ')}. Ctrl+Z desfaz.` };
       crosses = true;
     }
-    return { ok:false, msg:crosses ? 'Todo fechamento curto passa por cima da pista. Mexa um pouco a ponta (ou faça uma ponte) e tente de novo.'
-                                   : 'Não achei um fechamento que funcione daqui. Leve a ponta mais perto da largada e tente de novo.' };
+    return crosses ? { ok:false, msg:'Todo fechamento curto passa por cima da pista. Mexa um pouco a ponta (ou faça uma ponte) e tente de novo.' } : null;
+  }
+
+  function close(origin, pieces, banked){
+    // Tenta progressivamente em profundidades maiores
+    for (let i = 0; i < PROGRESSIVE_DEPTHS.length; i++){
+      const result = closeAtDepth(origin, pieces, banked, PROGRESSIVE_DEPTHS[i], 8, PROGRESSIVE_CHECKS[i]);
+      if (result) return result;
+    }
+    return { ok:false, msg:'Não achei um fechamento que funcione daqui. Leve a ponta mais perto da largada e tente de novo.' };
   }
   return { close };
 })();

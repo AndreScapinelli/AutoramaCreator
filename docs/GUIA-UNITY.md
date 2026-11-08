@@ -1722,12 +1722,29 @@ As retas curtas dentro dos lóbulos, duas delas na diagonal, servem para empurra
 Já está no projeto: `Core/TrackCloser.cs`, chamado pelo botão **Fechar circuito** do painel e pela tecla **Q**. O HTML usa o mesmo algoritmo.
 
 - **Conta exata.** As curvas de 45° geram coordenadas com √2. Cada coordenada é guardada como `(a + b·√2) / 8`, com `a` e `b` inteiros (struct `Q`), então "chegou na largada" é uma comparação exata, sem tolerância.
-- **Busca agressiva dos dois lados.** Expande até 15 peças a partir da ponta da pista (`Depth`, era 6) e até 15 a partir da largada, andando de ré. De ré, cada curva vira para o lado oposto (`MIRROR`). As duas buscas se encontram num mesmo estado (posição + rumo), e o fechamento tem no máximo 30 peças (era 12).
-- **Critério melhorado.** Para cada estado, guarda até 8 sequências (era 3: `KeepPerState`). Ordena os candidatos por: (1) número de peças, (2) menos curvas completas (muito importante para velocidade), (3) comprimento total (mais elegante), (4) menos meias-curvas, (5) mais retas. Testa até 3000 contra sobreposição (era 600: `MaxChecks`) e recusa o que passa por cima da pista.
+- **Busca agressiva dos dois lados.** Expande até 15 peças a partir da ponta da pista e até 15 a partir da largada, andando de ré. De ré, cada curva vira para o lado oposto (`MIRROR`). As duas buscas se encontram num mesmo estado (posição + rumo), e o fechamento tem no máximo 30 peças.
+- **Critério melhorado.** Para cada estado, guarda até 8 sequências. Ordena os candidatos por: (1) número de peças, (2) menos curvas completas (muito importante para velocidade), (3) comprimento total (mais elegante), (4) menos meias-curvas, (5) mais retas. Testa até 3000 contra sobreposição e recusa o que passa por cima da pista.
+- **Busca progressiva (sem travamento).** Para evitar travar a Unity em pistas complexas, a busca tenta profundidades crescentes:
+  - Profundidade 6: até 200 verificações (< 50ms, pistas simples)
+  - Profundidade 9: até 600 verificações (pistas normais)
+  - Profundidade 12: até 1500 verificações (pistas complexas)
+  - Profundidade 15: até 3000 verificações (pistas muito complexas)
+  
+  Se uma profundidade mais baixa encontrar solução, retorna imediatamente. Isso mantém o editor responsivo para casos comuns e garante que pistas complexas também sejam resolvidas.
+
 - **Altura e estilo.** Se a ponta está no alto, encaixa rampas que descem: primeiro na reta comprida, depois na curta, depois em qualquer reta. Se a pista usa mais curvas inclinadas que planas, o fechamento também usa inclinadas.
 - **Desfazer.** O fechamento entra como uma ação só: Ctrl+Z tira tudo.
 
-**Mudanças recentes (busca 2.5×):** `DEPTH: 6 → 15`, `KEEP: 3 → 8`, `MAX_CHECKS: 600 → 3000`. Agora o algoritmo prioriza menos curvas (pista mais rápida) e consegue fechar pistas muito mais complexas sem falhar.
+**Implementação (C#):**
+- `Close()`: entry point, chamado pelo painel. Tenta progressivamente `CloseAtDepth()` com profundidades crescentes.
+- `CloseAtDepth()`: realiza a busca bidireccional com profundidade e limite de verificações específicos.
+- `ExpandAt()`: expande até `maxDepth` peças a partir de um estado, retorna mapa de (estado → lista de sequências).
+
+**Constantes progressivas** (em `TrackCloser.cs`):
+```csharp
+static readonly int[] ProgressiveDepths = { 6, 9, 12, 15 };
+static readonly int[] ProgressiveChecks = { 200, 600, 1500, 3000 };
+```
 
 ## 18. Cruzamento (X)
 
