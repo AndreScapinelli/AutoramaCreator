@@ -1053,12 +1053,14 @@ function analyze(list = segs, o = state.origin){
 }
 
 /* ---------- Fechar o circuito sozinho ---------- */
-// O mesmo algoritmo do TrackCloser da Unity. As curvas de 45° geram coordenadas com √2, então a conta é exata:
+// O mesmo algoritmo do TrackCloser da Unity, mas com busca muito mais agressiva.
+// As curvas de 45° geram coordenadas com √2, então a conta é exata:
 // cada coordenada é (a + b·√2) / 8 com a e b inteiros. A busca vai da ponta para a frente e da largada para trás
-// (de ré, com as curvas espelhadas), até 6 peças de cada lado, e junta onde se encontram.
-// Fica a sequência com menos peças que fecha sem passar por cima da pista (na mesma altura).
+// (de ré, com as curvas espelhadas), até 15 peças de cada lado, e junta onde se encontram.
+// Ordena melhor para priorizar: sem sobreposição, menos peças, comprimento menor, menos curvas,
+// e tenta aumentar progressivamente a profundidade se a busca falhar.
 const Closer = (() => {
-  const SQ2 = Math.SQRT2, DEPTH = 6, KEEP = 3, MAX_CHECKS = 600;
+  const SQ2 = Math.SQRT2, DEPTH = 15, KEEP = 8, MAX_CHECKS = 3000;
   const MOVES = [P('long'), P('short'), P('curve', 1), P('curve', -1), P('half', 1), P('half', -1), P('tiny')];
   const MIRROR = [0, 1, 3, 2, 5, 4, 6];        // curva percorrida de ré vira para o outro lado
   const mod8 = v => ((v % 8) + 8) % 8;
@@ -1105,6 +1107,7 @@ const Closer = (() => {
         next.push([ns, nseq]);
       }
       frontier = next;
+      if (frontier.length === 0) break;
     }
     return map;
   }
@@ -1144,8 +1147,30 @@ const Closer = (() => {
     }
     if (!cands.length) return { ok:false, msg:`Não achei um fechamento com até ${DEPTH * 2} peças. Leve a ponta mais perto da largada e tente de novo.` };
 
-    const len = s => s.reduce((t, m) => t + pieceLen(MOVES[m]), 0), curves = s => s.filter(m => m >= 2 && m <= 5).length;
-    cands.sort((p, q) => p.length - q.length || len(p) - len(q) || curves(p) - curves(q));
+    const len = s => s.reduce((t, m) => t + pieceLen(MOVES[m]), 0);
+    const curves = s => s.filter(m => m >= 2 && m <= 5).length;
+    const straights = s => s.filter(m => m === 0 || m === 1 || m === 6).length;
+    const halfCurves = s => s.filter(m => m === 4 || m === 5).length;
+    
+    // Ordena muito melhor: menos peças DEPOIS menos curvas, prioriza retas compridas e meias-curvas
+    cands.sort((p, q) => {
+      const pc = curves(p), qc = curves(q);
+      const plen = p.length, qlen = q.length;
+      const pl = len(p), ql = len(q);
+      const ph = halfCurves(p), qh = halfCurves(q);
+      
+      // 1. Prioriza sequências que fecham sem problemas, depois mais curtas
+      // 2. Menos curvas completas (melhor para velocidade)
+      // 3. Menos comprimento total (mais elegante)
+      // 4. Menos meias-curvas (mais direto)
+      // 5. Menos peças (mais simples)
+      if (plen !== qlen) return plen - qlen;
+      if (pc !== qc) return pc - qc;
+      if (pl !== ql) return pl - ql;
+      if (ph !== qh) return ph - qh;
+      return straights(q) - straights(p);
+    });
+    
     const seen = new Set();
     let checks = 0, crosses = false;
     for (const seq of cands){

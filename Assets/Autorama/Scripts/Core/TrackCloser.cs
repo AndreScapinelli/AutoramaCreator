@@ -110,9 +110,9 @@ namespace Autorama
 
         // ---------- Busca ----------
 
-        const int Depth = 6;              // peças de cada lado: até 12 no total
-        const int KeepPerState = 3;       // sequências guardadas por estado
-        const int MaxChecks = 600;        // candidatos testados contra sobreposição
+        const int Depth = 15;              // peças de cada lado: até 30 no total (era 6)
+        const int KeepPerState = 8;        // sequências guardadas por estado (era 3)
+        const int MaxChecks = 3000;        // candidatos testados contra sobreposição (era 600)
 
         public static Result Close(Pose2 origin, IList<TrackPiece> existing, bool preferBanked)
         {
@@ -154,13 +154,20 @@ namespace Autorama
             if (candidates.Count == 0)
                 return new Result { ok = false, message = $"Não achei um fechamento com até {Depth * 2} peças. Leve a ponta mais perto da largada e tente de novo." };
 
-            // Menos peças primeiro; depois menor comprimento; depois menos curvas.
+            // Critério muito melhorado: menos peças, depois menos curvas (melhor para velocidade),
+            // depois menor comprimento, depois menos meias-curvas, depois mais retas.
             candidates.Sort((p, q) =>
             {
-                int c = p.Count.CompareTo(q.Count);
-                if (c != 0) return c;
-                c = Length(p).CompareTo(Length(q));
-                return c != 0 ? c : Curves(p).CompareTo(Curves(q));
+                int pc = Curves(p), qc = Curves(q);
+                float pl = Length(p), ql = Length(q);
+                int ph = HalfCurves(p), qh = HalfCurves(q);
+                
+                int plen = p.Count, qlen = q.Count;
+                if (plen != qlen) return plen.CompareTo(qlen);
+                if (pc != qc) return pc.CompareTo(qc);
+                if (pl != ql) return pl.CompareTo(ql);
+                if (ph != qh) return ph.CompareTo(qh);
+                return Straights(q).CompareTo(Straights(p));  // mais retas é melhor, então inverte
             });
 
             var seen = new HashSet<string>();
@@ -204,11 +211,12 @@ namespace Autorama
                     seq.CopyTo(nseq, 0);
                     nseq[seq.Length] = m;
                     if (!map.TryGetValue(ns, out var list)) { list = new List<int[]>(); map[ns] = list; }
-                    if (list.Count >= KeepPerState) continue;    // já há caminhos mais curtos até aqui
+                    if (list.Count >= KeepPerState) continue;
                     list.Add(nseq);
                     next.Add((ns, nseq));
                 }
                 frontier = next;
+                if (frontier.Count == 0) break;  // nenhuma exploração a fazer
             }
             return map;
         }
@@ -218,6 +226,8 @@ namespace Autorama
 
         static float Length(List<int> seq) { float s = 0; foreach (int m in seq) s += Moves[m].def.CenterLength; return s; }
         static int Curves(List<int> seq) { int c = 0; foreach (int m in seq) if (Moves[m].def.IsCurve) c++; return c; }
+        static int HalfCurves(List<int> seq) { int c = 0; foreach (int m in seq) if (m == 4 || m == 5) c++; return c; }
+        static int Straights(List<int> seq) { int c = 0; foreach (int m in seq) if (m == 0 || m == 1 || m == 6) c++; return c; }
 
         // Vira peças; se a ponta está no alto, as primeiras retas descem (uma por nível).
         static List<TrackPiece> ToPieces(List<int> seq, int endZ, bool preferBanked)
