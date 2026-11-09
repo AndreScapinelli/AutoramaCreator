@@ -937,6 +937,14 @@ public class BuilderUI : MonoBehaviour
 
 ---
 
+### 11.x Tela inicial e paleta de cores
+
+**Tela inicial** (`BuilderPanel.BuildStartMenu`, `ShowMenu(bool)`, `MenuOpen`): ao abrir o jogo, um cartão no meio da tela escura mostra "AUTORAMA" e quatro opções, cada uma com ícone e uma linha de explicação: **Construir**, **Correr**, **Campeonato** e **Online**. Escolher uma fecha o menu e chama `SetMode`. O botão **⌂** no topo do painel volta para o menu (não durante um campeonato online). Qualquer `SetMode` também fecha o menu, então um convite da Steam (que chama `SetMode(Online)`) passa direto. Com o menu aberto, `EditLocked` é verdadeiro: as teclas do construtor não colocam peças por trás dele. Estilos `.start*`. Só a Unity tem essa tela.
+
+**Paleta de cores** (topo de `UI/Construtor.uss`): todas as cores repetidas viraram variáveis num bloco `:root`, e o resto do arquivo usa `var(--nome)`. São 21 cores e 173 trocas; a aparência não muda. Principais: `--texto` (229, 235, 227), `--texto-fraco` (148, 161, 151), `--destaque` (245, 194, 27, o amarelo), `--alerta` (240, 122, 58), `--ok` (61, 190, 116), `--trilho-a` (240, 74, 63), `--trilho-b` (80, 137, 242), `--fundo` / `--fundo-vidro` / `--fundo-painel` (22, 28, 25 com 1 / 0,94 / 0,97), `--borda*`. Para mudar o visual, mexa só nesse bloco. As cores calculadas em C# (barra de derrapagem, cor dos pilotos) continuam no código.
+
+Teste (Play mode): o cartão abre centrado (560 × 351); as cores resolvidas batem com as variáveis (título 0,961/0,761/0,106 = `--destaque`; painel 0,086/0,110/0,098 com 0,97 = `--fundo-painel`). Clicar **Correr** fecha o menu e vai para a aba Corrida; `ShowMenu(true)` reabre. Ao abrir o jogo: `MenuOpen = true` e `EditLocked = true`; `SetMode(Online)` (o caminho do convite) fecha o menu.
+
 ## 12. Montando a cena
 
 1. **Mesa:** GameObject vazio com `GridBoard`.

@@ -46,7 +46,10 @@ namespace Autorama
         public bool ChampMode => CurrentMode == Mode.Champ;
         public bool OnlineMode => CurrentMode == Mode.Online;
         public bool Locked => CurrentMode != Mode.Build;          // fora do construtor a pista não se edita
-        public static bool EditLocked => instance && instance.Locked;
+        public static bool EditLocked => instance && (instance.Locked || instance.MenuOpen);
+        // Tela inicial: aparece ao abrir o jogo; escolher um modo (ou um convite da Steam) fecha.
+        public bool MenuOpen { get; private set; }
+        VisualElement startMenu;
         public event System.Action<Mode> ModeChanged;
         public VisualElement RaceBox => raceBox;          // conteúdo da aba Corrida na barra lateral
         public VisualElement ChampBox => champBox;        // conteúdo da aba Campeonato
@@ -56,6 +59,7 @@ namespace Autorama
 
         public void SetMode(Mode m)
         {
+            if (MenuOpen && !(OnlineRacing && m != Mode.Online)) ShowMenu(false);
             if (m == CurrentMode) return;
             if (OnlineRacing && m != Mode.Online) { Say("Termine o campeonato online (ou saia da sala) antes de trocar de aba."); return; }
             CurrentMode = m;
@@ -234,6 +238,7 @@ namespace Autorama
             var titles = El("titles", titleRow);
             Text("CONSTRUTOR DE PISTA", "title", titles);
             Text("AUTORAMA · 2 TRILHOS", "subtitle", titles);
+            Btn("⌂", () => { if (OnlineRacing) Say("Termine o campeonato online (ou saia da sala) antes de voltar ao menu."); else ShowMenu(true); }, "btn icon-btn", titleRow).tooltip = "Tela inicial";
             Btn("◀", () => SetSide(false), "btn icon-btn", titleRow).tooltip = "Esconder o painel (Tab)";
 
             var tabs = El("tabs", content);
@@ -344,12 +349,48 @@ namespace Autorama
             showTab = Btn("☰  Painel (Tab)", () => SetSide(true), "btn show-tab", root);
             showTab.style.display = DisplayStyle.None;
 
+            BuildStartMenu();
+
             toast = Text("", "toast", root);
             toast.pickingMode = PickingMode.Ignore;
             toast.style.display = DisplayStyle.None;
         }
 
         // ---------- Atualização ----------
+
+        void BuildStartMenu()
+        {
+            startMenu = El("start", root);
+            MenuOpen = true;
+            var card = El("start-card", startMenu);
+            Text("AUTORAMA", "start-title", card);
+            Text("Monte a pista, chame alguém e acelere.", "start-sub", card);
+            var grid = El("start-grid", card);
+            void Opt(string title, string sub, string icon, Mode m)
+            {
+                var b = new Button(() => { ShowMenu(false); SetMode(m); });
+                b.AddToClassList("start-opt");
+                Text(icon, "start-icon", b).pickingMode = PickingMode.Ignore;
+                var t = El("start-texts", b); t.pickingMode = PickingMode.Ignore;
+                Text(title, "start-opt-title", t).pickingMode = PickingMode.Ignore;
+                Text(sub, "start-opt-sub", t).pickingMode = PickingMode.Ignore;
+                grid.Add(b);
+            }
+            Opt("Construir", "Encaixe as peças e feche o circuito", "▦", Mode.Build);
+            Opt("Correr", "Dois jogadores no mesmo teclado ou contra o robô", "▶", Mode.Race);
+            Opt("Campeonato", "Pilotos, etapas, tabela e recordes", "★", Mode.Champ);
+            Opt("Online", "Campeonato com amigos pela Steam", "◉", Mode.Online);
+            Text("O botão ⌂ no painel volta para esta tela.", "start-foot", card);
+        }
+
+        public void ShowMenu(bool open)
+        {
+            if (startMenu == null) return;
+            MenuOpen = open;
+            startMenu.style.display = open ? DisplayStyle.Flex : DisplayStyle.None;
+            if (open) { builder.CancelAutoClose(); builder.HideGhost(); builder.SetHoverCell(null); hover = null; }
+            root.focusController?.focusedElement?.Blur();
+        }
 
         static string PaletteGroup(PaletteEntry e)
         {
