@@ -22,6 +22,8 @@ namespace Autorama
         const float SnapFast = 1f / 30f, SnapSlow = 0.25f;     // na corrida, e parado/encerrado
         const float HeldRefresh = 0.25f;                       // o visitante repete o estado do botão, por segurança
         readonly Dictionary<string, bool> remoteHeld = new Dictionary<string, bool>();
+        readonly Dictionary<string, float> remoteGas = new Dictionary<string, float>();   // nível do acelerador de cada visitante
+        float lastSentGas = 1f;
         readonly Dictionary<string, int> remoteRe = new Dictionary<string, int>();
         float snapAcc, inAcc;
         bool lastSentHeld;
@@ -67,7 +69,7 @@ namespace Autorama
             }
 
             onlineChamp = C;
-            remoteHeld.Clear(); remoteRe.Clear();
+            remoteHeld.Clear(); remoteRe.Clear(); remoteGas.Clear(); lastSentGas = 1f;
             myRe = 0; lastSentHeld = false; snapAcc = 1f; inAcc = 0f;
             for (int k = 0; k < 2; k++) uiHeld[k] = false;
             panel.SetOnlineRacing(true);
@@ -142,15 +144,29 @@ namespace Autorama
             int lane = live ? LaneOf(pl, myId) : -1;
             if (live)
             {
-                bool mine = lane >= 0 && (uiHeld[lane] || (keys && (kb.aKey.isPressed || kb.lKey.isPressed || kb.spaceKey.isPressed)));
+                // Online cada um pilota o seu carrinho: A/L/Espaço no fundo, Q/O meia, ou o gatilho de qualquer controle.
+                float myGas = 0f;
+                if (lane >= 0)
+                {
+                    if (uiHeld[lane] || (keys && (kb.aKey.isPressed || kb.lKey.isPressed || kb.spaceKey.isPressed))) myGas = 1f;
+                    else if (keys && (kb.qKey.isPressed || kb.oKey.isPressed)) myGas = set.halfGas / 100f;
+                    foreach (var gp in Gamepad.all) myGas = Mathf.Max(myGas, Trigger(gp));
+                }
+                bool mine = myGas > 0f;
                 if (IsHost)
                 {
                     for (int k = 0; k < 2; k++)
-                        sim.cars[k].held = k == lane ? mine : OnlinePresent(pl[k].id) && remoteHeld.TryGetValue(pl[k].id, out var h) && h;
+                    {
+                        if (k == lane) { sim.cars[k].held = mine; if (mine) sim.cars[k].gas = myGas; continue; }
+                        sim.cars[k].held = OnlinePresent(pl[k].id) && remoteHeld.TryGetValue(pl[k].id, out var h) && h;
+                        sim.cars[k].gas = remoteGas.TryGetValue(pl[k].id, out var g) ? g : 1f;
+                    }
                 }
-                else if (lane >= 0) { sim.cars[lane].held = mine; SendHeld(mine, dt); }
-                if (keys && lane >= 0 && (kb.sKey.wasPressedThisFrame || kb.kKey.wasPressedThisFrame)) OnlineReslot(lane);
-                if (keys && IsHost && (kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame)) OnlineEnter();
+                else if (lane >= 0) { sim.cars[lane].held = mine; if (mine) sim.cars[lane].gas = myGas; SendHeld(mine, myGas, dt); }
+                bool padReslot = false;
+                foreach (var gp in Gamepad.all) padReslot |= gp.buttonSouth.wasPressedThisFrame;
+                if (lane >= 0 && ((keys && (kb.sKey.wasPressedThisFrame || kb.kKey.wasPressedThisFrame)) || padReslot)) OnlineReslot(lane);
+                if (IsHost && ((keys && (kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame)) || AnyPadStart())) OnlineEnter();
             }
 
             sim.Step(dt);
@@ -165,12 +181,15 @@ namespace Autorama
             cClock.text = Fmt(sim.phase == RaceSim.Phase.Idle || sim.phase == RaceSim.Phase.Countdown ? 0f : sim.t);
         }
 
-        void SendHeld(bool held, float dt)
+        // Manda o botão e o nível do acelerador quando mudam (o nível só conta a partir de 3 pontos) ou a cada HeldRefresh.
+        void SendHeld(bool held, float gas, float dt)
         {
             inAcc += dt;
-            if (held == lastSentHeld && inAcc < HeldRefresh) return;
+            bool gasMoved = held && Mathf.Abs(gas - lastSentGas) >= 0.03f;
+            if (held == lastSentHeld && !gasMoved && inAcc < HeldRefresh) return;
             lastSentHeld = held; inAcc = 0f;
-            net.Send(new NetOut { t = "in", held = held, re = myRe });
+            if (held) lastSentGas = gas;
+            net.Send(new NetOut { t = "in", held = held, gp = NetSync.GasPct(lastSentGas), re = myRe });
         }
 
         void SendSnapshot(float dt, int heat)
@@ -195,7 +214,7 @@ namespace Autorama
             if (IsHost) return;
             myRe++;
             lastSentHeld = sim.cars[k].held; inAcc = 0f;
-            net.Send(new NetOut { t = "in", held = lastSentHeld, re = myRe });
+            net.Send(new NetOut { t = "in", held = lastSentHeld, gp = NetSync.GasPct(lastSentGas), re = myRe });
         }
 
         // Host: o botão (e o "recolocar") de um visitante.
@@ -203,6 +222,7 @@ namespace Autorama
         {
             if (!OnlineRun || !IsHost || string.IsNullOrEmpty(m.from)) return;
             remoteHeld[m.from] = m.held;
+            remoteGas[m.from] = NetSync.GasOf(m.gp);
             int prev = remoteRe.TryGetValue(m.from, out int r) ? r : 0;
             if (m.re <= prev) return;
             remoteRe[m.from] = m.re;

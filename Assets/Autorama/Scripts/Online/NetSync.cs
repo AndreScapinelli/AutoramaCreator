@@ -7,11 +7,16 @@ namespace Autorama
     public static class NetSync
     {
         static float Opt(float? v) => v ?? -1f;
+
+        // Nível do acelerador na rede: inteiro de 1 a 100. 0 (campo ausente, cliente antigo) vale 100%.
+        public static int GasPct(float g) => Mathf.Clamp(Mathf.RoundToInt(g * 100f), 1, 100);
+        public static float GasOf(int pct) => pct <= 0 ? 1f : Mathf.Clamp01(pct / 100f);
         static float? Opt(float v) => v < 0f ? (float?)null : v;
 
         public static NetCar Pack(CarState c) => new NetCar
         {
             s = c.s, v = c.v, hold = c.hold, T = c.T, slip = c.slip, held = c.held, contact = c.contact, side = c.side, mode = (int)c.mode,
+            gp = GasPct(c.gas),
             fx = c.flyPos.x, fy = c.flyPos.y, fvx = c.flyVel.x, fvy = c.flyVel.y, flyH = c.flyH, flyW = c.flyW, flyZ = c.flyZ,
             bx = c.backPos.x, by = c.backPos.y, backH = c.backH, backY = c.backY, backT = c.backT,
             exitS = c.exitS, lapStart = c.lapStart, hitFx = c.hitFx,
@@ -40,7 +45,7 @@ namespace Autorama
                 c.flyPos = new Vector2(n.fx, n.fy); c.flyVel = new Vector2(n.fvx, n.fvy); c.flyH = n.flyH; c.flyW = n.flyW; c.flyZ = n.flyZ;
                 c.backPos = new Vector2(n.bx, n.by); c.backH = n.backH; c.backY = n.backY; c.backT = n.backT;
             }
-            if (!own) c.held = n.held;
+            if (!own) { c.held = n.held; c.gas = GasOf(n.gp); }
             c.contact = n.contact; c.hitFx = n.hitFx; c.exitS = n.exitS; c.lapStart = n.lapStart;
             c.cross = n.cross; c.laps = n.laps; c.offs = n.offs; c.hits = n.hits;
             c.lastLap = Opt(n.lastLap); c.best = Opt(n.best); c.finish = Opt(n.finish);

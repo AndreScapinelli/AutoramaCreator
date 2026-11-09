@@ -189,6 +189,11 @@ const trilha = (n, extra = {}) => ({ name: 'Pista ' + n, laps: 3, hash: 'a34f4cb
   A.send({ t: 'in', held: true, re: 2 });
   const inp = await H.next('in');
   assert.deepStrictEqual([inp.from, inp.held, inp.re], [idA, true, 2]); await B.quiet('in'); await A.quiet('in'); ok('entrada do visitante vai só para o host');
+  assert.strictEqual(inp.gp, 100); ok('sem nível do acelerador (cliente antigo) vale 100%');
+  A.send({ t: 'in', held: true, gp: 55, re: 2 });
+  assert.strictEqual((await H.next('in')).gp, 55);
+  A.send({ t: 'in', held: true, gp: 900, re: 2 });
+  assert.strictEqual((await H.next('in')).gp, 100); ok('nível do acelerador (gp) chega ao host, limitado a 1–100');
   H.send({ t: 'in', held: true }); await A.quiet('in'); ok('entrada do host não é repassada');
   for (let i = 0; i < 150; i++) A.send({ t: 'in', held: i % 2 === 0, re: 0 });
   await new Promise(r => setTimeout(r, 300));

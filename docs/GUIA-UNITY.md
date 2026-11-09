@@ -1007,6 +1007,39 @@ Isso cria três jeitos de pilotar:
 
 A rampa é o que dá controle fino a um botão de liga e desliga. Com `rampTime` curto, o jogo fica nervoso. Com `rampTime` longo, fica fácil e lento.
 
+### 15.1.1 Acelerador dosado: controle (gamepad) e tecla de meia (só Unity)
+
+Pedido dos jogadores: poder segurar meia aceleração numa curva em vez de ficar batucando a tecla. Cada carrinho ganhou **`CarState.gas`** (0–1): até onde o acelerador vai enquanto está segurando.
+
+```csharp
+if (c.held && c.finish == null)
+{
+    c.hold += dt;
+    float g = Mathf.Clamp01(c.gas);
+    c.T = c.T > g ? g : Mathf.Min(g, Mathf.Min(1f, c.hold / set.ramp));   // sobe no ritmo de sempre, desce na hora
+}
+```
+
+Com `gas = 1` (teclado A/L, IA) é exatamente a conta antiga: **a física e os recordes não mudam**. A IA fica sempre com `gas = 1`.
+
+De onde vem o nível (`RaceController.GasLevel`, o maior dos quatro):
+
+| Entrada | Jogador 1 | Jogador 2 | Nível |
+|---|---|---|---|
+| Tecla de acelerar | **A** | **L** | 100% |
+| Tecla de meia | **Q** | **O** | `halfGas` (ajuste "Meia aceleração (Q · O)", 20–90%, padrão **60%**; em `RaceSettings`, não mexe nas regras do campeonato) |
+| Gatilho direito do controle | 1º controle conectado | 2º controle | analógico, com zona morta de 6%: `(v − 0,06) / 0,94` |
+| Botão ACELERAR da tela | toque/clique | toque/clique | 100% (não ficou analógico: o arrastar com o mouse foi descartado) |
+
+No controle, **A/✕** recoloca e **Start** larga (como Enter). Os controles seguem o `KeySet` (19.3): com um humano só na bateria, o 1º controle e Q pilotam em qualquer trilho. O botão ACELERAR de cada jogador mostra as teclas e "controle" quando há um controle para ele: `ACELERAR  A  ·  ½ Q  ·  controle`.
+
+**Online:** cada um pilota o seu carrinho com A/L/Espaço (100%), Q/O (meia) ou o gatilho de qualquer controle ligado. O visitante manda o nível na mensagem `in` como **`gp`** (inteiro 1–100), quando o botão muda, quando o nível anda 3 pontos ou mais, ou a cada 0,25 s. O host guarda em `remoteGas` e aplica no `RaceSim`. O snapshot leva `gp` de cada carrinho (`NetCar.gp`), para a predição do visitante usar o nível certo do adversário. `gp = 0` (campo ausente, cliente antigo) vale 100%, por isso o protocolo continua na versão 1. O servidor repassa `gp` limitado a 1–100 (ausente → 100); a Steam repassa a mensagem inteira.
+
+Testes:
+- **Física** (`script eval`, oval, sem cena): acelerador no fundo, 0,26 s depois `T = 0,520` (a conta antiga dá 0,52); meia (`gas 0,5`) estabiliza em **v = 7,00 cél/s** (metade de 14), no trilho; com o gatilho a 80% o carrinho sai na curva do oval (11,2 cél/s passa do limite dela).
+- **Controles** (Play mode, dois gamepads virtuais com `InputSystem.AddDevice`): gatilho a 50% no 1º → `GasLevel` do trilho 1 = **0,468**; 100% no 2º → trilho 2 = **1,000**; os dois botões mostram "controle". Com o Editor em segundo plano a Unity não entrega a entrada dos controles ao jogo nos quadros do `Step`, então o carro andando com o gatilho precisa ser visto com o Editor em foco.
+- **Servidor** (`npm test`): `in` sem `gp` chega com 100; `gp 55` chega 55; `gp 900` chega 100.
+
 ### 15.2 O motor
 
 O carrinho não obedece `T` na hora: ele **persegue** a velocidade `T × vMax`, como um motor elétrico de autorama.

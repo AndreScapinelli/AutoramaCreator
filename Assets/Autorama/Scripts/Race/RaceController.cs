@@ -16,7 +16,7 @@ namespace Autorama
         public Material[] carMaterials = new Material[2];   // carrinho vermelho e azul (URP/Lit com recorte)
         public Material sparkMaterial;
 
-        static readonly Key[] GasKeys = { Key.A, Key.L }, ReslotKeys = { Key.S, Key.K };
+        static readonly Key[] GasKeys = { Key.A, Key.L }, ReslotKeys = { Key.S, Key.K }, HalfKeys = { Key.Q, Key.O };
 
         // Teclas de cada trilho: A·S no 1 e L·K no 2. Se só um dos carrinhos é humano (o outro é a IA),
         // ele usa sempre A·S, em qualquer trilho: no campeonato o rodízio troca o trilho a cada bateria.
@@ -27,6 +27,52 @@ namespace Autorama
             return h0 != h1 ? 0 : k;
         }
         Key GasKey(int k) => GasKeys[KeySet(k)];
+        Key HalfKey(int k) => HalfKeys[KeySet(k)];
+
+        // Controle (gamepad): o 1º conectado é do jogador 1 (A·S) e o 2º do jogador 2 (L·K); segue o KeySet,
+        // então com um humano só o 1º controle pilota em qualquer trilho. Gatilho direito = acelerador analógico,
+        // A/✕ = recolocar, Start = largar.
+        const float TriggerDead = 0.06f;
+        static Gamepad PadOf(int set) => set < Gamepad.all.Count ? Gamepad.all[set] : null;
+        static float Trigger(Gamepad g)
+        {
+            if (g == null) return 0f;
+            float v = g.rightTrigger.ReadValue();
+            return v <= TriggerDead ? 0f : Mathf.Clamp01((v - TriggerDead) / (1f - TriggerDead));
+        }
+
+        // Nível pedido pelo jogador do trilho k neste quadro (0 = solto): o maior entre teclado, meia, controle e o botão da tela.
+        float GasLevel(int k, bool keys)
+        {
+            var kb = Keyboard.current;
+            int ks = KeySet(k);
+            float g = uiHeld[k] ? 1f : 0f;
+            if (keys && kb != null)
+            {
+                if (kb[GasKeys[ks]].isPressed) g = 1f;
+                else if (kb[HalfKeys[ks]].isPressed) g = Mathf.Max(g, set.halfGas / 100f);
+            }
+            return Mathf.Max(g, Trigger(PadOf(ks)));
+        }
+
+        bool PadPressed(int k, System.Func<Gamepad, UnityEngine.InputSystem.Controls.ButtonControl> b)
+        {
+            var g = PadOf(KeySet(k));
+            return g != null && b(g).wasPressedThisFrame;
+        }
+
+        static bool AnyPadStart()
+        {
+            foreach (var g in Gamepad.all) if (g.startButton.wasPressedThisFrame) return true;
+            return false;
+        }
+
+        // O que aparece no botão ACELERAR de cada jogador.
+        string GasLabel(int k)
+        {
+            string pad = PadOf(KeySet(k)) != null ? "  ·  controle" : "";
+            return OnlineRun ? $"ACELERAR  A  ·  ½ Q{(Gamepad.all.Count > 0 ? "  ·  controle" : "")}" : $"ACELERAR  {GasKey(k)}  ·  ½ {HalfKey(k)}{pad}";
+        }
         Key ReslotKey(int k) => ReslotKeys[KeySet(k)];
         static readonly string[] LaneNames = { "Trilho 1", "Trilho 2" };
         // Modos de câmera da corrida, na ordem de TopDownCamera.RaceViewMode.
@@ -238,11 +284,13 @@ namespace Autorama
             bool keys = kb != null && !IsTyping;
             for (int k = 0; k < 2; k++)
             {
-                if (sim.aiSkill[k] > 0) continue;              // o piloto IA segura e solta sozinho
-                sim.cars[k].held = uiHeld[k] || (keys && kb[GasKey(k)].isPressed);
-                if (keys && kb[ReslotKey(k)].wasPressedThisFrame) sim.Reslot(k);
+                if (sim.aiSkill[k] > 0) { sim.cars[k].gas = 1f; continue; }   // o piloto IA segura e solta sozinho, sempre no fundo
+                float g = GasLevel(k, keys);
+                sim.cars[k].held = g > 0f;
+                if (g > 0f) sim.cars[k].gas = g;
+                if ((keys && kb[ReslotKey(k)].wasPressedThisFrame) || PadPressed(k, p => p.buttonSouth)) sim.Reslot(k);
             }
-            if (keys && (kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame)) { if (panel.ChampMode) ChampEnter(); else StartRace(); }
+            if ((keys && (kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame)) || AnyPadStart()) { if (panel.ChampMode) ChampEnter(); else StartRace(); }
 
             sim.Step(Mathf.Min(Time.deltaTime, 0.05f));
             PlaceCars();
@@ -327,7 +375,9 @@ namespace Autorama
             Text("<b>Segure</b> Acelerar e o acelerador sobe de 0 a 100%. <b>Soltou, zerou</b>: o carrinho freia.\n" +
                  "Rápido demais na curva, a traseira escorrega e a barra de <b>derrapagem</b> enche. Cheia, o carrinho sai da pista.\n" +
                  "<b>Recolocar</b> devolve o carrinho ao trilho, um pouco antes de onde ele saiu.\n\n" +
-                  "<b>A · S</b> jogador 1: acelerar · recolocar\n<b>L · K</b> jogador 2: acelerar · recolocar\n<b>Enter</b> largar · câmera no menu do canto direito", "small", how);
+                  "<b>A · S</b> jogador 1: acelerar · recolocar · <b>Q</b> meia aceleração\n<b>L · K</b> jogador 2: acelerar · recolocar · <b>O</b> meia aceleração\n" +
+                  "<b>Controle:</b> gatilho direito acelera aos poucos (o 1º controle é do jogador 1, o 2º do jogador 2) · <b>A/✕</b> recoloca · <b>Start</b> larga\n" +
+                  "<b>Enter</b> largar · câmera no menu do canto direito", "small", how);
 
             var adj = Section(box, "AJUSTES");
             var laps = new SliderInt(1, 20) { value = set.laps };
@@ -335,23 +385,26 @@ namespace Autorama
             var ramp = new Slider(0.2f, 1.5f) { value = set.ramp };
             var grip = new Slider(15f, 45f) { value = set.grip };
             var col = new Toggle("Colisão entre carrinhos") { value = set.collide };
+            var half = new SliderInt(20, 90) { value = Mathf.Clamp(set.halfGas, 20, 90) };
             void Labels()
             {
                 laps.label = $"Voltas: {set.laps}";
                 vmax.label = $"Velocidade máx.: {Num(set.vmax)} cél/s";
                 ramp.label = $"Tempo até 100%: {Num(set.ramp, 2)} s";
                 grip.label = $"Aderência: {Mathf.RoundToInt(set.grip)}";
+                half.label = $"Meia aceleração (Q · O): {set.halfGas}%";
                 float Lim(float r, float m) => Mathf.Min(100f, Mathf.Round(sim.CornerLimit(r, m) / set.vmax * 100f));
                 gripHint.text = $"Nas curvas planas, o carrinho segura até {Lim(2.25f, 1f)}% da velocidade máxima no trilho de dentro e {Lim(2.75f, 1f)}% no de fora. " +
                                 $"Nas inclinadas, até {Lim(2.25f, PieceCatalog.BankGrip)}% e {Lim(2.75f, PieceCatalog.BankGrip)}%.";
             }
-            foreach (var s in new VisualElement[] { laps, vmax, ramp, grip, col }) { s.AddToClassList("setting"); adj.Add(s); }
+            foreach (var s in new VisualElement[] { laps, vmax, ramp, grip, half, col }) { s.AddToClassList("setting"); adj.Add(s); }
             gripHint = Text("", "small", adj);
             laps.RegisterValueChangedCallback(e => { set.laps = e.newValue; set.Save(); Labels(); scoreDirty = true; });
             vmax.RegisterValueChangedCallback(e => { set.vmax = e.newValue; set.Save(); Labels(); });
             ramp.RegisterValueChangedCallback(e => { set.ramp = e.newValue; set.Save(); Labels(); });
             grip.RegisterValueChangedCallback(e => { set.grip = e.newValue; set.Save(); Labels(); });
             col.RegisterValueChangedCallback(e => { set.collide = e.newValue; set.Save(); });
+            half.RegisterValueChangedCallback(e => { set.halfGas = e.newValue; set.Save(); Labels(); });
             Labels();
 
             // Sobre a mesa: luzes e aviso de vitória no topo; os dois jogadores embaixo.
@@ -490,7 +543,7 @@ namespace Autorama
             // Acelerar: segurar com o mouse ou o dedo (ou a tecla) mantém o acelerador subindo.
             var gas = p.gas = El("gas", body);
             p.fill = El("gas-fill", gas); p.fill.pickingMode = PickingMode.Ignore;
-            p.gasText = Text($"ACELERAR  {GasKeys[k]}", "gas-text", gas);
+            p.gasText = Text($"ACELERAR  {GasKeys[k]}  ·  ½ {HalfKeys[k]}", "gas-text", gas);
             p.gasText.pickingMode = PickingMode.Ignore;
             int idx = k;
             gas.RegisterCallback<PointerDownEvent>(e => { uiHeld[idx] = true; gas.CapturePointer(e.pointerId); e.StopPropagation(); });
@@ -573,6 +626,7 @@ namespace Autorama
                 p.slip.style.width = Length.Percent(Mathf.Min(100f, c.slip * 100f));
                 p.slip.style.backgroundColor = c.slip < 0.45f ? new Color(0.24f, 0.75f, 0.45f) : c.slip < 0.75f ? new Color(0.96f, 0.76f, 0.1f) : new Color(0.94f, 0.48f, 0.23f);
                 bool off = c.mode == CarMode.Off, ai = sim.aiSkill[k] > 0;
+                if (!ai) p.gasText.text = GasLabel(k);         // muda com o rodízio e quando um controle é ligado
                 p.reslot.SetEnabled(off && !ai);                   // a IA se recoloca sozinha
                 p.reslot.EnableInClassList("reslot--ready", off && !ai);
                 p.root.EnableInClassList("pad--held", c.held);

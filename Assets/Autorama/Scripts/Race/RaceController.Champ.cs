@@ -838,7 +838,7 @@ namespace Autorama
                 bool ai = sim.aiSkill[k] > 0;
                 p.name.text = pilot != null ? $"{pilot.name.ToUpperInvariant()} · {LaneNames[k].ToUpperInvariant()}"
                     : ai ? $"ROBÔ · {LaneNames[k].ToUpperInvariant()}" : $"JOGADOR {k + 1}";
-                p.gasText.text = OnlineRun ? "ACELERAR  A" : ai ? $"IA PILOTANDO · {sim.aiSkill[k]}" : $"ACELERAR  {GasKey(k)}";
+                p.gasText.text = ai && !OnlineRun ? $"IA PILOTANDO · {sim.aiSkill[k]}" : GasLabel(k);
                 p.reslot.text = OnlineRun ? "Recolocar  S" : $"Recolocar  {ReslotKey(k)}";
                 p.gas.EnableInClassList("gas--ai", ai);
                 if (pilot != null)

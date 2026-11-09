@@ -180,7 +180,9 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
       if (c.inTimes.length >= IN_RATE) return;
       c.inTimes.push(now);
       const host = r.players.find(p => p.id === r.host);
-      if (host) send(host, { t: 'in', from: c.id, held: !!m.held, re: Math.max(0, Math.min(1e6, Math.round(Number(m.re)) || 0)) });
+      // gp: nível do acelerador em % (gatilho do controle ou tecla de meia). Ausente = 100.
+      const gp = Math.max(1, Math.min(100, Math.round(Number(m.gp)) || 100));
+      if (host) send(host, { t: 'in', from: c.id, held: !!m.held, gp, re: Math.max(0, Math.min(1e6, Math.round(Number(m.re)) || 0)) });
     },
     color(c, m) {
       const r = c.room; if (!r) return;

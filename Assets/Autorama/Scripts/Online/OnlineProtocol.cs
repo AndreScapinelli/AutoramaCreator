@@ -31,6 +31,7 @@ namespace Autorama
         public float s, v, hold, T, slip;
         public bool held, contact;
         public int side, mode;                              // mode: CarMode
+        public int gp;                                      // nível do acelerador em % (1–100); 0 = cliente antigo, vale 100
         public float fx, fy, fvx, fvy, flyH, flyW, flyZ;    // fora da pista
         public float bx, by, backH, backY, backT;           // voltando ao trilho
         public float exitS, lapStart, hitFx;
@@ -61,6 +62,7 @@ namespace Autorama
         // in (visitante → host): o botão e o contador de "recolocar"
         public bool held;
         public int re;
+        public int gp;                                    // in: nível do acelerador em % (0 = cliente antigo, vale 100)
         // snap / ev (host → todos)
         public NetSnap snap = new NetSnap();
         public string k;                                  // ev: res (resultado salvo) · reset (bateria de novo)
@@ -75,6 +77,7 @@ namespace Autorama
         public string t, name, roomName, code, color, text;
         public bool pub, ready, held, collide;
         public int re, ver;                               // ver: versão do protocolo (hello)
+        public int gp;                                    // in: nível do acelerador em % (1–100)
         public float vmax, ramp, grip;                    // start: as regras (os ajustes da aba Corrida do host)
     }
     [Serializable] public class NetOutStages { public string t = "stages"; public List<NetStage> stages = new List<NetStage>(); }

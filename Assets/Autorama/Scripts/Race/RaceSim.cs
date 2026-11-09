@@ -19,6 +19,7 @@ namespace Autorama
         public int cameraMode = 0;      // 0 atual, 1 3D, 2 third person, 3 auto dois carros
         public int cameraTarget = 0;    // alvo do third person: 0 jogador 1, 1 jogador 2
         public int cameraDistance = 100; // escala do enquadramento: 70% mais perto, 160% mais longe
+        public int halfGas = 60;        // tecla de meia aceleração (Q · O): até onde o acelerador vai, em %
 
         const string Key = "autorama.corrida";
 
@@ -128,6 +129,7 @@ namespace Autorama
     {
         public float s = RaceSim.GridS, v, hold, T, slip;
         public bool held;
+        public float gas = 1f;   // até onde o acelerador vai enquanto está segurando (0–1): gatilho do controle ou tecla de meia
         public int side = 1;
         public CarMode mode;
         // fora da pista
@@ -213,7 +215,14 @@ namespace Autorama
             // Acelerador: sobe enquanto segura, zera ao soltar.
             foreach (var c in cars)
             {
-                if (c.held && c.finish == null) { c.hold += dt; c.T = Mathf.Min(1f, c.hold / set.ramp); }
+                // O acelerador sobe até o nível pedido no mesmo ritmo de sempre (100% em "ramp" segundos) e desce na hora.
+                // Com o nível em 1 (teclado, IA) é exatamente o T = hold / ramp de antes: a física e os recordes não mudam.
+                if (c.held && c.finish == null)
+                {
+                    c.hold += dt;
+                    float g = Mathf.Clamp01(c.gas);
+                    c.T = c.T > g ? g : Mathf.Min(g, Mathf.Min(1f, c.hold / set.ramp));
+                }
                 else { c.hold = 0f; c.T = 0f; }
                 c.hitFx = Mathf.Max(0f, c.hitFx - dt);
             }
