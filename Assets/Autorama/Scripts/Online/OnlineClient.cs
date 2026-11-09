@@ -18,6 +18,11 @@ namespace Autorama
         public enum State { Closed, Connecting, Open }
 
         public const int ConnectTimeoutMs = 8000;
+        // Versão das mensagens (servidor/servidor.js, PROTOCOL): sobe junto nos dois quando o formato muda.
+        public const int Protocol = 1;
+        // O servidor de verdade (wss://…). Vazio até o deploy: aí o padrão é o servidor local, e o campo da aba continua editável.
+        public const string ProductionServer = "";
+        public static string DefaultServer => Application.isEditor || ProductionServer == "" ? "ws://localhost:8080" : ProductionServer;
         const int MaxMessage = 4 * 1024 * 1024;
 
         public State state { get; private set; }
@@ -81,7 +86,7 @@ namespace Autorama
             while (events.TryDequeue(out var e))
             {
                 if (e.gen != gen) continue;               // sobrou de uma conexão antiga
-                if (e.kind == 0) { state = State.Open; Opened?.Invoke(); }
+                if (e.kind == 0) { state = State.Open; Send(new NetOut { t = "hello", ver = Protocol }); Opened?.Invoke(); }
                 else if (e.kind == 1)
                 {
                     NetMsg m = null;

@@ -5,6 +5,7 @@
 const http = require('http');
 const { WebSocketServer } = require('ws');
 
+const PROTOCOL = 1;                    // muda quando as mensagens deixam de combinar com o cliente (OnlineClient.Protocol)
 const MAX_PLAYERS = 8;                 // o mesmo limite do campeonato
 const MAX_STAGES = 12;
 const MAX_TRACK_JSON = 100 * 1024;     // por pista
@@ -15,15 +16,24 @@ const CHAT_RATE = { n: 5, ms: 3000 };  // 5 mensagens a cada 3 s
 const PING_MS = 15000;
 const MAX_RELAY = 16 * 1024;           // snapshot ou evento da corrida
 const IN_RATE = 120;                   // entradas (botão) por segundo de cada visitante
+const MAX_CONN_IP = 20;                // conexões abertas ao mesmo tempo por endereço
+const MAX_CREATES_IP = 6;              // salas criadas por minuto por endereço
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';   // sem 0/O/1/I
 const COLORS = ['#E0362C', '#2563EB', '#F2B705', '#16A34A', '#9333EA', '#F97316', '#0EA5B7', '#E04B95'];   // PILOT_COLORS do guia
 
 // Tira controle e espaços repetidos; nome vazio vira ''.
 const clean = (s, max) => String(s == null ? '' : s).replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max);
 
-function criarServidor({ port = 8080, host = '0.0.0.0' } = {}) {
+// trustProxy: atrás de Fly.io/Caddy/nginx o endereço do jogador vem no cabeçalho, não no socket.
+function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxConnPerIp = MAX_CONN_IP, maxCreatesPerMin = MAX_CREATES_IP } = {}) {
   const rooms = new Map();             // code -> room
+  const conns = new Map();             // ip -> conexões abertas
+  const creates = new Map();           // ip -> horas das últimas salas criadas
   let nextId = 1;
+  const ipOf = req => {
+    const fwd = trustProxy && (req.headers['fly-client-ip'] || String(req.headers['x-forwarded-for'] || '').split(',')[0].trim());
+    return fwd || req.socket.remoteAddress || '?';
+  };
 
   const http_ = http.createServer((req, res) => {
     if (req.url === '/saude') { res.writeHead(200, { 'content-type': 'text/plain' }); res.end(`ok salas=${rooms.size}`); return; }
@@ -104,10 +114,18 @@ function criarServidor({ port = 8080, host = '0.0.0.0' } = {}) {
       }));
       send(c, { t: 'rooms', rooms: out });
     },
+    // A primeira mensagem de todo cliente: a versão do protocolo. Versão diferente: avisa e derruba.
+    hello(c, m) {
+      if (Number(m.ver) !== PROTOCOL) { fail(c, 'versao', 'Esta versão do jogo não combina com o servidor. Atualize o jogo.'); return c.ws.close(); }
+      c.ok = true;
+    },
     create(c, m) {
       if (c.room) return fail(c, 'sala', 'Você já está numa sala.');
       const name = validName(c, m.name); if (!name) return;
       if (rooms.size >= MAX_ROOMS) return fail(c, 'cheio', 'O servidor está lotado. Tente mais tarde.');
+      const now = Date.now(), recent = (creates.get(c.ip) || []).filter(t => now - t < 60000);
+      if (recent.length >= maxCreatesPerMin) return fail(c, 'muitas-salas', 'Você criou muitas salas em pouco tempo. Espere um minuto.');
+      recent.push(now); creates.set(c.ip, recent);
       const r = { code: newCode(), name: clean(m.roomName, ROOM_MAX) || `Sala de ${name}`, pub: !!m.pub, host: c.id, state: 'lobby', players: [], stages: [], chat: [] };
       rooms.set(r.code, r);
       enter(c, r, name);
@@ -211,8 +229,12 @@ function criarServidor({ port = 8080, host = '0.0.0.0' } = {}) {
     ev(c, m, raw) { forward(c, raw); },
   };
 
-  wss.on('connection', ws => {
-    const c = { ws, id: String(nextId++), room: null };
+  wss.on('connection', (ws, req) => {
+    const c = { ws, id: String(nextId++), room: null, ip: ipOf(req), ok: false };
+    const n = (conns.get(c.ip) || 0) + 1;
+    conns.set(c.ip, n);
+    ws.on('close', () => { const k = (conns.get(c.ip) || 1) - 1; if (k > 0) conns.set(c.ip, k); else conns.delete(c.ip); });
+    if (n > maxConnPerIp) { fail(c, 'muitas-conexoes', 'Muitas conexões deste endereço.'); ws.close(); return; }
     ws.alive = true;
     ws.on('pong', () => { ws.alive = true; });
     ws.on('message', (data, isBinary) => {
@@ -221,11 +243,12 @@ function criarServidor({ port = 8080, host = '0.0.0.0' } = {}) {
       let raw = data.toString(), m; try { m = JSON.parse(raw); } catch (e) { return fail(c, 'json', 'Mensagem inválida.'); }
       const h = m && Object.prototype.hasOwnProperty.call(handlers, m.t) ? handlers[m.t] : null;
       if (!h) return fail(c, 'tipo', 'Mensagem desconhecida.');
+      if (!c.ok && m.t !== 'hello') { fail(c, 'versao', 'Esta versão do jogo não combina com o servidor. Atualize o jogo.'); return ws.close(); }
       try { h(c, m, raw); } catch (e) { console.error(e); fail(c, 'erro', 'Erro no servidor.'); }
     });
     ws.on('close', () => leave(c));
     ws.on('error', () => {});
-    send(c, { t: 'hello', id: c.id });
+    send(c, { t: 'hello', id: c.id, ver: PROTOCOL });
   });
 
   // Quem não responde a um ping (nem manda nada) em um ciclo inteiro é derrubado, e sai da sala.
@@ -240,8 +263,8 @@ function criarServidor({ port = 8080, host = '0.0.0.0' } = {}) {
   })));
 }
 
-module.exports = { criarServidor, COLORS, MAX_PLAYERS };
+module.exports = { criarServidor, COLORS, MAX_PLAYERS, PROTOCOL };
 
 if (require.main === module) {
-  criarServidor({ port: Number(process.env.PORT) || 8080 }).then(s => console.log(`Autorama: servidor de salas em ws://localhost:${s.port}`));
+  criarServidor({ port: Number(process.env.PORT) || 8080, trustProxy: process.env.TRUST_PROXY === '1' }).then(s => console.log(`Autorama: servidor de salas em ws://localhost:${s.port}`));
 }

@@ -235,6 +235,11 @@ namespace Autorama
                 Check(WaitFor(() => dead.closed != null, dead) && dead.c.state == OnlineClient.State.Closed, "servidor fora do ar avisa em português: " + dead.closed);
                 Check(!OnlineClient.TryParseUrl("http://x", out _) && OnlineClient.TryParseUrl("localhost:8080", out var u) && u.Scheme == "ws", "endereço do servidor é validado");
                 RunRace(url);
+                var old = new Peer();
+                old.c.Connect(url);
+                Check(WaitFor(() => old.c.state == OnlineClient.State.Open, old), "versão: conecta");
+                old.c.Send(new NetOut { t = "hello", ver = OnlineClient.Protocol + 1 });
+                Check(WaitFor(() => old.got.Exists(m => m.t == "error" && m.code == "versao"), old) && WaitFor(() => old.closed != null, old), "versão: protocolo diferente é recusado e a conexão cai");
                 RunSync();
                 Debug.Log("[OnlineSmokeTest] TUDO CERTO");
             }

@@ -2305,7 +2305,7 @@ JSON de uma linha por mensagem WebSocket, com o tipo em `t`. Classes em `Online/
 | `snap`, `ev` | os do host, como foram mandados |
 | `error` | `code`, `text` (em português, para mostrar ao jogador) |
 
-Códigos de erro: `nome`, `sem-sala`, `cheia`, `nome-usado`, `andamento`, `cor`, `cor-usada`, `host`, `etapas`, `poucos`, `sem-etapas`, `nao-prontos`, `regras`, `rapido`, `sala`, `cheio`, `json`, `tipo`.
+Códigos de erro: `nome`, `sem-sala`, `cheia`, `nome-usado`, `andamento`, `cor`, `cor-usada`, `host`, `etapas`, `poucos`, `sem-etapas`, `nao-prontos`, `regras`, `rapido`, `sala`, `cheio`, `versao`, `muitas-conexoes`, `muitas-salas`, `json`, `tipo`.
 
 ### 23.3 Servidor
 
@@ -2313,8 +2313,11 @@ Códigos de erro: `nome`, `sem-sala`, `cheia`, `nome-usado`, `andamento`, `cor`,
 cd servidor
 npm install
 npm start          # ws://localhost:8080 (variável PORT muda a porta)
-npm test           # 32 verificações com vários clientes simulados
+npm test           # 36 verificações com vários clientes simulados
 ```
+
+- **Versão do protocolo.** A primeira mensagem do cliente é `hello` com `ver` (`OnlineClient.Protocol`, hoje 1; no servidor `PROTOCOL`). Versão diferente, ou qualquer outra mensagem antes do `hello`, dá o erro `versao` ("Atualize o jogo") e derruba a conexão. Mude o número nos dois lados sempre que o formato das mensagens mudar.
+- **Limites por endereço:** 20 conexões abertas (`muitas-conexoes`) e 6 salas criadas por minuto (`muitas-salas`). Atrás de proxy, o endereço vem de `fly-client-ip` ou `X-Forwarded-For`; isso só vale com `TRUST_PROXY=1` (o `Dockerfile` e o `fly.toml` já ligam).
 
 - Mensagem de até 2 MB; o servidor derruba quem não responde a um ping de 15 s e tira o jogador da sala.
 - `/saude` (HTTP) responde `ok salas=N`.
@@ -2379,11 +2382,28 @@ net.Send(new NetOutSnap { snap = NetSync.Pack(sim, heatIndex) });
 
 ### 23.6 Testes feitos
 
-- **Servidor** (`npm test`, Node 22, clientes `ws`, 32 verificações): criar sem nome é recusado; sala pública na lista e privada fora dela; entrar pelo código sem diferenciar maiúsculas; nome repetido recusado; cor fora da paleta e cor já usada recusadas; chat chega a todos com nome e cor; chat vazio ignorado; limite de ritmo; visitante não escolhe pistas; etapa inválida (hash, JSON grande, 13 etapas) recusada; sala cheia (8) recusa; host sai e o próximo vira host; sala vazia apagada; JSON quebrado e tipo desconhecido não derrubam o servidor. **Corrida:** começar sozinho, sem pistas ou sem todos prontos é recusado (com os nomes de quem falta); mexer nas pistas zera o "pronto" (o host é sempre pronto); visitante não começa; regras fora dos limites recusadas; `started` igual para todos, com pilotos na ordem, regras e o JSON; ninguém entra nem troca de cor com o campeonato andando; `in` vai só ao host, com o `from`, e é limitado (119 de 150); `snap` e `ev` só valem do host e vão a todos menos a ele; snapshot grande demais é descartado; só o host encerra; o fim zera o "pronto"; host que sai encerra o campeonato; visitante que sai não derruba.
+- **Servidor** (`npm test`, Node 22, clientes `ws`, 36 verificações; as 4 últimas são versão do protocolo e limites por endereço): criar sem nome é recusado; sala pública na lista e privada fora dela; entrar pelo código sem diferenciar maiúsculas; nome repetido recusado; cor fora da paleta e cor já usada recusadas; chat chega a todos com nome e cor; chat vazio ignorado; limite de ritmo; visitante não escolhe pistas; etapa inválida (hash, JSON grande, 13 etapas) recusada; sala cheia (8) recusa; host sai e o próximo vira host; sala vazia apagada; JSON quebrado e tipo desconhecido não derrubam o servidor. **Corrida:** começar sozinho, sem pistas ou sem todos prontos é recusado (com os nomes de quem falta); mexer nas pistas zera o "pronto" (o host é sempre pronto); visitante não começa; regras fora dos limites recusadas; `started` igual para todos, com pilotos na ordem, regras e o JSON; ninguém entra nem troca de cor com o campeonato andando; `in` vai só ao host, com o `from`, e é limitado (119 de 150); `snap` e `ev` só valem do host e vão a todos menos a ele; snapshot grande demais é descartado; só o host encerra; o fim zera o "pronto"; host que sai encerra o campeonato; visitante que sai não derruba.
 - **Cliente Unity** (`OnlineSmokeTest`, no Editor, contra o servidor de verdade): as regras do lobby pelo `JsonUtility` (18 verificações), o fluxo pronto → largar → `in` → `snap` → `ev` → fim (16) e a **sincronização** (6): host e visitante (80 ms de ida e 80 ms de volta, snapshots a 30 Hz, o visitante acelera e solta o carro 0 e recoloca quando sai da pista) rodam a corrida de 3 voltas no oval até o fim: mesma fase, vencedor, voltas, saídas, toques, chegada e melhor volta nos dois carros (45,2 s, vencedor carro 1, 32 recolocações); desvio máximo 0,89 célula no carro próprio e 0,90 no outro.
 - **Tela** (Play mode, com a Unity de host e um visitante-robô em Node): lobby do host com "Começar campeonato" liberado só com o robô pronto ("Todos prontos: 2 pilotos · 2 etapas · 4 baterias"); a largada para os dois; o robô recebeu os snapshots (fase 0 → 1 → 2 → 3, cerca de 26 por segundo na prova) e o `ev res` com os resultados `[5 voltas 32,00 s]` e `[5 voltas 55,88 s]`; a bateria 2 com os trilhos trocados (Hugo no trilho 2, tabela da etapa "1 de 2 baterias"); **Encerrar campeonato** levou os dois ao lobby com o "pronto" zerado. A tela do campeonato offline continua igual (cartão da bateria, botão Largar e a dica).
 
-### 23.7 Próximos passos
+### 23.7 Colocar o servidor no ar
+
+O servidor é um processo Node só, com o estado das salas na **memória**: rode **uma única instância** (reiniciar derruba as salas abertas). Para jogar pela internet ele precisa de `wss://`; o jogo aceita `wss://` no campo **Servidor**.
+
+**Fly.io (região `gru`, São Paulo).** Já existem `servidor/Dockerfile`, `.dockerignore` e `fly.toml` (uma máquina `shared-cpu-1x` de 256 MB, sempre ligada, verificação em `/saude`, `TRUST_PROXY=1`, TLS pelo Fly).
+```
+cd servidor
+fly auth login
+fly launch --no-deploy --copy-config      # troque "app" no fly.toml por um nome livre
+fly deploy
+```
+Depois do deploy, escreva o endereço (`wss://SEU-APP.fly.dev`) em `OnlineClient.ProductionServer`: nos builds ele vira o padrão do campo **Servidor**; no Editor o padrão continua `ws://localhost:8080`.
+
+**VPS qualquer.** `docker build -t autorama-servidor servidor && docker run -d --restart=always -p 127.0.0.1:8080:8080 autorama-servidor`, com o Caddy na frente (`seu.dominio { reverse_proxy 127.0.0.1:8080 }`; ele cuida do certificado e do WebSocket).
+
+**Escolha a região perto dos jogadores:** cada comando do visitante passa pelo servidor até o host, e o snapshot faz o caminho de volta.
+
+### 23.8 Próximos passos
 
 1. Recordes da pista e histórico no campeonato online (hoje só o offline grava).
 2. Reduzir o snapshot (campos que quase nunca mudam, ou só o que mudou) se a banda for um problema.

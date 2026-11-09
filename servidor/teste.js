@@ -2,9 +2,9 @@
 'use strict';
 const assert = require('assert');
 const WebSocket = require('ws');
-const { criarServidor, COLORS, MAX_PLAYERS } = require('./servidor');
+const { criarServidor, COLORS, MAX_PLAYERS, PROTOCOL } = require('./servidor');
 
-function cliente(port) {
+function cliente(port, semHello) {
   const ws = new WebSocket(`ws://127.0.0.1:${port}`);
   const inbox = [], waiters = [];
   ws.on('message', d => {
@@ -29,7 +29,7 @@ function cliente(port) {
     drain: () => { inbox.length = 0; },
     close: () => ws.close(),
   };
-  return c.open().then(() => c.next('hello')).then(() => c);
+  return c.open().then(() => { if (semHello !== true) c.send({ t: 'hello', ver: PROTOCOL }); return c.next('hello'); }).then(() => c);
 }
 
 const trilha = (n, extra = {}) => ({ name: 'Pista ' + n, laps: 3, hash: 'a34f4cb9', json: '{"nome":"x"}', ...extra });
@@ -228,6 +228,28 @@ const trilha = (n, extra = {}) => ({ name: 'Pista ' + n, laps: 3, hash: 'a34f4cb
   await new Promise(r => setTimeout(r, 150)); A.drain(); B.drain();
   B.send({ t: 'leave' }); r = await A.next('room'); assert.strictEqual(r.room.state, 'racing'); assert.strictEqual(r.room.players.length, 1); ok('visitante que sai no meio não derruba o campeonato');
   for (const c of [H, A, B, C]) c.close();
+
+  // ---------- versão e limites por endereço ----------
+  const v = await cliente(P, true);
+  v.send({ t: 'create', name: 'Sem hello', pub: true });
+  assert.strictEqual((await v.next('error')).code, 'versao');
+  await new Promise(r => setTimeout(r, 100)); assert.strictEqual(v.ws.readyState, WebSocket.CLOSED); ok('mensagem antes do hello derruba a conexão');
+  const v2 = await cliente(P, true);
+  v2.send({ t: 'hello', ver: PROTOCOL + 1 });
+  assert.strictEqual((await v2.next('error')).code, 'versao');
+  await new Promise(r => setTimeout(r, 100)); assert.strictEqual(v2.ws.readyState, WebSocket.CLOSED); ok('versão de protocolo diferente é recusada e derrubada');
+
+  const lim = await criarServidor({ port: 0, host: '127.0.0.1', maxConnPerIp: 3, maxCreatesPerMin: 2 });
+  const L = [await cliente(lim.port), await cliente(lim.port), await cliente(lim.port)];
+  const ex = new WebSocket(`ws://127.0.0.1:${lim.port}`); const got = [];
+  ex.on('message', d => got.push(JSON.parse(d.toString())));
+  await new Promise(r => ex.on('close', r));
+  assert(got.some(m => m.code === 'muitas-conexoes')); ok('o 4º cliente do mesmo endereço é recusado');
+  L[0].send({ t: 'create', name: 'A', pub: true }); await L[0].next('joined'); L[0].send({ t: 'leave' }); await L[0].next('left');
+  L[0].send({ t: 'create', name: 'A', pub: true }); await L[0].next('joined'); L[0].send({ t: 'leave' }); await L[0].next('left');
+  L[1].send({ t: 'create', name: 'B', pub: true });
+  assert.strictEqual((await L[1].next('error')).code, 'muitas-salas'); ok('criar salas demais por minuto é recusado');
+  L.forEach(c => c.close()); await lim.close();
 
   x.close(); host.close();
 

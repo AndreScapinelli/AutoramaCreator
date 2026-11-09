@@ -12,8 +12,8 @@ namespace Autorama
     public partial class RaceController
     {
         const string PrefServer = "autorama.online.servidor", PrefName = "autorama.online.nome";
-        const string DefaultServer = "ws://localhost:8080";
         const int MaxOnlineStages = 12, MaxTrackJson = 100 * 1024, ChatKeep = 100;
+        static string DefaultServer => OnlineClient.DefaultServer;
 
         OnlineClient net;
         NetRoom room;                                   // null fora da sala

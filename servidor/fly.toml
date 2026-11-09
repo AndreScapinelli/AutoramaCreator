@@ -1,0 +1,28 @@
+# Fly.io, região de São Paulo. Uso: cd servidor && fly launch --no-deploy --copy-config (troque "app") && fly deploy
+# O estado das salas fica na memória: mantenha UMA máquina só.
+app = "autorama-servidor"
+primary_region = "gru"
+
+[build]
+
+[env]
+  PORT = "8080"
+  TRUST_PROXY = "1"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "off"
+  auto_start_machines = false
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    method = "GET"
+    path = "/saude"
+    interval = "15s"
+    timeout = "3s"
+    grace_period = "5s"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"

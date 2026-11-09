@@ -74,7 +74,7 @@ namespace Autorama
     {
         public string t, name, roomName, code, color, text;
         public bool pub, ready, held, collide;
-        public int re;
+        public int re, ver;                               // ver: versão do protocolo (hello)
         public float vmax, ramp, grip;                    // start: as regras (os ajustes da aba Corrida do host)
     }
     [Serializable] public class NetOutStages { public string t = "stages"; public List<NetStage> stages = new List<NetStage>(); }
