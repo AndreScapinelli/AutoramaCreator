@@ -2409,3 +2409,70 @@ Depois do deploy, escreva o endereço (`wss://SEU-APP.fly.dev`) em `OnlineClient
 2. Reduzir o snapshot (campos que quase nunca mudam, ou só o que mudou) se a banda for um problema.
 3. Expulsar jogador, passar o host adiante sem encerrar o campeonato, reconectar no meio da prova.
 4. Depois que a Unity estiver fechada, portar a aba Online para o HTML (o servidor e o protocolo são os mesmos).
+
+---
+
+## 24. Steam (teste com o Spacewar)
+
+Branch `steam-spacewar`. Experimento: a Steam no lugar do servidor Node para o lobby e para as mensagens da corrida. **Ainda não está ligada à aba Online**: esta etapa entrega a camada Steam e o teste contra o app de teste da Valve (**Spacewar, AppId 480**), que roda sem pagar nada e fora da loja. O servidor Node continua valendo para quem não usa a Steam.
+
+### 24.1 Preparação
+
+- **Pacote:** Steamworks.NET `2025.165.0` (UPM por git, em `Packages/manifest.json`; já traz a `libsteam_api.dylib` universal, arm64 e x86_64). Para atualizar, troque o número da tag.
+- **`steam_appid.txt`** na raiz do projeto, com `480`. Sem ele a Steam recusa o jogo fora da loja. Num app seu, troque pelo AppId e **não** distribua esse arquivo nos builds.
+- **Cliente da Steam aberto e logado** na máquina (o `SteamBoot` avisa em português quando não está).
+- **Spacewar é compartilhado:** muita gente testa nele. Por isso todo lobby nosso leva o dado `autorama=1` e a versão do protocolo, e toda busca filtra por isso.
+
+### 24.2 Camadas (`Assets/Autorama/Scripts/Online/Steam`)
+
+| Classe | O quê |
+|---|---|
+| `SteamBoot` | `Init` (`SteamAPI.InitEx`, com a causa da falha em português), `Tick` (`RunCallbacks`, a cada quadro), `Shutdown`, nome e id da conta, AppId |
+| `SteamLobbyClient` | O lobby como sala do campeonato: criar, procurar, entrar, sair, dados, membros, chat |
+| `SteamLoopback` | Par de conexões da Steam no mesmo processo (`CreateSocketPair`), para testar o envio e a leitura das mensagens da corrida |
+
+**Mapa do servidor Node para a Steam**
+
+| Servidor Node | Steam |
+|---|---|
+| sala pública (aparece na lista) | lobby `Public`; busca com `pub=1` |
+| sala privada (só pelo código) | lobby `Invisible`; busca com `code=XXXXX` |
+| código de 5 letras, nome, etapas, estado | dados do lobby (`code`, `name`, `stages`, `state`, `pub`, `ver`), só o dono escreve |
+| cor e "pronto" de cada jogador | dados do membro (`color`, `ready`), cada um escreve os seus |
+| chat | `SendLobbyChatMsg` (UTF-8, o autor volta no callback) |
+| host | dono do lobby (`GetLobbyOwner`); se ele sai, a Steam elege outro |
+| `in` / `snap` / `ev` | mensagens de conexão (`SendMessageToConnection` / `ReceiveMessagesOnConnection`), o botão confiável e o snapshot sem confiabilidade |
+| nome do jogador | nome da conta (`GetPersonaName`) |
+
+```csharp
+SteamBoot.Init();
+var lobby = new SteamLobbyClient();
+lobby.Created += ok => { if (ok) lobby.SetMyData("color", "#2563EB"); };
+lobby.Chat += (quem, texto) => Debug.Log($"{quem.name}: {texto}");
+lobby.Create("Minha sala", pub: true);        // ou lobby.Search() / lobby.Search("QYQH3") e lobby.Join(id)
+// a cada quadro:
+SteamBoot.Tick();
+```
+
+### 24.3 Testes
+
+**Sozinho, com uma conta** (`SteamSpacewarTest.Run`, no Editor com a Steam aberta):
+```
+unity command script eval 'Autorama.SteamSpacewarTest.Run(); return Autorama.SteamSpacewarTest.Last;'
+```
+Resultado desta etapa, com a conta real (24 verificações, todas passaram): a Steam inicia e o app é o 480; criar lobby público e o criador ser o dono; dados do lobby gravados e alterados só pelo dono; cor, pronto e nome do membro; o lobby aparece na lista (a busca pode precisar de 1 a 2 tentativas, a lista demora alguns segundos para enxergar um lobby novo) com nome, jogadores, máximo, etapas e host; chat com UTF-8 e `<b>` voltando inteiro e com o autor; lobby privado achado só pelo código e fora da lista pública; sair do lobby; e, pelo par em loopback, o botão (`in`, confiável), o snapshot (737 bytes parado, 1,2 KB na prova, não confiável) e o `ev` chegando iguais, ida e volta. Mensagens não confiáveis de 1200, 1500 e 4000 bytes chegaram inteiras **no loopback**, que não passa pela rede: na rede de verdade a Steam fragmenta mensagens grandes sem confiabilidade e perde a mensagem toda se um pedaço se perder, então vale manter o snapshot pequeno (seção 23.8, item 2) ou mandá-lo confiável.
+
+**Com duas contas** (o que a camada ainda não prova: chegada entre jogadores de verdade):
+1. Máquina A (conta 1): `Autorama.SteamSpacewarTest.HostManual("Sala de teste", true)` e depois `Autorama.SteamSpacewarTest.ManualLog` mostra o código.
+2. Máquina B (conta 2, outra Steam, com este mesmo projeto): `Autorama.SteamSpacewarTest.JoinManual("")` entra na primeira sala pública, ou `JoinManual("CODIGO")`.
+3. Dos dois lados: `ManualSay("oi")`, `ManualReady(true)`, e conferir `ManualLog` (jogadores com ✓, o dono marcado como host, o chat do outro lado).
+4. `ManualStop()` para sair.
+
+### 24.4 O que falta para jogar pela Steam
+
+1. **Interface de transporte** entre a aba Online e a rede (hoje `RaceController.Online*.cs` fala direto com o `OnlineClient` e os `NetMsg`): uma implementação WebSocket (servidor Node) e outra Steam (lobby + sockets).
+2. **Conexão da corrida entre jogadores:** abrir a conexão do host com cada visitante (por `SteamNetworkingMessages` ou `ConnectP2P` pelo Datagram Relay), e mandar as pistas (JSON) pelo canal confiável na largada, já que o lobby guarda só o resumo.
+3. **Nome:** hoje o jogador digita o nome; na Steam vem da conta (decidir se continua editável).
+4. **Convites de amigos** e *Rich Presence* (opcional).
+5. **AppId próprio** e a taxa da Steam Direct (US$ 100) antes de publicar; o 480 serve só para teste.
+

@@ -23,11 +23,12 @@ O usuário escreve em português, e o projeto inteiro também: textos da interfa
 | `Core/` | Peças (`Pieces.cs`), geometria (`TrackMath`), montagem e análise (`TrackLayout`), JSON e biblioteca (`TrackSave`), fechar circuito (`TrackCloser`) |
 | `Builder/` | `TrackBuilder` (lista de peças, desfazer, mesa que cresce), `BuilderPanel` (painel UI Toolkit e as 4 abas), `BuilderInput` |
 | `Race/` | `RaceSim` (física pura, sem cena, mais a IA), `RaceController` (aba Corrida), `RaceController.Champ.cs` (aba Campeonato), `RaceController.Online.cs` (aba Online: lobby), `RaceController.OnlineRace.cs` (corrida online) |
-| `Online/` | `OnlineProtocol.cs` (mensagens), `OnlineClient.cs` (WebSocket, fila de eventos), `NetSync.cs` (carrinho ↔ snapshot) |
+| `Online/` | `OnlineProtocol.cs` (mensagens), `OnlineClient.cs` (WebSocket, fila de eventos), `NetSync.cs` (carrinho ↔ snapshot), `Steam/` (Steamworks.NET: `SteamBoot`, `SteamLobbyClient`, `SteamLoopback`; seção 24) |
 | `Champ/` | `ChampData.cs`: dados, rodízio, tabela, recordes, arquivos |
 | `View/` | Malha das peças, grade da mesa, câmera |
 | `Editor/AutoramaSetup.cs` | Menus **Autorama > Montar cena do construtor** e **Atualizar materiais e ícones** |
 | `Editor/OnlineSmokeTest.cs` | Teste do cliente online contra o servidor de verdade (`script eval`) |
+| `Editor/SteamSpacewarTest.cs` | Teste da camada Steam com o Spacewar (AppId 480; precisa da Steam aberta e logada) |
 
 O servidor de salas do campeonato online fica em `servidor/` (Node, fora do `Assets`). O campeonato online existe **só na Unity** por enquanto: o HTML não tem a aba Online (seção 23 do guia).
 
