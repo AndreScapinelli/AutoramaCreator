@@ -13,18 +13,22 @@ namespace Autorama
         public TrackBuilder builder;
         public BuilderPanel panel;
         public TopDownCamera cam;
-        public Material[] carMaterials = new Material[2];   // carrinho vermelho e azul (URP/Lit com recorte)
+        public Material[] carMaterials = new Material[2];   // carrinho vermelho e azul (URP/Lit com recorte); o verde e o amarelo vêm do tema
         public Material sparkMaterial;
 
-        static readonly Key[] GasKeys = { Key.A, Key.L }, ReslotKeys = { Key.S, Key.K }, HalfKeys = { Key.Q, Key.O };
+        // Conjuntos de teclas: A·S (Q meia), L·K (O meia), ↑·↓ (← meia) e 8·5 do teclado numérico (7 meia).
+        static readonly Key[] GasKeys = { Key.A, Key.L, Key.UpArrow, Key.Numpad8 }, ReslotKeys = { Key.S, Key.K, Key.DownArrow, Key.Numpad5 },
+                              HalfKeys = { Key.Q, Key.O, Key.LeftArrow, Key.Numpad7 };
 
-        // Teclas de cada trilho: A·S no 1 e L·K no 2. Se só um dos carrinhos é humano (o outro é a IA),
-        // ele usa sempre A·S, em qualquer trilho: no campeonato o rodízio troca o trilho a cada bateria.
+        // Teclas de cada trilho: os humanos ganham os conjuntos na ordem dos trilhos (o 1º humano A·S, o 2º L·K…).
+        // Com 2 humanos na pista de 2 é A·S no 1 e L·K no 2; com um humano só (os outros são IA), ele usa sempre
+        // A·S, em qualquer trilho: no campeonato o rodízio troca o trilho a cada bateria. O mesmo vale para os controles.
         int KeySet(int k)
         {
             if (sim == null) return k;
-            bool h0 = sim.aiSkill[0] <= 0, h1 = sim.aiSkill[1] <= 0;
-            return h0 != h1 ? 0 : k;
+            int n = 0;
+            for (int i = 0; i < k && i < sim.N; i++) if (sim.present[i] && sim.aiSkill[i] <= 0) n++;
+            return n;
         }
         Key GasKey(int k) => GasKeys[KeySet(k)];
         Key HalfKey(int k) => HalfKeys[KeySet(k)];
@@ -71,40 +75,49 @@ namespace Autorama
         string GasLabel(int k)
         {
             string pad = PadOf(KeySet(k)) != null ? "  ·  controle" : "";
-            return OnlineRun ? $"ACELERAR  A  ·  ½ Q{(Gamepad.all.Count > 0 ? "  ·  controle" : "")}" : $"ACELERAR  {GasKey(k)}  ·  ½ {HalfKey(k)}{pad}";
+            return OnlineRun ? $"ACELERAR  A  ·  ½ Q{(Gamepad.all.Count > 0 ? "  ·  controle" : "")}" : $"ACELERAR  {KeyText(GasKey(k))}  ·  ½ {KeyText(HalfKey(k))}{pad}";
         }
         Key ReslotKey(int k) => ReslotKeys[KeySet(k)];
-        static readonly string[] LaneNames = { "Trilho 1", "Trilho 2" };
+
+        // Nome curto da tecla para os botões e dicas.
+        static string KeyText(Key k) => k switch
+        {
+            Key.UpArrow => "↑", Key.DownArrow => "↓", Key.LeftArrow => "←", Key.RightArrow => "→",
+            Key.Numpad8 => "8 num.", Key.Numpad5 => "5 num.", Key.Numpad7 => "7 num.",
+            _ => k.ToString(),
+        };
+        static readonly string[] LaneNames = { "Trilho 1", "Trilho 2", "Trilho 3", "Trilho 4" };
+        static readonly string[] LaneCls = { "a", "b", "c", "d" };       // sufixo das classes de cor do USS (trilho 1 a 4)
         // Modos de câmera da corrida, na ordem de TopDownCamera.RaceViewMode.
         static readonly string[] CamModes = { "De cima", "3D", "Atrás do carro", "Dinâmica" };
         static readonly string[] CamModeHints = { "A vista livre da mesa", "Inclinada, gira com o botão direito", "Segue um carrinho por trás", "Acompanha os carrinhos sozinha" };
-        static readonly string[] CamTargets = { "Jogador 1", "Jogador 2" };
+        static readonly string[] CamTargets = { "Jogador 1", "Jogador 2", "Jogador 3", "Jogador 4" };
 
         RaceSettings set;
         RaceSim sim;
-        readonly Transform[] cars = new Transform[2];
+        readonly Transform[] cars = new Transform[RaceSim.MaxCars];
         ParticleSystem sparks;
         TrackSave builderStash;              // a pista do construtor, guardada enquanto a corrida usa outra
-        readonly bool[] uiHeld = new bool[2];
+        readonly bool[] uiHeld = new bool[RaceSim.MaxCars];
         bool scoreDirty = true, champDirty;
-        readonly Material[] carMats = new Material[2];      // cópia por carrinho: no campeonato ganha a cor do piloto
+        readonly Material[] carMats = new Material[RaceSim.MaxCars];      // cópia por carrinho: no campeonato ganha a cor do piloto
         RaceSim.Phase lastPhase;
 
         class PadUI { public VisualElement root, gas, fill, speed, slip; public Label name, state, gasText; public Button reslot; public string flash; public bool flashRec; public float flashT; }
-        readonly PadUI[] pads = new PadUI[2];
+        readonly PadUI[] pads = new PadUI[RaceSim.MaxCars];
         VisualElement pickList, scoreBox, padsBox, topBox, lights, banner;
         Label raceHint, clock, gripHint, bannerTitle, bannerSub;
         Button startBtn;
         // Menu da câmera: botão no canto superior direito da mesa que abre a lista de modos.
         VisualElement camMenu, camPop, camTargetBox;
         Button camBtn;
-        readonly Button[] camModeBtns = new Button[4], camTargetBtns = new Button[2];
+        readonly Button[] camModeBtns = new Button[4], camTargetBtns = new Button[RaceSim.MaxCars];
         Label camTargetNote;
         SliderInt cameraDistanceSlider;
         readonly List<VisualElement> lightDots = new List<VisualElement>();
         // Placar sobre a mesa: uma ficha por carrinho (posição, nome, volta, melhor volta).
         class HudCard { public VisualElement root, dot; public Label pos, name, lap, best; }
-        readonly HudCard[] hud = new HudCard[2];
+        readonly HudCard[] hud = new HudCard[RaceSim.MaxCars];
         VisualElement hudBox;
         bool sideAutoHidden;                 // o painel foi recolhido pela largada (devolve na chegada)
         // Contagem grande no meio da mesa (3, 2, 1, VAI!) e o resultado da prova dentro do aviso de vitória.
@@ -138,14 +151,26 @@ namespace Autorama
             OnlineDestroy();
         }
 
+        static readonly string[] CarNames = { "Carrinho vermelho", "Carrinho azul", "Carrinho verde", "Carrinho amarelo" };
+
+        // Material de cada trilho: vermelho e azul na cena; verde e amarelo no tema (Autorama > Atualizar materiais e ícones).
+        Material BaseCarMaterial(int k)
+        {
+            if (k < carMaterials.Length && carMaterials[k] != null) return carMaterials[k];
+            var extra = builder.theme != null ? builder.theme.cars34 : null;
+            if (extra != null && k - 2 < extra.Length && k >= 2 && extra[k - 2] != null) return extra[k - 2];
+            return carMaterials[k % 2];      // sem o tema novo: repete a cor (a pintura do campeonato cobre)
+        }
+
         void CreateCars()
         {
-            for (int k = 0; k < 2; k++)
+            for (int k = 0; k < RaceSim.MaxCars; k++)
             {
                 var go = GameObject.CreatePrimitive(PrimitiveType.Quad);
-                go.name = k == 0 ? "Carrinho vermelho" : "Carrinho azul";
+                go.name = CarNames[k];
                 Destroy(go.GetComponent<Collider>());
-                carMats[k] = new Material(carMaterials[k]) { name = carMaterials[k].name + " (cópia)" };
+                var baseMat = BaseCarMaterial(k);
+                carMats[k] = new Material(baseMat) { name = baseMat.name + " (cópia)" };
                 go.GetComponent<MeshRenderer>().sharedMaterial = carMats[k];
                 // A imagem cobre 0,64 × 0,384 célula; a carroceria (0,60 × 0,32) é a mesma caixa da colisão.
                 go.transform.localScale = new Vector3(0.64f, 0.384f, 1f);
@@ -180,7 +205,9 @@ namespace Autorama
         void OnTrackChanged()
         {
             if (builder.Segments.Count == 0 || builder.Info == null) return;
-            sim.SetTrack(builder.Segments, builder.Info.closed);
+            int before = sim.N;
+            sim.SetTrack(builder.Segments, builder.Info.closed, builder.Faixas);
+            if (sim.N != before) { SetBot(); LayoutForCars(); }
             scoreDirty = true;
             PlaceCars();
         }
@@ -191,10 +218,11 @@ namespace Autorama
             // Saindo do construtor, guarda a pista dele; voltando, reencontra.
             if (race && builderStash == null) builderStash = builder.ToSave();
             builder.RaceMode = race;
-            for (int k = 0; k < 2; k++) uiHeld[k] = false;
+            for (int k = 0; k < RaceSim.MaxCars; k++) uiHeld[k] = false;
             if (m == BuilderPanel.Mode.Race)
             {
                 sim.set = set; sim.cutoff = null;
+                for (int k = 0; k < RaceSim.MaxCars; k++) sim.present[k] = true;
                 SetBot();
                 ApplyCameraSettings();
                 UseTrack(set.track);
@@ -206,7 +234,7 @@ namespace Autorama
             }
             else
             {
-                sim.set = set; sim.cutoff = null; sim.aiSkill[0] = sim.aiSkill[1] = 0;
+                sim.set = set; sim.cutoff = null; System.Array.Clear(sim.aiSkill, 0, sim.aiSkill.Length);
                 cam.SetRaceViewMode(TopDownCamera.RaceViewMode.Atual);
                 if (builderStash != null) builder.ShowTrack(builderStash);
                 if (m == BuilderPanel.Mode.Build) builderStash = null;     // no lobby online a pista do construtor fica só de fundo
@@ -228,12 +256,14 @@ namespace Autorama
                 new Option { key = "builder", name = "Pista do construtor", sub = builderStash != null && builderStash.nome != "" ? $"“{builderStash.nome}”" : "a que está aberta agora", save = builderStash ?? builder.ToSave() },
                 new Option { key = "ex:oval", name = "Exemplo: oval", save = TrackSave.Oval() },
                 new Option { key = "ex:oito", name = "Exemplo: 8 com ponte", save = TrackSave.Eight() },
+                new Option { key = "ex:oval4", name = "Exemplo: oval de 4 carros", save = TrackSave.Four(TrackSave.Oval()) },
+                new Option { key = "ex:oito4", name = "Exemplo: 8 com ponte de 4 carros", save = TrackSave.Four(TrackSave.Eight()) },
             };
             foreach (var e in TrackLibrary.List()) list.Add(new Option { key = e.path, name = e.save.nome, save = e.save });
             for (int i = 0; i < list.Count; i++)
             {
                 var o = list[i];
-                try { var segs = TrackLayout.Build(o.save.Origin, o.save.Pieces(), o.save.Tail); o.closed = TrackLayout.Analyze(o.save.Origin, segs, o.save.Tail).closed; }
+                try { var segs = TrackLayout.Build(o.save.Origin, o.save.Pieces(), o.save.Tail); o.closed = TrackLayout.Analyze(o.save.Origin, segs, o.save.Tail, o.save.Faixas).closed; }
                 catch { o.closed = false; }
                 list[i] = o;
             }
@@ -260,7 +290,12 @@ namespace Autorama
             set.botSkill = Mathf.Clamp(set.botSkill, 1, 100);
             sim.aiSkill[0] = 0;
             sim.aiSkill[1] = set.bot ? set.botSkill : 0;
-            if (!set.bot) sim.cars[1].held = false;     // desligou: solta o acelerador que a IA segurava
+            // Pista de 4: os trilhos 3 e 4 são robôs (com a mesma qualidade), a não ser que o ajuste diga que são gente.
+            // "Carros na pista" (2, 3 ou 4) deixa os trilhos de cima vazios.
+            int cars = sim.N > 2 ? Mathf.Clamp(set.cars4, 2, 4) : sim.N;
+            for (int k = 0; k < RaceSim.MaxCars; k++) sim.present[k] = k < cars;
+            for (int k = 2; k < RaceSim.MaxCars; k++) sim.aiSkill[k] = k < cars && set.bot34 ? set.botSkill : 0;
+            for (int k = 1; k < sim.N; k++) if (sim.aiSkill[k] == 0) sim.cars[k].held = false;     // desligou: solta o acelerador que a IA segurava
             DrawPadHeads();
         }
 
@@ -282,7 +317,7 @@ namespace Autorama
 
             var kb = Keyboard.current;
             bool keys = kb != null && !IsTyping;
-            for (int k = 0; k < 2; k++)
+            for (int k = 0; k < sim.N; k++)
             {
                 if (sim.aiSkill[k] > 0) { sim.cars[k].gas = 1f; continue; }   // o piloto IA segura e solta sozinho, sempre no fundo
                 float g = GasLevel(k, keys);
@@ -299,29 +334,32 @@ namespace Autorama
             if (sim.phase != lastPhase) { lastPhase = sim.phase; scoreDirty = true; champDirty = true; SideForPhase(); }
             if (scoreDirty) { scoreDirty = false; DrawScore(); DrawStatus(); }
             if (champDirty && panel.ChampMode) { champDirty = false; DrawChampSide(); }
-            (panel.ChampMode ? cClock : clock).text = Fmt(sim.phase == RaceSim.Phase.Idle || sim.phase == RaceSim.Phase.Countdown ? 0f : sim.t);
+            (panel.ChampMode ? cClock : clock).text = ClockText();
         }
+
+        readonly Vector3[] carPos = new Vector3[RaceSim.MaxCars];
+        readonly float[] carHeading = new float[RaceSim.MaxCars];
 
         void PlaceCars()
         {
-            Vector3 p0 = Vector3.zero, p1 = Vector3.zero;
-            float h0 = 0f, h1 = 0f;
-            for (int k = 0; k < 2; k++)
+            for (int k = 0; k < RaceSim.MaxCars; k++)
             {
+                bool on = k < sim.N && sim.present[k];
+                if (cars[k].gameObject.activeSelf != on) cars[k].gameObject.SetActive(on);
+                if (!on) continue;
                 var p = sim.CarPose(k, out float y, out float pitch);
                 var pos = new Vector3(p.pos.x, y + 0.035f, p.pos.y);
                 cars[k].position = pos;
                 // Deitado, frente para +X; inclina na rampa e gira para o rumo.
                 cars[k].rotation = Quaternion.Euler(0f, -p.heading, 0f) * Quaternion.Euler(0f, 0f, pitch) * Quaternion.Euler(90f, 0f, 0f);
-                if (k == 0) { p0 = pos; h0 = p.heading; }
-                else { p1 = pos; h1 = p.heading; }
+                carPos[k] = pos; carHeading[k] = p.heading;
             }
             if (panel != null && panel.RaceMode)
             {
                 // No online o seu trilho muda de uma bateria para outra: a câmera acompanha o seu carrinho.
                 int focus = CamFocusCar();
                 if (OnlineRun && focus >= 0) cam.SetThirdPersonCar(focus);
-                cam.SetRaceTargets(p0, h0, p1, h1, focus);
+                cam.SetRaceTargets(carPos, carHeading, sim.N, focus);
             }
             if (camMenu != null)
             {
@@ -360,8 +398,21 @@ namespace Autorama
             {
                 botSkill.label = $"Qualidade do robô: {set.botSkill}";
                 botHint.text = Champ.SkillWord(set.botSkill);
-                botBox.style.display = set.bot ? DisplayStyle.Flex : DisplayStyle.None;
+                botBox.style.display = set.bot || (set.bot34 && sim.N > 2) ? DisplayStyle.Flex : DisplayStyle.None;
             }
+            // Pista de 4 carros: os trilhos 3 e 4 também podem ser robôs (padrão) ou gente (↑·↓, 8·5 e os controles 3 e 4).
+            bot34Toggle = new Toggle("Jogadores 3 e 4 são robôs") { value = set.bot34 };
+            bot34Toggle.AddToClassList("setting"); bot34Toggle.AddToClassList("ai-toggle");
+            race.Insert(race.IndexOf(botBox), bot34Toggle);
+            // Pista de 4: quantos carrinhos correm (com 3, o trilho 4 fica vazio).
+            carsRow = El("segmented", null);
+            race.Insert(race.IndexOf(bot34Toggle), carsRow);
+            for (int n = 2; n <= 4; n++)
+            {
+                int c = n;
+                carsBtns[n - 2] = Btn($"{n} carros", () => { if (Racing) return; set.cars4 = c; set.Save(); SetBot(); LayoutForCars(); sim.Reset(); scoreDirty = true; }, "btn", carsRow);
+            }
+            bot34Toggle.RegisterValueChangedCallback(e => { set.bot34 = e.newValue; set.Save(); BotLabels(); SetBot(); });
             bot.RegisterValueChangedCallback(e => { set.bot = e.newValue; set.Save(); BotLabels(); SetBot(); });
             botSkill.RegisterValueChangedCallback(e => { set.botSkill = e.newValue; set.Save(); BotLabels(); SetBot(); });
             BotLabels();
@@ -376,10 +427,16 @@ namespace Autorama
                  "Rápido demais na curva, a traseira escorrega e a barra de <b>derrapagem</b> enche. Cheia, o carrinho sai da pista.\n" +
                  "<b>Recolocar</b> devolve o carrinho ao trilho, um pouco antes de onde ele saiu.\n\n" +
                   "<b>A · S</b> jogador 1: acelerar · recolocar · <b>Q</b> meia aceleração\n<b>L · K</b> jogador 2: acelerar · recolocar · <b>O</b> meia aceleração\n" +
-                  "<b>Controle:</b> gatilho direito acelera aos poucos (o 1º controle é do jogador 1, o 2º do jogador 2) · <b>A/✕</b> recoloca · <b>Start</b> larga\n" +
+                  "Pista de 4: <b>↑ · ↓</b> jogador 3 (<b>←</b> meia) · <b>8 · 5</b> do teclado numérico jogador 4 (<b>7</b> meia)\n" +
+                  "<b>Controle:</b> gatilho direito acelera aos poucos (o 1º controle é do jogador 1, o 2º do jogador 2, e assim por diante) · <b>A/✕</b> recoloca · <b>Start</b> larga\n" +
                   "<b>Enter</b> largar · câmera no menu do canto direito", "small", how);
 
             var adj = Section(box, "AJUSTES");
+            // Tipo de prova: por voltas (vence quem completar primeiro) ou por tempo (manches, uma por trilho).
+            var kindRow = El("segmented", adj);
+            var byLaps = Btn("Por voltas", null, "btn", kindRow);
+            var byTime = Btn("Por tempo", null, "btn", kindRow);
+            var secs = new SliderInt(2, 20) { value = Mathf.Clamp(set.secs / 30, 2, 20) };     // em meios minutos: 1 a 10 min
             var laps = new SliderInt(1, 20) { value = set.laps };
             var vmax = new Slider(8f, 20f) { value = set.vmax };
             var ramp = new Slider(0.2f, 1.5f) { value = set.ramp };
@@ -389,15 +446,28 @@ namespace Autorama
             void Labels()
             {
                 laps.label = $"Voltas: {set.laps}";
+                secs.label = $"Duração: {Dur(set.secs)} · {Dur(set.secs / Mathf.Max(1, sim.N))} por trilho";
+                byLaps.EnableInClassList("btn--on", !set.byTime);
+                byTime.EnableInClassList("btn--on", set.byTime);
+                laps.style.display = set.byTime ? DisplayStyle.None : DisplayStyle.Flex;
+                secs.style.display = set.byTime ? DisplayStyle.Flex : DisplayStyle.None;
                 vmax.label = $"Velocidade máx.: {Num(set.vmax)} cél/s";
                 ramp.label = $"Tempo até 100%: {Num(set.ramp, 2)} s";
                 grip.label = $"Aderência: {Mathf.RoundToInt(set.grip)}";
                 half.label = $"Meia aceleração (Q · O): {set.halfGas}%";
                 float Lim(float r, float m) => Mathf.Min(100f, Mathf.Round(sim.CornerLimit(r, m) / set.vmax * 100f));
-                gripHint.text = $"Nas curvas planas, o carrinho segura até {Lim(2.25f, 1f)}% da velocidade máxima no trilho de dentro e {Lim(2.75f, 1f)}% no de fora. " +
-                                $"Nas inclinadas, até {Lim(2.25f, PieceCatalog.BankGrip)}% e {Lim(2.75f, PieceCatalog.BankGrip)}%.";
+                // Raio do trilho de dentro e do de fora, no mundo: 2,25 e 2,75 na pista de 2; 4,25 e 5,75 na de 4.
+                var lanes = TrackMath.LanesOf(sim.N);
+                float sc = TrackMath.Scale(sim.N), rIn = (2.5f + lanes[0]) * sc, rOut = (2.5f - lanes[0]) * sc;
+                gripHint.text = $"Nas curvas planas, o carrinho segura até {Lim(rIn, 1f)}% da velocidade máxima no trilho de dentro e {Lim(rOut, 1f)}% no de fora. " +
+                                $"Nas inclinadas, até {Lim(rIn, PieceCatalog.BankGrip)}% e {Lim(rOut, PieceCatalog.BankGrip)}%.";
             }
-            foreach (var s in new VisualElement[] { laps, vmax, ramp, grip, half, col }) { s.AddToClassList("setting"); adj.Add(s); }
+            foreach (var s in new VisualElement[] { laps, secs, vmax, ramp, grip, half, col }) { s.AddToClassList("setting"); adj.Add(s); }
+            void Kind(bool t) { if (Racing) return; set.byTime = t; set.Save(); Labels(); sim.Reset(); scoreDirty = true; }
+            byLaps.clicked += () => Kind(false);
+            byTime.clicked += () => Kind(true);
+            secs.RegisterValueChangedCallback(e => { set.secs = e.newValue * 30; set.Save(); Labels(); scoreDirty = true; });
+            refreshAdjLabels = Labels;
             gripHint = Text("", "small", adj);
             laps.RegisterValueChangedCallback(e => { set.laps = e.newValue; set.Save(); Labels(); scoreDirty = true; });
             vmax.RegisterValueChangedCallback(e => { set.vmax = e.newValue; set.Save(); Labels(); });
@@ -411,9 +481,9 @@ namespace Autorama
             var root = panel.Root;
             topBox = El("race-top", root); topBox.pickingMode = PickingMode.Ignore;
             hudBox = El("hud", topBox); hudBox.pickingMode = PickingMode.Ignore;
-            for (int k = 0; k < 2; k++)
+            for (int k = 0; k < RaceSim.MaxCars; k++)
             {
-                var h = new HudCard { root = El("hud-card " + (k == 0 ? "hud-card--a" : "hud-card--b"), hudBox) };
+                var h = new HudCard { root = El("hud-card hud-card--" + LaneCls[k], hudBox) };
                 h.pos = Text("1º", "hud-pos", h.root);
                 h.dot = El("hud-dot", h.root);
                 var info = El("hud-info", h.root);
@@ -442,10 +512,40 @@ namespace Autorama
             BuildCamMenu(root);
 
             padsBox = El("pads", root);
-            for (int k = 0; k < 2; k++) pads[k] = BuildPad(k);
+            for (int k = 0; k < RaceSim.MaxCars; k++) pads[k] = BuildPad(k);
             padsBox.style.display = DisplayStyle.None;
             topBox.style.display = DisplayStyle.None;
+            LayoutForCars();
             DrawPicker(Options());
+        }
+
+        Toggle bot34Toggle;
+        VisualElement carsRow;
+        readonly Button[] carsBtns = new Button[3];
+        System.Action refreshAdjLabels;
+
+        // Mostra só o que a pista usa: 2 ou 4 painéis de jogador, fichas no placar, alvos da câmera e o ajuste dos robôs 3 e 4.
+        void LayoutForCars()
+        {
+            if (padsBox == null) return;
+            int n = sim.N;
+            padsBox.EnableInClassList("pads--4", n > 2);
+            int last = 0;
+            for (int k = 0; k < n; k++) if (sim.present[k]) last = k;
+            for (int k = 0; k < RaceSim.MaxCars; k++)
+            {
+                var on = k < n && sim.present[k] ? DisplayStyle.Flex : DisplayStyle.None;
+                pads[k].root.style.display = on;
+                hud[k].root.style.display = on;
+                pads[k].root.EnableInClassList("pad--last", k == last);
+            }
+            bot34Toggle.style.display = n > 2 && (panel.CurrentMode != BuilderPanel.Mode.Race || set.cars4 > 2) ? DisplayStyle.Flex : DisplayStyle.None;
+            bot34Toggle.label = set.cars4 == 3 ? "Jogador 3 é um robô" : "Jogadores 3 e 4 são robôs";
+            carsRow.style.display = n > 2 ? DisplayStyle.Flex : DisplayStyle.None;
+            for (int i = 0; i < carsBtns.Length; i++) carsBtns[i].EnableInClassList("btn--on", Mathf.Clamp(set.cars4, 2, 4) == i + 2);
+            bot34Toggle.SetValueWithoutNotify(set.bot34);
+            refreshAdjLabels?.Invoke();
+            ApplyCameraSettings();
         }
 
         void BuildCamMenu(VisualElement root)
@@ -464,7 +564,7 @@ namespace Autorama
             camTargetBox = El("cam-sub", camPop);
             Text("SEGUIR", "cam-title", camTargetBox);
             var seg = El("segmented", camTargetBox);
-            for (int k = 0; k < 2; k++)
+            for (int k = 0; k < RaceSim.MaxCars; k++)
             {
                 int t = k;
                 camTargetBtns[k] = Btn(CamTargets[k], () => { set.cameraTarget = t; set.Save(); ApplyCameraSettings(); }, "btn", seg);
@@ -497,7 +597,7 @@ namespace Autorama
         void ApplyCameraSettings()
         {
             int mode = Mathf.Clamp(set.cameraMode, 0, CamModes.Length - 1);
-            int target = Mathf.Clamp(set.cameraTarget, 0, CamTargets.Length - 1);
+            int target = Mathf.Clamp(set.cameraTarget, 0, (sim != null ? sim.N : 2) - 1);
             set.cameraDistance = Mathf.Clamp(set.cameraDistance, 70, 160);
             set.cameraMode = mode;
             set.cameraTarget = target;
@@ -514,10 +614,10 @@ namespace Autorama
             camBtn.text = $"Câmera: <b>{CamModes[mode]}</b>  ▾";
             for (int i = 0; i < camModeBtns.Length; i++) camModeBtns[i].EnableInClassList("cam-opt--on", i == mode);
             camTargetBox.style.display = mode == (int)TopDownCamera.RaceViewMode.ThirdPerson ? DisplayStyle.Flex : DisplayStyle.None;
-            for (int k = 0; k < 2; k++)
+            for (int k = 0; k < RaceSim.MaxCars; k++)
             {
                 camTargetBtns[k].EnableInClassList("btn--on", k == target);
-                camTargetBtns[k].style.display = OnlineRun ? DisplayStyle.None : DisplayStyle.Flex;
+                camTargetBtns[k].style.display = OnlineRun || k >= sim.N ? DisplayStyle.None : DisplayStyle.Flex;
             }
             camTargetNote.style.display = OnlineRun ? DisplayStyle.Flex : DisplayStyle.None;
             cameraDistanceSlider.SetValueWithoutNotify(set.cameraDistance);
@@ -534,7 +634,7 @@ namespace Autorama
         PadUI BuildPad(int k)
         {
             var p = new PadUI();
-            p.root = El("pad " + (k == 0 ? "pad--a" : "pad--b"), padsBox);
+            p.root = El("pad pad--" + LaneCls[k], padsBox);
             var head = El("pad-head", p.root);
             p.name = Text($"JOGADOR {k + 1}", "pad-name", head);
             p.state = Text("No grid", "pad-state", head);
@@ -543,7 +643,7 @@ namespace Autorama
             // Acelerar: segurar com o mouse ou o dedo (ou a tecla) mantém o acelerador subindo.
             var gas = p.gas = El("gas", body);
             p.fill = El("gas-fill", gas); p.fill.pickingMode = PickingMode.Ignore;
-            p.gasText = Text($"ACELERAR  {GasKeys[k]}  ·  ½ {HalfKeys[k]}", "gas-text", gas);
+            p.gasText = Text($"ACELERAR  {KeyText(GasKeys[k])}  ·  ½ {KeyText(HalfKeys[k])}", "gas-text", gas);
             p.gasText.pickingMode = PickingMode.Ignore;
             int idx = k;
             gas.RegisterCallback<PointerDownEvent>(e => { uiHeld[idx] = true; gas.CapturePointer(e.pointerId); e.StopPropagation(); });
@@ -555,7 +655,7 @@ namespace Autorama
             p.speed = El("meter-fill", El("meter", side));
             Text("Derrapagem", "meter-label", side);
             p.slip = El("meter-fill", El("meter", side));
-            p.reslot = Btn($"Recolocar  {ReslotKeys[k]}", () => ReslotPressed(idx), "btn reslot", side);
+            p.reslot = Btn($"Recolocar  {KeyText(ReslotKeys[k])}", () => ReslotPressed(idx), "btn reslot", side);
             return p;
         }
 
@@ -587,17 +687,18 @@ namespace Autorama
                 var r = El("score-row " + cls, scoreBox);
                 for (int i = 0; i < cells.Length; i++) Text(cells[i], i == 0 ? "score-cell score-cell--name" : "score-cell", r);
             }
-            Row(new[] { "Trilho", "Voltas", "Última", "Melhor", "Saídas", "Toques" }, "score-head");
-            for (int k = 0; k < 2; k++)
+            Row(new[] { "Trilho", sim.ByTime ? "Distância" : "Voltas", "Última", "Melhor", "Saídas", "Toques" }, "score-head");
+            for (int k = 0; k < sim.N; k++)
             {
                 var c = sim.cars[k];
-                Row(new[] { $"{k + 1}{(sim.winner == k ? " · 1º" : "")}", $"{c.laps}/{set.laps}", Fmt(c.lastLap), Fmt(c.best), c.offs.ToString(), c.hits.ToString() },
-                    (k == 0 ? "score-a" : "score-b") + (sim.winner == k ? " score-win" : ""));
+                Row(new[] { $"{k + 1}{(sim.winner == k ? " · 1º" : "")}", LapsCell(k), Fmt(c.lastLap), Fmt(c.best), c.offs.ToString(), c.hits.ToString() },
+                    "score-" + LaneCls[k] + (sim.winner == k ? " score-win" : ""));
             }
             raceHint.text = !sim.closed ? "Esta pista não é um circuito fechado. Escolha outra acima ou feche o traçado no Construtor."
-                : sim.phase == RaceSim.Phase.Idle ? "Os dois carrinhos estão no grid. Aperte Largar e espere as luzes."
+                : sim.phase == RaceSim.Phase.Idle ? (sim.N > 2 ? "Os quatro carrinhos estão no grid." : "Os dois carrinhos estão no grid.") + " Aperte Largar e espere as luzes."
                 : sim.phase == RaceSim.Phase.Countdown ? "Pode segurar o acelerador: o carrinho sai quando a luz ficar verde."
-                : sim.phase == RaceSim.Phase.Running ? $"Vence quem completar {set.laps} {(set.laps == 1 ? "volta" : "voltas")} primeiro."
+                : sim.phase == RaceSim.Phase.Switch ? "Fim da manche: cada carrinho passa para o trilho seguinte."
+                : sim.phase == RaceSim.Phase.Running ? (sim.ByTime ? $"Corrida por tempo, {MancheText}: vence quem andar mais em {Dur(set.secs)}." : $"Vence quem completar {set.laps} {(set.laps == 1 ? "volta" : "voltas")} primeiro.")
                 : "Prova encerrada. Aperte Largar para correr de novo.";
             startBtn.text = sim.phase == RaceSim.Phase.Idle ? "Largar (Enter)" : "Nova largada (Enter)";
             startBtn.SetEnabled(sim.closed);
@@ -610,14 +711,22 @@ namespace Autorama
             if (!sim.closed) panel.SetStatus("Feche o circuito no Construtor para correr", "status--warn");
             else if (sim.winner >= 0) panel.SetStatus($"{LaneNames[sim.winner]} venceu", "status--ok");
             else if (sim.phase == RaceSim.Phase.Countdown) panel.SetStatus("Atenção à largada", "");
-            else if (sim.phase == RaceSim.Phase.Running) panel.SetStatus($"Corrida · volta {Mathf.Min(Mathf.Max(sim.cars[0].laps, sim.cars[1].laps) + 1, set.laps)} de {set.laps}", "");
+            else if (sim.phase == RaceSim.Phase.Switch) panel.SetStatus("Troca de trilho", "");
+            else if (sim.phase == RaceSim.Phase.Running) panel.SetStatus(sim.ByTime ? $"Corrida · {MancheText} · faltam {Fmt(sim.TimeLeft)}" : $"Corrida · volta {Mathf.Min(MaxLaps() + 1, set.laps)} de {set.laps}", "");
             else panel.SetStatus("Pronto para largar", "");
+        }
+
+        int MaxLaps()
+        {
+            int m = 0;
+            foreach (var c in sim.cars) m = Mathf.Max(m, c.laps);
+            return m;
         }
 
         void UpdatePads()
         {
             padsBox.style.left = panel.SideWidth + 12f;
-            for (int k = 0; k < 2; k++)
+            for (int k = 0; k < sim.N; k++)
             {
                 var c = sim.cars[k];
                 var p = pads[k];
@@ -642,6 +751,8 @@ namespace Autorama
                     : c.mode == CarMode.Returning ? "Voltando ao trilho"
                     : c.hitFx > 0f ? "Batida!"
                     : sim.phase == RaceSim.Phase.Countdown ? "Aguarde a luz verde"
+                    : sim.phase == RaceSim.Phase.Switch ? $"Vai para o trilho {(c.lane + 1) % sim.N + 1}"
+                    : sim.phase == RaceSim.Phase.Running && sim.ByTime ? $"{LapsCell(k)} voltas · trilho {c.lane + 1}"
                     : sim.phase == RaceSim.Phase.Running ? $"Volta {Mathf.Min(c.laps + 1, L)} de {L}"
                     : "No grid";
                 p.state.EnableInClassList("pad-state--alert", off);
@@ -652,37 +763,51 @@ namespace Autorama
         // Se o jogador abriu o painel no meio da prova (Tab), ele fica aberto.
         void SideForPhase()
         {
-            bool racing = sim.phase == RaceSim.Phase.Countdown || sim.phase == RaceSim.Phase.Running;
+            bool racing = Racing;
             if (racing && panel.SideVisible) { sideAutoHidden = true; panel.SetSideFromRace(false); }
             else if (!racing && sideAutoHidden) { sideAutoHidden = false; panel.SetSideFromRace(true); }
         }
 
-        // Quem está na frente: quem chegou antes; senão mais voltas; senão mais adiante na volta.
-        int Leader()
+        // Ordem da prova: quem chegou antes; senão mais voltas; senão mais adiante na volta.
+        // Na pista de 4 os trilhos têm comprimentos diferentes: "mais adiante" é a fração da volta, não a distância.
+        readonly List<int> order = new List<int>();
+        List<int> Order()
         {
-            var a = sim.cars[0]; var b = sim.cars[1];
-            if (a.finish != null || b.finish != null)
-                return b.finish == null ? 0 : a.finish == null ? 1 : a.finish <= b.finish ? 0 : 1;
-            if (a.laps != b.laps) return a.laps > b.laps ? 0 : 1;
-            return a.s >= b.s ? 0 : 1;
+            order.Clear();
+            for (int k = 0; k < sim.N; k++) if (sim.present[k]) order.Add(k);
+            if (order.Count == 0) order.Add(0);
+            order.Sort((i, j) =>
+            {
+                var a = sim.cars[i]; var b = sim.cars[j];
+                if (a.finish != null || b.finish != null)
+                    return a.finish == null ? 1 : b.finish == null ? -1 : a.finish.Value.CompareTo(b.finish.Value) != 0 ? a.finish.Value.CompareTo(b.finish.Value) : i.CompareTo(j);
+                // Distância: bandeiradas + fração da volta (vale nos dois modos e em trilhos de comprimentos diferentes).
+                int f = sim.Dist(j).CompareTo(sim.Dist(i));
+                return f != 0 ? f : i.CompareTo(j);
+            });
+            return order;
         }
+
+        int Leader() => Order()[0];
 
         void UpdateHud()
         {
             bool show = sim.closed && sim.phase != RaceSim.Phase.Idle;
             hudBox.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
             if (!show) return;
-            int L = sim.set.laps, lead = Leader();
-            for (int k = 0; k < 2; k++)
+            int L = sim.set.laps;
+            var ord = Order();
+            int lead = ord[0];
+            for (int k = 0; k < sim.N; k++)
             {
                 var c = sim.cars[k]; var h = hud[k];
                 string nm = pads[k].name.text;
                 int cut = nm.IndexOf(" · ");
                 h.name.text = cut > 0 ? nm.Substring(0, cut) : nm;
                 h.dot.style.backgroundColor = pads[k].root.resolvedStyle.borderTopColor;
-                h.pos.text = sim.winner == k ? "🏁" : (k == lead ? "1º" : "2º");
+                h.pos.text = sim.winner == k ? "🏁" : $"{ord.IndexOf(k) + 1}º";
                 h.root.EnableInClassList("hud-card--lead", k == lead);
-                h.lap.text = c.finish != null ? "Chegou" : $"Volta {Mathf.Clamp(c.laps + 1, 1, L)}/{L}";
+                h.lap.text = sim.ByTime ? $"{LapsCell(k)} v · T{c.lane + 1}" : c.finish != null ? "Chegou" : $"Volta {Mathf.Clamp(c.laps + 1, 1, L)}/{L}";
                 h.best.text = c.best != null ? $"Melhor {Fmt(c.best)}" : "";
             }
         }
@@ -690,13 +815,28 @@ namespace Autorama
         // 3 · 2 · 1 acompanhando as luzes vermelhas; no primeiro segundo da prova, VAI! em verde.
         void UpdateCountdown()
         {
-            bool cd = sim.phase == RaceSim.Phase.Countdown, go = sim.phase == RaceSim.Phase.Running && sim.t < 0.8f;
+            // Por tempo, entre as manches: "TROCA DE TRILHO" no meio da mesa; o "VAI!" vale para cada manche.
+            bool sw = sim.phase == RaceSim.Phase.Switch;
+            bool cd = sim.phase == RaceSim.Phase.Countdown, go = sim.phase == RaceSim.Phase.Running && sim.t - sim.Manche * (sim.ByTime ? sim.MancheLen : 0f) < 0.8f;
+            if (sw)
+            {
+                cdBox.style.display = panel.RaceMode ? DisplayStyle.Flex : DisplayStyle.None;
+                cdBox.style.left = panel.SideWidth;
+                cdText.text = $"TROCA DE TRILHO\n<size=40%>{MancheText.Replace("manche " + (sim.Manche + 1), "manche " + (sim.Manche + 2))}</size>";
+                cdText.EnableInClassList("cd-text--go", false);
+                cdText.EnableInClassList("cd-text--switch", true);
+                cdText.style.scale = new Scale(Vector2.one);
+                cdText.style.opacity = 1f;
+                return;
+            }
             cdBox.style.display = panel.RaceMode && (cd || go) ? DisplayStyle.Flex : DisplayStyle.None;
             if (!(cd || go)) return;
             cdBox.style.left = panel.SideWidth;
             float step = RaceSim.Count / 3f;
             int n = cd ? 3 - Mathf.Min(2, Mathf.FloorToInt(sim.t / step)) : 0;
-            float f = cd ? (sim.t % step) / step : sim.t / 0.8f;      // 0→1 dentro de cada número
+            float since = sim.t - sim.Manche * (sim.ByTime ? sim.MancheLen : 0f);
+            float f = cd ? (sim.t % step) / step : since / 0.8f;      // 0→1 dentro de cada número
+            cdText.EnableInClassList("cd-text--switch", false);
             cdText.text = cd ? n.ToString() : "VAI!";
             cdText.EnableInClassList("cd-text--go", !cd);
             cdText.style.scale = new Scale(Vector2.one * Mathf.Lerp(1.35f, 1f, Mathf.Min(1f, f * 3f)));
@@ -709,7 +849,13 @@ namespace Autorama
         string resSig;
         void SetResult(bool show)
         {
-            string sig = show ? $"{sim.winner}|{sim.cars[0].finish}|{sim.cars[1].finish}|{sim.cars[0].offs}|{sim.cars[1].offs}|{panel.CurrentMode}" : null;
+            string sig = null;
+            if (show)
+            {
+                var sb = new System.Text.StringBuilder($"{sim.winner}|{panel.CurrentMode}");
+                foreach (var c in sim.cars) sb.Append('|').Append(c.finish).Append('|').Append(c.offs);
+                sig = sb.ToString();
+            }
             if (show == resShown && sig == resSig) return;
             resShown = show; resSig = sig;
             DrawResult(show);
@@ -722,15 +868,16 @@ namespace Autorama
             banner.pickingMode = show && !OnlineRun ? PickingMode.Position : PickingMode.Ignore;
             if (!show) return;
             resTable.Clear();
-            int lead = Leader();
-            foreach (int k in new[] { lead, 1 - lead })
+            var ord = new List<int>(Order());
+            for (int pos = 0; pos < ord.Count; pos++)
             {
+                int k = ord[pos];
                 var c = sim.cars[k];
                 var r = El("res-row" + (k == sim.winner ? " res-row--win" : ""), resTable);
-                Text(k == lead ? "1º" : "2º", "res-pos", r);
+                Text($"{pos + 1}º", "res-pos", r);
                 El("hud-dot", r).style.backgroundColor = pads[k].root.resolvedStyle.borderTopColor;
                 Text(hud[k].name.text, "res-name", r);
-                Text(c.finish != null ? Fmt(c.finish) : "não terminou", "res-cell", r);
+                Text(sim.ByTime ? $"{LapsCell(k)} voltas" : c.finish != null ? Fmt(c.finish) : "não terminou", "res-cell", r);
                 Text("melhor " + Fmt(c.best), "res-cell res-cell--dim", r);
                 Text(c.offs == 1 ? "1 saída" : $"{c.offs} saídas", "res-cell res-cell--dim", r);
             }
@@ -754,7 +901,7 @@ namespace Autorama
             topBox.style.left = panel.SideWidth;
             UpdateHud();
             UpdateCountdown();
-            bool showLights = sim.phase == RaceSim.Phase.Countdown || (sim.phase == RaceSim.Phase.Running && sim.t < 1f);
+            bool showLights = sim.phase == RaceSim.Phase.Countdown || (sim.phase == RaceSim.Phase.Running && sim.t - sim.Manche * (sim.ByTime ? sim.MancheLen : 0f) < 1f);
             lights.style.display = showLights ? DisplayStyle.Flex : DisplayStyle.None;
             if (showLights)
             {
@@ -769,7 +916,7 @@ namespace Autorama
             {
                 bool champShow = ChampBanner(out string title, out string sub) && !showLights;
                 banner.style.display = champShow ? DisplayStyle.Flex : DisplayStyle.None;
-                if (champShow) { bannerTitle.text = title; bannerSub.text = sub; bannerTitle.EnableInClassList("banner-title--a", false); bannerTitle.EnableInClassList("banner-title--b", false); }
+                if (champShow) { bannerTitle.text = title; bannerSub.text = sub; BannerColor(-1); }
                 SetResult(champShow && sim.phase == RaceSim.Phase.Done && sim.winner >= 0);
                 return;
             }
@@ -777,13 +924,32 @@ namespace Autorama
             banner.style.display = showBanner ? DisplayStyle.Flex : DisplayStyle.None;
             SetResult(showBanner && sim.closed);
             if (!showBanner) return;
-            if (!sim.closed) { bannerTitle.text = "Pista aberta"; bannerSub.text = "Escolha um circuito fechado na lista."; bannerTitle.EnableInClassList("banner-title--a", false); bannerTitle.EnableInClassList("banner-title--b", false); return; }
+            if (!sim.closed) { bannerTitle.text = "Pista aberta"; bannerSub.text = "Escolha um circuito fechado na lista."; BannerColor(-1); return; }
             var w = sim.cars[sim.winner];
             bannerTitle.text = $"{LaneNames[sim.winner]} venceu";
-            bannerTitle.EnableInClassList("banner-title--a", sim.winner == 0);
-            bannerTitle.EnableInClassList("banner-title--b", sim.winner == 1);
-            bannerSub.text = $"{Fmt(w.finish)} · melhor volta {Fmt(w.best)}";
+            BannerColor(sim.winner);
+            bannerSub.text = sim.ByTime ? $"{LapsCell(sim.winner)} voltas em {Dur(sim.set.secs)} · melhor volta {Fmt(w.best)}" : $"{Fmt(w.finish)} · melhor volta {Fmt(w.best)}";
         }
+
+        void BannerColor(int lane)
+        {
+            for (int k = 0; k < LaneCls.Length; k++) bannerTitle.EnableInClassList("banner-title--" + LaneCls[k], k == lane);
+        }
+
+        // ---------- Corrida por tempo (seção 26) ----------
+
+        // Relógio: por voltas, o tempo de prova; por tempo, quanto falta (o total, antes da largada).
+        string ClockText()
+        {
+            if (sim.ByTime) return sim.phase == RaceSim.Phase.Idle ? Fmt(sim.set.secs) : Fmt(sim.TimeLeft);
+            return Fmt(sim.phase == RaceSim.Phase.Idle || sim.phase == RaceSim.Phase.Countdown ? 0f : sim.t);
+        }
+
+        // Distância em voltas com uma casa (por tempo) ou "voltas/total" (por voltas).
+        string LapsCell(int k) => sim.ByTime ? Num(Mathf.Max(0f, sim.Dist(k)), 2) : $"{sim.cars[k].laps}/{sim.set.laps}";
+        string MancheText => $"manche {Mathf.Min(sim.Manche + 1, sim.N)} de {sim.N}";
+        static string Dur(int secs) => secs % 60 == 0 ? $"{secs / 60} min" : $"{secs / 60}:{secs % 60:00}";
+        bool Racing => sim.phase == RaceSim.Phase.Countdown || sim.phase == RaceSim.Phase.Running || sim.phase == RaceSim.Phase.Switch;
 
         internal static string Fmt(float? s)
         {

@@ -31,7 +31,7 @@ namespace Autorama
 
         bool OnlinePresent(string id) => room != null && room.Player(id) != null;
 
-        static int LaneOf(Pilot[] pl, string id) { for (int k = 0; k < 2; k++) if (pl[k].id == id) return k; return -1; }
+        static int LaneOf(Pilot[] pl, string id) { for (int k = 0; k < pl.Length; k++) if (pl[k] != null && pl[k].id == id) return k; return -1; }
 
         // O trilho do meu carrinho na bateria da vez; −1 se estou só assistindo.
         int MyLane() => HeatNow(out _, out _, out _, out _, out var pl) ? LaneOf(pl, myId) : -1;
@@ -49,6 +49,7 @@ namespace Autorama
                 {
                     id = "online", name = string.IsNullOrWhiteSpace(m.title) ? "Campeonato online" : Safe(m.title), created = Champ.Now,
                     rules = new ChampRules { vmax = m.rules.vmax, ramp = m.rules.ramp, grip = m.rules.grip, collide = m.rules.collide },
+                    byTime = m.rules.byTime,
                 };
                 for (int i = 0; i < m.pilots.Count; i++)
                 {
@@ -56,9 +57,12 @@ namespace Autorama
                     string tag = Champ.TagOf(p.name);
                     C.pilots.Add(new Pilot { id = p.id, name = Safe(p.name), tag = tag != "" ? tag : "P" + (i + 1), color = p.color });
                 }
-                foreach (var s in m.stages) C.stages.Add(new Stage { name = Safe(s.name), laps = s.laps, hash = s.hash, data = TrackSave.FromJson(s.json) });
+                foreach (var s in m.stages) C.stages.Add(new Stage { name = Safe(s.name), laps = s.laps, secs = s.secs > 0 ? s.secs : 120, hash = s.hash, data = TrackSave.FromJson(s.json) });
                 if (C.pilots.Count < 2 || C.stages.Count == 0) throw new Exception("campeonato vazio");
-                C.heats = Champ.MakeHeats(C.pilots.Count, C.stages.Count);
+                // Pista de 2 ou de 4 (a primeira etapa decide; todas iguais). Com menos jogadores que trilhos, sobra trilho vazio.
+                C.faixas = C.stages[0].data.Faixas;
+                foreach (var s in C.stages) if (s.data.Faixas != C.faixas) throw new Exception("etapas de tipos diferentes");
+                C.heats = Champ.MakeHeats(C.pilots.Count, C.stages.Count, C.faixas, C.byTime);
             }
             catch (Exception e)
             {
@@ -71,7 +75,7 @@ namespace Autorama
             onlineChamp = C;
             remoteHeld.Clear(); remoteRe.Clear(); remoteGas.Clear(); lastSentGas = 1f;
             myRe = 0; lastSentHeld = false; snapAcc = 1f; inAcc = 0f;
-            for (int k = 0; k < 2; k++) uiHeld[k] = false;
+            for (int k = 0; k < RaceSim.MaxCars; k++) uiHeld[k] = false;
             panel.SetOnlineRacing(true);
             ApplyCameraSettings();
             // A tela do campeonato offline muda de aba, e o chat entra logo abaixo do placar da bateria.
@@ -94,8 +98,9 @@ namespace Autorama
             panel.ChampBox.Add(cRun);                    // devolve a tela à aba Campeonato (ela se redesenha ao abrir)
             cRecs.parent.style.display = DisplayStyle.Flex;
             remoteHeld.Clear(); remoteRe.Clear();
-            for (int k = 0; k < 2; k++) uiHeld[k] = false;
-            sim.set = set; sim.cutoff = null; sim.aiSkill[0] = sim.aiSkill[1] = 0;
+            for (int k = 0; k < RaceSim.MaxCars; k++) uiHeld[k] = false;
+            sim.set = set; sim.cutoff = null; System.Array.Clear(sim.aiSkill, 0, sim.aiSkill.Length);
+            for (int k = 0; k < RaceSim.MaxCars; k++) sim.present[k] = true;
             sim.Reset();
             cam.SetRaceViewMode(TopDownCamera.RaceViewMode.Atual);
             if (builderStash != null) builder.ShowTrack(builderStash);
@@ -110,14 +115,14 @@ namespace Autorama
         {
             UseChampTrack();
             sim.Reset();
-            for (int k = 0; k < 2; k++) uiHeld[k] = false;
+            for (int k = 0; k < RaceSim.MaxCars; k++) uiHeld[k] = false;
             lastSentHeld = false; snapAcc = 1f;
             if (HeatNow(out _, out int idx, out _, out _, out var pl))
             {
                 int lane = LaneOf(pl, myId);
                 if (lane >= 0) cam.SetThirdPersonCar(lane);
                 // Ninguém da bateria está na sala: vale como não terminada, sem esperar.
-                if (IsHost && !Array.Exists(pl, p => OnlinePresent(p.id))) { OnlineCommit(idx, OnlineDnf()); return; }
+                if (IsHost && !Array.Exists(pl, p => p != null && OnlinePresent(p.id))) { OnlineCommit(idx, OnlineDnf()); return; }
             }
             scoreDirty = champDirty = true;
             DrawOnlineRun();
@@ -155,9 +160,10 @@ namespace Autorama
                 bool mine = myGas > 0f;
                 if (IsHost)
                 {
-                    for (int k = 0; k < 2; k++)
+                    for (int k = 0; k < sim.N && k < pl.Length; k++)
                     {
                         if (k == lane) { sim.cars[k].held = mine; if (mine) sim.cars[k].gas = myGas; continue; }
+                        if (pl[k] == null) { sim.cars[k].held = false; continue; }     // trilho vazio
                         sim.cars[k].held = OnlinePresent(pl[k].id) && remoteHeld.TryGetValue(pl[k].id, out var h) && h;
                         sim.cars[k].gas = remoteGas.TryGetValue(pl[k].id, out var g) ? g : 1f;
                     }
@@ -178,7 +184,7 @@ namespace Autorama
             UpdateTop();
             if (scoreDirty) { scoreDirty = false; DrawScore(); DrawStatus(); }
             if (champDirty) { champDirty = false; DrawOnlineRun(); }
-            cClock.text = Fmt(sim.phase == RaceSim.Phase.Idle || sim.phase == RaceSim.Phase.Countdown ? 0f : sim.t);
+            cClock.text = ClockText();
         }
 
         // Manda o botão e o nível do acelerador quando mudam (o nível só conta a partir de 3 pontos) ou a cada HeldRefresh.
@@ -195,7 +201,7 @@ namespace Autorama
         void SendSnapshot(float dt, int heat)
         {
             snapAcc += dt;
-            bool racing = sim.phase == RaceSim.Phase.Countdown || sim.phase == RaceSim.Phase.Running;
+            bool racing = Racing;
             if (snapAcc < (racing ? SnapFast : SnapSlow)) return;
             snapAcc = 0f;
             net.Send(new NetOutSnap { snap = NetSync.Pack(sim, heat) });
@@ -255,8 +261,8 @@ namespace Autorama
             if (!OnlineRun || IsHost) return;
             if (m.k == "res")
             {
-                if (m.hi != Champ.CurrentHeat(onlineChamp) || m.heatRes.Count < 2) return;
-                onlineChamp.heats[m.hi].res = new[] { m.heatRes[0], m.heatRes[1] };
+                if (m.hi != Champ.CurrentHeat(onlineChamp) || m.heatRes.Count < onlineChamp.heats[m.hi].p.Length) return;
+                onlineChamp.heats[m.hi].res = m.heatRes.GetRange(0, onlineChamp.heats[m.hi].p.Length).ToArray();
                 if (Champ.CurrentHeat(onlineChamp) < 0) onlineChamp.finished = Champ.Now;
                 OnlineHeatLoaded();
             }
@@ -289,16 +295,17 @@ namespace Autorama
 
         HeatResult[] OnlineResults()
         {
-            var res = new HeatResult[2];
-            for (int k = 0; k < 2; k++)
+            var res = new HeatResult[sim.N];
+            for (int k = 0; k < sim.N; k++)
             {
                 var c = sim.cars[k];
-                res[k] = new HeatResult { laps = c.laps, time = c.finish ?? sim.t, dnf = !c.finish.HasValue, best = c.best ?? -1f, offs = c.offs, hits = c.hits };
+                if (!sim.present[k]) { res[k] = new HeatResult { dnf = true }; continue; }
+                res[k] = new HeatResult { laps = c.laps, time = c.finish ?? sim.t, dnf = !c.finish.HasValue && !sim.ByTime, best = c.best ?? -1f, offs = c.offs, hits = c.hits, dist = Mathf.Max(0f, sim.Dist(k)) };
             }
             return res;
         }
 
-        static HeatResult[] OnlineDnf() => new[] { new HeatResult { dnf = true }, new HeatResult { dnf = true } };
+        HeatResult[] OnlineDnf() { var r = new HeatResult[sim.N]; for (int k = 0; k < r.Length; k++) r[k] = new HeatResult { dnf = true }; return r; }
 
         void OnlineSave()
         {

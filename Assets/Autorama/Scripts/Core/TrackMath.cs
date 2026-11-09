@@ -20,6 +20,13 @@ namespace Autorama
         public const float TrackWidth = 1f;
         public const float LaneOffset = 0.25f;
         public static readonly float[] Lanes = { -LaneOffset, LaneOffset };   // trilho 1 (esquerda), trilho 2 (direita)
+
+        // Pista de 4 carros (seção 25 do guia): a geometria em células é a mesma, mas 1 célula vale 2 no mundo
+        // (Scale) e a largura tem 4 trilhos, a cada 0,25 célula. No mundo: trilhos a ±0,25 e ±0,75 e raio 5 no centro.
+        public static readonly float[] Lanes4 = { -0.375f, -0.125f, 0.125f, 0.375f };
+        public static int Faixas(int f) => f == 4 ? 4 : 2;
+        public static float[] LanesOf(int faixas) => faixas == 4 ? Lanes4 : Lanes;
+        public static float Scale(int faixas) => faixas == 4 ? 2f : 1f;
         public const int MaxLevel = 2;            // 0 = chão, 1 = ponte, 2 = ponte sobre ponte
         public const float LevelHeight = 0.75f;   // 1 nível = 3/4 de célula: vão para o carrinho e sombra visível de cima
 

@@ -65,7 +65,7 @@ namespace Autorama
                 if (!dragging && (screen - pressScreen).sqrMagnitude > 16f) { dragging = true; builder.BeginEdit(); }
                 if (dragging)
                 {
-                    Vector3 d = cam.MouseOnTable() - grabWorld;
+                    Vector3 d = (cam.MouseOnTable() - grabWorld) / builder.Scale;     // em células
                     builder.MoveStart(grabOrigin + new Vector2(d.x, d.z));
                 }
             }

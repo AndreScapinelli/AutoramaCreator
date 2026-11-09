@@ -262,3 +262,153 @@ for (const [name, p] of Object.entries(PIECES)){
     return [...c, 1];
   }));
 }
+
+/* =====================================================================
+   PISTA DE 4 CARROS (seção 25 do guia): arte própria, não é a de 2 esticada.
+   Estilo "circuito": asfalto azulado e mais liso, trilhos de cobre, faixa tracejada
+   no meio, zebras azul e branca, inclinadas com chevrons brancos e muro azul.
+   Na textura, u atravessa a pista (o de -0,5 a 0,5 célula) e v anda 1 célula.
+   Trilhos em ±0,125 e ±0,375 célula (no mundo: ±0,25 e ±0,75, a célula vale 2).
+   ===================================================================== */
+const C4 = {
+  asphalt:hex('#2A3138'), edge:hex('#F4F6F8'), copper:hex('#C07A45'), copperHi:hex('#E3A372'), slot:hex('#0B0E11'),
+  kerbA:hex('#1F5ED4'), kerbB:hex('#F4F6F8'), wall:hex('#24467F'), wallHi:hex('#5C86C8'), chevron:hex('#E9EEF5'),
+  shoulder:hex('#3B4650'), dash:hex('#D9DEE3'),
+  lanes:[hex('#D3261C'), hex('#1F5ED4'), hex('#2FA95A'), hex('#E8A91E')],
+  lanesDark:[hex('#8E1912'), hex('#163F8F'), hex('#1D6F3A'), hex('#9C700F')],
+  board:hex('#EEF2F5'), minor:hex('#D2DAE2'), major:hex('#98A8B8'),
+};
+const LANES4 = [-.375, -.125, .125, .375];
+const octaves4 = [16, 32, 64, 128, 256].map((p, i) => [valueNoise(p, 41 + i), .55 ** i]);
+const fbm4 = (u, v) => { let s = 0, n = 0; for (const [f, w] of octaves4){ s += f(u, v) * w; n += w; } return s / n; };
+const grain4 = (() => { const r = rng(4242), g = Float32Array.from({ length: 1024 * 1024 }, r); return (u, v) => g[(Math.floor(((v % 1) + 1) % 1 * 1024)) * 1024 + Math.floor(((u % 1) + 1) % 1 * 1024)]; })();
+function asphalt4(u, v){
+  let c = shade(C4.asphalt, (fbm4(u, v) - .5) * 14);
+  const g = grain4(u, v);
+  if (g > .985) c = shade(c, 20); else if (g < .012) c = shade(c, -10);
+  return c;
+}
+// Trilho de cobre trançado: listras finas em diagonal dão a impressão da trança.
+function copperAt(u, v, d){
+  const braid = ((u * 900 + v * 700) % 1 + 1) % 1;
+  return shade(braid < .5 ? C4.copper : C4.copperHi, (fbm4(u * 2, v) - .5) * 18 - Math.abs(d) * 300);
+}
+// Fendas e trilhos nas posições dadas (lanes = deslocamentos naquele v).
+function slots4(c, u, v, o, lanes){
+  for (const l of lanes){ const d = Math.abs(o - l); if (d > .022 && d < .04) c = copperAt(u, v, d - .031); }
+  for (const l of lanes){ if (Math.abs(o - l) < .011) c = C4.slot; }
+  return c;
+}
+// curb: 0 reta, ±1 lado de fora (como na de 2); banked: curva inclinada.
+function trackSection4(curb, banked = false){
+  const N = 1024;
+  return render(N, N, 2, (x, y) => {
+    const u = x / N, v = 1 - y / N, o = u - .5, ao = Math.abs(o);
+    let c = asphalt4(u, v);
+    if (banked) c = mix(c, C4.wallHi, Math.max(0, curb * o + .5) * .22);              // clareia em azul rumo ao alto
+    LANES4.forEach((l, i) => { const w = Math.max(0, 1 - Math.abs(o - l) / .125); c = mix(c, C4.lanes[i], .05 * w * w); });   // tinta suave da cor de cada trilho
+    if (!banked && ao < .006 && (v * 4) % 1 < .55) c = C4.dash;                       // tracejado no meio (entre 2 e 3)
+    if (banked && ao < .47){                                                          // chevrons brancos apontando para o alto
+      const k = ((v * 3 - curb * o * 1.2) % 1 + 1) % 1;
+      if (k < .1) c = mix(c, C4.chevron, .55);
+    }
+    const out = curb !== 0 && Math.sign(o) === curb;
+    if (ao > .475) c = out && banked ? shade(C4.wall, (fbm4(u * 4, v) - .5) * 14) : C4.shoulder;
+    else if (out && !banked && ao > .43) c = Math.floor(v * 6) % 2 ? C4.kerbA : C4.kerbB;   // zebra azul e branca
+    else if (ao > .455) c = C4.edge;
+    return [...slots4(c, u, v, o, LANES4), 1];
+  });
+}
+writePNG('pista4-reta.png', 1024, 1024, trackSection4(0));
+writePNG('pista4-curva-direita.png', 1024, 1024, trackSection4(-1));
+writePNG('pista4-curva-esquerda.png', 1024, 1024, trackSection4(1));
+writePNG('pista4-curva-inclinada-direita.png', 1024, 1024, trackSection4(-1, true));
+writePNG('pista4-curva-inclinada-esquerda.png', 1024, 1024, trackSection4(1, true));
+
+// Cruzamento de 4: a peça inteira numa imagem. Cada trilho faz o S l·cos(π·v): 1↔4 e 2↔3.
+// No meio, um losango branco marca onde os quatro se encontram.
+function crossSection4(cells){
+  const W = 512, H = 512 * cells;
+  return render(W, H, 2, (x, y) => {
+    const u = x / W, v = 1 - y / H, o = u - .5, ao = Math.abs(o);
+    let c = asphalt4(u, v * cells);
+    const dv = Math.abs(v - .5) * cells;                                              // distância ao meio, em células
+    if (Math.abs(ao + dv * .8 - .3) < .012 && dv < .38) c = mix(c, C4.chevron, .85);   // losango
+    if (ao > .475) c = C4.shoulder; else if (ao > .455) c = C4.edge;
+    const lanes = LANES4.map(l => l * Math.cos(Math.PI * v));
+    return [...slots4(c, u, v * cells, o, lanes), 1];
+  });
+}
+writePNG('pista4-cruzamento.png', 512, 2048, crossSection4(4));
+writePNG('pista4-cruzamento-curto.png', 512, 1024, crossSection4(2));
+
+// Dígitos de 7 segmentos (para os números dos boxes). x, y de 0 a 1 dentro do dígito (y para cima).
+const SEG = { 1:'bc', 2:'abged', 3:'abgcd', 4:'fgbc' };
+function onDigit(n, x, y){
+  const t = .17, segs = SEG[n];
+  const H = yy => Math.abs(y - yy) < t / 2 && x > .1 && x < .9;
+  const V = (xx, y0, y1) => Math.abs(x - xx) < t / 2 && y > y0 && y < y1;
+  return (segs.includes('a') && H(.95)) || (segs.includes('g') && H(.5)) || (segs.includes('d') && H(.05)) ||
+         (segs.includes('f') && V(.1, .5, .97)) || (segs.includes('b') && V(.9, .5, .97)) ||
+         (segs.includes('e') && V(.1, .03, .5)) || (segs.includes('c') && V(.9, .03, .5));
+}
+// Base de largada de 4: a peça inteira (2 células). Boxes numerados em volta do lugar de cada carrinho
+// (o carrinho para a 0,375 célula do começo), a bandeirada de 1,2 a 1,45 célula e a linha de chegada larga.
+function startSection4(){
+  const W = 1024, H = 2048, cells = 2;
+  return render(W, H, 2, (x, y) => {
+    const u = x / W, v = 1 - y / H, o = u - .5, ao = Math.abs(o), s = v * cells;      // s: células desde o começo
+    let c = asphalt4(u, s);
+    if (ao < .006 && (s * 4) % 1 < .55 && (s < .1 || s > 1.5)) c = C4.dash;
+    LANES4.forEach((l, i) => {
+      const d = o - l;
+      // Box: moldura em "U" aberta para a frente, na cor do trilho.
+      const inBox = Math.abs(d) < .1 && s > .17 && s < .6;
+      const frame = inBox && (Math.abs(d) > .085 || s < .19);
+      if (frame) c = C4.lanes[i];
+      // Número pintado logo atrás do box, ao lado da fenda.
+      const nx = (d - .025) / .055, ny = (s - .03) / .11;
+      if (nx > 0 && nx < 1 && ny > 0 && ny < 1 && onDigit(i + 1, nx, ny)) c = C4.edge;
+    });
+    if (s > 1.2 && s < 1.45 && ao < .455) c = (Math.floor((o + .5) / .0625) + Math.floor((s - 1.2) / .0625)) % 2 ? C4.slot : C4.edge;
+    if (ao > .475) c = C4.shoulder; else if (ao > .455) c = C4.edge;
+    return [...slots4(c, u, s, o, LANES4), 1];
+  });
+}
+writePNG('pista4-largada.png', 1024, 2048, startSection4());
+
+// Muro azul das peças no alto (repete ao longo) e mesa da pista de 4, em tom frio.
+writePNG('mureta4.png', 64, 256, render(64, 256, 2, (x, y) => [...(Math.floor(y / 32) % 2 ? C4.wall : C4.wallHi), 1]));
+writePNG('grade-mesa4.png', 256, 256, render(256, 256, 1, (x, y) => {
+  x = Math.floor(x); y = Math.floor(y);
+  const major = x < 2 || x > 253 || y < 2 || y > 253;
+  const minor = x % 64 === 0 || x % 64 === 63 || y % 64 === 0 || y % 64 === 63;
+  return [...(major ? C4.major : minor ? C4.minor : C4.board), 1];
+}));
+
+// Os carrinhos 3 e 4.
+writePNG('carrinho-verde.png', 640, 384, car(C4.lanes[2], C4.lanesDark[2]));
+writePNG('carrinho-amarelo.png', 640, 384, car(C4.lanes[3], C4.lanesDark[3]));
+
+// Ícones da pista de 4 (mesma escala dos de 2: a pista larga aparece com a mesma largura de célula).
+for (const [name, p] of Object.entries(PIECES)){
+  const [mx, my] = bbox(p), BOX = 4.4, N = 256;
+  writePNG('icone4-' + name + '.png', N, N, render(N, N, 4, (x, y) => {
+    const X = mx + (x / N - .5) * BOX, Y = my + (y / N - .5) * BOX;
+    const L = localOf(p, X, Y);
+    if (!L || Math.abs(L.o) > .5) return [0, 0, 0, 0];
+    const ao = Math.abs(L.o), outer = p.kind === 'c' && -p.dir * L.o > .4;
+    let c = C4.asphalt;
+    if (p.bank && ((L.s * 3 - p.dir * L.o) % 1 + 1) % 1 < .14) c = mix(c, C4.chevron, .6);
+    if (outer && !p.bank) c = Math.floor(L.s * 6) % 2 ? C4.kerbA : C4.kerbB;
+    if (outer && p.bank) c = C4.wall;
+    if (ao > .46 && !outer) c = C4.edge;
+    LANES4.forEach((l, i) => {
+      const at = p.cross ? l * Math.cos(Math.PI * L.s / p.len) : l;
+      if (Math.abs(L.o - at) < .03) c = C4.lanes[i];
+    });
+    if (p.start && Math.abs(L.s - 1.3) < .1 && ao < .46) c = (Math.floor((L.o + .5) / .125) + Math.floor((L.s - 1.2) / .1)) % 2 ? C4.slot : C4.edge;
+    if (p.rise && onChevron(L, p.rise, p.len)) c = C4.chevron;
+    return [...c, 1];
+  }));
+}

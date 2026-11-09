@@ -20,8 +20,10 @@ namespace Autorama
         static readonly List<int> Surface = new List<int>(), Checker = new List<int>(), Guard = new List<int>();
 
         // only: desenha tudo com este material (peça fantasma), sem pilares.
-        public void Build(Segment s, TrackTheme theme, Material only = null)
+        // faixas 4: a arte da pista larga (a malha é em células; a raiz da pista tem escala 2).
+        public void Build(Segment s, TrackTheme theme, Material only = null, int faixas = 2)
         {
+            bool wide = faixas == 4 && theme != null && theme.Has4;
             V.Clear(); UV.Clear(); Surface.Clear(); Checker.Clear(); Guard.Clear();
             var d = s.def;
             int dir = s.piece.dir;
@@ -33,15 +35,23 @@ namespace Autorama
             float Y(float t, float lateral) => TrackLayout.SurfaceY(s, t, lateral);
 
             // A textura do cruzamento cobre a peça inteira (v de 0 a 1 nas 4 células); as outras repetem a cada célula.
-            AddStrip(Surface, s, ts, -0.5f, 0.5f, 0f, d.IsCross ? 1f / d.Length : 1f, Y);
+            // Na pista de 4, a largada também é uma imagem só (boxes numerados e bandeirada pintados nela).
+            bool whole = d.IsCross || (wide && d.IsStart);
+            AddStrip(Surface, s, ts, -0.5f, 0.5f, 0f, whole ? 1f / d.Length : 1f, Y);
 
-            if (d.IsStart)
+            if (d.IsStart && !wide)
             {
                 // Bandeirada: 1 célula de largura × 0,25 ao longo, a 1,2 célula do começo.
                 float t0 = 1.2f / d.Length, t1 = 1.45f / d.Length;
                 AddStrip(Checker, s, new[] { t0, t1 }, -0.5f, 0.5f, 0.004f, 1f / 0.25f, Y);
             }
-            if (s.High)
+            if (s.High && wide)
+            {
+                // Pista de 4: muro azul listrado, mais fino e mais alto, nas bordas de fora (o asfalto vai até ±0,475).
+                AddStrip(Guard, s, ts, -0.5f, -0.48f, 0.06f, 2f, Y);
+                AddStrip(Guard, s, ts, 0.48f, 0.5f, 0.06f, 2f, Y);
+            }
+            else if (s.High)
             {
                 // Mureta clara dos dois lados das peças no alto.
                 AddStrip(Guard, s, ts, -0.5f, -0.45f, 0.05f, 1f, Y);
@@ -64,13 +74,15 @@ namespace Autorama
             mesh.RecalculateBounds();
 
             var mr = GetComponent<MeshRenderer>();
-            mr.sharedMaterials = only != null ? new[] { only, only, only } : new[] { theme.Surface(d, dir), theme.checker, theme.guard };
+            mr.sharedMaterials = only != null ? new[] { only, only, only }
+                : wide ? new[] { theme.Surface(d, dir, 4), theme.checker, theme.guard4 != null ? theme.guard4 : theme.guard }
+                : new[] { theme.Surface(d, dir), theme.checker, theme.guard };
             mr.shadowCastingMode = only != null ? UnityEngine.Rendering.ShadowCastingMode.Off : UnityEngine.Rendering.ShadowCastingMode.On;
 
             var col = GetComponent<MeshCollider>();
             if (col) { col.sharedMesh = null; col.sharedMesh = mesh; }
 
-            BuildPillars(s, only == null ? theme : null);
+            BuildPillars(s, only == null ? theme : null, wide);
         }
 
         // Destaque por cima da peça: seleção (amarelo) ou sobreposição (vermelho).
@@ -91,11 +103,14 @@ namespace Autorama
             overlay.enabled = true;
         }
 
-        void BuildPillars(Segment s, TrackTheme theme)
+        // Pista de 2: dois pilares redondos por fileira. Pista de 4: três pilares quadrados e finos de aço escuro
+        // (bordas e meio), com uma travessa embaixo do tabuleiro.
+        void BuildPillars(Segment s, TrackTheme theme, bool wide = false)
         {
             foreach (var p in pillars) Kill(p);
             pillars.Clear();
             if (theme == null || !s.High) return;
+            if (wide) { BuildPillars4(s, theme); return; }
             int count = Mathf.Max(1, Mathf.RoundToInt(s.def.CenterLength / 1.25f));
             for (int j = 0; j <= count; j++)
             {
@@ -116,6 +131,41 @@ namespace Autorama
                     pillars.Add(go);
                 }
             }
+        }
+
+        void BuildPillars4(Segment s, TrackTheme theme)
+        {
+            var mat = theme.support4 != null ? theme.support4 : theme.support;
+            int count = Mathf.Max(1, Mathf.RoundToInt(s.def.CenterLength));
+            for (int j = 0; j <= count; j++)
+            {
+                float t = j / (float)count;
+                if (s.ZAt(t) < 0.25f) continue;
+                var q = TrackMath.PoseAt(s.a, s.def, s.piece.dir, t);
+                var rot = Quaternion.Euler(0f, -q.heading, 0f);
+                foreach (float side in new[] { -0.44f, 0f, 0.44f })
+                {
+                    var o = TrackMath.Offset(q, side);
+                    float top = TrackLayout.SurfaceY(s, t, side) - 0.06f;
+                    pillars.Add(Box("Pilar", mat, new Vector3(o.x, top / 2f, o.y), new Vector3(0.05f, top, 0.05f), rot));
+                }
+                // Travessa logo abaixo da pista, de borda a borda.
+                pillars.Add(Box("Travessa", mat, new Vector3(q.pos.x, TrackLayout.SurfaceY(s, t, 0f) - 0.035f, q.pos.y), new Vector3(0.06f, 0.05f, 0.95f), rot));
+            }
+        }
+
+        GameObject Box(string name, Material mat, Vector3 pos, Vector3 size, Quaternion rot)
+        {
+            var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            go.name = name;
+            go.hideFlags = HideFlags.DontSave;
+            Kill(go.GetComponent<Collider>());
+            go.transform.SetParent(transform, false);
+            go.transform.localPosition = pos;
+            go.transform.localRotation = rot;
+            go.transform.localScale = size;
+            go.GetComponent<MeshRenderer>().sharedMaterial = mat;
+            return go;
         }
 
         // Faixa entre os deslocamentos o1 (esquerda) e o2 (direita) nos pontos ts da peça.

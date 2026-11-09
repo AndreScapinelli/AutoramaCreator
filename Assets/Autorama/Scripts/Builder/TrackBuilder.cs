@@ -43,6 +43,12 @@ namespace Autorama
         };
 
         public string TrackName { get; set; } = "";
+        // 2 ou 4 carros. A geometria em células é a mesma; na pista de 4, a raiz das peças e a mesa ficam com escala 2
+        // (1 célula = 2 unidades do mundo). Converta com CellToWorld/WorldToCell (seção 25 do guia).
+        public int Faixas { get; private set; } = 2;
+        public float Scale => TrackMath.Scale(Faixas);
+        public Vector3 CellToWorld(Vector3 cell) => transform.position + cell * Scale;
+        public Vector3 WorldToCell(Vector3 world) => (world - transform.position) / Scale;
         public Pose2 Origin { get; private set; }
         public readonly List<TrackPiece> pieces = new List<TrackPiece>();
         public List<Segment> Segments { get; private set; } = new List<Segment>();
@@ -52,7 +58,7 @@ namespace Autorama
         public bool CanRedo => redo.Count > 0;
 
         public event Action Changed;
-        public event Action<Vector2> Shifted;     // a pista foi empurrada para dentro da mesa (a câmera acompanha)
+        public event Action<Vector2> Shifted;     // a pista foi empurrada para dentro da mesa (a câmera acompanha; em unidades do mundo)
 
         readonly List<TrackPieceView> views = new List<TrackPieceView>();
         readonly Stack<string> undo = new Stack<string>(), redo = new Stack<string>();
@@ -208,8 +214,10 @@ namespace Autorama
 
         public void Select(int i) { Selected = (i == Selected) ? -1 : i; Rebuild(); }
 
-        public void NewTrack() => Commit(() =>
+        // Nova pista vazia de 2 ou 4 carros (sem argumento, mantém o tipo atual).
+        public void NewTrack(int faixas = 0) => Commit(() =>
         {
+            if (faixas != 0) Faixas = TrackMath.Faixas(faixas);
             pieces.Clear();
             pieces.Add(new TrackPiece(PieceCatalog.Start.Id));
             Tail = 0;
@@ -219,7 +227,16 @@ namespace Autorama
 
         public void Load(TrackSave s) => Commit(() => { Apply(s); Selected = -1; });
 
-        public TrackSave ToSave() => TrackSave.From(TrackName, boardSize, cellCm, Origin, pieces, Tail);
+        public TrackSave ToSave() => TrackSave.From(TrackName, boardSize, cellCm, Origin, pieces, Tail, Faixas);
+
+        // Troca o tipo da pista só enquanto ela tem apenas a largada: converter uma pista pronta não faz sentido.
+        public bool CanChangeFaixas => pieces.Count <= 1;
+        public void SetFaixas(int faixas)
+        {
+            faixas = TrackMath.Faixas(faixas);
+            if (faixas == Faixas || !CanChangeFaixas) return;
+            Commit(() => Faixas = faixas);
+        }
 
         // ---------- Desfazer ----------
 
@@ -261,7 +278,7 @@ namespace Autorama
             if (dx != 0 || dz != 0)
             {
                 Origin = new Pose2(Origin.pos + new Vector2(dx, dz), Origin.heading);
-                Shifted?.Invoke(new Vector2(dx, dz));
+                Shifted?.Invoke(new Vector2(dx, dz) * Scale);     // no mundo
             }
             boardSize = new Vector2Int(w, h);
             return true;
@@ -287,6 +304,7 @@ namespace Autorama
             if (Tail > 0 && TrackLayout.Analyze(Origin, TrackLayout.Build(Origin, pieces, Tail), Tail).closed) Tail = 0;
             boardSize = new Vector2Int(Mathf.Clamp(s.mesa.w, 8, 120), Mathf.Clamp(s.mesa.h, 8, 120));
             cellCm = s.escalaCm > 0 ? s.escalaCm : 15f;
+            Faixas = s.Faixas;
             TrackName = s.nome ?? "";
             if (Selected >= pieces.Count) Selected = -1;
         }
@@ -298,7 +316,8 @@ namespace Autorama
             if (theme == null || pieces.Count == 0) return;
             if (Selected >= pieces.Count) Selected = -1;
             Segments = TrackLayout.Build(Origin, pieces, Tail);
-            Info = TrackLayout.Analyze(Origin, Segments, Tail);
+            Info = TrackLayout.Analyze(Origin, Segments, Tail, Faixas);
+            Root.localScale = Vector3.one * Scale;
 
             views.RemoveAll(v => v == null);
             while (views.Count < Segments.Count)
@@ -315,7 +334,7 @@ namespace Autorama
                 var s = Segments[i];
                 views[i].index = i;
                 views[i].name = $"{i + 1:00} {s.piece.Describe()}";
-                views[i].Build(s, theme);
+                views[i].Build(s, theme, null, Faixas);
                 // Na corrida, sem destaques de edição.
                 views[i].SetHighlight(RaceMode ? null : i == Selected ? theme.selected : Info.overlaps.Contains(i) ? theme.overlap : null);
             }
@@ -325,7 +344,7 @@ namespace Autorama
             if (arrow2) arrow2.gameObject.SetActive(!RaceMode);
             if (ghostEntry.HasValue && !RaceMode) ShowGhost(ghostEntry.Value); else if (ghost) ghost.gameObject.SetActive(false);
             if (RaceMode) SetHoverCell(null);
-            if (board) board.Build(boardSize);
+            if (board) board.Build(boardSize, Scale, theme.board4);
             // Só salva o rascunho no Play e fora da corrida: no Editor a pista é só mostrada,
             // e na corrida a pista em uso pode ser outra (escolhida na lista).
             if (Application.isPlaying && !RaceMode)
@@ -477,7 +496,7 @@ namespace Autorama
             };
             seg.b = TrackMath.PoseAt(seg.a, seg.def, gdir, 1f);
             ghost.gameObject.SetActive(true);
-            ghost.Build(seg, theme, theme.selected);
+            ghost.Build(seg, theme, theme.selected, Faixas);
         }
 
         public void HideGhost()

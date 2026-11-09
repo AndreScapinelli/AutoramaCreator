@@ -32,17 +32,18 @@ namespace Autorama
         // offset > 0 = lado direito. Na curva à direita (dir +1) o centro fica à direita, então o trilho da direita tem raio menor.
         public float LaneLength(int dir, float offset)
         {
-            if (IsCross) return CrossLaneLength(Length);
+            if (IsCross) return CrossLaneLength(Length, Mathf.Abs(offset));
             return IsCurve ? Angle * Mathf.Deg2Rad * (Radius - dir * offset) : Length;
         }
 
-        // Comprimento do S do cruzamento (o mesmo para os dois trilhos).
-        static float CrossLaneLength(float length)
+        // Comprimento do S do cruzamento: o mesmo para os trilhos simétricos (na pista de 4, o 1 e o 4 fazem um S
+        // maior que o 2 e o 3).
+        static float CrossLaneLength(float length, float amp)
         {
             float s = 0f; const int n = 200;
             for (int k = 0; k < n; k++)
             {
-                float t = (k + 0.5f) / n, d = TrackMath.LaneOffset * Mathf.PI / length * Mathf.Sin(Mathf.PI * t);
+                float t = (k + 0.5f) / n, d = amp * Mathf.PI / length * Mathf.Sin(Mathf.PI * t);
                 s += Mathf.Sqrt(1f + d * d) * length / n;
             }
             return s;

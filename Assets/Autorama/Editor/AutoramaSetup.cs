@@ -46,14 +46,15 @@ namespace Autorama.EditorTools
                 var path = AssetDatabase.GUIDToAssetPath(guid);
                 var imp = (TextureImporter)AssetImporter.GetAtPath(path);
                 string name = Path.GetFileNameWithoutExtension(path);
-                bool repeat = name.StartsWith("pista-") || name == "grade-mesa" || name == "asfalto" || name == "zebra" || name == "sobreposicao";
+                bool repeat = name.StartsWith("pista-") || name.StartsWith("pista4-") || name.StartsWith("grade-mesa") || name == "mureta4"
+                              || name == "asfalto" || name == "zebra" || name == "sobreposicao";
                 imp.textureType = TextureImporterType.Default;
                 imp.wrapMode = repeat ? TextureWrapMode.Repeat : TextureWrapMode.Clamp;
                 imp.alphaIsTransparency = !repeat;
                 imp.mipmapEnabled = true;
                 imp.filterMode = FilterMode.Trilinear;
                 imp.anisoLevel = 8;
-                imp.maxTextureSize = 1024;
+                imp.maxTextureSize = name.StartsWith("pista4-") ? 2048 : 1024;     // a pista de 4 tem o dobro de detalhe por célula
                 imp.textureCompression = TextureImporterCompression.CompressedHQ;
                 imp.SaveAndReimport();
             }
@@ -151,9 +152,27 @@ namespace Autorama.EditorTools
             theme.overlap    = Unlit("Sobreposicao", T("sobreposicao"), Color.white, true);
             boardMat         = Lit("Mesa", T("grade-mesa"), Color.white);
 
+            // Pista de 4 carros: arte própria (seção 25 do guia).
+            theme.straight4    = Lit("Pista4 Reta", T("pista4-reta"), Color.white);
+            theme.curveRight4  = Lit("Pista4 Curva Direita", T("pista4-curva-direita"), Color.white);
+            theme.curveLeft4   = Lit("Pista4 Curva Esquerda", T("pista4-curva-esquerda"), Color.white);
+            theme.bankRight4   = Lit("Pista4 Inclinada Direita", T("pista4-curva-inclinada-direita"), Color.white);
+            theme.bankLeft4    = Lit("Pista4 Inclinada Esquerda", T("pista4-curva-inclinada-esquerda"), Color.white);
+            theme.cross4       = Lit("Pista4 Cruzamento", T("pista4-cruzamento"), Color.white);
+            theme.crossShort4  = Lit("Pista4 Cruzamento Curto", T("pista4-cruzamento-curto"), Color.white);
+            theme.start4       = Lit("Pista4 Largada", T("pista4-largada"), Color.white);
+            theme.guard4       = Lit("Mureta4", T("mureta4"), Color.white);
+            theme.support4     = Lit("Pilar4", null, new Color32(0x3A, 0x44, 0x4E, 0xFF));
+            theme.board4       = Lit("Mesa4", T("grade-mesa4"), Color.white);
+            theme.cars34       = new[] { CarMaterial("Carrinho Verde", T("carrinho-verde")), CarMaterial("Carrinho Amarelo", T("carrinho-amarelo")) };
+
             theme.icons.Clear();
-            foreach (var guid in AssetDatabase.FindAssets("icone- t:Texture2D", new[] { Tex }))
-                theme.icons.Add(AssetDatabase.LoadAssetAtPath<Texture2D>(AssetDatabase.GUIDToAssetPath(guid)));
+            foreach (var prefix in new[] { "icone-", "icone4-" })
+                foreach (var guid in AssetDatabase.FindAssets(prefix + " t:Texture2D", new[] { Tex }))
+                {
+                    var t = AssetDatabase.LoadAssetAtPath<Texture2D>(AssetDatabase.GUIDToAssetPath(guid));
+                    if (t != null && t.name.StartsWith(prefix) && !theme.icons.Contains(t)) theme.icons.Add(t);
+                }
             EditorUtility.SetDirty(theme);
             AssetDatabase.SaveAssets();
             return theme;

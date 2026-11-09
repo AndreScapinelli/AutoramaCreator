@@ -364,7 +364,7 @@ namespace Autorama
         void OnlineStartChamp()
         {
             if (!IsHost || LobbyBlocker() != "") return;
-            net.Send(new NetOut { t = "start", name = room.name, vmax = set.vmax, ramp = set.ramp, grip = set.grip, collide = set.collide });
+            net.Send(new NetOut { t = "start", name = room.name, vmax = set.vmax, ramp = set.ramp, grip = set.grip, collide = set.collide, byTime = set.byTime });
         }
 
         string LobbyBlocker()
@@ -449,7 +449,7 @@ namespace Autorama
                 var o = opts.Find(x => x.closed && Champ.TrackHash(x.save) == s.hash);
                 if (o.save == null) { lost++; continue; }
                 var data = TrackSave.FromJson(o.save.ToJson(false));
-                onlineStages.Add(new Stage { name = s.name, laps = s.laps, data = data, hash = s.hash });
+                onlineStages.Add(new Stage { name = s.name, laps = s.laps, secs = s.secs > 0 ? s.secs : 120, data = data, hash = s.hash });
             }
             if (lost > 0) panel.Toast($"{lost} {(lost == 1 ? "pista não está" : "pistas não estão")} neste computador e saiu da lista.");
             SendStages();                                // o novo host passa a ser quem guarda o JSON das pistas
@@ -461,16 +461,18 @@ namespace Autorama
         {
             if (!IsHost) return;
             if (onlineStages.Count >= MaxOnlineStages) { panel.Toast($"No máximo {MaxOnlineStages} etapas."); return; }
+            // Etapas são todas do mesmo tipo: a primeira decide (2 ou 4 carros), como no campeonato offline.
+            if (onlineStages.Count > 0 && onlineStages[0].data.Faixas != o.save.Faixas) { panel.Toast($"As etapas já são pistas de {onlineStages[0].data.Faixas} carros: não dá para misturar."); return; }
             var data = TrackSave.FromJson(o.save.ToJson(false));
             if (data.ToJson(false).Length > MaxTrackJson) { panel.Toast("Essa pista é grande demais para o servidor."); return; }
-            onlineStages.Add(new Stage { name = data.nome, laps = set.laps, data = data, hash = Champ.TrackHash(data) });
+            onlineStages.Add(new Stage { name = data.nome, laps = set.laps, secs = Mathf.Clamp(set.secs, 60, 600), data = data, hash = Champ.TrackHash(data) });
             SendStages(); DrawLobby();
         }
 
         void SendStages()
         {
             var o = new NetOutStages();
-            foreach (var s in onlineStages) o.stages.Add(new NetStage { name = s.name, laps = s.laps, hash = s.hash, json = s.data.ToJson(false) });
+            foreach (var s in onlineStages) o.stages.Add(new NetStage { name = s.name, laps = s.laps, secs = s.secs, hash = s.hash, json = s.data.ToJson(false) });
             net.Send(o);
         }
 
@@ -554,7 +556,7 @@ namespace Autorama
 
             // Etapas
             oStageHint.text = host
-                ? "Escolha as pistas e as voltas de cada etapa. Os visitantes veem a lista, mas só você mexe nela."
+                ? $"Escolha as pistas e {(set.byTime ? "a duração" : "as voltas")} de cada etapa. O formato ({(set.byTime ? "por tempo" : "por voltas")}) e as regras são os da aba Corrida. Os visitantes veem a lista, mas só você mexe nela."
                 : "O host escolhe as pistas. Você escolhe a cor do seu carrinho e conversa no chat.";
             oStages.Clear();
             var list = room.stages;
@@ -568,13 +570,23 @@ namespace Autorama
                 if (local != null) item.Add(new TrackThumb(local.data));
                 var texts = El("lib-texts", item);
                 Text($"{i + 1}. {Safe(s.name)}", "lib-name", texts);
-                Text(local != null ? TrackLine(local.data) : $"{s.laps} {(s.laps == 1 ? "volta" : "voltas")}", "small", texts);
+                Text(local != null ? TrackLine(local.data) : $"{s.laps} {(s.laps == 1 ? "volta" : "voltas")} · ou {Dur(s.secs > 0 ? s.secs : 120)} por tempo", "small", texts);
                 if (!host || local == null) continue;
                 var ctl = El("stage-ctl", item);
                 var step = El("stepper", ctl);
-                Btn("−", () => { local.laps = Mathf.Max(1, local.laps - 1); SendStages(); }, "btn step-btn", step);
-                Text($"{local.laps} {(local.laps == 1 ? "volta" : "voltas")}", "step-val", step);
-                Btn("+", () => { local.laps = Mathf.Min(30, local.laps + 1); SendStages(); }, "btn step-btn", step);
+                // O formato (voltas ou tempo) é o da aba Corrida do host, como as outras regras.
+                if (set.byTime)
+                {
+                    Btn("−", () => { local.secs = Mathf.Max(60, local.secs - 30); SendStages(); }, "btn step-btn", step);
+                    Text(Dur(local.secs), "step-val", step);
+                    Btn("+", () => { local.secs = Mathf.Min(600, local.secs + 30); SendStages(); }, "btn step-btn", step);
+                }
+                else
+                {
+                    Btn("−", () => { local.laps = Mathf.Max(1, local.laps - 1); SendStages(); }, "btn step-btn", step);
+                    Text($"{local.laps} {(local.laps == 1 ? "volta" : "voltas")}", "step-val", step);
+                    Btn("+", () => { local.laps = Mathf.Min(30, local.laps + 1); SendStages(); }, "btn step-btn", step);
+                }
                 var mv = El("row", ctl);
                 Btn("▲", () => { (onlineStages[idx - 1], onlineStages[idx]) = (onlineStages[idx], onlineStages[idx - 1]); SendStages(); }, "btn step-btn", mv).SetEnabled(i > 0);
                 Btn("▼", () => { (onlineStages[idx + 1], onlineStages[idx]) = (onlineStages[idx], onlineStages[idx + 1]); SendStages(); }, "btn step-btn", mv).SetEnabled(i < list.Count - 1);
@@ -586,6 +598,7 @@ namespace Autorama
             if (host)
                 foreach (var o in Options())
                 {
+                    if (onlineStages.Count > 0 && o.save.Faixas != onlineStages[0].data.Faixas) continue;    // não mistura 2 e 4 carros
                     var opt = o;
                     var item = new Button(() => AddOnlineStage(opt));
                     item.AddToClassList("lib-item"); item.AddToClassList("pick");

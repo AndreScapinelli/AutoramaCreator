@@ -22,6 +22,9 @@ namespace Autorama
         public OriginSave largada = new OriginSave();
         public List<PieceSave> pecas = new List<PieceSave>();
         public int atras;                 // quantas das últimas peças de "pecas" ficam atrás da largada
+        public int faixas = 2;            // 2 ou 4 carros (sem o campo: 2). Pista de 4 só existe na Unity (seção 25).
+
+        public int Faixas => TrackMath.Faixas(faixas);
 
         public string ToJson(bool pretty = true) => JsonUtility.ToJson(this, pretty);
 
@@ -31,6 +34,7 @@ namespace Autorama
             if (s == null || s.pecas == null) throw new FormatException("O texto não é uma pista: falta a lista \"pecas\".");
             if (s.mesa == null) s.mesa = new BoardSave();
             if (s.largada == null) s.largada = new OriginSave();
+            s.faixas = TrackMath.Faixas(s.faixas);
             return s;
         }
 
@@ -54,11 +58,12 @@ namespace Autorama
             return list;
         }
 
-        public static TrackSave From(string name, Vector2Int board, float cellCm, Pose2 origin, IList<TrackPiece> pieces, int tail = 0)
+        public static TrackSave From(string name, Vector2Int board, float cellCm, Pose2 origin, IList<TrackPiece> pieces, int tail = 0, int faixas = 2)
         {
             var s = new TrackSave
             {
                 nome = name ?? "",
+                faixas = TrackMath.Faixas(faixas),
                 mesa = new BoardSave { w = board.x, h = board.y },
                 escalaCm = cellCm,
                 atras = tail,
@@ -78,6 +83,9 @@ namespace Autorama
         }
 
         // ----- exemplos (os mesmos do HTML, em coordenadas do HTML) -----
+
+        // O mesmo exemplo como pista de 4 carros (a forma em células é a mesma; no mundo fica 2× maior).
+        public static TrackSave Four(TrackSave s) { s.faixas = 4; s.nome += " (4 carros)"; return s; }
 
         static PieceSave P(string tipo, string sentido = "", string altura = "") => new PieceSave { tipo = tipo, sentido = sentido, altura = altura };
 

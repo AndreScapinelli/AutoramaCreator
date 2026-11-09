@@ -14,7 +14,7 @@ namespace Autorama
 
         GameObject quad;
 
-        void OnEnable() => Build(size);
+        void OnEnable() => Build(size, scale, other);
 
         void OnDisable()
         {
@@ -22,9 +22,15 @@ namespace Autorama
             quad = null;
         }
 
-        public void Build(Vector2Int boardSize)
+        float scale = 1f;
+        Material other;
+
+        // cellScale: unidades do mundo por célula (2 na pista de 4 carros), com a mesa própria dela (wideMaterial).
+        public void Build(Vector2Int boardSize, float cellScale = 1f, Material wideMaterial = null)
         {
             size = boardSize;
+            scale = cellScale;
+            other = cellScale > 1f ? wideMaterial : null;
             if (material == null) return;
             if (!quad)
             {
@@ -34,10 +40,10 @@ namespace Autorama
                 TrackPieceView.Kill(quad.GetComponent<Collider>());
                 quad.transform.rotation = Quaternion.Euler(90f, 0f, 0f);    // virado para cima: u = +X, v = +Z
             }
-            quad.transform.position = transform.position + new Vector3(size.x / 2f, -0.01f, size.y / 2f);
-            quad.transform.localScale = new Vector3(size.x, size.y, 1f);
+            quad.transform.position = transform.position + new Vector3(size.x * scale / 2f, -0.01f, size.y * scale / 2f);
+            quad.transform.localScale = new Vector3(size.x * scale, size.y * scale, 1f);
             var r = quad.GetComponent<MeshRenderer>();
-            r.sharedMaterial = material;
+            r.sharedMaterial = other != null ? other : material;
             // Escala da textura por objeto, sem mexer no material compartilhado.
             var block = new MaterialPropertyBlock();
             r.GetPropertyBlock(block);

@@ -34,10 +34,11 @@ namespace Autorama
         Vector3 dragOrigin;
         bool panning, orbiting;
         Vector2 lastMouse;
-        readonly Vector3[] raceCarPos = new Vector3[2];
-        readonly float[] raceCarHeading = new float[2];
+        readonly Vector3[] raceCarPos = new Vector3[4];
+        readonly float[] raceCarHeading = new float[4];
+        int raceCars = 2;            // carrinhos na pista (2 ou 4)
         bool hasRaceTargets;
-        int focusCar = -1;           // carrinho que a vista dinâmica acompanha de perto; -1 enquadra os dois
+        int focusCar = -1;           // carrinho que a vista dinâmica acompanha de perto; -1 enquadra todos
 
         float thirdDistance = 7f, thirdHeight = 2.2f;
         float autoSize = 11f;
@@ -67,17 +68,16 @@ namespace Autorama
             panning = orbiting = false;
         }
 
-        public void SetThirdPersonCar(int idx) => ThirdPersonCar = Mathf.Clamp(idx, 0, 1);
+        public void SetThirdPersonCar(int idx) => ThirdPersonCar = Mathf.Clamp(idx, 0, raceCarPos.Length - 1);
 
         public void SetDistanceScale(float scale) => distanceScale = Mathf.Clamp(scale, 0.7f, 1.6f);
 
-        public void SetRaceTargets(Vector3 car0Pos, float car0Heading, Vector3 car1Pos, float car1Heading, int focus = -1)
+        // Posição e rumo dos carrinhos (count = 2 ou 4). focus: o que a vista dinâmica acompanha (-1 enquadra todos).
+        public void SetRaceTargets(Vector3[] pos, float[] heading, int count, int focus = -1)
         {
-            raceCarPos[0] = car0Pos;
-            raceCarPos[1] = car1Pos;
-            raceCarHeading[0] = car0Heading;
-            raceCarHeading[1] = car1Heading;
-            focusCar = focus is 0 or 1 ? focus : -1;
+            raceCars = Mathf.Clamp(count, 1, raceCarPos.Length);
+            for (int k = 0; k < raceCars; k++) { raceCarPos[k] = pos[k]; raceCarHeading[k] = heading[k]; }
+            focusCar = focus >= 0 && focus < raceCars ? focus : -1;
             hasRaceTargets = true;
         }
 
@@ -186,7 +186,7 @@ namespace Autorama
 
         void ApplyThirdPerson()
         {
-            int k = Mathf.Clamp(ThirdPersonCar, 0, 1);
+            int k = Mathf.Clamp(ThirdPersonCar, 0, raceCars - 1);
             float rad = raceCarHeading[k] * Mathf.Deg2Rad;
             Vector3 fwd = new Vector3(Mathf.Cos(rad), 0f, Mathf.Sin(rad));
             Vector3 target = raceCarPos[k] + fwd * 1.4f + Vector3.up * 0.25f;
@@ -206,8 +206,10 @@ namespace Autorama
 
         void ApplyAutoDoisCarros()
         {
-            Vector3 a = raceCarPos[0], b = raceCarPos[1];
-            Vector3 center = focusCar >= 0 ? raceCarPos[focusCar] : (a + b) * 0.5f;
+            // Enquadra todos os carrinhos (o retângulo que contém os 2 ou os 4).
+            Vector3 lo = raceCarPos[0], hi = raceCarPos[0];
+            for (int i = 1; i < raceCars; i++) { lo = Vector3.Min(lo, raceCarPos[i]); hi = Vector3.Max(hi, raceCarPos[i]); }
+            Vector3 center = focusCar >= 0 ? raceCarPos[focusCar] : (lo + hi) * 0.5f;
             float needed;
             if (focusCar >= 0)
             {
@@ -215,8 +217,8 @@ namespace Autorama
             }
             else
             {
-                float halfX = Mathf.Max(Mathf.Abs(a.x - center.x), Mathf.Abs(b.x - center.x)) + 1.3f;
-                float halfZ = Mathf.Max(Mathf.Abs(a.z - center.z), Mathf.Abs(b.z - center.z)) + 1.1f;
+                float halfX = (hi.x - lo.x) * 0.5f + 1.3f;
+                float halfZ = (hi.z - lo.z) * 0.5f + 1.1f;
                 needed = Mathf.Max(halfZ, halfX / Mathf.Max(0.1f, cam.aspect));
             }
             needed = Mathf.Clamp(needed * distanceScale, Mathf.Max(minSize, 3f), maxSize);

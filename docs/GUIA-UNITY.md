@@ -2584,3 +2584,184 @@ Regressão: `OnlineSmokeTest` (servidor Node, 42 verificações) e `SteamSpacewa
 2. **Tamanho do snapshot** (~1,2 KB): na rede real a Steam fragmenta mensagens grandes sem confiabilidade e perde a mensagem toda se um pedaço se perder. Se houver perda visível, reduzir o snapshot ou mandá-lo confiável.
 3. **Rich Presence** (mostrar "numa sala do Autorama" para os amigos, com o botão "Entrar no jogo") e testar o convite de verdade entre duas contas, incluindo o jogo fechado (`+connect_lobby`).
 4. **AppId próprio** e a taxa da Steam Direct (US$ 100) antes de publicar; o 480 serve só para teste. Num app seu, o transporte já filtra por `autorama=1` e pela versão do protocolo.
+
+## 25. Pista de 4 carros
+
+Uma pista nasce de **2 ou de 4 carros** e fica nesse tipo. Existe **só na Unity** (o HTML está congelado; ver a regra da memória do projeto). Construtor, corrida livre, campeonato e online suportam os dois tipos, e numa pista de 4 podem correr **2, 3 ou 4 carros** (seção 27).
+
+### 25.1 A ideia: mesma geometria em células, escala 2 no mundo
+
+Em vez de criar um segundo catálogo de peças, a pista de 4 usa **as mesmas peças e os mesmos ids** (`reta-curta`, `curva-longa-inclinada`…) e a mesma conta em células. O que muda é quanto vale uma célula:
+
+| | Pista de 2 | Pista de 4 |
+|---|---|---|
+| 1 célula no mundo (`TrackMath.Scale`) | 1 | **2** |
+| Trilhos, em células (`TrackMath.LanesOf`) | ±0,25 | **±0,125 e ±0,375** |
+| Trilhos, no mundo | ±0,25 | ±0,25 e ±0,75 |
+| Raio da curva no centro, no mundo | 2,5 | **5** |
+| Raio do trilho de dentro / de fora (mundo) | 2,25 / 2,75 | **4,25 / 5,75** |
+| Carrinho (mundo) | 0,60 × 0,32 | o mesmo |
+
+Por isso o construtor inteiro (encaixe, sobreposição, mesa que cresce, fechar circuito com Q, frente/trás da largada) funciona sem mudar nada: tudo é em células. Quem mostra é que multiplica:
+
+- `TrackBuilder.Faixas` (2 ou 4), `Scale`, `CellToWorld`/`WorldToCell`. A raiz das peças geradas ganha `localScale = Scale`; a mesa (`GridBoard.Build(size, scale, mesa4)`) também.
+- O mouse vira célula com `WorldToCell` (célula sob o mouse, arrastar a largada). O enquadramento, as réguas e a barra de escala usam `CellToWorld`. `Shifted` (a mesa cresceu e a pista foi empurrada) já sai em unidades do mundo.
+- No resumo, `cm por célula = escalaCm × Scale` (a célula da pista de 4 tem o dobro da largura).
+
+A física fica **no mundo**: `LanePath(segs, offset, scale)` multiplica posições e alturas por `scale` e divide a curvatura (`k = dir / ((R − dir·off) · scale)`). A rampa continua em níveis por célula (o ângulo é igual nas duas pistas). O grid e a bandeirada também escalam (`GridPos = GridS × Scale`, marca em `LineS × Scale`), assim como a altura de quem sai da pista e o recuo ao recolocar (0,4 × Scale). As constantes (`ACCEL 3.5`, `BRAKE 1.8`, `SLIP_GAIN 6`…) **não mudam**; como a curva é maior, a pista de 4 é mais rápida nas curvas e a volta é mais longa.
+
+```csharp
+public static readonly float[] Lanes4 = { -0.375f, -0.125f, 0.125f, 0.375f };
+public static float[] LanesOf(int faixas) => faixas == 4 ? Lanes4 : Lanes;
+public static float Scale(int faixas) => faixas == 4 ? 2f : 1f;
+```
+
+**Cruzamento:** cada trilho faz o S `l·cos(π·t)`, então troca com o espelho: **1↔4 e 2↔3**. O S do 1 e do 4 é maior (comprimento com a amplitude de cada trilho: `CrossLaneLength(length, |offset|)`). Com cruzamentos em número ímpar, `Analyze` faz a média de cada par espelhado.
+
+### 25.2 JSON e identidade
+
+- Campo novo `"faixas": 4` no JSON da pista. Sem o campo (todas as pistas antigas e as do HTML) é **2**; qualquer valor diferente de 4 vira 2 (`TrackMath.Faixas`).
+- Identidade para os recordes: a pista de 4 começa a cadeia com `f4|` antes do FNV-1a (`"f4|largada:0:0|…"`). As de 2 **não mudam**: oval = `a34f4cb9`, 8 com ponte = `81546106`. A mesma forma em 2 e em 4 são pistas diferentes, com recordes separados.
+- O HTML não conhece o campo: ele abriria uma pista de 4 como se fosse de 2. Como o HTML está congelado, isso fica registrado aqui e não foi mexido lá.
+
+### 25.3 Construtor
+
+- Seção **TIPO DA PISTA** no painel: **2 carros · 4 carros**. Com só a largada, troca na hora (`SetFaixas`, entra no desfazer). Com peças, o segundo clique começa uma **pista nova** do outro tipo (`NewTrack(faixas)`; Ctrl+Z volta).
+- **Nova pista** mantém o tipo atual; os exemplos (oval, 8) abrem no tipo atual. Título do painel: `AUTORAMA · 4 TRILHOS`.
+- A biblioteca mostra o tipo na linha de cada pista (`4 carros · 12 peças · …`).
+- Resumo com os 4 trilhos (cores vermelho, azul, verde e amarelo: `--trilho-a…d` no USS) e "mais longo: trilho 4 +X cm (sobre o 1)".
+
+### 25.4 Arte própria (não é a de 2 esticada)
+
+Tudo gerado por `ferramentas/gen-texturas.js` (bloco "PISTA DE 4 CARROS") e ligado pelo menu **Autorama > Atualizar materiais e ícones** (campos `*4` do `TrackTheme`). Estilo "circuito":
+
+- **Asfalto** azulado e mais liso (`#2A3138`, ruído mais fino), **trilhos de cobre trançado** (listras diagonais) em vez de aço, **tracejado branco** no meio (entre os trilhos 2 e 3), acostamento cinza-azulado nas bordas e uma tinta bem leve da cor de cada trilho em volta da fenda.
+- **Curva plana:** zebra **azul e branca**, 6 listras por célula. **Inclinada:** chevrons brancos subindo para o lado alto, o asfalto clareando em azul e um **muro azul** na borda de fora.
+- **Cruzamento:** as 4 fendas em S e um **losango branco** no meio.
+- **Largada** (`pista4-largada.png`, a peça inteira numa imagem, 1024 × 2048): um **box em U na cor de cada trilho** em volta do lugar do carrinho, o **número do trilho** (dígitos de 7 segmentos) atrás do box e a bandeirada quadriculada larga. Por isso `TrackPieceView` usa v de 0 a 1 na largada de 4 (como no cruzamento) e não desenha a faixa de bandeirada separada.
+- **Peças no alto:** muro azul listrado (`mureta4.png`) mais fino e mais alto (0,02 × 0,06 célula) e, embaixo, **três pilares quadrados de aço escuro** por fileira (bordas e meio) com uma **travessa** de borda a borda, a cada 1 célula (`BuildPillars4`).
+- **Mesa** em tom frio (`grade-mesa4.png`) e **ícones** próprios (`icone4-*.png`: 4 trilhos coloridos; o painel troca os ícones da paleta pelo tipo).
+- **Carrinhos 3 e 4:** `carrinho-verde.png` e `carrinho-amarelo.png` (o mesmo molde), em `TrackTheme.cars34`. Sem o tema atualizado, a corrida repete o vermelho/azul.
+- Texturas `pista4-*` importam até 2048 px (o dobro de detalhe por célula).
+
+### 25.5 Corrida
+
+- `RaceSim.SetTrack(segs, closed, faixas)`: `cars` passa a ter 2 ou 4 (`sim.N`); `paths`/`aiSkill` têm 4 lugares (`MaxCars`). Tudo que era "os dois" virou laço até `N`: passo, IA, fim da prova (acaba quando **todos** chegam ou no limite do campeonato) e `HumanBest`.
+- **Colisão por pares:** 1 par na pista de 2, 6 na de 4 (`CollidePair`, com o "já estava encostado" guardado por par em `pairContact`). A conta de cada par é a mesma de antes.
+- **Teclas:** os humanos ganham os conjuntos **na ordem dos trilhos**: o 1º humano **A·S** (Q meia), o 2º **L·K** (O meia), o 3º **↑·↓** (← meia), o 4º **8·5 do teclado numérico** (7 meia). Com um humano só ele usa A·S em qualquer trilho (a regra antiga é o caso particular). Os controles seguem a mesma ordem (1º controle, 2º…).
+- **Corrida livre na pista de 4:** "Jogador 2 é um robô" continua; aparece **"Jogadores 3 e 4 são robôs"** (`RaceSettings.bot34`, ligado por padrão), com a mesma qualidade.
+- Tela: 4 painéis de jogador mais baixos (`.pads--4`), 4 fichas no placar com a posição de cada um (`Order()`: chegada, voltas e depois a **fração da volta**, porque os trilhos têm comprimentos diferentes), resultado com as 4 posições, câmera **Atrás do carro** com Jogador 1 a 4 e a **Dinâmica** enquadrando o retângulo dos 4 (`SetRaceTargets(pos[], heading[], count, focus)`).
+- Exemplos novos na lista de pistas: **oval de 4 carros** e **8 com ponte de 4 carros** (`TrackSave.Four`).
+
+### 25.6 Campeonato
+
+- **Carros por bateria: 2 · 4** no Novo campeonato (`ChampDraft.faixas`, `Championship.faixas`). Só aparecem as pistas do tipo escolhido; trocar o tipo tira as etapas do outro (segundo clique). **Os dois tipos nunca se misturam.**
+- Campeonato de 4 aceita **a partir de 2 pilotos**: os trilhos que sobram ficam vazios (seção 27).
+- **Rodízio** (`MakeHeats(n, etapas, faixas)`): na bateria k correm os pilotos `k, k+1, k+2, k+3` (módulo n) nos trilhos 1 a 4. Cada piloto corre **uma vez em cada trilho** e a etapa tem n baterias, como na de 2. `Heat.p` tem 2 ou 4 posições; `Saved` confere `res.Length == p.Length`.
+- Recordes por trilho: `lane3` e `lane4` em `TrackRecords` (vazios nas pistas de 2). Os de volta e de corrida continuam de gente só.
+- Arquivo antigo (`campeonatos.json` sem `faixas`) abre como de 2.
+
+### 25.7 Testes
+
+`script eval` (sem cena), 4 robôs de qualidade 100, 5 voltas, passo 1/60 s, `Random.InitState(7)`:
+
+| Pista | Hash | Trilhos (células) | Chegada (s) | Saídas |
+|---|---|---|---|---|
+| Oval, 2 | `a34f4cb9` | 37,133 · 33,991 | 21,933 · 20,883 | 0 · 0 |
+| 8 com ponte, 2 | `81546106` | 57,562 · 57,562 | 27,166 · 27,166 | 0 · 0 |
+| Oval, 4 | `6bcdca3d` | 37,918 · 36,347 · 34,777 · 33,206 | 35,383 · 33,966 · 32,783 · 32,316 | 2 · 0 · 0 · 0 |
+| 8 com ponte, 4 | `961b213a` | 57,562 (os 4) | 41,483 (os 4) | 0 |
+
+- A pista de 2 deu **exatamente os mesmos números** antes e depois da mudança (física, IA e colisão por pares).
+- Caminho no mundo da oval de 4: 75,834 · 72,693 · 69,551 · 66,410 (o dobro das células).
+- Rodízio de 5 pilotos em 4 trilhos: 5 baterias, cada piloto **uma vez em cada trilho**. Rodízio de 2 com 3 pilotos continua `[0,1] [1,2] [2,0]`.
+- JSON sem `faixas` → 2; JSON de 4 ida e volta → 4.
+- **IA na pista de 4:** no primeiro teste os robôs dos trilhos de fora saíam **9 vezes** cada no oval: a coragem (até 115% do limite) enchia a derrapagem nas curvas 2× mais longas. Correção: com `Scale > 1`, a parte acima do limite é dividida pela escala, `m = √(1 + (m² − 1) / Scale)` (os erros de propósito, m ≥ 1,3, ficam). Caiu para 2 saídas em 4 carros. Na pista de 2 nada muda.
+- Tela (Play mode): construtor com o 8 de 4 (mesa com células de 2, réguas certas, arte nova, 4 carrinhos no grid) e corrida no oval de 4 com 4 fichas de posição e 4 painéis.
+
+### 25.8 O que falta
+
+1. O HTML não conhece `faixas` (congelado).
+
+## 26. Corrida por tempo (manches)
+
+Segundo formato de prova, ao lado do **por voltas**. A corrida tem uma duração total e se divide em **uma manche por trilho**: 2 manches na pista de 2, 4 na de 4. No fim de cada manche os carrinhos param, cada um passa para o **trilho seguinte** (1→2, …, último→1) e uma nova contagem larga a manche. Uma prova de 1 min tem manches de 30 s na pista de 2 e de 15 s na de 4. Vence quem **andar mais**. Existe só na Unity (o HTML está congelado).
+
+### 26.1 Regras
+
+- **Distância** = bandeiradas + fração da volta: `Dist(k) = cross + LapFrac(s)`. Vale em trilhos de comprimentos diferentes (cada um mede a fração no próprio caminho). A ordem da prova usa a distância nos dois modos (por voltas, quem chegou vem antes).
+- **Troca de trilho no mesmo ponto da volta:** o carrinho mantém a fração do caminho (`f = s / Total`) e vai para `f × Total` do trilho novo, parado. Quem estava fora da pista volta do ponto onde saiu. A contagem de bandeiradas continua (`crossBase = cross − (LineCount(s) − 1)` no caminho novo).
+- A **volta que pegou a troca** (metade num trilho e metade no outro) conta na distância, mas **não vale como tempo** de volta (`lapDirty`): melhor volta e recordes só com voltas inteiras num trilho.
+- O relógio de prova **para** durante a troca (`SwitchTime = 2,5 s`) e a nova contagem (`Count = 2,4 s`): `resumeT` guarda o tempo e a contagem usa `t` como antes. `RaceTime` e `TimeLeft` dão o relógio certo em qualquer fase.
+- Por tempo não há chegada nem o limite de 30 s depois do primeiro (`cutoff`); a prova acaba no fim da última manche, e `winner` é quem tem a maior distância.
+- Não há recorde por trilho nem recorde de corrida por tempo; o recorde de volta e o melhor pessoal continuam.
+
+### 26.2 Código
+
+- `RaceSettings.byTime`, `secs` (padrão 120; na aba Corrida de 1 a 10 min, de 30 em 30 s).
+- `RaceSim`: fase nova `Switch`; `Manche`, `MancheLen = secs / N`, `EndManche()`, `RotateLanes()`, `PathOf(k)` (o caminho do trilho atual do carrinho k: `paths[cars[k].lane]`), `Dist(k)`, `TimeLeft`. `CarState.lane`, `crossBase`, `lapDirty`. Por voltas, `lane = k` sempre e tudo fica igual ao de antes.
+- `LanePath.LapFrac(d)`: fração entre a última bandeirada e a próxima (com cruzamentos ímpares o caminho tem 2 marcas).
+- `present[k]`: trilho vazio na bateria (campeonato por tempo com menos pilotos que trilhos). Carrinho ausente não anda, não colide, não aparece e não entra na ordem nem nas teclas (`KeySet` só conta os presentes).
+- As teclas e os controles são **do piloto, não do trilho**: o carrinho k troca de trilho e continua com as mesmas teclas.
+
+### 26.3 Tela
+
+- Aba Corrida, em Ajustes: **Por voltas · Por tempo** e a duração ("2 min · 30 s por trilho").
+- Relógio regressivo (o total antes da largada). Fichas: `2,24 v · T1` (distância e trilho atual). Painéis: "x voltas · trilho n" e, na troca, "Vai para o trilho n".
+- Entre as manches: **TROCA DE TRILHO / manche 2 de 4** no meio da mesa (`.cd-text--switch`), e as luzes e o VAI! de novo em cada manche.
+- Resultado e aviso de vitória com a distância ("13,65 voltas em 1 min").
+
+### 26.4 Campeonato
+
+- **Formato: Por voltas · Por tempo**, para o campeonato inteiro (`Championship.byTime`, `ChampDraft.byTime`). Cada etapa tem a duração (`Stage.secs`, 1 a 10 min) em vez das voltas.
+- Por tempo, uma bateria já passa por todos os trilhos, então **cada piloto corre uma vez por etapa**. Com mais pilotos que trilhos, eles se dividem em **grupos equilibrados** na ordem do cadastro (`MakeHeats(n, etapas, faixas, byTime)`): 5 em 4 trilhos = `[0,1,2,−] [3,4,−,−]`; 6 em 2 = 3 grupos de 2; 3 em 2 = `[0,1] [2,−]`. Os trilhos que sobram ficam vazios (`−1`, mostrados como "trilho vazio").
+- Mínimo de pilotos por tempo: 2, também na pista de 4 (o trilho vazio resolve).
+- A etapa classifica todos os pilotos pela **distância** (`StageRow.dist`, gravada em `HeatResult.dist`); pontos e melhor volta como antes.
+- Validação do arquivo: `heats.Count == HeatsPerStage(pilotos, faixas, byTime) × etapas`.
+
+### 26.5 Online
+
+- O formato é o da aba Corrida do host, como as outras regras: `start` leva `byTime`, e cada etapa leva `secs` (`NetStage.secs`; cliente antigo sem o campo vale 120). No lobby, o host ajusta a duração de cada etapa quando está por tempo.
+- O servidor Node e o transporte da Steam validam `secs` entre 60 e 600 e repassam `byTime` no `started`.
+- Snapshot: `mi` (manche) e `rt` (relógio guardado) na corrida; cada carro leva `lane`, `cb` (crossBase) e `ld` (lapDirty). O visitante só mantém a predição do próprio carrinho se ele estiver no mesmo trilho do host.
+- Online continua só de 2 carros; por tempo com 3 pilotos, o grupo de 1 corre sozinho.
+
+### 26.6 Testes
+
+`script eval`, robôs de qualidade 90, 1 min, passo 1/60 s, `Random.InitState(7)`:
+
+| Pista | Fins de manche (s) | Distância (voltas) | Trilhos de cada carro |
+|---|---|---|---|
+| Oval, 2 | 30 | 13,654 · 13,558 | 2 |
+| 8 com ponte, 2 | 30 | 10,549 · 10,633 | 2 |
+| Oval, 4 | 15 · 30 · 45 | 8,853 · 8,960 · 8,804 · 8,839 | 4 |
+| 8 com ponte, 4 | 15 · 30 · 45 | 7,156 · 7,154 · 7,156 · 7,157 | 4 |
+
+- O relógio de prova fecha em 60,000 s; com as pausas, o tempo real foi 67,4 s (pista de 2) e 77,3 s (pista de 4).
+- Por voltas: os números da seção 25.7 continuam idênticos.
+- Grupos: os cinco exemplos acima conferidos. Etapa por tempo com 3 pilotos em 2 trilhos: ordem pela distância (11,2 · 10,9 · 10,5), pontos 10+1 (melhor volta), 8, 6.
+- `servidor`: `npm test` continua passando.
+- Tela (Play mode, Editor em segundo plano, então a simulação foi avançada pelo script): oval de 4 por tempo na troca de trilho, com as fichas por distância, os painéis "Vai para o trilho n" e o aviso no meio.
+
+### 26.7 O que falta
+
+1. HTML (congelado).
+2. Teste do online por tempo com dois jogadores de verdade.
+
+## 27. Trilho vazio: 2 ou 3 carros numa pista de 4
+
+Numa pista de 4 podem correr menos carros. O trilho sem carro fica **vazio**: `RaceSim.present[k] = false` (o carrinho k não anda, não colide, não aparece, não entra na ordem nem nas teclas, e a prova por voltas acaba quando **os presentes** chegam).
+
+- **Corrida livre:** na pista de 4 aparece **2 carros · 3 carros · 4 carros** (`RaceSettings.cars4`, padrão 4). Com 3, o trilho 4 fica vazio e o ajuste vira "Jogador 3 é um robô"; com 2, só os trilhos 1 e 2.
+- **Campeonato por voltas:** `MakeHeats` faz `H = max(pilotos, trilhos)` baterias por etapa; na bateria k o trilho l recebe o piloto `(k + l) mod H`, ou fica vazio se esse número passa do total. Cada piloto corre **uma vez em cada trilho** e enfrenta os outros. 3 pilotos na pista de 4: `[0,1,2,−] [1,2,−,0] [2,−,0,1] [−,0,1,2]`. Com pilotos ≥ trilhos é o rodízio de sempre. Mínimo: 2 pilotos.
+- **Campeonato por tempo:** já tinha os grupos com trilho vazio (seção 26.4).
+- **Online:** a aba Online aceita pistas de 4; a primeira etapa decide o tipo e as outras precisam ser iguais (o host só vê as do mesmo tipo). No `started`, o cliente monta `faixas` pela primeira etapa e recusa etapas misturadas. Com 3 jogadores numa pista de 4, o rodízio acima. O servidor não muda (ele não conhece trilhos); o snapshot leva os 4 carros (o ausente também, parado).
+
+### 27.1 Testes
+
+- Rodízio por voltas: 3 pilotos em 4 trilhos = 4 baterias, 4 vazios, cada um 1× por trilho; 2 em 4 = 4 baterias, 8 vazios; 5 em 4 e 3 em 2 iguais ao de antes.
+- Simulação, 3 robôs (qualidade 90) na oval de 4: por voltas acaba em 33,98 s com os 3 chegando (o 4º parado no grid); por tempo, 60 s, cada presente passou pelos 4 trilhos.
+- Etapa de 3 pilotos na pista de 4: completa (4/4), 4 corridas cada, pontos 11 · 8 · 6.
+- **Sincronia online** sem rede (`NetSync.Pack` → JSON → `Apply` a cada 3 quadros, como o host manda): 3 carros na oval de 4, por voltas e por tempo. O visitante termina na mesma fase, com o mesmo vencedor, a mesma distância (até a 3ª casa) e o mesmo trilho em cada carro. Snapshot de 4 carros: **1,8 a 2,0 KB** (o de 2 tinha ~1,25 KB).
+- `OnlineSmokeTest` contra o servidor Node: as 42 verificações continuam passando; `npm test` também.
+- Falta: dois jogadores de verdade numa pista de 4, e conferir na Steam real se o snapshot de ~2 KB (sem confiabilidade) chega bem (ver 24.6).

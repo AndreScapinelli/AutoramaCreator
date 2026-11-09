@@ -7,7 +7,7 @@ namespace Autorama
     // São JSON de uma linha com o tipo em "t". O JsonUtility não faz herança, então cada direção tem classes enxutas.
 
     [Serializable] public class NetPlayer { public string id, name, color; public bool ready; }
-    [Serializable] public class NetStage { public string name, hash, json; public int laps; }   // json: a pista (TrackSave); o servidor só devolve o resumo
+    [Serializable] public class NetStage { public string name, hash, json; public int laps, secs; }   // secs: corrida por tempo (0 = cliente antigo, vale 120)   // json: a pista (TrackSave); o servidor só devolve o resumo
 
     [Serializable]
     public class NetRoom
@@ -22,7 +22,7 @@ namespace Autorama
 
     [Serializable] public class NetListed { public string code, name, host; public int players, max, stages; }
     [Serializable] public class NetChat { public bool sys; public string from, name, color, text; public long time; }
-    [Serializable] public class NetRules { public float vmax, ramp, grip; public bool collide; }
+    [Serializable] public class NetRules { public float vmax, ramp, grip; public bool collide, byTime; }   // byTime: campeonato por tempo (seção 26)
 
     // Um carrinho no snapshot: tudo o que o RaceSim guarda por carro. Os opcionais (voltas) usam −1 para "não tem".
     [Serializable]
@@ -37,10 +37,12 @@ namespace Autorama
         public float exitS, lapStart, hitFx;
         public int cross, laps, offs, hits;
         public float lastLap = -1f, best = -1f, finish = -1f;
+        public int lane, cb;                                // corrida por tempo: trilho atual e ajuste das bandeiradas
+        public bool ld;                                     // volta que pegou a troca de trilho
     }
 
     // hi: a bateria do snapshot (ele só vale para quem está nela) · ph: RaceSim.Phase · t: relógio · w: vencedor (−1 ninguém)
-    [Serializable] public class NetSnap { public int hi, ph, w; public float t; public List<NetCar> cars = new List<NetCar>(); }
+    [Serializable] public class NetSnap { public int hi, ph, w, mi; public float t, rt; public List<NetCar> cars = new List<NetCar>(); }   // mi: manche · rt: relógio guardado na troca
 
     // Tudo o que o servidor manda: hello, joined, left, room, rooms, chat, error, pong, started, lobby, in, snap, ev.
     [Serializable]
@@ -75,7 +77,7 @@ namespace Autorama
     public class NetOut
     {
         public string t, name, roomName, code, color, text;
-        public bool pub, ready, held, collide;
+        public bool pub, ready, held, collide, byTime;
         public int re, ver;                               // ver: versão do protocolo (hello)
         public int gp;                                    // in: nível do acelerador em % (1–100)
         public float vmax, ramp, grip;                    // start: as regras (os ajustes da aba Corrida do host)

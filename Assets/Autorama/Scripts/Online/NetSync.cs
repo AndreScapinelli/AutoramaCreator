@@ -22,11 +22,12 @@ namespace Autorama
             exitS = c.exitS, lapStart = c.lapStart, hitFx = c.hitFx,
             cross = c.cross, laps = c.laps, offs = c.offs, hits = c.hits,
             lastLap = Opt(c.lastLap), best = Opt(c.best), finish = Opt(c.finish),
+            lane = c.lane, cb = c.crossBase, ld = c.lapDirty,
         };
 
         public static NetSnap Pack(RaceSim sim, int heat)
         {
-            var s = new NetSnap { hi = heat, ph = (int)sim.phase, t = sim.t, w = sim.winner };
+            var s = new NetSnap { hi = heat, ph = (int)sim.phase, t = sim.t, w = sim.winner, mi = sim.Manche, rt = sim.resumeT };
             foreach (var c in sim.cars) s.cars.Add(Pack(c));
             return s;
         }
@@ -38,7 +39,8 @@ namespace Autorama
         // own: o carrinho que este jogador controla. Ele mantém o botão e, se a predição está perto do host, também a posição e a velocidade.
         public static void Apply(NetCar n, CarState c, bool own)
         {
-            bool keepMotion = own && (int)c.mode == n.mode && Mathf.Abs(c.s - n.s) < OwnTolerance;
+            bool keepMotion = own && (int)c.mode == n.mode && c.lane == n.lane && Mathf.Abs(c.s - n.s) < OwnTolerance;
+            c.lane = n.lane; c.crossBase = n.cb; c.lapDirty = n.ld;
             if (!keepMotion)
             {
                 c.s = n.s; c.v = n.v; c.hold = n.hold; c.T = n.T; c.slip = n.slip; c.side = n.side; c.mode = (CarMode)n.mode;
@@ -53,8 +55,8 @@ namespace Autorama
 
         public static void Apply(NetSnap n, RaceSim sim, int ownLane)
         {
-            sim.Mirror((RaceSim.Phase)n.ph, n.t, n.w);
-            for (int k = 0; k < 2 && k < n.cars.Count; k++) Apply(n.cars[k], sim.cars[k], k == ownLane);
+            sim.Mirror((RaceSim.Phase)n.ph, n.t, n.w, n.mi, n.rt);
+            for (int k = 0; k < sim.N && k < n.cars.Count; k++) Apply(n.cars[k], sim.cars[k], k == ownLane);
         }
     }
 }

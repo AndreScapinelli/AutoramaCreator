@@ -3,7 +3,7 @@
 Construtor de pista de autorama (slot car), com corrida para 2 jogadores e campeonato. Existe em duas versões que precisam ficar iguais:
 
 - **`html/index.html`**: a versão de referência, num arquivo só (SVG, sem dependências). Toda ideia nova nasce aqui.
-- **Projeto Unity** (`Assets/Autorama`): Unity 6000.0.66f2, URP 17, Input System, UI Toolkit. É a mesma coisa portada.
+- **Projeto Unity** (`Assets/Autorama`): Unity 6000.3.6f1, URP 17, Input System, UI Toolkit. É a mesma coisa portada.
 - **`docs/GUIA-UNITY.md`**: o guia de como cada recurso funciona e de como fazer na Unity. Tem medidas, constantes, algoritmos e os testes feitos. Leia a seção do assunto antes de mexer.
 
 O usuário escreve em português, e o projeto inteiro também: textos da interface, comentários, nomes de ids no JSON e o guia.
@@ -13,6 +13,7 @@ O usuário escreve em português, e o projeto inteiro também: textos da interfa
 - **HTML e Unity iguais.** Mesmas regras, constantes e física. Mesmos ids no JSON de pista (`reta-curta`, `curva-longa-inclinada`, `cruzamento-curto`…), então uma pista exportada num abre no outro. Mesma identidade de pista para os recordes (FNV-1a de `id:sentido:altura`; oval = `a34f4cb9`, 8 com ponte = `81546106`).
 - **Sempre atualize `docs/GUIA-UNITY.md`** junto com qualquer recurso novo ou mudado: o que faz, constantes, código C# e os números do teste. Isso faz parte de terminar a tarefa.
 - **Coordenadas.** No HTML, y cresce para baixo e o ângulo cresce no sentido horário. Na Unity, o plano é XZ, com z = altura da mesa − y e ângulo = −h. 1 célula = largura da pista (2 trilhos, ±0,25). Raio das curvas: 2,5.
+- **Pista de 4 carros** (só na Unity, seção 25 do guia): mesmas peças e ids, `"faixas": 4` no JSON, geometria igual em células e **escala 2 no mundo** (`TrackMath.Scale`, trilhos ±0,125/±0,375 célula). Identidade com prefixo `f4|`. Campeonato (offline e online) nunca mistura pistas de 2 e de 4; numa pista de 4 podem correr 2, 3 ou 4 carros (trilho vazio, seção 27).
 - **Física da corrida** (os dois iguais): `ACCEL 3.5`, `BRAKE 1.8`, `BRAKE0 0.5`, `SLOPE_G 8`, `SLIP_GAIN 6`, `SLIP_DECAY 1.5`, curva inclinada × 1,7 de aderência. Mudou uma, mude na outra versão e no guia.
 - O piloto IA não bate recorde da pista; só o melhor pessoal dele.
 

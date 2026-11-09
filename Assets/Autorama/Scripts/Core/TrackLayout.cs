@@ -26,7 +26,7 @@ namespace Autorama
         public float gap;            // distância da ponta até a largada
         public readonly HashSet<int> overlaps = new HashSet<int>();
         public float centerLength;
-        public readonly float[] laneLengths = new float[2];
+        public float[] laneLengths = new float[2];   // um por trilho (2 ou 4)
         public Rect bounds;          // em células, plano da mesa (x, z)
         public int highCount;
     }
@@ -70,9 +70,11 @@ namespace Autorama
 
         // tail = quantas das últimas peças ficam atrás da largada. A pista da frente fecha quando a ponta dela
         // chega na entrada da peça de trás mais afastada (ou na largada, se não há peças atrás).
-        public static TrackAnalysis Analyze(Pose2 origin, List<Segment> segs, int tail = 0)
+        public static TrackAnalysis Analyze(Pose2 origin, List<Segment> segs, int tail = 0, int faixas = 2)
         {
             var r = new TrackAnalysis();
+            var lanes = TrackMath.LanesOf(faixas);
+            r.laneLengths = new float[lanes.Length];
             int fe = segs.Count - tail;
             var tip = segs[fe - 1];
             var target = tail > 0 ? segs[fe].a : origin;
@@ -121,18 +123,22 @@ namespace Autorama
                 if (Touches(pts[i], pts[j], minSqr)) { r.overlaps.Add(i); r.overlaps.Add(j); }
             }
 
-            // Cada carrinho troca de lado a cada cruzamento. Com um número ímpar deles, cada um alterna de trilho
-            // a cada volta: na média das duas voltas, os dois correm a mesma distância.
-            float[] offs = { TrackMath.Lanes[0], TrackMath.Lanes[1] };
+            // Cada carrinho troca de lado a cada cruzamento (na pista de 4: 1↔4 e 2↔3). Com um número ímpar deles,
+            // cada um alterna com o trilho do espelho a cada volta: na média das duas voltas, os dois correm a mesma distância.
+            // Comprimentos em células; na pista de 4, multiplique por Scale para ter o do mundo.
+            int L = lanes.Length;
+            var offs = (float[])lanes.Clone();
             int crosses = 0;
             foreach (var s in segs)
             {
                 r.centerLength += s.def.CenterLength;
-                for (int l = 0; l < 2; l++) r.laneLengths[l] += s.def.LaneLength(s.piece.dir, offs[l]);
-                if (s.def.IsCross) { crosses++; offs[0] = -offs[0]; offs[1] = -offs[1]; }
+                for (int l = 0; l < L; l++) r.laneLengths[l] += s.def.LaneLength(s.piece.dir, offs[l]);
+                if (s.def.IsCross) { crosses++; for (int l = 0; l < L; l++) offs[l] = -offs[l]; }
                 if (s.High) r.highCount++;
             }
-            if (crosses % 2 == 1) r.laneLengths[0] = r.laneLengths[1] = (r.laneLengths[0] + r.laneLengths[1]) / 2f;
+            if (crosses % 2 == 1)
+                for (int l = 0; l < L / 2; l++)
+                    r.laneLengths[l] = r.laneLengths[L - 1 - l] = (r.laneLengths[l] + r.laneLengths[L - 1 - l]) / 2f;
             return r;
         }
 

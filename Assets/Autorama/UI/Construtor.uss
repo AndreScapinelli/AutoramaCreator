@@ -11,6 +11,8 @@
     --verde-luz: rgb(43, 193, 103);
     --trilho-a: rgb(240, 74, 63);
     --trilho-b: rgb(80, 137, 242);
+    --trilho-c: rgb(56, 186, 98);
+    --trilho-d: rgb(242, 183, 40);
     --fundo: rgb(22, 28, 25);
     --fundo-vidro: rgba(22, 28, 25, 0.94);
     --fundo-painel: rgba(22, 28, 25, 0.97);
@@ -106,6 +108,8 @@
 .swatch { width: 9px; height: 9px; border-radius: 2px; margin-right: 6px; }
 .swatch--a { background-color: var(--trilho-a); }
 .swatch--b { background-color: var(--trilho-b); }
+.swatch--c { background-color: var(--trilho-c); }
+.swatch--d { background-color: var(--trilho-d); }
 
 /* ---------- Sequência ---------- */
 .seq { flex-direction: row; flex-wrap: wrap; }
@@ -195,6 +199,8 @@
 .score-head .score-cell { font-size: 10px; color: var(--texto-fraco); letter-spacing: 1px; }
 .score-a .score-cell--name { color: var(--trilho-a); -unity-font-style: bold; }
 .score-b .score-cell--name { color: var(--trilho-b); -unity-font-style: bold; }
+.score-c .score-cell--name { color: var(--trilho-c); -unity-font-style: bold; }
+.score-d .score-cell--name { color: var(--trilho-d); -unity-font-style: bold; }
 .score-win .score-cell { -unity-font-style: bold; }
 .setting { margin: 0 0 8px 0; }
 .setting .unity-label { color: var(--texto); font-size: 12px; min-width: 150px; }
@@ -210,6 +216,8 @@
 .banner-title { font-size: 24px; -unity-font-style: bold; color: var(--texto); letter-spacing: 1px; margin: 0; padding: 0; }
 .banner-title--a { color: var(--trilho-a); }
 .banner-title--b { color: var(--trilho-b); }
+.banner-title--c { color: var(--trilho-c); }
+.banner-title--d { color: var(--trilho-d); }
 .banner-sub { font-size: 13px; color: var(--texto-fraco); margin: 4px 0 0 0; padding: 0; }
 
 .pads { position: absolute; bottom: 12px; right: 12px; flex-direction: row; }
@@ -217,7 +225,10 @@
     flex-grow: 1; flex-basis: 0; margin-right: 12px; padding: 8px 10px 10px 10px; border-radius: 12px;
     background-color: var(--fundo-vidro); border-top-width: 4px; border-color: var(--trilho-a);
 }
-.pad--b { border-color: var(--trilho-b); margin-right: 0; }
+.pad--b { border-color: var(--trilho-b); }
+.pad--c { border-color: var(--trilho-c); }
+.pad--d { border-color: var(--trilho-d); }
+.pad--last { margin-right: 0; }
 .pad-head { flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 6px; }
 .pad-name { font-size: 14px; -unity-font-style: bold; letter-spacing: 1px; color: var(--texto); margin: 0; padding: 0; }
 .pad-state { font-size: 12px; color: var(--texto-fraco); margin: 0; padding: 0; }
@@ -228,8 +239,19 @@
     background-color: var(--fundo-fundo); border-width: 2px; border-color: var(--trilho-a); justify-content: center; align-items: center;
 }
 .pad--b .gas { border-color: var(--trilho-b); }
+.pad--c .gas { border-color: var(--trilho-c); }
+.pad--d .gas { border-color: var(--trilho-d); }
 .gas-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background-color: rgba(240, 74, 63, 0.35); }
 .pad--b .gas-fill { background-color: rgba(80, 137, 242, 0.35); }
+.pad--c .gas-fill { background-color: rgba(56, 186, 98, 0.35); }
+.pad--d .gas-fill { background-color: rgba(242, 183, 40, 0.35); }
+/* Pista de 4 carros: quatro painéis mais baixos e estreitos. */
+.pads--4 .pad { margin-right: 8px; padding: 6px 8px 8px 8px; }
+.pads--4 .pad--last { margin-right: 0; }
+.pads--4 .gas { height: 58px; margin-right: 8px; }
+.pads--4 .gas-text { font-size: 12px; letter-spacing: 1px; white-space: normal; -unity-text-align: middle-center; }
+.pads--4 .pad-side { width: 104px; }
+.pads--4 .pad-name { font-size: 12px; }
 .pad--held .gas { background-color: rgb(30, 36, 33); }
 .gas-text { font-size: 18px; -unity-font-style: bold; letter-spacing: 2px; color: var(--texto); margin: 0; padding: 0; }
 .pad-side { width: 150px; }
@@ -291,6 +313,9 @@
 .heat { padding: 8px; margin-bottom: 8px; border-radius: 8px; background-color: var(--fundo-campo); border-width: 1px; border-color: var(--botao); }
 .heat-stage { font-size: 10px; letter-spacing: 1px; color: var(--texto-fraco); margin: 0 0 6px 0; padding: 0; }
 .vs { flex-direction: row; align-items: center; }
+.vs--4 { flex-wrap: wrap; }
+.hp--empty { opacity: 0.45; border-left-color: var(--borda-media); }
+.vs--4 .hp { flex-basis: 45%; margin: 0 4px 4px 0; }
 .vs-x { font-size: 14px; color: var(--texto-fraco); margin: 0 6px; padding: 0; }
 .hp { flex-grow: 1; flex-basis: 0; padding: 4px 6px; border-radius: 6px; background-color: var(--fundo); border-left-width: 4px; }
 .hp-name { font-size: 15px; -unity-font-style: bold; color: var(--texto); margin: 1px 0; padding: 0; overflow: hidden; text-overflow: ellipsis; }
@@ -368,6 +393,8 @@
     -unity-text-outline-width: 3px; -unity-text-outline-color: rgb(14, 17, 16);
 }
 .cd-text--go { color: var(--verde-luz); }
+/* Corrida por tempo: aviso entre as manches, menor que a contagem e quebrando a linha. */
+.cd-text--switch { font-size: 64px; color: var(--destaque); white-space: normal; -unity-text-align: middle-center; letter-spacing: 2px; }
 
 /* Resultado da prova, dentro do aviso de vitória */
 .res-table { margin-top: 10px; min-width: 380px; }

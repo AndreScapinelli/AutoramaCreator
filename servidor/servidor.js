@@ -46,7 +46,7 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
   const snapshot = r => ({
     code: r.code, name: r.name, pub: r.pub, host: r.host, max: MAX_PLAYERS, state: r.state,
     players: r.players.map(p => ({ id: p.id, name: p.name, color: p.color, ready: p.id === r.host || !!p.ready })),   // o host está sempre pronto
-    stages: r.stages.map(s => ({ name: s.name, laps: s.laps, hash: s.hash })),
+    stages: r.stages.map(s => ({ name: s.name, laps: s.laps, secs: s.secs, hash: s.hash })),
   });
   const broadcast = (r, msg) => r.players.forEach(p => send(p, msg));
   const pushRoom = r => broadcast(r, { t: 'room', room: snapshot(r) });
@@ -157,11 +157,11 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
       if (!r.stages.length) return fail(c, 'sem-etapas', 'Escolha pelo menos uma pista.');
       const falta = r.players.filter(p => p !== c && !p.ready);
       if (falta.length) return fail(c, 'nao-prontos', `Falta ficar pronto: ${falta.map(p => p.name).join(', ')}.`);
-      const rules = { vmax: Number(m.vmax), ramp: Number(m.ramp), grip: Number(m.grip), collide: !!m.collide };
+      const rules = { vmax: Number(m.vmax), ramp: Number(m.ramp), grip: Number(m.grip), collide: !!m.collide, byTime: !!m.byTime };
       if (!(rules.vmax >= 8 && rules.vmax <= 20 && rules.ramp >= 0.2 && rules.ramp <= 1.5 && rules.grip >= 15 && rules.grip <= 45)) return fail(c, 'regras', 'Regras inválidas.');
       r.state = 'racing';
       const title = clean(m.name, 40) || `Campeonato de ${c.name}`;
-      const msg = { t: 'started', title, rules, pilots: snapshot(r).players, stages: r.stages.map(s => ({ name: s.name, laps: s.laps, hash: s.hash, json: s.json })) };
+      const msg = { t: 'started', title, rules, pilots: snapshot(r).players, stages: r.stages.map(s => ({ name: s.name, laps: s.laps, secs: s.secs, hash: s.hash, json: s.json })) };
       broadcast(r, msg);
       say(r, `${c.name} largou o campeonato "${title}".`);
       pushRoom(r);
@@ -212,11 +212,12 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
       const out = [];
       for (const s of m.stages) {
         const laps = Math.round(Number(s && s.laps));
-        if (!s || !/^[0-9a-f]{8}$/.test(String(s.hash)) || !(laps >= 1 && laps <= 30) || typeof s.json !== 'string' || !s.json || s.json.length > MAX_TRACK_JSON)
+        const secs = s && s.secs != null && Number(s.secs) !== 0 ? Math.round(Number(s.secs)) : 120;   // corrida por tempo (cliente antigo: 120)
+        if (!s || !/^[0-9a-f]{8}$/.test(String(s.hash)) || !(laps >= 1 && laps <= 30) || !(secs >= 60 && secs <= 600) || typeof s.json !== 'string' || !s.json || s.json.length > MAX_TRACK_JSON)
           return fail(c, 'etapas', 'Etapa inválida ou pista grande demais.');
-        out.push({ name: clean(s.name, 60) || 'Pista', laps, hash: s.hash, json: s.json });
+        out.push({ name: clean(s.name, 60) || 'Pista', laps, secs, hash: s.hash, json: s.json });
       }
-      const mudou = JSON.stringify(out.map(s => [s.hash, s.laps])) !== JSON.stringify(r.stages.map(s => [s.hash, s.laps]));
+      const mudou = JSON.stringify(out.map(s => [s.hash, s.laps, s.secs])) !== JSON.stringify(r.stages.map(s => [s.hash, s.laps, s.secs]));
       r.stages = out;
       if (mudou && r.players.some(p => p !== c && p.ready)) { r.players.forEach(p => { p.ready = false; }); say(r, 'O host mudou as etapas: confirmem "pronto" de novo.'); }
       pushRoom(r);

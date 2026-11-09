@@ -211,9 +211,48 @@ namespace Autorama
 
         Image Icon(string name, string cls)
         {
-            var img = new Image { image = builder.theme.Icon(name), scaleMode = ScaleMode.ScaleToFit, pickingMode = PickingMode.Ignore };
+            var img = new Image { image = IconTex(name), scaleMode = ScaleMode.ScaleToFit, pickingMode = PickingMode.Ignore };
             img.AddToClassList(cls);
             return img;
+        }
+
+        // Na pista de 4 carros, o ícone da peça larga ("icone4-…"); se ainda não existir, o de 2 trilhos.
+        Texture2D IconTex(string name)
+        {
+            if (builder.Faixas == 4 && name.StartsWith("icone-"))
+            {
+                var t = builder.theme.Icon("icone4-" + name.Substring(6));
+                if (t != null) return t;
+            }
+            return builder.theme.Icon(name);
+        }
+
+        readonly List<(Image img, string name)> paletteIcons = new List<(Image, string)>();
+        Button kind2Btn, kind4Btn;
+        Label subtitle;
+        int iconsFor;
+
+        // A paleta e o título acompanham o tipo da pista (2 ou 4 carros).
+        void RefreshKind()
+        {
+            int f = builder.Faixas;
+            kind2Btn.EnableInClassList("btn--on", f == 2);
+            kind4Btn.EnableInClassList("btn--on", f == 4);
+            subtitle.text = f == 4 ? "AUTORAMA · 4 TRILHOS" : "AUTORAMA · 2 TRILHOS";
+            if (iconsFor == f) return;
+            iconsFor = f;
+            foreach (var (img, name) in paletteIcons) img.image = IconTex(name);
+        }
+
+        // Trocar o tipo: com só a largada, troca na hora; com peças, começa uma pista nova (pede um segundo clique).
+        void ChooseKind(int faixas)
+        {
+            if (builder.Faixas == faixas) return;
+            if (builder.CanChangeFaixas) { builder.SetFaixas(faixas); FrameTrack(); return; }
+            if (!Confirm("tipo:" + faixas)) { Say($"Clique de novo para começar uma pista nova de {faixas} carros (Ctrl+Z desfaz)."); return; }
+            builder.NewTrack(faixas);
+            FrameTrack();
+            Say($"Pista nova de {faixas} carros.");
         }
 
         void BuildLayout()
@@ -237,7 +276,7 @@ namespace Autorama
             var titleRow = El("title-row", content);
             var titles = El("titles", titleRow);
             Text("CONSTRUTOR DE PISTA", "title", titles);
-            Text("AUTORAMA · 2 TRILHOS", "subtitle", titles);
+            subtitle = Text("AUTORAMA · 2 TRILHOS", "subtitle", titles);
             Btn("⌂", () => { if (OnlineRacing) Say("Termine o campeonato online (ou saia da sala) antes de voltar ao menu."); else ShowMenu(true); }, "btn icon-btn", titleRow).tooltip = "Tela inicial";
             Btn("◀", () => SetSide(false), "btn icon-btn", titleRow).tooltip = "Esconder o painel (Tab)";
 
@@ -267,6 +306,14 @@ namespace Autorama
             onlineBox = El(null, content);
             onlineBox.style.display = DisplayStyle.None;
 
+            // Tipo da pista: 2 ou 4 carros. Uma pista nasce de um tipo e fica nele.
+            var kind = Section("TIPO DA PISTA");
+            var kindRow = El("segmented", kind);
+            kind2Btn = Btn("2 carros", () => ChooseKind(2), "btn", kindRow);
+            kind4Btn = Btn("4 carros", () => ChooseKind(4), "btn", kindRow);
+            kind2Btn.tooltip = "Pista estreita, de 2 trilhos";
+            kind4Btn.tooltip = "Pista larga, de 4 trilhos (1 célula = o dobro da largura). Campeonatos não misturam os dois tipos.";
+
             // Paleta
             var pal = Section("PEÇAS");
             hint = Text("", "hint", pal);
@@ -288,7 +335,9 @@ namespace Autorama
                 var entry = e;
                 var tile = new Button(() => { builder.Add(entry); builder.ShowGhost(entry); });
                 tile.AddToClassList("tile");
-                tile.Add(Icon(e.icon, "tile-icon"));
+                var tileIcon = Icon(e.icon, "tile-icon");
+                paletteIcons.Add((tileIcon, e.icon));
+                tile.Add(tileIcon);
                 var texts = El("tile-texts", tile); texts.pickingMode = PickingMode.Ignore;
                 Text(e.label, "tile-name", texts).pickingMode = PickingMode.Ignore;
                 Text(e.sub, "tile-sub", texts).pickingMode = PickingMode.Ignore;
@@ -321,10 +370,10 @@ namespace Autorama
             Btn("Salvar", SaveTrack, "btn btn--primary", nameRow).style.marginBottom = 0;
             libList = El(null, lib);
             var libRow = El("row", lib);
-            Btn("Exemplo: oval", () => Open(TrackSave.Oval()), "btn", libRow);
-            Btn("Exemplo: 8 com ponte", () => Open(TrackSave.Eight()), "btn", libRow);
+            Btn("Exemplo: oval", () => Open(Kind(TrackSave.Oval())), "btn", libRow);
+            Btn("Exemplo: 8 com ponte", () => Open(Kind(TrackSave.Eight())), "btn", libRow);
             var newBtn = Btn("Nova pista", null, "btn btn--danger", libRow);
-            newBtn.clicked += () => builder.NewTrack();
+            newBtn.clicked += () => builder.NewTrack();     // do mesmo tipo da atual
             Text("Pasta: " + TrackLibrary.Folder, "small", lib);
 
             // Vista e edição
@@ -480,6 +529,7 @@ namespace Autorama
             endFrontBtn.EnableInClassList("btn--on", !builder.Back);
             endBackBtn.EnableInClassList("btn--on", builder.Back);
 
+            RefreshKind();
             DrawSelected();
             DrawSummary();
             DrawSequence();
@@ -533,14 +583,16 @@ namespace Autorama
         {
             summaryBox.Clear();
             var i = builder.Info;
-            float cm = builder.cellCm;
+            float cm = builder.cellCm * builder.Scale;     // na pista de 4, a célula tem o dobro da largura
             string M(float cells) => Num(cells * cm / 100f, 2) + " m";
-            float diff = i.laneLengths[0] - i.laneLengths[1];
+            var L = i.laneLengths;
+            int lo = 0, hi = 0;
+            for (int l = 1; l < L.Length; l++) { if (L[l] < L[lo]) lo = l; if (L[l] > L[hi]) hi = l; }
+            float diff = L[hi] - L[lo];
             Stat("Peças", builder.pieces.Count + (i.highCount > 0 ? $" · {i.highCount} no alto" : ""));
             Stat("Linha central", M(i.centerLength));
-            Stat("Trilho 1", M(i.laneLengths[0]), "swatch--a");
-            Stat("Trilho 2", M(i.laneLengths[1]), "swatch--b");
-            Stat("Mais longo", Mathf.Abs(diff) < 0.01f ? "iguais" : $"trilho {(diff > 0 ? 1 : 2)} +{Num(Mathf.Abs(diff) * cm, 0)} cm");
+            for (int l = 0; l < L.Length; l++) Stat($"Trilho {l + 1}", M(L[l]), LaneSwatch(l));
+            Stat("Mais longo", diff < 0.01f ? "iguais" : $"trilho {hi + 1} +{Num(diff * cm, 0)} cm" + (L.Length > 2 ? $" (sobre o {lo + 1})" : ""));
             Stat("Área ocupada", $"{Num(i.bounds.width * cm / 100f, 2)} × {Num(i.bounds.height * cm / 100f, 2)} m");
             bool fits = i.bounds.xMin >= -0.01f && i.bounds.yMin >= -0.01f && i.bounds.xMax <= builder.boardSize.x + 0.01f && i.bounds.yMax <= builder.boardSize.y + 0.01f;
             Stat("Na mesa", (fits ? "cabe" : "passa da borda") + $" · {builder.boardSize.x} × {builder.boardSize.y} cél.");
@@ -611,6 +663,9 @@ namespace Autorama
             Say($"“{builder.TrackName}” salva.");
         }
 
+        // Os exemplos abrem no tipo da pista atual (a forma em células é a mesma).
+        TrackSave Kind(TrackSave s) { s.faixas = builder.Faixas; return s; }
+
         void Open(TrackSave s)
         {
             builder.Load(s);
@@ -627,7 +682,9 @@ namespace Autorama
         public void FrameTrack()
         {
             if (builder.Info == null) return;
-            cam.Frame(builder.Info.bounds, SidePixels());
+            var r = builder.Info.bounds;        // em células; na pista de 4, o mundo é 2× maior
+            float k = builder.Scale;
+            cam.Frame(new Rect(builder.transform.position.x + r.x * k, builder.transform.position.z + r.y * k, r.width * k, r.height * k), SidePixels());
         }
 
         // Largura do painel em pixels de tela (0 se escondido).
@@ -688,7 +745,7 @@ namespace Autorama
             var m = Mouse.current;
             if (m != null && !Locked && !PointerOverUI(m.position.ReadValue()))
             {
-                var w = cam.MouseOnTable();
+                var w = builder.WorldToCell(cam.MouseOnTable());
                 var c = new Vector2Int(Mathf.FloorToInt(w.x), Mathf.FloorToInt(w.z));
                 if (c.x >= 0 && c.y >= 0 && c.x < builder.boardSize.x && c.y < builder.boardSize.y) cell = c;
             }
@@ -720,7 +777,7 @@ namespace Autorama
             var b = builder.boardSize;
 
             // Pixels de painel por célula (vista de cima: escala igual nos dois eixos).
-            Vector2 p0 = ToPanel(new Vector3(0, 0, 0)), p1 = ToPanel(new Vector3(1, 0, 0));
+            Vector2 p0 = ToPanel(builder.CellToWorld(new Vector3(0, 0, 0))), p1 = ToPanel(builder.CellToWorld(new Vector3(1, 0, 0)));
             float cellPx = Mathf.Abs(p1.x - p0.x);
             int step = 1;
             while (step * cellPx < 18f && step < 64) step *= 2;
@@ -729,7 +786,7 @@ namespace Autorama
             for (int c = 0; c < colLabels.Count; c++)
             {
                 var l = colLabels[c];
-                float x = ToPanel(new Vector3(c + 0.5f, 0, 0)).x - left;
+                float x = ToPanel(builder.CellToWorld(new Vector3(c + 0.5f, 0, 0))).x - left;
                 bool on = hover.HasValue && hover.Value.x == c;
                 bool show = c < b.x && (c % step == 0 || on) && x > 30f && x < root.layout.width - left - 12f;
                 l.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
@@ -744,7 +801,7 @@ namespace Autorama
                 // Linhas contadas de cima para baixo (A no topo), como no HTML.
                 var l = rowLabels[r];
                 float z = b.y - r - 0.5f;
-                float y = ToPanel(new Vector3(0, 0, z)).y - 20f;
+                float y = ToPanel(builder.CellToWorld(new Vector3(0, 0, z))).y - 20f;
                 bool on = hover.HasValue && b.y - 1 - hover.Value.y == r;
                 bool show = r < b.y && (r % step == 0 || on) && y > 8f && y < root.layout.height - 28f;
                 l.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
@@ -755,7 +812,7 @@ namespace Autorama
             }
 
             // Barra de escala: a maior medida redonda que cabe em ~120 px.
-            float cm = builder.cellCm;
+            float cm = builder.cellCm * builder.Scale;     // a célula da pista de 4 tem o dobro da largura
             int[] opts = { 5, 10, 20, 25, 50, 100, 200, 500, 1000 };
             int best = opts[0];
             foreach (int v in opts) if (v / cm * cellPx <= 120f) best = v;
@@ -798,11 +855,13 @@ namespace Autorama
             {
                 var o = s.Origin;
                 var segs = TrackLayout.Build(o, s.Pieces(), s.Tail);
-                var a = TrackLayout.Analyze(o, segs, s.Tail);
-                return $"{segs.Count} peças · {Num(a.centerLength * s.escalaCm / 100f)} m · " + (a.closed ? "fechada" : "<color=#F07A3A>aberta</color>");
+                var a = TrackLayout.Analyze(o, segs, s.Tail, s.Faixas);
+                return $"{s.Faixas} carros · {segs.Count} peças · {Num(a.centerLength * s.escalaCm * TrackMath.Scale(s.Faixas) / 100f)} m · " + (a.closed ? "fechada" : "<color=#F07A3A>aberta</color>");
             }
             catch { return "não deu para ler"; }
         }
+
+        internal static string LaneSwatch(int l) => "swatch--" + (char)('a' + l);
 
         static string IconOf(TrackPiece p)
         {

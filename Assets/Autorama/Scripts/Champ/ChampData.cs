@@ -10,6 +10,8 @@ namespace Autorama
     // Pilotos ficam num cadastro e são reaproveitados. O campeonato guarda uma cópia dos pilotos e das pistas.
     // Rodízio: com N pilotos, cada etapa tem N baterias; na bateria k correm o piloto k (trilho 1) e o k+1 (trilho 2).
     // Assim cada piloto corre exatamente uma vez em cada trilho. Com 2 pilotos são as 2 baterias com troca de lado.
+    // Campeonato de 4 carros (seção 25): só pistas de 4, pelo menos 4 pilotos, e na bateria k correm k, k+1, k+2 e k+3
+    // nos trilhos 1 a 4. De novo, cada piloto corre uma vez em cada trilho. Os dois tipos de pista nunca se misturam.
     // Os arquivos usam listas (o JsonUtility não lê dicionário); o HTML guarda os mesmos dados em mapas.
 
     [Serializable]
@@ -22,7 +24,7 @@ namespace Autorama
         public Pilot Copy() => (Pilot)MemberwiseClone();
     }
 
-    [Serializable] public class Stage { public string name; public int laps = 5; public string hash; public TrackSave data; }
+    [Serializable] public class Stage { public string name; public int laps = 5; public int secs = 120; public string hash; public TrackSave data; }   // secs: campeonato por tempo
 
     [Serializable]
     public class HeatResult
@@ -30,15 +32,16 @@ namespace Autorama
         public int laps, offs, hits;
         public float time, best = -1f;           // best −1: nenhuma volta completa
         public bool dnf, rec, raceRec, pb;       // não terminou; bateu recorde de volta, de corrida ou o melhor pessoal
+        public float dist;                       // corrida por tempo: voltas andadas com a fração da última
     }
 
     [Serializable]
     public class Heat
     {
         public int s;                            // etapa
-        public int[] p = new int[2];             // pilotos: [trilho 1, trilho 2]
+        public int[] p = new int[2];             // pilotos: [trilho 1, trilho 2] (ou os 4 trilhos); −1 = trilho vazio (por tempo)
         public HeatResult[] res;                 // vazio até salvar (o JsonUtility grava null como [])
-        public bool Saved => res != null && res.Length == 2;
+        public bool Saved => res != null && res.Length == p.Length && res.Length > 0;
     }
 
     [Serializable] public class ChampRules { public float vmax, ramp, grip; public bool collide; }
@@ -47,14 +50,17 @@ namespace Autorama
     public class Championship
     {
         public string id, name;
+        public int faixas = 2;                   // 2 ou 4 carros por bateria: todas as etapas são pistas desse tipo
+        public bool byTime;                      // corrida por tempo em todas as etapas (seção 26)
         public long created, finished;
+        public int Faixas => TrackMath.Faixas(faixas);
         public ChampRules rules = new ChampRules();
         public List<Pilot> pilots = new List<Pilot>();
         public List<Stage> stages = new List<Stage>();
         public List<Heat> heats = new List<Heat>();
     }
 
-    [Serializable] public class ChampDraft { public string name = ""; public List<string> pilots = new List<string>(); public List<Stage> stages = new List<Stage>(); }
+    [Serializable] public class ChampDraft { public string name = ""; public int faixas = 2; public bool byTime; public List<string> pilots = new List<string>(); public List<Stage> stages = new List<Stage>(); }
     [Serializable] public class HistoryRow { public Pilot pilot; public int pts, wins, podiums, fast; }
     [Serializable] public class HistoryEntry { public string id, name; public long finished; public List<string> stages = new List<string>(); public List<HistoryRow> table = new List<HistoryRow>(); }
 
@@ -81,12 +87,12 @@ namespace Autorama
     {
         public string hash, name;
         public Rec lap = new Rec();
-        public Rec lane1 = new Rec(), lane2 = new Rec();
+        public Rec lane1 = new Rec(), lane2 = new Rec(), lane3 = new Rec(), lane4 = new Rec();   // 3 e 4: só nas pistas de 4
         public List<RaceRec> race = new List<RaceRec>();
         public List<PilotBest> pb = new List<PilotBest>();
 
-        public Rec Lane(int k) => k == 0 ? lane1 : lane2;
-        public void SetLane(int k, Rec r) { if (k == 0) lane1 = r; else lane2 = r; }
+        public Rec Lane(int k) => k == 0 ? lane1 : k == 1 ? lane2 : k == 2 ? (lane3 ??= new Rec()) : (lane4 ??= new Rec());
+        public void SetLane(int k, Rec r) { if (k == 0) lane1 = r; else if (k == 1) lane2 = r; else if (k == 2) lane3 = r; else lane4 = r; }
         public Rec Race(int laps) { var r = race.Find(x => x.laps == laps); return r != null ? r.rec : null; }
         public void SetRace(int laps, Rec r) { var e = race.Find(x => x.laps == laps); if (e == null) race.Add(new RaceRec { laps = laps, rec = r }); else e.rec = r; }
         public PilotBest Best(string id, bool create)
@@ -101,7 +107,7 @@ namespace Autorama
 
     // ---------- Regras e contas ----------
 
-    public class StageRow { public int i, laps, runs, offs, hits, pts = -1; public float time, best = -1f; public bool fast; }
+    public class StageRow { public int i, laps, runs, offs, hits, pts = -1; public float time, best = -1f, dist; public bool fast; }
     public class StandRow { public int i, pts, wins, podiums, fast; public float time; }
 
     public static class Champ
@@ -112,14 +118,47 @@ namespace Autorama
         public static readonly string[] Colors = { "#E0362C", "#2563EB", "#F2B705", "#16A34A", "#9333EA", "#F97316", "#0EA5B7", "#E04B95" };
         public static readonly string[] ColorNames = { "Vermelho", "Azul", "Amarelo", "Verde", "Roxo", "Laranja", "Ciano", "Rosa" };
 
-        public static List<Heat> MakeHeats(int nPilots, int nStages)
+        // faixas: carrinhos por bateria (2 ou 4). Precisa de pelo menos esse tanto de pilotos (MinPilots).
+        // byTime: uma bateria já passa por todos os trilhos (manches), então cada piloto corre uma vez por etapa.
+        // Com mais pilotos que trilhos, eles se dividem em grupos equilibrados na ordem do cadastro (5 em 4 trilhos:
+        // 3 + 2; 6 em 2: 2 + 2 + 2). Os trilhos que sobram ficam vazios (−1).
+        public static List<Heat> MakeHeats(int nPilots, int nStages, int faixas = 2, bool byTime = false)
         {
+            int L = TrackMath.Faixas(faixas);
             var list = new List<Heat>();
+            if (byTime)
+            {
+                int g = Mathf.Max(1, Mathf.CeilToInt(nPilots / (float)L));
+                for (int s = 0; s < nStages; s++)
+                {
+                    int next = 0;
+                    for (int gi = 0; gi < g; gi++)
+                    {
+                        int size = nPilots / g + (gi < nPilots % g ? 1 : 0);
+                        var p = new int[L];
+                        for (int l = 0; l < L; l++) p[l] = l < size ? next + l : -1;
+                        next += size;
+                        list.Add(new Heat { s = s, p = p });
+                    }
+                }
+                return list;
+            }
+            // Por voltas: H = max(pilotos, trilhos) baterias por etapa. Na bateria k, o trilho l recebe o piloto (k + l) mod H;
+            // se esse número passa do total de pilotos, o trilho fica vazio. Cada piloto corre uma vez em cada trilho.
+            // Com pilotos ≥ trilhos é o rodízio de sempre; com 3 pilotos na pista de 4 são 4 baterias de 3 carros.
+            int H = Mathf.Max(nPilots, L);
             for (int s = 0; s < nStages; s++)
-                for (int k = 0; k < nPilots; k++)
-                    list.Add(new Heat { s = s, p = new[] { k, (k + 1) % nPilots } });
+                for (int k = 0; k < H; k++)
+                {
+                    var p = new int[L];
+                    for (int l = 0; l < L; l++) { int i = (k + l) % H; p[l] = i < nPilots ? i : -1; }
+                    list.Add(new Heat { s = s, p = p });
+                }
             return list;
         }
+
+        public static int MinPilots(int faixas, bool byTime = false) => 2;      // trilho vazio resolve a pista de 4 com 2 ou 3
+        public static int HeatsPerStage(int nPilots, int faixas, bool byTime) => byTime ? Mathf.Max(1, Mathf.CeilToInt(nPilots / (float)TrackMath.Faixas(faixas))) : Mathf.Max(nPilots, TrackMath.Faixas(faixas));
 
         // A bateria da vez: a primeira sem resultado. −1: campeonato encerrado.
         public static int CurrentHeat(Championship c) => c.heats.FindIndex(h => !h.Saved);
@@ -136,15 +175,18 @@ namespace Autorama
                 total++;
                 if (!h.Saved) { complete = false; continue; }
                 saved++;
-                for (int k = 0; k < 2; k++)
+                for (int k = 0; k < h.p.Length; k++)
                 {
+                    if (h.p[k] < 0) continue;                // trilho vazio
                     var r = h.res[k]; var row = rows[h.p[k]];
-                    row.laps += r.laps; row.time += r.time; row.runs++; row.offs += r.offs; row.hits += r.hits;
+                    row.laps += r.laps; row.time += r.time; row.runs++; row.offs += r.offs; row.hits += r.hits; row.dist += r.dist;
                     if (r.best >= 0f && (row.best < 0f || r.best < row.best)) row.best = r.best;
                 }
             }
             rows.RemoveAll(r => r.runs == 0);
-            rows.Sort((a, b) => a.laps != b.laps ? b.laps.CompareTo(a.laps) : a.time.CompareTo(b.time));
+            // Por voltas: mais voltas, depois menos tempo. Por tempo: mais distância (voltas com a fração).
+            if (c.byTime) rows.Sort((a, b) => b.dist.CompareTo(a.dist));
+            else rows.Sort((a, b) => a.laps != b.laps ? b.laps.CompareTo(a.laps) : a.time.CompareTo(b.time));
             if (complete)
             {
                 for (int pos = 0; pos < rows.Count; pos++) rows[pos].pts = pos < Points.Length ? Points[pos] : 0;
@@ -187,9 +229,10 @@ namespace Autorama
 
         // A identidade da pista é a forma (sequência de peças), não o nome nem a posição na mesa.
         // "id:sentido:altura" de cada peça, FNV-1a de 32 bits: o mesmo número que o HTML calcula.
+        // A pista de 4 carros começa com "f4|": a mesma forma em 2 e em 4 faixas são pistas diferentes, e as de 2 não mudam.
         public static string TrackHash(TrackSave t)
         {
-            var sb = new StringBuilder("largada:0:0");
+            var sb = new StringBuilder(t.Faixas == 4 ? "f4|largada:0:0" : "largada:0:0");
             foreach (var p in t.pecas)
             {
                 var def = PieceCatalog.ById(p.tipo);
@@ -228,14 +271,16 @@ namespace Autorama
             : s <= 70 ? "Bom: entra forte nas curvas" : s <= 90 ? "Experiente: quase no limite, raramente sai" : "Profissional: no limite da aderência";
 
         // Duração estimada: cada bateria ~ voltas × comprimento ÷ (60% da velocidade máxima), mais a largada.
-        public static int EstimateMin(List<Stage> stages, int nPilots, float vmax)
+        public static int EstimateMin(List<Stage> stages, int nPilots, float vmax, int faixas = 2, bool byTime = false)
         {
             float sec = 0f;
+            int L = TrackMath.Faixas(faixas);
             foreach (var s in stages)
             {
+                if (byTime) { sec += HeatsPerStage(nPilots, faixas, true) * (s.secs + L * (RaceSim.Count + 1f) + (L - 1) * RaceSim.SwitchTime + 10f); continue; }
                 float len = 0f;
-                try { len = TrackLayout.Analyze(s.data.Origin, TrackLayout.Build(s.data.Origin, s.data.Pieces(), s.data.Tail), s.data.Tail).centerLength; } catch { }
-                sec += nPilots * (s.laps * len / (0.6f * vmax) + 10f);
+                try { len = TrackLayout.Analyze(s.data.Origin, TrackLayout.Build(s.data.Origin, s.data.Pieces(), s.data.Tail), s.data.Tail).centerLength * TrackMath.Scale(s.data.Faixas); } catch { }
+                sec += HeatsPerStage(nPilots, faixas, false) * (s.laps * len / (0.6f * vmax) + 10f);
             }
             return Mathf.Max(1, Mathf.RoundToInt(sec / 60f));
         }
@@ -280,7 +325,10 @@ namespace Autorama
             s.draft ??= new ChampDraft();
             s.history ??= new List<HistoryEntry>();
             var a = s.active;
-            if (s.hasActive && (a == null || a.pilots.Count < 2 || a.stages.Count == 0 || a.heats.Count != a.pilots.Count * a.stages.Count)) s.hasActive = false;
+            if (s.hasActive && (a == null || a.pilots.Count < Champ.MinPilots(a.faixas, a.byTime) || a.stages.Count == 0
+                || a.heats.Count != Champ.HeatsPerStage(a.pilots.Count, a.faixas, a.byTime) * a.stages.Count)) s.hasActive = false;
+            if (s.hasActive) { a.faixas = a.Faixas; foreach (var h in a.heats) if (h.p == null || h.p.Length != a.faixas) { s.hasActive = false; break; } }
+            s.draft.faixas = TrackMath.Faixas(s.draft.faixas);
             if (s.hasActive) foreach (var p in a.pilots) Clean(p);
             return s;
         }
