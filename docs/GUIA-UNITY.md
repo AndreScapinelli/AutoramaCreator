@@ -1904,6 +1904,18 @@ public static List<Heat> MakeHeats(int nPilots, int nStages)
 public static int CurrentHeat(Championship c) => c.heats.FindIndex(h => !h.Saved);
 ```
 
+**Teclas com um humano só** (Unity, `RaceController.KeySet`): o rodízio põe o mesmo piloto ora no trilho 1, ora no 2. Quando só um dos carrinhos da bateria é humano (o outro é IA), ele usa sempre **A · S**, em qualquer trilho; o controle na tela, o texto da bateria ("acelera A · recoloca S") e a leitura do teclado seguem essa regra. Com dois humanos continua A · S no trilho 1 e L · K no 2. Na corrida livre contra o robô nada muda (o humano já é o trilho 1); no online já era sempre A · S.
+
+```csharp
+int KeySet(int k)
+{
+    bool h0 = sim.aiSkill[0] <= 0, h1 = sim.aiSkill[1] <= 0;
+    return h0 != h1 ? 0 : k;          // 0 = A·S, 1 = L·K
+}
+```
+
+Teste (`script eval`): IA (0, 0) → trilho 1 A, trilho 2 L; IA (0, 70) → A, A; IA (70, 0) → A, A; IA (70, 70) → A, L (com dois robôs as teclas não são lidas).
+
 ### 19.4 Mudanças no RaceSim
 
 **1. Regras e voltas.** Para cada bateria, o `RaceController` cria o `RaceSim` com um `RaceSettings` montado a partir de `champ.rules` e de `stage.laps`. Os ajustes salvos da aba Corrida não mudam.

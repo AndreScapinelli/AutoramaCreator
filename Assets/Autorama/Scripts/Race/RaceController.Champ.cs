@@ -456,7 +456,7 @@ namespace Autorama
                     string side = LaneSide(k);
                     Text($"{LaneNames[k]}{(side != "" ? " · " + side : "")}", "small", hp);
                     Text(p.name.ToUpperInvariant(), "hp-name", hp);
-                    Text(OnlineRun ? OnlineWho(p) : p.ai ? $"IA · qualidade {p.skill}" : $"acelera {GasKeys[k]} · recoloca {ReslotKeys[k]}", "small", hp);
+                    Text(OnlineRun ? OnlineWho(p) : p.ai ? $"IA · qualidade {p.skill}" : $"acelera {GasKeys[pl[0].ai != pl[1].ai ? 0 : k]} · recoloca {ReslotKeys[pl[0].ai != pl[1].ai ? 0 : k]}", "small", hp);
                 }
             }
             else DrawPodium(C);
@@ -838,8 +838,8 @@ namespace Autorama
                 bool ai = sim.aiSkill[k] > 0;
                 p.name.text = pilot != null ? $"{pilot.name.ToUpperInvariant()} · {LaneNames[k].ToUpperInvariant()}"
                     : ai ? $"ROBÔ · {LaneNames[k].ToUpperInvariant()}" : $"JOGADOR {k + 1}";
-                p.gasText.text = OnlineRun ? "ACELERAR  A" : ai ? $"IA PILOTANDO · {sim.aiSkill[k]}" : $"ACELERAR  {GasKeys[k]}";
-                p.reslot.text = OnlineRun ? "Recolocar  S" : $"Recolocar  {ReslotKeys[k]}";
+                p.gasText.text = OnlineRun ? "ACELERAR  A" : ai ? $"IA PILOTANDO · {sim.aiSkill[k]}" : $"ACELERAR  {GasKey(k)}";
+                p.reslot.text = OnlineRun ? "Recolocar  S" : $"Recolocar  {ReslotKey(k)}";
                 p.gas.EnableInClassList("gas--ai", ai);
                 if (pilot != null)
                 {

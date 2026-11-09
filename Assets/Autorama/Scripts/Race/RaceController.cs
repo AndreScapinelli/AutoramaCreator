@@ -17,6 +17,17 @@ namespace Autorama
         public Material sparkMaterial;
 
         static readonly Key[] GasKeys = { Key.A, Key.L }, ReslotKeys = { Key.S, Key.K };
+
+        // Teclas de cada trilho: A·S no 1 e L·K no 2. Se só um dos carrinhos é humano (o outro é a IA),
+        // ele usa sempre A·S, em qualquer trilho: no campeonato o rodízio troca o trilho a cada bateria.
+        int KeySet(int k)
+        {
+            if (sim == null) return k;
+            bool h0 = sim.aiSkill[0] <= 0, h1 = sim.aiSkill[1] <= 0;
+            return h0 != h1 ? 0 : k;
+        }
+        Key GasKey(int k) => GasKeys[KeySet(k)];
+        Key ReslotKey(int k) => ReslotKeys[KeySet(k)];
         static readonly string[] LaneNames = { "Trilho 1", "Trilho 2" };
         // Modos de câmera da corrida, na ordem de TopDownCamera.RaceViewMode.
         static readonly string[] CamModes = { "De cima", "3D", "Atrás do carro", "Dinâmica" };
@@ -228,8 +239,8 @@ namespace Autorama
             for (int k = 0; k < 2; k++)
             {
                 if (sim.aiSkill[k] > 0) continue;              // o piloto IA segura e solta sozinho
-                sim.cars[k].held = uiHeld[k] || (keys && kb[GasKeys[k]].isPressed);
-                if (keys && kb[ReslotKeys[k]].wasPressedThisFrame) sim.Reslot(k);
+                sim.cars[k].held = uiHeld[k] || (keys && kb[GasKey(k)].isPressed);
+                if (keys && kb[ReslotKey(k)].wasPressedThisFrame) sim.Reslot(k);
             }
             if (keys && (kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame)) { if (panel.ChampMode) ChampEnter(); else StartRace(); }
 
