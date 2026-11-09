@@ -1334,39 +1334,32 @@ No meio da tela, as **três luzes** da largada e o **aviso de vitória**.
 
 ### 15.7.1 Modos de câmera na corrida
 
-Para melhorar a leitura dos carrinhos, a aba Corrida ganhou um seletor `Câmera` com 4 modos:
+A câmera fica num **menu no canto superior direito da mesa** (só nas abas Corrida e Campeonato e na corrida online). O botão mostra o modo atual (`Câmera: Dinâmica ▾`); clicar abre a lista embaixo, com os 4 modos, o alvo e a distância. O painel lateral não tem mais os seletores de câmera.
 
-1. **Atual**
-     - Mantém o comportamento original da `TopDownCamera` (topo + alternância para inclinada com `V`).
-     - Pan com botão direito/meio e zoom na roda continuam ativos.
-2. **3D**
-     - Força a câmera inclinada em perspectiva.
-     - Pan/órbita/zoom manuais continuam ativos.
-3. **Third person**
-     - Câmera de perseguição atrás de um carrinho (alvo escolhido em `Third person`: jogador 1 ou 2).
-     - A roda do mouse ajusta só a distância de perseguição.
-4. **Auto (2 carros)**
-    - Usa câmera ortográfica.
-    - Em corrida entre dois humanos, o centro acompanha o ponto médio e o zoom enquadra ambos.
-    - Em corrida livre contra o robô, acompanha apenas o jogador 1; posição e distância do robô não afetam o centro nem o zoom. O enquadramento-base é `5.5` células, ajustável pelo slider de distância.
-    - Em multiplayer, o zoom (`orthographicSize`) varia automaticamente para manter os dois carrinhos no quadro.
+| Modo (menu) | `RaceViewMode` | O que faz |
+|---|---|---|
+| **De cima** | `Atual` (0) | Comportamento original da `TopDownCamera`: de cima, `V` alterna para inclinada; pan com botão direito/meio, zoom na roda. |
+| **3D** | `ThreeD` (1) | Força a vista inclinada em perspectiva; pan/órbita/zoom manuais continuam. |
+| **Atrás do carro** | `ThirdPerson` (2) | Persegue um carrinho. Na corrida local, o menu mostra **Seguir: Jogador 1 · Jogador 2**. A roda ajusta só a distância. |
+| **Dinâmica** | `AutoDoisCarros` (3) | Ortográfica. Enquadra os dois carrinhos (centro no ponto médio, zoom automático) ou acompanha só um, conforme abaixo. |
 
-O slider **Distância da câmera** fica abaixo dos seletores e vale para todos os modos: `100%` é o enquadramento padrão, valores menores aproximam e valores maiores afastam. A faixa é `70%–160%`; no Auto multiplayer, valores menores podem fazer um carrinho sair do quadro, enquanto valores maiores deixam mais espaço ao redor dos dois.
+**Qual carrinho a câmera acompanha** (`RaceController.CamFocusCar()`, recalculado a cada quadro em `PlaceCars`):
+
+- **Corrida online:** sempre o **seu** carrinho, `MyLane()`, seja trilho 1 ou 2. Vale para *Atrás do carro* (o alvo escolhido no menu é ignorado e o menu avisa "No online, segue o seu carrinho") e para a *Dinâmica*, que centra em você com o enquadramento-base de `5.5` células. Como o seu trilho muda de uma bateria para outra, o foco é atualizado a cada quadro.
+- **Corrida livre contra o robô:** o jogador 1 (trilho 0).
+- **Dois humanos no mesmo teclado / campeonato local:** nenhum (`-1`); a Dinâmica enquadra os dois.
+
+`TopDownCamera.SetRaceTargets(p0, h0, p1, h1, int focus = -1)`: `focus` 0 ou 1 centra a Dinâmica naquele carrinho; `-1` enquadra os dois. (Antes era `bool prioritizeFirst`, que só sabia focar o carrinho 0; por isso, no online, quem era o jogador 2 via a câmera seguindo o adversário.)
+
+O slider **Distância** (dentro do menu) vale para todos os modos: `100%` é o padrão, a faixa é `70%–160%`.
 
 Implementação Unity:
 
-- `TopDownCamera` agora expõe `RaceViewMode` (`Atual`, `ThreeD`, `ThirdPerson`, `AutoDoisCarros`) e os métodos:
-    - `SetRaceViewMode(...)`
-    - `SetThirdPersonCar(...)`
-    - `SetRaceTargets(...)`
-- `RaceController`:
-    - adiciona os dois `DropdownField` na seção Corrida;
-    - grava os valores em `RaceSettings`;
-    - alimenta a câmera com pose dos dois carros no `PlaceCars`.
-- `RaceSettings` salva:
-    - `cameraMode` (0..3)
-    - `cameraTarget` (0..1)
-    - `cameraDistance` (70..160, padrão 100)
+- `RaceController.BuildCamMenu(root)` monta o menu sobre a mesa: `.cam-menu` (absoluto, `top 10px`, `right 12px`), o botão `.cam-btn`, e a lista `.cam-pop` (240 px) com um `.cam-opt` por modo (nome + uma linha de dica; o ativo ganha `.cam-opt--on`), o bloco `.cam-sub` do alvo e o `SliderInt` da distância. Estilos no fim de `UI/Construtor.uss`. O selo "Vista 3D" (`.view-badge`) desceu para `top 54px` para não ficar embaixo do botão.
+- `ApplyCameraSettings()` aplica modo, alvo e distância e redesenha o menu.
+- `RaceSettings` salva `cameraMode` (0..3), `cameraTarget` (0..1) e `cameraDistance` (70..160, padrão 100).
+
+Teste da correção (Play mode, `script eval` chamando `ApplyAutoDoisCarros` com os carrinhos em (−8, 0) e (8, 3)): `focus -1` → câmera em x 0,0 / z 1,5 (meio); `focus 0` → (−8, 0); `focus 1` → (8, 3).
 
 Parâmetros usados no first pass (podem ser refinados com playtest):
 

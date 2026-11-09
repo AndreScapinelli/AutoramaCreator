@@ -18,8 +18,10 @@ namespace Autorama
 
         static readonly Key[] GasKeys = { Key.A, Key.L }, ReslotKeys = { Key.S, Key.K };
         static readonly string[] LaneNames = { "Trilho 1", "Trilho 2" };
-        static readonly List<string> CamModes = new List<string> { "Atual", "3D", "Third person", "Auto (2 carros)" };
-        static readonly List<string> CamTargets = new List<string> { "Seguir jogador 1", "Seguir jogador 2" };
+        // Modos de câmera da corrida, na ordem de TopDownCamera.RaceViewMode.
+        static readonly string[] CamModes = { "De cima", "3D", "Atrás do carro", "Dinâmica" };
+        static readonly string[] CamModeHints = { "A vista livre da mesa", "Inclinada, gira com o botão direito", "Segue um carrinho por trás", "Acompanha os carrinhos sozinha" };
+        static readonly string[] CamTargets = { "Jogador 1", "Jogador 2" };
 
         RaceSettings set;
         RaceSim sim;
@@ -36,7 +38,11 @@ namespace Autorama
         VisualElement pickList, scoreBox, padsBox, topBox, lights, banner;
         Label raceHint, clock, gripHint, bannerTitle, bannerSub;
         Button startBtn;
-        DropdownField camModeDrop, camTargetDrop;
+        // Menu da câmera: botão no canto superior direito da mesa que abre a lista de modos.
+        VisualElement camMenu, camPop, camTargetBox;
+        Button camBtn;
+        readonly Button[] camModeBtns = new Button[4], camTargetBtns = new Button[2];
+        Label camTargetNote;
         SliderInt cameraDistanceSlider;
         readonly List<VisualElement> lightDots = new List<VisualElement>();
 
@@ -244,8 +250,16 @@ namespace Autorama
             }
             if (panel != null && panel.RaceMode)
             {
-                bool singlePlayer = panel.CurrentMode == BuilderPanel.Mode.Race && set.bot;
-                cam.SetRaceTargets(p0, h0, p1, h1, singlePlayer);
+                // No online o seu trilho muda de uma bateria para outra: a câmera acompanha o seu carrinho.
+                int focus = CamFocusCar();
+                if (OnlineRun && focus >= 0) cam.SetThirdPersonCar(focus);
+                cam.SetRaceTargets(p0, h0, p1, h1, focus);
+            }
+            if (camMenu != null)
+            {
+                bool show = panel != null && panel.RaceMode;
+                camMenu.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+                if (!show && camPop.style.display == DisplayStyle.Flex) ShowCamPop(false);
             }
         }
 
@@ -284,39 +298,6 @@ namespace Autorama
             botSkill.RegisterValueChangedCallback(e => { set.botSkill = e.newValue; set.Save(); BotLabels(); SetBot(); });
             BotLabels();
 
-            camModeDrop = new DropdownField("Câmera", CamModes, Mathf.Clamp(set.cameraMode, 0, CamModes.Count - 1));
-            camModeDrop.AddToClassList("setting");
-            race.Add(camModeDrop);
-            camModeDrop.RegisterValueChangedCallback(e =>
-            {
-                int idx = CamModes.IndexOf(e.newValue);
-                set.cameraMode = Mathf.Clamp(idx < 0 ? 0 : idx, 0, CamModes.Count - 1);
-                set.Save();
-                ApplyCameraSettings();
-            });
-
-            camTargetDrop = new DropdownField("Third person", CamTargets, Mathf.Clamp(set.cameraTarget, 0, CamTargets.Count - 1));
-            camTargetDrop.AddToClassList("setting");
-            race.Add(camTargetDrop);
-            camTargetDrop.RegisterValueChangedCallback(e =>
-            {
-                int idx = CamTargets.IndexOf(e.newValue);
-                set.cameraTarget = Mathf.Clamp(idx < 0 ? 0 : idx, 0, CamTargets.Count - 1);
-                set.Save();
-                ApplyCameraSettings();
-            });
-
-            cameraDistanceSlider = new SliderInt(70, 160) { value = Mathf.Clamp(set.cameraDistance, 70, 160) };
-            cameraDistanceSlider.AddToClassList("setting");
-            race.Add(cameraDistanceSlider);
-            cameraDistanceSlider.RegisterValueChangedCallback(e =>
-            {
-                set.cameraDistance = e.newValue;
-                set.Save();
-                ApplyCameraSettings();
-            });
-            ApplyCameraSettings();
-
             var clockRow = El("row", race);
             Text("Tempo de prova", "stats-key", clockRow).style.marginRight = 8;
             clock = Text("0,00 s", "clock", clockRow);
@@ -326,7 +307,7 @@ namespace Autorama
             Text("<b>Segure</b> Acelerar e o acelerador sobe de 0 a 100%. <b>Soltou, zerou</b>: o carrinho freia.\n" +
                  "Rápido demais na curva, a traseira escorrega e a barra de <b>derrapagem</b> enche. Cheia, o carrinho sai da pista.\n" +
                  "<b>Recolocar</b> devolve o carrinho ao trilho, um pouco antes de onde ele saiu.\n\n" +
-                  "<b>A · S</b> jogador 1: acelerar · recolocar\n<b>L · K</b> jogador 2: acelerar · recolocar\n<b>Enter</b> largar · câmera no seletor acima", "small", how);
+                  "<b>A · S</b> jogador 1: acelerar · recolocar\n<b>L · K</b> jogador 2: acelerar · recolocar\n<b>Enter</b> largar · câmera no menu do canto direito", "small", how);
 
             var adj = Section(box, "AJUSTES");
             var laps = new SliderInt(1, 20) { value = set.laps };
@@ -363,6 +344,8 @@ namespace Autorama
             bannerSub = Text("", "banner-sub", banner);
             foreach (var e in new[] { lights, banner }) e.pickingMode = PickingMode.Ignore;
 
+            BuildCamMenu(root);
+
             padsBox = El("pads", root);
             for (int k = 0; k < 2; k++) pads[k] = BuildPad(k);
             padsBox.style.display = DisplayStyle.None;
@@ -370,10 +353,56 @@ namespace Autorama
             DrawPicker(Options());
         }
 
+        void BuildCamMenu(VisualElement root)
+        {
+            camMenu = El("cam-menu", root);
+            camBtn = Btn("", () => ShowCamPop(camPop.style.display == DisplayStyle.None), "btn cam-btn", camMenu);
+            camPop = El("cam-pop", camMenu);
+            Text("CÂMERA", "cam-title", camPop);
+            for (int i = 0; i < CamModes.Length; i++)
+            {
+                int m = i;
+                var b = Btn("", () => { set.cameraMode = m; set.Save(); ApplyCameraSettings(); }, "btn cam-opt", camPop);
+                b.text = $"<b>{CamModes[i]}</b>\n<size=10>{CamModeHints[i]}</size>";
+                camModeBtns[i] = b;
+            }
+            camTargetBox = El("cam-sub", camPop);
+            Text("SEGUIR", "cam-title", camTargetBox);
+            var seg = El("segmented", camTargetBox);
+            for (int k = 0; k < 2; k++)
+            {
+                int t = k;
+                camTargetBtns[k] = Btn(CamTargets[k], () => { set.cameraTarget = t; set.Save(); ApplyCameraSettings(); }, "btn", seg);
+            }
+            camTargetNote = Text("No online, segue o seu carrinho.", "small", camTargetBox);
+            cameraDistanceSlider = new SliderInt(70, 160) { value = Mathf.Clamp(set.cameraDistance, 70, 160) };
+            cameraDistanceSlider.AddToClassList("setting");
+            camPop.Add(cameraDistanceSlider);
+            cameraDistanceSlider.RegisterValueChangedCallback(e => { set.cameraDistance = e.newValue; set.Save(); ApplyCameraSettings(); });
+            ShowCamPop(false);
+            camMenu.style.display = DisplayStyle.None;
+            ApplyCameraSettings();
+        }
+
+        void ShowCamPop(bool open)
+        {
+            camPop.style.display = open ? DisplayStyle.Flex : DisplayStyle.None;
+            camBtn.EnableInClassList("cam-btn--open", open);
+        }
+
+        // Carrinho que a câmera acompanha: no online é sempre o seu (seja trilho 1 ou 2);
+        // contra o robô, o jogador 1; nos outros casos -1 (a dinâmica enquadra os dois).
+        int CamFocusCar()
+        {
+            if (OnlineRun) return MyLane();
+            if (panel != null && panel.CurrentMode == BuilderPanel.Mode.Race && set.bot) return 0;
+            return -1;
+        }
+
         void ApplyCameraSettings()
         {
-            int mode = Mathf.Clamp(set.cameraMode, 0, CamModes.Count - 1);
-            int target = Mathf.Clamp(set.cameraTarget, 0, CamTargets.Count - 1);
+            int mode = Mathf.Clamp(set.cameraMode, 0, CamModes.Length - 1);
+            int target = Mathf.Clamp(set.cameraTarget, 0, CamTargets.Length - 1);
             set.cameraDistance = Mathf.Clamp(set.cameraDistance, 70, 160);
             set.cameraMode = mode;
             set.cameraTarget = target;
@@ -382,20 +411,22 @@ namespace Autorama
             if (panel != null && !panel.RaceMode) appliedMode = (int)TopDownCamera.RaceViewMode.Atual;
 
             cam.SetRaceViewMode((TopDownCamera.RaceViewMode)appliedMode);
-            cam.SetThirdPersonCar(target);
+            int focus = CamFocusCar();
+            cam.SetThirdPersonCar(OnlineRun && focus >= 0 ? focus : target);
             cam.SetDistanceScale(set.cameraDistance / 100f);
 
-            if (camModeDrop != null) camModeDrop.SetValueWithoutNotify(CamModes[mode]);
-            if (camTargetDrop != null)
+            if (camBtn == null) return;
+            camBtn.text = $"Câmera: <b>{CamModes[mode]}</b>  ▾";
+            for (int i = 0; i < camModeBtns.Length; i++) camModeBtns[i].EnableInClassList("cam-opt--on", i == mode);
+            camTargetBox.style.display = mode == (int)TopDownCamera.RaceViewMode.ThirdPerson ? DisplayStyle.Flex : DisplayStyle.None;
+            for (int k = 0; k < 2; k++)
             {
-                camTargetDrop.SetValueWithoutNotify(CamTargets[target]);
-                camTargetDrop.style.display = mode == (int)TopDownCamera.RaceViewMode.ThirdPerson ? DisplayStyle.Flex : DisplayStyle.None;
+                camTargetBtns[k].EnableInClassList("btn--on", k == target);
+                camTargetBtns[k].style.display = OnlineRun ? DisplayStyle.None : DisplayStyle.Flex;
             }
-            if (cameraDistanceSlider != null)
-            {
-                cameraDistanceSlider.SetValueWithoutNotify(set.cameraDistance);
-                cameraDistanceSlider.label = $"Distância da câmera: {set.cameraDistance}%";
-            }
+            camTargetNote.style.display = OnlineRun ? DisplayStyle.Flex : DisplayStyle.None;
+            cameraDistanceSlider.SetValueWithoutNotify(set.cameraDistance);
+            cameraDistanceSlider.label = $"Distância: {set.cameraDistance}%";
         }
 
         static VisualElement Section(VisualElement parent, string title)

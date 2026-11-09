@@ -140,7 +140,7 @@
 .scale-text { font-size: 12px; color: rgb(24, 32, 28); margin: 0; padding: 0; }
 
 .view-badge {
-    position: absolute; top: 10px; right: 12px; padding: 5px 10px; border-radius: 6px;
+    position: absolute; top: 54px; right: 12px; padding: 5px 10px; border-radius: 6px;
     background-color: rgba(22, 28, 25, 0.9); color: rgb(229, 235, 227); font-size: 12px;
 }
 .toast {
@@ -306,3 +306,17 @@
     height: 180px; padding: 4px 6px; background-color: rgb(16, 21, 19); border-width: 1px; border-color: rgb(53, 65, 59); border-radius: 6px;
 }
 .chat-line { font-size: 12px; color: rgb(229, 235, 227); white-space: normal; margin: 0 0 3px 0; padding: 0; }
+
+/* Menu da câmera (corrida): botão no canto superior direito, a lista abre embaixo */
+.cam-menu { position: absolute; top: 10px; right: 12px; align-items: flex-end; }
+.cam-btn { height: 34px; padding: 0 14px; background-color: rgba(22, 28, 25, 0.94); font-size: 13px; }
+.cam-btn--open { border-color: rgb(245, 194, 27); }
+.cam-pop {
+    margin-top: 6px; width: 240px; padding: 10px; border-radius: 10px;
+    background-color: rgba(22, 28, 25, 0.97); border-width: 1px; border-color: rgb(58, 70, 64);
+}
+.cam-title { font-size: 10px; letter-spacing: 1px; color: rgb(148, 161, 151); margin: 0 0 6px 2px; padding: 0; -unity-font-style: bold; }
+.cam-opt { height: auto; padding: 6px 10px; margin: 0 0 4px 0; -unity-text-align: middle-left; white-space: normal; }
+.cam-opt--on { border-color: rgb(245, 194, 27); background-color: rgb(52, 48, 22); }
+.cam-sub { margin: 6px 0 4px 0; }
+.cam-pop .unity-base-field__label { min-width: 84px; width: 84px; }

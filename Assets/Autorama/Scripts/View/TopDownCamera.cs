@@ -37,7 +37,7 @@ namespace Autorama
         readonly Vector3[] raceCarPos = new Vector3[2];
         readonly float[] raceCarHeading = new float[2];
         bool hasRaceTargets;
-        bool prioritizeFirstCar;
+        int focusCar = -1;           // carrinho que a vista dinâmica acompanha de perto; -1 enquadra os dois
 
         float thirdDistance = 7f, thirdHeight = 2.2f;
         float autoSize = 11f;
@@ -64,13 +64,13 @@ namespace Autorama
 
         public void SetDistanceScale(float scale) => distanceScale = Mathf.Clamp(scale, 0.7f, 1.6f);
 
-        public void SetRaceTargets(Vector3 car0Pos, float car0Heading, Vector3 car1Pos, float car1Heading, bool prioritizeFirst = false)
+        public void SetRaceTargets(Vector3 car0Pos, float car0Heading, Vector3 car1Pos, float car1Heading, int focus = -1)
         {
             raceCarPos[0] = car0Pos;
             raceCarPos[1] = car1Pos;
             raceCarHeading[0] = car0Heading;
             raceCarHeading[1] = car1Heading;
-            prioritizeFirstCar = prioritizeFirst;
+            focusCar = focus is 0 or 1 ? focus : -1;
             hasRaceTargets = true;
         }
 
@@ -200,9 +200,9 @@ namespace Autorama
         void ApplyAutoDoisCarros()
         {
             Vector3 a = raceCarPos[0], b = raceCarPos[1];
-            Vector3 center = prioritizeFirstCar ? a : (a + b) * 0.5f;
+            Vector3 center = focusCar >= 0 ? raceCarPos[focusCar] : (a + b) * 0.5f;
             float needed;
-            if (prioritizeFirstCar)
+            if (focusCar >= 0)
             {
                 needed = 5.5f;
             }
