@@ -422,3 +422,10 @@
 .start-opt-title { font-size: 17px; -unity-font-style: bold; color: var(--texto); margin: 0; padding: 0; -unity-text-align: middle-left; }
 .start-opt-sub { font-size: 11px; color: var(--texto-fraco); margin: 2px 0 0 0; padding: 0; white-space: normal; -unity-text-align: middle-left; }
 .start-foot { font-size: 11px; color: var(--texto-fraco); margin: 8px 0 0 0; padding: 0; -unity-text-align: middle-center; }
+
+/* Lista de amigos da Steam: altura máxima, rolagem própria e o excedente cortado */
+.friends-scroll {
+    max-height: 240px; overflow: hidden; border-radius: 8px; padding: 4px 4px 0 4px;
+    border-width: 1px; border-color: var(--borda); background-color: var(--fundo-fundo);
+}
+.friends-scroll .lib-item { margin-bottom: 4px; }

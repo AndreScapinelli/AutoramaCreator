@@ -30,6 +30,7 @@ namespace Autorama
         TextField oServer, oName, oRoomName, oCode, oChatInput, oRunChatInput;
         Toggle oPublic, oVisibility, oSteam;
         VisualElement oInviteBox, oFriends;
+        ScrollView friendsScroll;                                    // a lista de amigos, com rolagem própria
         readonly HashSet<ulong> invited = new HashSet<ulong>();      // amigos já convidados nesta sala
         ulong launchLobby;
         ScrollView oChat, oRunChat;
@@ -206,11 +207,17 @@ namespace Autorama
             if (!SteamRoom) return;
             var list = steamNet.InvitableFriends();
             if (list.Count == 0) { Text("Nenhum amigo online agora. Use o botão acima para convidar quem está offline ou em outro jogo.", "small", oFriends); return; }
-            Text("AMIGOS ONLINE", "h3", oFriends);
-            foreach (var f in list.GetRange(0, Mathf.Min(list.Count, 20)))
+            Text($"AMIGOS ONLINE · {list.Count}", "h3", oFriends);
+            // A lista pode ser grande: fica numa caixa com altura máxima e rolagem própria (o que passa é cortado).
+            // Redesenhar (depois de convidar) mantém a posição da rolagem.
+            float keep = friendsScroll != null ? friendsScroll.scrollOffset.y : 0f;
+            friendsScroll = new ScrollView(ScrollViewMode.Vertical);
+            friendsScroll.AddToClassList("friends-scroll");
+            oFriends.Add(friendsScroll);
+            foreach (var f in list)
             {
                 var friend = f;
-                var row = El("lib-item", oFriends);
+                var row = El("lib-item", friendsScroll.contentContainer);
                 Text(Safe(f.name), "lib-name", El("lib-texts", row));
                 bool sent = invited.Contains(f.id);
                 var b = Btn(sent ? "Convidado ✓" : "Convidar", () =>
@@ -221,6 +228,7 @@ namespace Autorama
                 }, "btn", row);
                 b.SetEnabled(!sent);
             }
+            if (keep > 0f) friendsScroll.schedule.Execute(() => friendsScroll.scrollOffset = new Vector2(0f, keep));
         }
 
         void OnlineDestroy()
