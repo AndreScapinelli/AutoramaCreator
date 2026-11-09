@@ -41,3 +41,6 @@ crashlytics-build.properties
 # Sistema
 .DS_Store
 Thumbs.db
+
+# Servidor online (Node)
+node_modules/

@@ -2251,3 +2251,92 @@ public static Pose2 EntryFor(Pose2 c, PieceDef d, int dir)
 **Testes feitos.**
 - **HTML** (`ferramentas/teste-html.js`), oval de exemplo com uma reta comprida atrás da largada: a largada continuou em (8; 7,5; 0), as 12 peças da frente ficaram nas mesmas posições, a nova terminou na largada (de (4; 7,5) a (8; 7,5)) e a pista ficou aberta. Depois, uma curva atrás dela e desfazer, passo a passo, até o oval fechado. Pista nova com 3 peças atrás (reta, meia, meia) e 3 na frente (reta, curva, curva): `Q` fechou e `atras` voltou a 0. Importar JSON com `atras: 2`, `trackInfo` e `sanitize`, e remover as peças de trás.
 - **Unity** (`script eval`, sem cena): largada + reta comprida + curva longa na frente e reta comprida + curva longa atrás. A abertura (gap) deu 11,7047, igual à do HTML (11,705), e o fechamento achou as mesmas 5 peças nos dois: reta comprida, curva longa, reta comprida, reta curta, curva longa.
+
+---
+
+## 23. Campeonato online (lobby)
+
+Quarta aba, **Online**. Nesta etapa só existe o **lobby**: criar ou entrar numa sala, escolher a cor, conversar e (o host) escolher as pistas. **A largada online ainda não existe** (botão "Começar campeonato (em breve)" desligado). Por decisão do projeto, isto existe **só na Unity**: o HTML não tem a aba Online (exceção temporária à regra de HTML e Unity iguais).
+
+### 23.1 Como funciona
+
+- **Servidor de salas** (`servidor/servidor.js`, Node + `ws`): só repassa mensagens. Guarda as salas, os jogadores, o chat e a lista de pistas do host. Não roda física.
+- **Entrar ou criar sala exige o nome** do jogador (1 a 20 caracteres, sem repetir dentro da sala). O cliente confere e o servidor também.
+- **Sala pública ou privada.** A pública aparece na lista de salas; a privada só entra pelo código de 5 letras. As duas entram pelo código. O host muda a visibilidade quando quiser.
+- **No lobby o visitante só escolhe a cor e fala no chat.** O **host** também escolhe as pistas (e as voltas de cada etapa) e a visibilidade. O servidor recusa a mesma ação vinda de um visitante (`host`).
+- **Cor**: as 8 do campeonato (`Champ.Colors`), uma por jogador. Quem entra recebe a primeira livre; escolher uma já usada dá `cor-usada`.
+- **Host que sai**: o jogador mais antigo vira host. Ele só tem o resumo das etapas, então reencontra as pistas pela identidade (`Champ.TrackHash`) entre as que tem no computador e tira as que não achar (`AdoptStages`). Sala vazia é apagada.
+- **Cheia**: 8 jogadores (`MaxPlayers`). Máximo de 12 etapas, cada uma com até 100 KB de JSON e de 1 a 30 voltas.
+
+### 23.2 Protocolo
+
+JSON de uma linha por mensagem WebSocket, com o tipo em `t`. Classes em `Online/OnlineProtocol.cs` (o `JsonUtility` não faz herança: `NetMsg` junta tudo o que o servidor manda; `NetOut` e `NetOutStages` são o que o cliente manda).
+
+| Cliente → servidor | Campos | Quem pode |
+|---|---|---|
+| `create` | `name`, `roomName` (opcional), `pub` | qualquer um |
+| `join` | `name`, `code` | qualquer um |
+| `list` | | qualquer um |
+| `color` | `color` (`#RRGGBB` da paleta) | todos na sala |
+| `chat` | `text` (até 200; 5 mensagens a cada 3 s) | todos na sala |
+| `stages` | `stages`: `[{ name, laps, hash, json }]` | **só o host** |
+| `visibility` | `pub` | **só o host** |
+| `leave`, `ping` | | |
+
+| Servidor → cliente | Campos |
+|---|---|
+| `hello` | `id` |
+| `joined` | `you` (meu id), `room`, `chat` (últimas 50) |
+| `room` | `room`: `code, name, pub, host, max, state, players[{id,name,color}], stages[{name,laps,hash}]` (sem o JSON das pistas) |
+| `rooms` | `rooms`: `[{ code, name, host, players, max, stages }]` (só as públicas em `lobby`) |
+| `chat` | `name`, `color`, `text`, `time`; ou `sys: true` (aviso do servidor) |
+| `error` | `code`, `text` (em português, para mostrar ao jogador) |
+
+Códigos de erro: `nome`, `sem-sala`, `cheia`, `nome-usado`, `andamento`, `cor`, `cor-usada`, `host`, `etapas`, `rapido`, `sala`, `cheio`, `json`, `tipo`.
+
+### 23.3 Servidor
+
+```
+cd servidor
+npm install
+npm start          # ws://localhost:8080 (variável PORT muda a porta)
+npm test           # 19 verificações com vários clientes simulados
+```
+
+- Mensagem de até 2 MB; o servidor derruba quem não responde a um ping de 15 s e tira o jogador da sala.
+- `/saude` (HTTP) responde `ok salas=N`.
+- Sem TLS: para jogar pela internet, ponha atrás de um proxy que dê `wss://` (o campo **Servidor** da aba aceita `wss://…`). O endereço fica em `PlayerPrefs` (`autorama.online.servidor`), junto com o último nome usado (`autorama.online.nome`). Padrão: `ws://localhost:8080`.
+- Limites contra abuso: 500 salas, cor só da paleta, texto do chat limpo de controles, tipos de mensagem só os da tabela.
+
+### 23.4 Unity
+
+- **`OnlineClient`** usa `System.Net.WebSockets.ClientWebSocket` (não funciona em WebGL). A rede roda em tarefas com `ConfigureAwait(false)` e só põe eventos numa fila; **`Pump()` entrega tudo na thread principal**, chamado a cada quadro por `RaceController.Update` (`OnlineTick`). Cada conexão tem uma geração: o que sobrou de uma conexão fechada é descartado. Um envio por vez (fila de saída + `SemaphoreSlim`), porque o `ClientWebSocket` não aceita dois `SendAsync` juntos. Conectar tem limite de 8 s.
+- **Conexão preguiçosa:** só conecta quando o jogador cria, entra ou atualiza a lista (`WhenConnected`). Sair da sala fecha a conexão.
+- **`BuilderPanel`:** `Mode.Online` e a aba **ONLINE** (fonte das abas 10 px, para caberem as quatro). `RaceMode` agora é só Corrida/Campeonato (carrinhos andam); `Locked` é "não é o construtor" (nada de editar a pista, atalho Q, célula sob o mouse), e `EditLocked` substitui o antigo `InRace` no `BuilderInput`.
+- **`RaceController.Online.cs`** monta a aba, no mesmo estilo da aba Campeonato: tela de entrada (servidor, nome, criar, código, salas públicas) e tela do lobby (sala e código com **Copiar**, pilotos, cores, etapas com a lista de pistas do host, chat, sair). No lobby a pista do construtor fica só de fundo e os carrinhos parados no grid.
+- **Rich text:** nomes e mensagens dos outros passam por `Safe` (`<` vira `<` + espaço de largura zero), para ninguém mudar o visual do chat com `<b>`, `<size>` etc.
+- **USS:** `.chat-log`, `.chat-line`; as abas ficaram com `font-size: 10px`.
+
+```csharp
+// OnlineClient: o que o jogo usa
+var net = new OnlineClient();
+net.Opened += () => net.Send(new NetOut { t = "create", name = "Ana", roomName = "Sala da Ana", pub = true });
+net.Message += m => { if (m.t == "joined") room = m.room; };
+net.Closed += motivo => Debug.Log(motivo);
+net.Connect("ws://localhost:8080");
+// a cada quadro, na thread principal:
+net.Pump();
+```
+
+### 23.5 Testes feitos
+
+- **Servidor** (`npm test`, Node 22, clientes `ws`): criar sem nome é recusado; sala pública na lista e privada fora dela; entrar pelo código sem diferenciar maiúsculas; nome repetido recusado; cor fora da paleta e cor já usada recusadas; chat chega a todos com nome e cor; chat vazio ignorado; limite de ritmo; visitante não escolhe pistas; etapa inválida (hash, JSON grande, 13 etapas) recusada; sala cheia (8) recusa; host sai e o próximo vira host; sala vazia apagada; JSON quebrado e tipo desconhecido não derrubam o servidor.
+- **Cliente Unity** (`OnlineSmokeTest`, no Editor, contra o servidor de verdade): as mesmas regras pelo `JsonUtility` (18 verificações), incluindo a lista de salas, a cor do visitante vista pelo host, o texto do chat com `<b>` chegando inteiro, as etapas com os hashes conhecidos (oval `a34f4cb9`, 8 com ponte `81546106`), host que sai e servidor fora do ar avisando em português (`Connection refused`).
+- **Tela** (Play mode, capturas): entrada, lobby do host (pistas disponíveis com miniaturas), lobby do visitante (sem lista de pistas, visibilidade desligada, cor do host esmaecida, chat com `<b>` mostrado como texto) e lista de salas públicas.
+
+### 23.6 Próximos passos
+
+1. **Largada online.** O mesmo desenho já discutido: host autoritativo roda o `RaceSim` em passo fixo e manda 20–30 snapshots por segundo; o visitante manda só o estado do botão e interpola. O servidor já guarda o JSON das etapas para entregar na largada (hoje o resumo não o leva).
+2. Rodízio, tabela e recordes do campeonato online (reaproveitando `Champ`).
+3. Expulsar jogador, trocar de host, reconectar.
+4. Depois que a Unity estiver fechada, portar o lobby para o HTML (o servidor é o mesmo).

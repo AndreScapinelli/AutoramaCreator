@@ -18,7 +18,7 @@ namespace Autorama
         {
             var kb = Keyboard.current;
             var m = Mouse.current;
-            if (kb == null || m == null || builder.Segments.Count == 0 || BuilderPanel.InRace) return;   // na corrida, só os controles dos jogadores
+            if (kb == null || m == null || builder.Segments.Count == 0 || BuilderPanel.EditLocked) return;   // fora do construtor, só os controles da aba em uso
 
             // Com o campo de nome em foco, as teclas são do texto.
             if (!BuilderPanel.IsTyping) HandleKeys(kb);

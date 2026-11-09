@@ -1,0 +1,14 @@
+{
+  "name": "autorama-servidor",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Servidor de salas do campeonato online do Autorama Creator (WebSocket, só repasse de mensagens)",
+  "main": "servidor.js",
+  "scripts": {
+    "start": "node servidor.js",
+    "test": "node teste.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

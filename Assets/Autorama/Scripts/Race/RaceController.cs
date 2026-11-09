@@ -53,6 +53,7 @@ namespace Autorama
             CreateSparks();
             BuildUI();
             BuildChampUI();
+            BuildOnlineUI();
             builder.Changed += OnTrackChanged;
             panel.ModeChanged += OnMode;
             OnTrackChanged();
@@ -62,6 +63,7 @@ namespace Autorama
         {
             if (builder) builder.Changed -= OnTrackChanged;
             if (panel) panel.ModeChanged -= OnMode;
+            OnlineDestroy();
         }
 
         void CreateCars()
@@ -135,11 +137,12 @@ namespace Autorama
                 sim.set = set; sim.cutoff = null; sim.aiSkill[0] = sim.aiSkill[1] = 0;
                 cam.SetRaceViewMode(TopDownCamera.RaceViewMode.Atual);
                 if (builderStash != null) builder.ShowTrack(builderStash);
-                builderStash = null;
+                if (m == BuilderPanel.Mode.Build) builderStash = null;     // no lobby online a pista do construtor fica só de fundo
                 panel.FrameTrack();
             }
+            if (m == BuilderPanel.Mode.Online) OnlineShown();
             sim.Reset();
-            topBox.style.display = race ? DisplayStyle.Flex : DisplayStyle.None;
+            topBox.style.display = panel.RaceMode ? DisplayStyle.Flex : DisplayStyle.None;
             DrawPadHeads();
             scoreDirty = champDirty = true;
         }
@@ -200,6 +203,7 @@ namespace Autorama
 
         void Update()
         {
+            OnlineTick();
             if (sim == null || !sim.Ready) return;
             if (!panel.RaceMode) { PlaceCars(); return; }       // no construtor, os carrinhos ficam no grid
 

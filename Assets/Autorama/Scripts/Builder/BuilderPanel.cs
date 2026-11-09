@@ -36,16 +36,19 @@ namespace Autorama
             }
         }
 
-        // ---------- Abas Construtor / Corrida / Campeonato ----------
+        // ---------- Abas Construtor / Corrida / Campeonato / Online ----------
 
-        public enum Mode { Build, Race, Champ }
+        public enum Mode { Build, Race, Champ, Online }
         public Mode CurrentMode { get; private set; }
-        public bool RaceMode => CurrentMode != Mode.Build;        // corrida ou campeonato: os carrinhos andam
+        public bool RaceMode => CurrentMode == Mode.Race || CurrentMode == Mode.Champ;        // corrida ou campeonato: os carrinhos andam
         public bool ChampMode => CurrentMode == Mode.Champ;
-        public static bool InRace => instance && instance.RaceMode;
+        public bool OnlineMode => CurrentMode == Mode.Online;
+        public bool Locked => CurrentMode != Mode.Build;          // fora do construtor a pista não se edita
+        public static bool EditLocked => instance && instance.Locked;
         public event System.Action<Mode> ModeChanged;
         public VisualElement RaceBox => raceBox;          // conteúdo da aba Corrida na barra lateral
         public VisualElement ChampBox => champBox;        // conteúdo da aba Campeonato
+        public VisualElement OnlineBox => onlineBox;      // conteúdo da aba Online
         public VisualElement Root => root;                // camada por cima da mesa (controles dos jogadores, luzes)
         public float SideWidth => sideVisible && side != null ? side.layout.width : 0f;
 
@@ -56,10 +59,12 @@ namespace Autorama
             tabBuild.EnableInClassList("tab--on", m == Mode.Build);
             tabRace.EnableInClassList("tab--on", m == Mode.Race);
             tabChamp.EnableInClassList("tab--on", m == Mode.Champ);
+            tabOnline.EnableInClassList("tab--on", m == Mode.Online);
             buildBox.style.display = m == Mode.Build ? DisplayStyle.Flex : DisplayStyle.None;
             raceBox.style.display = m == Mode.Race ? DisplayStyle.Flex : DisplayStyle.None;
             champBox.style.display = m == Mode.Champ ? DisplayStyle.Flex : DisplayStyle.None;
-            if (RaceMode) { builder.CancelAutoClose(); builder.HideGhost(); builder.SetHoverCell(null); hover = null; }
+            onlineBox.style.display = m == Mode.Online ? DisplayStyle.Flex : DisplayStyle.None;
+            if (Locked) { builder.CancelAutoClose(); builder.HideGhost(); builder.SetHoverCell(null); hover = null; }
             root.focusController?.focusedElement?.Blur();
             ModeChanged?.Invoke(m);
             Refresh();
@@ -75,8 +80,8 @@ namespace Autorama
         public void Toast(string text) => Say(text);
 
         UIDocument doc;
-        VisualElement buildBox, raceBox, champBox;
-        Button tabBuild, tabRace, tabChamp;
+        VisualElement buildBox, raceBox, champBox, onlineBox;
+        Button tabBuild, tabRace, tabChamp, tabOnline;
         VisualElement root, side, content, showTab, topRuler, leftRuler, info, scaleBar;
         VisualElement statusBox, statusDot, selectedBox, summaryBox, seqBox, libList;
         Label statusText, hint, cellLabel, scaleText, toast, viewBadge;
@@ -228,6 +233,7 @@ namespace Autorama
             tabBuild = Btn("CONSTRUTOR", () => SetMode(Mode.Build), "tab tab--on", tabs);
             tabRace = Btn("CORRIDA", () => SetMode(Mode.Race), "tab", tabs);
             tabChamp = Btn("CAMPEONATO", () => SetMode(Mode.Champ), "tab", tabs);
+            tabOnline = Btn("ONLINE", () => SetMode(Mode.Online), "tab", tabs);
 
             statusBox = El("status", content);
             statusDot = El("status-dot", statusBox);
@@ -246,6 +252,8 @@ namespace Autorama
             raceBox.style.display = DisplayStyle.None;
             champBox = El(null, content);
             champBox.style.display = DisplayStyle.None;
+            onlineBox = El(null, content);
+            onlineBox.style.display = DisplayStyle.None;
 
             // Paleta
             var pal = Section("PEÇAS");
@@ -331,7 +339,7 @@ namespace Autorama
         {
             if (root == null || builder.Info == null) return;
             var i = builder.Info;
-            if (RaceMode) return;            // na corrida, o status e a barra lateral são da aba Corrida
+            if (Locked) return;              // fora do construtor, o status e a barra lateral são da aba em uso
 
             // Status
             string txt; string cls;
@@ -548,14 +556,14 @@ namespace Autorama
             {
                 if (kb.tabKey.wasPressedThisFrame) SetSide(!sideVisible);
                 if (kb.cKey.wasPressedThisFrame && !kb.ctrlKey.isPressed) FrameTrack();
-                if (kb.qKey.wasPressedThisFrame && !RaceMode) AutoClose();
+                if (kb.qKey.wasPressedThisFrame && !Locked) AutoClose();
             }
             if (toast.style.display == DisplayStyle.Flex && Time.unscaledTime > toastUntil) toast.style.display = DisplayStyle.None;
 
             // Célula sob o mouse (só sobre a mesa e fora do painel).
             Vector2Int? cell = null;
             var m = Mouse.current;
-            if (m != null && !RaceMode && !PointerOverUI(m.position.ReadValue()))
+            if (m != null && !Locked && !PointerOverUI(m.position.ReadValue()))
             {
                 var w = cam.MouseOnTable();
                 var c = new Vector2Int(Mathf.FloorToInt(w.x), Mathf.FloorToInt(w.z));

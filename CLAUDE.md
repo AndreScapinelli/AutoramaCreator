@@ -21,11 +21,15 @@ O usuário escreve em português, e o projeto inteiro também: textos da interfa
 | Pasta | O quê |
 |---|---|
 | `Core/` | Peças (`Pieces.cs`), geometria (`TrackMath`), montagem e análise (`TrackLayout`), JSON e biblioteca (`TrackSave`), fechar circuito (`TrackCloser`) |
-| `Builder/` | `TrackBuilder` (lista de peças, desfazer, mesa que cresce), `BuilderPanel` (painel UI Toolkit e as 3 abas), `BuilderInput` |
-| `Race/` | `RaceSim` (física pura, sem cena, mais a IA), `RaceController` (aba Corrida), `RaceController.Champ.cs` (aba Campeonato) |
+| `Builder/` | `TrackBuilder` (lista de peças, desfazer, mesa que cresce), `BuilderPanel` (painel UI Toolkit e as 4 abas), `BuilderInput` |
+| `Race/` | `RaceSim` (física pura, sem cena, mais a IA), `RaceController` (aba Corrida), `RaceController.Champ.cs` (aba Campeonato), `RaceController.Online.cs` (aba Online) |
+| `Online/` | `OnlineProtocol.cs` (mensagens), `OnlineClient.cs` (WebSocket, fila de eventos) |
 | `Champ/` | `ChampData.cs`: dados, rodízio, tabela, recordes, arquivos |
 | `View/` | Malha das peças, grade da mesa, câmera |
 | `Editor/AutoramaSetup.cs` | Menus **Autorama > Montar cena do construtor** e **Atualizar materiais e ícones** |
+| `Editor/OnlineSmokeTest.cs` | Teste do cliente online contra o servidor de verdade (`script eval`) |
+
+O servidor de salas do campeonato online fica em `servidor/` (Node, fora do `Assets`). O campeonato online existe **só na Unity** por enquanto: o HTML não tem a aba Online (seção 23 do guia).
 
 A cena é `Assets/Autorama/Cenas/Construtor.unity`. Os dados do jogo ficam em `Application.persistentDataPath/autorama/`: `pistas/`, `rascunho.json`, `pilotos.json`, `campeonatos.json` e `recordes.json`. No HTML ficam no `localStorage`, nas chaves `autorama-*-v1`.
 
@@ -34,6 +38,7 @@ A cena é `Assets/Autorama/Cenas/Construtor.unity`. Os dados do jogo ficam em `A
 - **HTML sem navegador:** `node ferramentas/teste-html.js meu-teste.js` roda a página no Node com um DOM falso. O teste vê todas as funções (`setMode`, `startRace`, `step`, `buildPaths`, `champBegin`…). Bom para física, regras e contas.
 - **HTML no navegador:** abra `html/index.html`. O `localStorage` pode estar bloqueado em `file://`/`data:`, e a página precisa funcionar assim mesmo.
 - **Unity:** com o Editor aberto, use o `unity` CLI (pacote `com.unity.pipeline`):
+  - Online: `cd servidor && npm test` (servidor, sem Unity) e, com `node servidor.js` rodando, `script eval 'Autorama.OnlineSmokeTest.Run(); return Autorama.OnlineSmokeTest.Last;'` (cliente Unity + servidor). Com o Editor em segundo plano o Play mode não avança quadros: use `isPaused = true` + `EditorApplication.Step()` antes de capturar a tela.
   - `unity command script recompile`, depois `script recompile_status` até "completed";
   - `script eval '<C#>'` para rodar lógica sem cena: `RaceSim`, `Champ` e `TrackLayout` não dependem de cena;
   - `editor.playmode start|stop` e `capture game_view --save_path Assets/Temp/x.png` para ver a tela. Apague `Assets/Temp` depois.

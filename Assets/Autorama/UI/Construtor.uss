@@ -151,8 +151,8 @@
 /* ---------- Abas ---------- */
 .tabs { flex-direction: row; margin-top: 10px; padding: 3px; border-radius: 8px; background-color: rgb(16, 21, 19); border-width: 1px; border-color: rgb(46, 56, 51); }
 .tab {
-    flex-grow: 1; height: 28px; margin: 0; padding: 0 4px; border-width: 0; border-radius: 6px; font-size: 12px; -unity-font-style: bold;
-    letter-spacing: 0.5px; color: rgb(148, 161, 151); background-color: rgba(0, 0, 0, 0);
+    flex-grow: 1; flex-shrink: 1; height: 28px; margin: 0; padding: 0; border-width: 0; border-radius: 6px; font-size: 10px; -unity-font-style: bold;
+    letter-spacing: 0; color: rgb(148, 161, 151); background-color: rgba(0, 0, 0, 0);
 }
 .tab:hover { color: rgb(229, 235, 227); }
 .tab--on { background-color: rgb(229, 235, 227); color: rgb(22, 28, 25); }
@@ -300,3 +300,9 @@
 .pad-state--pb { color: rgb(61, 190, 116); -unity-font-style: bold; }
 .gas--ai { border-color: rgb(90, 107, 98); }
 .gas--ai .gas-text { font-size: 14px; color: rgb(148, 161, 151); }
+
+/* ---------- Online: lobby ---------- */
+.chat-log {
+    height: 180px; padding: 4px 6px; background-color: rgb(16, 21, 19); border-width: 1px; border-color: rgb(53, 65, 59); border-radius: 6px;
+}
+.chat-line { font-size: 12px; color: rgb(229, 235, 227); white-space: normal; margin: 0 0 3px 0; padding: 0; }
