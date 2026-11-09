@@ -53,6 +53,13 @@ namespace Autorama
 
         public void ToggleTilt() => Tilted = !Tilted;
 
+        // Zoom pelos botões da barra do construtor (k < 1 aproxima): no centro da vista, como a roda.
+        public void ZoomStep(float k)
+        {
+            if (Tilted) distance = Mathf.Clamp(distance * k, 4f, 150f);
+            else size = Mathf.Clamp(size * k, minSize, maxSize);
+        }
+
         public void SetRaceViewMode(RaceViewMode mode)
         {
             RaceMode = mode;

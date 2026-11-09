@@ -354,3 +354,26 @@
 .res-cell--dim { color: rgb(148, 161, 151); }
 .res-btns { flex-direction: row; justify-content: center; margin-top: 10px; }
 .res-btn { height: 32px; margin: 0 4px; padding: 0 14px; }
+
+/* Paleta em grupos */
+.pal-group { font-size: 10px; letter-spacing: 1px; color: rgb(148, 161, 151); -unity-font-style: bold; margin: 8px 0 4px 2px; padding: 0; }
+
+/* Selo de status sobre a mesa (construtor) */
+.table-status-wrap { position: absolute; top: 10px; left: 0; right: 0; flex-direction: row; justify-content: center; }
+.table-status {
+    flex-direction: row; align-items: center;
+    padding: 5px 6px 5px 12px; border-radius: 18px; background-color: rgba(22, 28, 25, 0.94);
+    border-width: 1px; border-color: rgb(58, 70, 64);
+}
+.table-status.status--ok { border-color: rgb(43, 193, 103); }
+.table-status.status--warn { border-color: rgb(240, 122, 58); }
+.table-status-text { font-size: 13px; color: rgb(229, 235, 227); margin: 0 8px 0 6px; padding: 0; }
+.table-btn { height: 26px; margin: 0 0 0 4px; padding: 0 10px; border-radius: 13px; font-size: 12px; }
+
+/* Barra de ações sobre a mesa (construtor) */
+.action-bar {
+    position: absolute; bottom: 10px; right: 12px; flex-direction: row; align-items: center; padding: 4px;
+    border-radius: 10px; background-color: rgba(22, 28, 25, 0.94); border-width: 1px; border-color: rgb(58, 70, 64);
+}
+.bar-btn { width: 34px; height: 32px; margin: 0 2px; padding: 0; font-size: 16px; -unity-text-align: middle-center; }
+.bar-gap { width: 1px; height: 20px; margin: 0 4px; background-color: rgb(58, 70, 64); }

@@ -492,6 +492,14 @@ public class TrackBuilder : MonoBehaviour
 
 ---
 
+### 6.x Ferramentas sobre a mesa e paleta em grupos (Unity)
+
+- **Paleta em grupos** (`BuilderPanel.PaletteGroup`): a seção PEÇAS separa as fichas em **RETAS** (curta, comprida, curtinha), **CURVAS** (longa e meia, nos dois sentidos), **CURVAS INCLINADAS** e **CRUZAMENTOS E RAMPAS** (os dois cruzamentos e as rampas: `rise ≠ 0`). Cada grupo tem um título `.pal-group` e a sua grade `.palette`. Cada ficha continua mostrando o ícone e a tecla.
+- **Selo de status sobre a mesa** (`BuildTableTools`, `RefreshTableTools`): no topo, centrado na área da mesa (à direita do painel), mostra o mesmo texto do status do painel, com borda verde (fechado) ou laranja (aviso). Ele traz o botão que resolve o problema: **Fechar circuito (Q)** quando a pista está aberta e sem sobreposição, e **Mostrar** quando há peças sobrepostas (seleciona a de menor índice entre `Info.overlaps`). Só aparece na aba Construtor.
+- **Barra de ações** (`.action-bar`, canto de baixo à direita): `↶` desfazer, `↷` refazer · `⇄` inverter a curva selecionada, `⟳` girar a largada, `✕` remover a selecionada (ou a última) · `⌖` enquadrar, `3D` vista inclinada (acesa quando ligada), `−`/`+` zoom (`TopDownCamera.ZoomStep(1,25)`/`(0,8)`: muda o tamanho da vista de cima ou a distância na 3D). Botões desligam quando não há o que fazer (sem desfazer/refazer, sem peça selecionada, só a largada). Cada um tem a tecla no tooltip.
+
+Teste (Play mode, rascunho com backup e restaurado): com o 8 do rascunho mais uma reta, o selo mostrou "Há 4 peças sobrepostas" com **Mostrar** visível e **Fechar** escondido; a barra mostrou `↷` e `⇄` desligados; os grupos ficaram na ordem RETAS, CURVAS, CURVAS INCLINADAS, CRUZAMENTOS E RAMPAS. **Mostrar** selecionou a peça 0, e o `↶` da barra voltou de 27 para 26 peças.
+
 ## 7. Mesa quadriculada
 
 `GridBoard.cs` gera a textura da grade em código: linha fina a cada célula e linha forte a cada 4 (o tamanho de uma reta comprida).

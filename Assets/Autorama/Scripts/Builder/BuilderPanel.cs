@@ -88,6 +88,10 @@ namespace Autorama
         VisualElement root, side, content, showTab, topRuler, leftRuler, info, scaleBar;
         VisualElement statusBox, statusDot, selectedBox, summaryBox, seqBox, libList;
         Label statusText, hint, cellLabel, scaleText, toast, viewBadge;
+        // Sobre a mesa, no construtor: o selo de status (com a ação que resolve) e a barra de ações.
+        VisualElement tableWrap, tableStatus, tableDot, actionBar;
+        Label tableText;
+        Button tableClose, tableShow, barUndo, barRedo, barFlip, barRemove, bar3D;
         TextField nameField;
         Button undoBtn, redoBtn, viewBtn, saveAsBtn, closeBtn, endFrontBtn, endBackBtn;
 
@@ -266,9 +270,16 @@ namespace Autorama
             endBackBtn = Btn("◂ Trás", () => builder.SetBack(true), "btn", endRow);
             endFrontBtn.tooltip = "Encaixa no fim da pista, na seta amarela (E alterna)";
             endBackBtn.tooltip = "Encaixa atrás da largada (E alterna)";
-            var grid = El("palette", pal);
+            // Paleta em grupos: retas, curvas, inclinadas e especiais (cruzamentos e rampas).
+            var groups = new Dictionary<string, VisualElement>();
+            foreach (var g in new[] { "RETAS", "CURVAS", "CURVAS INCLINADAS", "CRUZAMENTOS E RAMPAS" })
+            {
+                Text(g, "pal-group", pal);
+                groups[g] = El("palette", pal);
+            }
             foreach (var e in TrackBuilder.Palette)
             {
+                var grid = groups[PaletteGroup(e)];
                 var entry = e;
                 var tile = new Button(() => { builder.Add(entry); builder.ShowGhost(entry); });
                 tile.AddToClassList("tile");
@@ -328,6 +339,8 @@ namespace Autorama
                  "<b>Botão direito</b> move a vista (gira na 3D) · <b>Roda</b> zoom · <b>Tab</b> painel\n" +
                  "<b>Arrastar a largada</b> move a pista inteira", "small", keys);
 
+            BuildTableTools();
+
             showTab = Btn("☰  Painel (Tab)", () => SetSide(true), "btn show-tab", root);
             showTab.style.display = DisplayStyle.None;
 
@@ -337,6 +350,66 @@ namespace Autorama
         }
 
         // ---------- Atualização ----------
+
+        static string PaletteGroup(PaletteEntry e)
+        {
+            if (e.rise != 0 || e.def == PieceCatalog.Cross || e.def == PieceCatalog.CrossS) return "CRUZAMENTOS E RAMPAS";
+            if (e.def == PieceCatalog.CurveB || e.def == PieceCatalog.HalfB) return "CURVAS INCLINADAS";
+            if (e.def == PieceCatalog.Curve || e.def == PieceCatalog.Half) return "CURVAS";
+            return "RETAS";
+        }
+
+        void BuildTableTools()
+        {
+            // Selo no topo da mesa: o mesmo status do painel, com o botão que resolve (fechar ou mostrar a sobreposta).
+            tableWrap = El("table-status-wrap", root); tableWrap.pickingMode = PickingMode.Ignore;
+            tableStatus = El("table-status", tableWrap);
+            tableDot = El("status-dot", tableStatus);
+            tableText = Text("", "table-status-text", tableStatus);
+            tableClose = Btn("Fechar circuito (Q)", AutoClose, "btn btn--accent table-btn", tableStatus);
+            tableShow = Btn("Mostrar", ShowOverlap, "btn table-btn", tableStatus);
+            tableShow.tooltip = "Seleciona uma das peças sobrepostas";
+
+            // Barra de ações, no canto de baixo à direita da mesa.
+            actionBar = El("action-bar", root);
+            Button B(string t, string tip, System.Action a) { var b = Btn(t, a, "btn bar-btn", actionBar); b.tooltip = tip; return b; }
+            void Gap() => El("bar-gap", actionBar);
+            barUndo = B("↶", "Desfazer (Ctrl+Z)", () => builder.Undo());
+            barRedo = B("↷", "Refazer (Ctrl+Y)", () => builder.Redo());
+            Gap();
+            barFlip = B("⇄", "Inverter a curva selecionada (F)", () => builder.FlipSelected());
+            B("⟳", "Girar a largada (R)", () => builder.RotateStart());
+            barRemove = B("✕", "Remover a selecionada (Del) ou a última (⌫)", () => { if (builder.Selected >= 0) builder.RemoveSelected(); else builder.RemoveLast(); });
+            Gap();
+            B("⌖", "Enquadrar a pista (C)", FrameTrack);
+            bar3D = B("3D", "Vista 3D (V)", () => cam.ToggleTilt());
+            B("−", "Afastar", () => cam.ZoomStep(1.25f));
+            B("+", "Aproximar", () => cam.ZoomStep(0.8f));
+        }
+
+        void ShowOverlap()
+        {
+            var o = builder.Info.overlaps;
+            if (o.Count == 0) return;
+            int first = int.MaxValue;
+            foreach (int k in o) first = Mathf.Min(first, k);
+            if (builder.Selected != first) builder.Select(first);
+        }
+
+        void RefreshTableTools(string txt, string cls)
+        {
+            var i = builder.Info;
+            tableText.text = txt;
+            tableStatus.RemoveFromClassList("status--ok"); tableStatus.RemoveFromClassList("status--warn");
+            if (cls != "") tableStatus.AddToClassList(cls);
+            tableClose.style.display = !i.closed && builder.pieces.Count > 1 && i.overlaps.Count == 0 ? DisplayStyle.Flex : DisplayStyle.None;
+            tableShow.style.display = i.overlaps.Count > 0 ? DisplayStyle.Flex : DisplayStyle.None;
+            barUndo.SetEnabled(builder.CanUndo);
+            barRedo.SetEnabled(builder.CanRedo);
+            bool sel = builder.Selected >= 0;
+            barFlip.SetEnabled(sel);
+            barRemove.SetEnabled(builder.pieces.Count > 1);
+        }
 
         void Refresh()
         {
@@ -354,6 +427,7 @@ namespace Autorama
             statusBox.RemoveFromClassList("status--ok"); statusBox.RemoveFromClassList("status--warn");
             if (cls != "") statusBox.AddToClassList(cls);
             statusText.text = txt;
+            RefreshTableTools(txt, cls);
             // O botão de fechar aparece só quando há o que fechar.
             closeBtn.style.display = !i.closed && builder.pieces.Count > 1 ? DisplayStyle.Flex : DisplayStyle.None;
 
@@ -591,6 +665,11 @@ namespace Autorama
             info.style.left = left + 34f;
             // Na corrida o canto de baixo é dos controles dos jogadores.
             info.style.display = RaceMode ? DisplayStyle.None : DisplayStyle.Flex;
+            // Selo e barra só no construtor; o selo fica centrado na mesa (à direita do painel).
+            var buildOnly = Locked ? DisplayStyle.None : DisplayStyle.Flex;
+            tableWrap.style.display = actionBar.style.display = buildOnly;
+            tableWrap.style.left = left;
+            bar3D.EnableInClassList("btn--on", cam.Tilted);
             cellLabel.text = hover.HasValue ? $"Célula {CellName(hover.Value)}" : "Célula —";
             if (!top) { scaleBar.style.display = scaleText.style.display = DisplayStyle.None; return; }
             scaleBar.style.display = scaleText.style.display = DisplayStyle.Flex;
