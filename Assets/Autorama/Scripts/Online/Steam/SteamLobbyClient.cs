@@ -8,7 +8,7 @@ namespace Autorama
     public class SteamLobbyInfo
     {
         public CSteamID id;
-        public string code, name, host;
+        public string code, name, host, state;
         public int players, max, stages;
         public bool pub;
     }
@@ -101,6 +101,16 @@ namespace Autorama
 
         public CSteamID Owner => InLobby ? SteamMatchmaking.GetLobbyOwner(Lobby) : CSteamID.Nil;
 
+        // Pública: aparece na lista. Privada (Invisible): só pelo código.
+        public void SetPublic(bool pub)
+        {
+            if (!IsOwner) return;
+            SteamMatchmaking.SetLobbyType(Lobby, pub ? ELobbyType.k_ELobbyTypePublic : ELobbyType.k_ELobbyTypeInvisible);
+            SteamMatchmaking.SetLobbyData(Lobby, "pub", pub ? "1" : "0");
+        }
+
+        public void SetJoinable(bool on) { if (IsOwner) SteamMatchmaking.SetLobbyJoinable(Lobby, on); }
+
         public List<SteamMember> Members()
         {
             var list = new List<SteamMember>();
@@ -159,6 +169,7 @@ namespace Autorama
                     {
                         id = id, code = SteamMatchmaking.GetLobbyData(id, "code"), name = SteamMatchmaking.GetLobbyData(id, "name"),
                         host = owner.IsValid() ? SteamFriends.GetFriendPersonaName(owner) : "", pub = SteamMatchmaking.GetLobbyData(id, "pub") == "1",
+                        state = SteamMatchmaking.GetLobbyData(id, "state"),
                         players = SteamMatchmaking.GetNumLobbyMembers(id), max = SteamMatchmaking.GetLobbyMemberLimit(id), stages = stages,
                     });
                 }

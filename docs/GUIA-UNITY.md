@@ -2414,7 +2414,7 @@ Depois do deploy, escreva o endereço (`wss://SEU-APP.fly.dev`) em `OnlineClient
 
 ## 24. Steam (teste com o Spacewar)
 
-Branch `steam-spacewar`. Experimento: a Steam no lugar do servidor Node para o lobby e para as mensagens da corrida. **Ainda não está ligada à aba Online**: esta etapa entrega a camada Steam e o teste contra o app de teste da Valve (**Spacewar, AppId 480**), que roda sem pagar nada e fora da loja. O servidor Node continua valendo para quem não usa a Steam.
+Branch `steam-spacewar`. A Steam no lugar do servidor Node: o lobby faz de sala e as mensagens diretas entre os jogadores fazem a corrida. A aba Online escolhe a rede com o botão **Jogar pela Steam (sem servidor)**; o nome do jogador é o da conta Steam. Os testes usam o app de teste da Valve (**Spacewar, AppId 480**), que roda sem pagar nada e fora da loja. O servidor Node continua valendo para quem não usa a Steam.
 
 ### 24.1 Preparação
 
@@ -2468,11 +2468,40 @@ Resultado desta etapa, com a conta real (24 verificações, todas passaram): a S
 3. Dos dois lados: `ManualSay("oi")`, `ManualReady(true)`, e conferir `ManualLog` (jogadores com ✓, o dono marcado como host, o chat do outro lado).
 4. `ManualStop()` para sair.
 
-### 24.4 O que falta para jogar pela Steam
+### 24.4 A aba Online sobre a Steam (transporte)
 
-1. **Interface de transporte** entre a aba Online e a rede (hoje `RaceController.Online*.cs` fala direto com o `OnlineClient` e os `NetMsg`): uma implementação WebSocket (servidor Node) e outra Steam (lobby + sockets).
-2. **Conexão da corrida entre jogadores:** abrir a conexão do host com cada visitante (por `SteamNetworkingMessages` ou `ConnectP2P` pelo Datagram Relay), e mandar as pistas (JSON) pelo canal confiável na largada, já que o lobby guarda só o resumo.
-3. **Nome:** hoje o jogador digita o nome; na Steam vem da conta (decidir se continua editável).
-4. **Convites de amigos** e *Rich Presence* (opcional).
-5. **AppId próprio** e a taxa da Steam Direct (US$ 100) antes de publicar; o 480 serve só para teste.
+A aba (`RaceController.Online*.cs`) fala com a rede só por `IOnlineTransport` (`Connect`, `Send`, `Pump`, eventos `Opened`/`Closed`/`Message`), com as mesmas mensagens (`NetOut…` para enviar, `NetMsg` para receber). Duas implementações:
 
+| | `OnlineClient` | `SteamTransport` |
+|---|---|---|
+| Rede | WebSocket até o servidor Node | Lobby da Steam + mensagens diretas (`SteamNetworkingMessages`, Datagram Relay) |
+| "Servidor" | `servidor/servidor.js` | cada cliente, em cima do lobby (o dono do lobby é o host) |
+| Nome | o jogador digita | **o da conta Steam** (o campo fica desligado) |
+
+`SteamTransport` usa um `ILobbyBackend` (`SteamBackend` na Steam de verdade; `FakeLobbyHub`/`FakeBackend`, no Editor, para testar vários jogadores num processo só). O que o servidor Node confere, o transporte confere em quem manda, e os outros só confiam no dono do lobby.
+
+- **Sala:** `create` cria o lobby (público: aparece na lista; privado: tipo *Invisible*, só pelo código). O código de 5 letras, o nome, o estado, as etapas (resumo em JSON em `stl`) e a visibilidade são dados do lobby, que só o dono escreve. `join` busca pelo código, confere o estado (`andamento`) e a lotação (`cheia`) e entra.
+- **Cor, pronto e nome:** cor e pronto são dados do próprio membro; o nome vem de `GetPersonaName`. O "pronto" vale para uma **época**: o lobby guarda `epoch` (começa em 1; `0` é "não pronto") e o jogador grava a época em que confirmou. Mexer nas etapas sobe a época e zera todos sem precisar escrever nos dados dos outros.
+- **Largar (host):** confere 2 pilotos, 1 etapa, todos prontos e as regras; manda `started` (pilotos, regras e as pistas **com o JSON**) a cada visitante por mensagem direta confiável (até 500 KB), grava `state=racing` e fecha o lobby (`SetLobbyJoinable(false)`).
+- **Corrida:** `in` vai do visitante ao dono (confiável, sem *nagle*, e o id vem de quem mandou, não do texto); `snap` do dono a todos, sem confiabilidade; `ev` e `lobby` do dono a todos, confiáveis. Só se aceita `snap`/`ev`/`started`/`lobby` do dono, e conversa direta só de quem está no lobby (`AcceptSessionWithUser` confere).
+- **Fim:** `end` manda `lobby` a todos, volta `state=lobby`, sobe a época e reabre o lobby. Se o **host sai** no meio, cada um percebe que o dono da corrida sumiu, mostra "O host saiu" e quem virou dono volta o lobby. Se só um visitante sai, o campeonato segue.
+- **Host novo no lobby:** o novo dono perde o JSON das pistas (o lobby guarda só o resumo): a aba reencontra as pistas pelo hash e as reenvia (`AdoptStages` agora sempre chama `SendStages`, com os dois transportes).
+- **Chat:** `SendLobbyChatMsg`; não há histórico para quem entra depois (o servidor Node guarda as últimas 50).
+- **Botão na aba:** ligar **Jogar pela Steam** inicia a Steam (se falhar, desliga e avisa, por exemplo "O cliente da Steam não está aberto"), mostra o nome da conta e esconde o endereço do servidor. A escolha fica em `PlayerPrefs` (`autorama.online.steam`).
+
+### 24.5 Testes do transporte
+
+`SteamTransportTest.Run` (Editor): `script eval 'Autorama.SteamTransportTest.Run(); return Autorama.SteamTransportTest.Last;'`.
+
+- **Mundo falso, três jogadores** (a mesma lista de regras do `npm test`): conectar; lista vazia; criar sala (host, 1ª cor, nome da conta, código); sala pública na lista; código errado e maiúsculas; cor inválida e cor usada; chat com texto limpo, nome e cor, e limite de ritmo; visitante não escolhe pistas; resumo das etapas com os hashes conhecidos; etapa inválida; sala privada fora da lista; largar sem todos prontos; pronto; mexer nas pistas zera o pronto (e o host é sempre pronto); visitante não larga; regras fora dos limites; `started` com pilotos, regras e o JSON da pista (mesmo hash); com o campeonato andando ninguém entra nem troca de cor; `in` só ao host, com o id certo; `snap` só do host; `ev`; só o host encerra; o fim zera o pronto; host que sai no meio encerra e o visitante vira host; sala vazia some. Descobriu um erro real: a época começava em `0`, igual a "não pronto" (corrigido: começa em 1).
+- **Steam de verdade** (uma conta, Spacewar): o transporte abre; o nome vem da conta; criar sala; as etapas ficam no lobby; o chat volta com o nome; a cor muda; largar sozinho é recusado; a lista enxerga a sala; torná-la privada; e uma mensagem direta para si mesmo **chegou** (a Steam aceita loopback entre contas iguais).
+- **Tela** (Play mode, Unity de host com o botão da Steam ligado e um visitante-robô no mundo falso, `SteamTransportTest.UiSetup`/`BotTick`): o nome fica "Hugo" e o campo desligado; a sala é criada; o robô entra e fica pronto; ao mexer nas etapas o pronto dele zera e ele confirma de novo; o host larga; a corrida roda (755 snapshots entregues ao robô) e o carrinho do robô anda com o botão dele; a tela é a do campeonato offline, com o chat.
+
+Regressão: `OnlineSmokeTest` (servidor Node, 42 verificações) e `SteamSpacewarTest` (24) continuam passando.
+
+### 24.6 O que falta
+
+1. **Duas contas de verdade:** nada disso provou ainda a chegada entre dois jogadores em máquinas diferentes (ver o roteiro em 24.3). A mensagem direta para si mesmo chegou, o que é um bom sinal, mas não é a rede.
+2. **Tamanho do snapshot** (~1,2 KB): na rede real a Steam fragmenta mensagens grandes sem confiabilidade e perde a mensagem toda se um pedaço se perder. Se houver perda visível, reduzir o snapshot ou mandá-lo confiável.
+3. **Convites de amigos** e *Rich Presence* (opcional); entrar na sala pela lista de amigos.
+4. **AppId próprio** e a taxa da Steam Direct (US$ 100) antes de publicar; o 480 serve só para teste. Num app seu, o transporte já filtra por `autorama=1` e pela versão do protocolo.

@@ -13,7 +13,7 @@ namespace Autorama
     // só é entregue em Pump(), chamado a cada quadro pela thread principal (o JsonUtility e a UI não são thread-safe).
     // Os await usam ConfigureAwait(false): a rede não depende da thread principal.
     // Não funciona em WebGL (System.Net.WebSockets não existe lá): o jogo é de computador.
-    public class OnlineClient
+    public class OnlineClient : IOnlineTransport
     {
         public enum State { Closed, Connecting, Open }
 

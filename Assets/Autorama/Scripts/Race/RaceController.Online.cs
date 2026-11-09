@@ -11,11 +11,13 @@ namespace Autorama
     // Visitante só escolhe a cor e fala no chat. O host também escolhe as pistas e se a sala é pública. O servidor confere tudo isso.
     public partial class RaceController
     {
-        const string PrefServer = "autorama.online.servidor", PrefName = "autorama.online.nome";
+        const string PrefServer = "autorama.online.servidor", PrefName = "autorama.online.nome", PrefSteam = "autorama.online.steam";
         const int MaxOnlineStages = 12, MaxTrackJson = 100 * 1024, ChatKeep = 100;
         static string DefaultServer => OnlineClient.DefaultServer;
 
-        OnlineClient net;
+        IOnlineTransport net;                           // o servidor Node (wsNet) ou a Steam (steamNet): a aba não sabe a diferença
+        OnlineClient wsNet;
+        SteamTransport steamNet;
         NetRoom room;                                   // null fora da sala
         string myId;
         bool wasHost;
@@ -26,7 +28,7 @@ namespace Autorama
         VisualElement oEntry, oLobby, oRooms, oPlayers, oColors, oStages, oPick, oHostPick, oRun, oRunChatSec;
         Label oMsg, oRoomTitle, oRoomCode, oStageHint, oLobbyMsg, oRulesHint, oStartHint;
         TextField oServer, oName, oRoomName, oCode, oChatInput, oRunChatInput;
-        Toggle oPublic, oVisibility;
+        Toggle oPublic, oVisibility, oSteam;
         ScrollView oChat, oRunChat;
         Button oStartBtn, oReadyBtn, oRunQuit;
         readonly List<NetChat> chatLog = new List<NetChat>();
@@ -39,16 +41,19 @@ namespace Autorama
 
         void BuildOnlineUI()
         {
-            net = new OnlineClient();
-            net.Opened += OnNetOpen;
-            net.Closed += OnNetClosed;
-            net.Message += OnNetMessage;
+            wsNet = new OnlineClient();
+            SetTransport(wsNet);
             var box = panel.OnlineBox;
 
             // Antes de entrar numa sala
             oEntry = El(null, box);
             var head = Section(oEntry, "CAMPEONATO ONLINE");
             Text("Um jogador cria a sala e escolhe as pistas. Os outros entram pelo código ou pela lista de salas públicas.", "hint", head);
+            oSteam = new Toggle("Jogar pela Steam (sem servidor)") { value = PlayerPrefs.GetInt(PrefSteam, 0) == 1 };
+            oSteam.AddToClassList("setting");
+            oSteam.tooltip = "Usa o lobby e a rede da Steam: precisa da Steam aberta e logada. O nome é o da sua conta.";
+            oSteam.RegisterValueChangedCallback(e => SteamToggled(e.newValue));
+            head.Add(oSteam);
             oServer = Field("Servidor (ex.: ws://localhost:8080)", 120, head);
             oServer.SetValueWithoutNotify(PlayerPrefs.GetString(PrefServer, DefaultServer));
             oServer.RegisterValueChangedCallback(e => { PlayerPrefs.SetString(PrefServer, e.newValue); });
@@ -153,15 +158,52 @@ namespace Autorama
 
         void OnlineTick() => net?.Pump();
 
-        void OnlineDestroy() { if (net != null) { net.Close(); net = null; } }
+        void OnlineDestroy()
+        {
+            wsNet?.Close();
+            steamNet?.Shutdown();
+            net = null;
+        }
 
-        void OnlineShown() { DrawOnline(); OnlineStatus(); }
+        void OnlineShown()
+        {
+            if (oSteam.value && (steamNet == null || steamNet.LocalName == "")) SteamToggled(true);     // a escolha da última vez
+            DrawOnline(); OnlineStatus();
+        }
+
+        void SetTransport(IOnlineTransport t)
+        {
+            if (net == t) return;
+            if (net != null) { net.Opened -= OnNetOpen; net.Closed -= OnNetClosed; net.Message -= OnNetMessage; }
+            net = t;
+            net.Opened += OnNetOpen; net.Closed += OnNetClosed; net.Message += OnNetMessage;
+        }
+
+        // Steam ligada: o nome é o da conta, não há endereço de servidor. Desligada: volta ao servidor Node.
+        void SteamToggled(bool on)
+        {
+            if (room == null && net.state != OnlineClient.State.Closed) { net.Close(); pendingNet = null; }     // a próxima ação conecta pela rede escolhida
+            if (on)
+            {
+                steamNet ??= new SteamTransport();
+                if (!steamNet.Prepare(out string err))
+                {
+                    oSteam.SetValueWithoutNotify(false);
+                    SetOnlineMsg(err);
+                    on = false;
+                }
+            }
+            PlayerPrefs.SetInt(PrefSteam, on ? 1 : 0);
+            oServer.style.display = on ? DisplayStyle.None : DisplayStyle.Flex;
+            oName.SetEnabled(!on);
+            oName.SetValueWithoutNotify(on ? steamNet.LocalName : PlayerPrefs.GetString(PrefName, ""));
+        }
 
         void OnlineStatus()
         {
             if (!panel.OnlineMode || OnlineRun) return;
             if (room != null) panel.SetStatus($"Sala {room.code} · {room.players.Count}/{room.max} pilotos", "status--ok");
-            else if (net.state == OnlineClient.State.Connecting) panel.SetStatus("Conectando ao servidor…", "");
+            else if (net.state == OnlineClient.State.Connecting) panel.SetStatus(oSteam.value ? "Conectando à Steam…" : "Conectando ao servidor…", "");
             else panel.SetStatus("Online: crie uma sala ou entre numa", "");
         }
 
@@ -178,6 +220,7 @@ namespace Autorama
         // O nome é obrigatório para criar e para entrar.
         string RequireName()
         {
+            if (oSteam.value && steamNet != null) return steamNet.LocalName;
             string n = (oName.value ?? "").Trim();
             if (n.Length == 0) { SetOnlineMsg("Digite seu nome primeiro."); oName.Focus(); return null; }
             return n;
@@ -186,6 +229,7 @@ namespace Autorama
         // Conecta (se preciso) e só então roda a ação.
         void WhenConnected(Action act)
         {
+            if (net.state == OnlineClient.State.Closed) SetTransport(oSteam.value && steamNet != null ? (IOnlineTransport)steamNet : wsNet);
             if (net.state == OnlineClient.State.Open) { act(); return; }
             pendingNet = act;
             if (net.state == OnlineClient.State.Closed) { SetOnlineMsg(""); net.Connect(oServer.value); }
@@ -270,11 +314,11 @@ namespace Autorama
         {
             bool wasInRoom = room != null, wasConnecting = pendingNet != null;
             ResetOnlineState();
-            if (wasConnecting) reason = reason.TrimEnd('.', ' ') + $". Confira o endereço ({oServer.value}) e se o servidor está rodando (cd servidor && npm start).";
+            if (wasConnecting && !oSteam.value) reason = reason.TrimEnd('.', ' ') + $". Confira o endereço ({oServer.value}) e se o servidor está rodando (cd servidor && npm start).";
             SetOnlineMsg(reason);
             if (wasInRoom) panel.Toast("Você saiu da sala: " + reason);
             DrawOnline(); OnlineStatus();
-            if (!wasInRoom && panel.OnlineMode) panel.SetStatus("Sem conexão com o servidor", "status--warn");
+            if (!wasInRoom && panel.OnlineMode) panel.SetStatus(oSteam.value ? "Sem conexão com a Steam" : "Sem conexão com o servidor", "status--warn");
         }
 
         void OnNetMessage(NetMsg m)
@@ -333,7 +377,8 @@ namespace Autorama
                 var data = TrackSave.FromJson(o.save.ToJson(false));
                 onlineStages.Add(new Stage { name = s.name, laps = s.laps, data = data, hash = s.hash });
             }
-            if (lost > 0) { panel.Toast($"{lost} {(lost == 1 ? "pista não está" : "pistas não estão")} neste computador e saiu da lista."); SendStages(); }
+            if (lost > 0) panel.Toast($"{lost} {(lost == 1 ? "pista não está" : "pistas não estão")} neste computador e saiu da lista.");
+            SendStages();                                // o novo host passa a ser quem guarda o JSON das pistas
         }
 
         // ---------- Etapas (host) ----------
