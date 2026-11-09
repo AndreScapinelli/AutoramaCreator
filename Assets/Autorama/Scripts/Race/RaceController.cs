@@ -50,6 +50,10 @@ namespace Autorama
         readonly HudCard[] hud = new HudCard[2];
         VisualElement hudBox;
         bool sideAutoHidden;                 // o painel foi recolhido pela largada (devolve na chegada)
+        // Contagem grande no meio da mesa (3, 2, 1, VAI!) e o resultado da prova dentro do aviso de vitória.
+        VisualElement cdBox, resTable, resBtns;
+        Label cdText;
+        Button resAgain, resNext;
 
         // ---------- Início ----------
 
@@ -361,7 +365,15 @@ namespace Autorama
             banner = El("banner", topBox);
             bannerTitle = Text("", "banner-title", banner);
             bannerSub = Text("", "banner-sub", banner);
-            foreach (var e in new[] { lights, banner }) e.pickingMode = PickingMode.Ignore;
+            resTable = El("res-table", banner);
+            resBtns = El("res-btns", banner);
+            resAgain = Btn("Correr de novo  (Enter)", () => { if (ChampLike) ChampEnter(); else StartRace(); }, "btn btn--accent res-btn", resBtns);
+            resNext = Btn("Trocar pista", () => { sideAutoHidden = false; panel.SetSideFromRace(true); }, "btn res-btn", resBtns);
+            lights.pickingMode = PickingMode.Ignore;
+
+            cdBox = El("cd-box", root); cdBox.pickingMode = PickingMode.Ignore;
+            cdText = Text("", "cd-text", cdBox); cdText.pickingMode = PickingMode.Ignore;
+            cdBox.style.display = DisplayStyle.None;
 
             BuildCamMenu(root);
 
@@ -610,10 +622,73 @@ namespace Autorama
             }
         }
 
+        // 3 · 2 · 1 acompanhando as luzes vermelhas; no primeiro segundo da prova, VAI! em verde.
+        void UpdateCountdown()
+        {
+            bool cd = sim.phase == RaceSim.Phase.Countdown, go = sim.phase == RaceSim.Phase.Running && sim.t < 0.8f;
+            cdBox.style.display = panel.RaceMode && (cd || go) ? DisplayStyle.Flex : DisplayStyle.None;
+            if (!(cd || go)) return;
+            cdBox.style.left = panel.SideWidth;
+            float step = RaceSim.Count / 3f;
+            int n = cd ? 3 - Mathf.Min(2, Mathf.FloorToInt(sim.t / step)) : 0;
+            float f = cd ? (sim.t % step) / step : sim.t / 0.8f;      // 0→1 dentro de cada número
+            cdText.text = cd ? n.ToString() : "VAI!";
+            cdText.EnableInClassList("cd-text--go", !cd);
+            cdText.style.scale = new Scale(Vector2.one * Mathf.Lerp(1.35f, 1f, Mathf.Min(1f, f * 3f)));
+            cdText.style.opacity = cd ? 1f : 1f - f;
+        }
+
+        // Resultado da prova dentro do aviso: as duas posições com tempo total, melhor volta e saídas,
+        // e os botões. No online não há botões (quem comanda a sala é o host, pela tela do campeonato).
+        bool resShown;
+        string resSig;
+        void SetResult(bool show)
+        {
+            string sig = show ? $"{sim.winner}|{sim.cars[0].finish}|{sim.cars[1].finish}|{sim.cars[0].offs}|{sim.cars[1].offs}|{panel.CurrentMode}" : null;
+            if (show == resShown && sig == resSig) return;
+            resShown = show; resSig = sig;
+            DrawResult(show);
+        }
+
+        void DrawResult(bool show)
+        {
+            resTable.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+            resBtns.style.display = show && !OnlineRun ? DisplayStyle.Flex : DisplayStyle.None;
+            banner.pickingMode = show && !OnlineRun ? PickingMode.Position : PickingMode.Ignore;
+            if (!show) return;
+            resTable.Clear();
+            int lead = Leader();
+            foreach (int k in new[] { lead, 1 - lead })
+            {
+                var c = sim.cars[k];
+                var r = El("res-row" + (k == sim.winner ? " res-row--win" : ""), resTable);
+                Text(k == lead ? "1º" : "2º", "res-pos", r);
+                El("hud-dot", r).style.backgroundColor = pads[k].root.resolvedStyle.borderTopColor;
+                Text(hud[k].name.text, "res-name", r);
+                Text(c.finish != null ? Fmt(c.finish) : "não terminou", "res-cell", r);
+                Text("melhor " + Fmt(c.best), "res-cell res-cell--dim", r);
+                Text(c.offs == 1 ? "1 saída" : $"{c.offs} saídas", "res-cell res-cell--dim", r);
+            }
+            if (ChampLike)
+            {
+                bool over = !HeatNow(out _, out _, out _, out _, out _);
+                resAgain.style.display = over ? DisplayStyle.None : DisplayStyle.Flex;
+                resAgain.text = "Salvar e seguir  (Enter)";
+                resNext.style.display = DisplayStyle.None;
+            }
+            else
+            {
+                resAgain.style.display = DisplayStyle.Flex;
+                resAgain.text = "Correr de novo  (Enter)";
+                resNext.style.display = DisplayStyle.Flex;
+            }
+        }
+
         void UpdateTop()
         {
             topBox.style.left = panel.SideWidth;
             UpdateHud();
+            UpdateCountdown();
             bool showLights = sim.phase == RaceSim.Phase.Countdown || (sim.phase == RaceSim.Phase.Running && sim.t < 1f);
             lights.style.display = showLights ? DisplayStyle.Flex : DisplayStyle.None;
             if (showLights)
@@ -630,10 +705,12 @@ namespace Autorama
                 bool champShow = ChampBanner(out string title, out string sub) && !showLights;
                 banner.style.display = champShow ? DisplayStyle.Flex : DisplayStyle.None;
                 if (champShow) { bannerTitle.text = title; bannerSub.text = sub; bannerTitle.EnableInClassList("banner-title--a", false); bannerTitle.EnableInClassList("banner-title--b", false); }
+                SetResult(champShow && sim.phase == RaceSim.Phase.Done && sim.winner >= 0);
                 return;
             }
             bool showBanner = !showLights && (sim.winner >= 0 || !sim.closed);
             banner.style.display = showBanner ? DisplayStyle.Flex : DisplayStyle.None;
+            SetResult(showBanner && sim.closed);
             if (!showBanner) return;
             if (!sim.closed) { bannerTitle.text = "Pista aberta"; bannerSub.text = "Escolha um circuito fechado na lista."; bannerTitle.EnableInClassList("banner-title--a", false); bannerTitle.EnableInClassList("banner-title--b", false); return; }
             var w = sim.cars[sim.winner];

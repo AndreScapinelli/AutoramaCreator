@@ -1336,6 +1336,18 @@ No meio da tela, as **três luzes** da largada e o **aviso de vitória**.
 
 **Painel recolhido na corrida** (`RaceController.SideForPhase`, chamado quando a fase muda, offline e online): na largada (`Countdown`/`Running`) o painel lateral se recolhe para a mesa ficar inteira; ao voltar ao grid ou terminar, ele volta. Só devolve se foi a largada que recolheu (`sideAutoHidden`): se o jogador já estava com o painel fechado, ele continua fechado; e o `Tab` abre o painel no meio da prova. `BuilderPanel.SideVisible` e `SetSideFromRace(bool)` expõem isso.
 
+**Contagem grande** (`UpdateCountdown`): no meio da mesa, um número de 140 px acompanha as luzes vermelhas, cada um por `RaceSim.Count / 3` = 0,8 s: `3`, `2`, `1`. Na luz verde aparece `VAI!` em verde, que some em 0,8 s. Cada número entra em escala 1,35× e encolhe para 1× no primeiro terço do seu tempo. Elemento `.cd-box` (absoluto, ocupa a mesa, `left` = largura do painel) com `.cd-text` / `.cd-text--go`.
+
+**Resultado da prova** (`SetResult` → `DrawResult`): quando a prova acaba, o aviso de vitória ganha uma tabela com as duas posições (ordem de `Leader()`), cada uma com bolinha, nome, tempo total (ou "não terminou"), melhor volta e saídas; o vencedor tem borda amarela. Embaixo, os botões:
+
+- corrida livre: **Correr de novo (Enter)** (`StartRace`) e **Trocar pista** (abre o painel lateral);
+- campeonato offline: **Salvar e seguir (Enter)** (`ChampEnter` → `ChampSave`); some quando o campeonato acaba;
+- online: só a tabela, sem botões (quem comanda é o host, pela tela do campeonato).
+
+A tabela só é redesenhada quando algo muda (assinatura com vencedor, chegadas, saídas e aba). Estilos `.res-*`.
+
+Teste (Play mode): `StartRace()` + 10 quadros → fase `Countdown`, `t = 0,20`, contagem "3" visível no centro. Prova inteira com os dois robôs (qualidade 90, `sim.Step(0.02)`) → "Trilho 2 venceu", tabela "1º JOGADOR 2 16,00 s melhor 5,10 s 0 saídas / 2º JOGADOR 1 16,36 s melhor 5,10 s 0 saídas", botões visíveis, painel lateral de volta.
+
 Teste (Play mode, `script eval`): `StartRace()` + 200 quadros → painel fechado, placar "1º JOGADOR 1 Volta 1/3 · 2º JOGADOR 2 Volta 1/3"; `sim.Reset()` → painel aberto, placar escondido.
 
 ### 15.7.1 Modos de câmera na corrida

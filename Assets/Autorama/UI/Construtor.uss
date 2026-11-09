@@ -335,3 +335,22 @@
 .hud-row { flex-direction: row; }
 .hud-lap { font-size: 12px; color: rgb(229, 235, 227); margin: 0 10px 0 0; padding: 0; }
 .hud-best { font-size: 12px; color: rgb(148, 161, 151); margin: 0; padding: 0; }
+
+/* Contagem grande da largada, no meio da mesa */
+.cd-box { position: absolute; top: 0; bottom: 0; right: 0; left: 0; align-items: center; justify-content: center; }
+.cd-text {
+    font-size: 140px; -unity-font-style: bold; color: rgb(224, 55, 44); margin: 0; padding: 0;
+    -unity-text-outline-width: 3px; -unity-text-outline-color: rgb(14, 17, 16);
+}
+.cd-text--go { color: rgb(43, 193, 103); }
+
+/* Resultado da prova, dentro do aviso de vitória */
+.res-table { margin-top: 10px; min-width: 380px; }
+.res-row { flex-direction: row; align-items: center; padding: 6px 8px; margin-bottom: 4px; border-radius: 8px; background-color: rgb(30, 37, 33); }
+.res-row--win { border-width: 1px; border-color: rgb(245, 194, 27); }
+.res-pos { width: 28px; font-size: 15px; -unity-font-style: bold; color: rgb(245, 194, 27); margin: 0; padding: 0; }
+.res-name { flex-grow: 1; font-size: 13px; -unity-font-style: bold; color: rgb(229, 235, 227); margin: 0 12px 0 0; padding: 0; }
+.res-cell { font-size: 12px; color: rgb(229, 235, 227); margin: 0 0 0 12px; padding: 0; }
+.res-cell--dim { color: rgb(148, 161, 151); }
+.res-btns { flex-direction: row; justify-content: center; margin-top: 10px; }
+.res-btn { height: 32px; margin: 0 4px; padding: 0 14px; }
