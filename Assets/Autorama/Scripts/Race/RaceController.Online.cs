@@ -171,6 +171,8 @@ namespace Autorama
         {
             if (oMsg != null) oMsg.text = text ?? "";
             if (oLobbyMsg != null) oLobbyMsg.text = room != null ? text ?? "" : "";
+            // O aviso fixo fica no topo da aba, longe dos botões: o balão chama a atenção onde o jogador está olhando.
+            if (!string.IsNullOrEmpty(text) && room == null) panel.Toast(text);
         }
 
         // O nome é obrigatório para criar e para entrar.
@@ -266,11 +268,13 @@ namespace Autorama
 
         void OnNetClosed(string reason)
         {
-            bool wasInRoom = room != null;
+            bool wasInRoom = room != null, wasConnecting = pendingNet != null;
             ResetOnlineState();
+            if (wasConnecting) reason = reason.TrimEnd('.', ' ') + $". Confira o endereço ({oServer.value}) e se o servidor está rodando (cd servidor && npm start).";
             SetOnlineMsg(reason);
             if (wasInRoom) panel.Toast("Você saiu da sala: " + reason);
             DrawOnline(); OnlineStatus();
+            if (!wasInRoom && panel.OnlineMode) panel.SetStatus("Sem conexão com o servidor", "status--warn");
         }
 
         void OnNetMessage(NetMsg m)

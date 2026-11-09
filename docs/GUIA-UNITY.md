@@ -2318,6 +2318,7 @@ npm test           # 32 verificações com vários clientes simulados
 
 - Mensagem de até 2 MB; o servidor derruba quem não responde a um ping de 15 s e tira o jogador da sala.
 - `/saude` (HTTP) responde `ok salas=N`.
+- O servidor precisa estar rodando antes de criar ou entrar. Sem ele, a aba avisa (balão, barra de status e texto no topo) com o endereço usado e o comando para subi-lo.
 - Sem TLS: para jogar pela internet, ponha atrás de um proxy que dê `wss://` (o campo **Servidor** da aba aceita `wss://…`). O endereço fica em `PlayerPrefs` (`autorama.online.servidor`), junto com o último nome usado (`autorama.online.nome`). Padrão: `ws://localhost:8080`.
 - Limites contra abuso: 500 salas, cor só da paleta, texto do chat limpo de controles, tipos de mensagem só os da tabela.
 
