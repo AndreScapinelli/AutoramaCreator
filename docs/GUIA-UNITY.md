@@ -2254,9 +2254,9 @@ public static Pose2 EntryFor(Pose2 c, PieceDef d, int dir)
 
 ---
 
-## 23. Campeonato online (lobby)
+## 23. Campeonato online
 
-Quarta aba, **Online**. Nesta etapa só existe o **lobby**: criar ou entrar numa sala, escolher a cor, conversar e (o host) escolher as pistas. **A largada online ainda não existe** (botão "Começar campeonato (em breve)" desligado). Por decisão do projeto, isto existe **só na Unity**: o HTML não tem a aba Online (exceção temporária à regra de HTML e Unity iguais).
+Quarta aba, **Online**: criar ou entrar numa sala, escolher a cor, conversar, o host escolher as pistas, **todos ficarem prontos** e correr o campeonato, com a tela do campeonato offline mais o chat. Por decisão do projeto, isto existe **só na Unity**: o HTML não tem a aba Online (exceção temporária à regra de HTML e Unity iguais).
 
 ### 23.1 Como funciona
 
@@ -2267,32 +2267,45 @@ Quarta aba, **Online**. Nesta etapa só existe o **lobby**: criar ou entrar numa
 - **Cor**: as 8 do campeonato (`Champ.Colors`), uma por jogador. Quem entra recebe a primeira livre; escolher uma já usada dá `cor-usada`.
 - **Host que sai**: o jogador mais antigo vira host. Ele só tem o resumo das etapas, então reencontra as pistas pela identidade (`Champ.TrackHash`) entre as que tem no computador e tira as que não achar (`AdoptStages`). Sala vazia é apagada.
 - **Cheia**: 8 jogadores (`MaxPlayers`). Máximo de 12 etapas, cada uma com até 100 KB de JSON e de 1 a 30 voltas.
+- **Pronto.** Cada visitante aperta **Estou pronto** (o host está sempre pronto). Mexer nas etapas zera o "pronto" de quem já tinha confirmado (o servidor avisa no chat). O host só larga com **pelo menos 2 pilotos, 1 etapa e todos prontos**; o servidor confere de novo (`poucos`, `sem-etapas`, `nao-prontos`).
+- **Largar.** O host manda as regras (os ajustes da aba Corrida: velocidade, rampa, aderência, colisão). O servidor entrega a **todos** os pilotos (na ordem do rodízio), as regras e as pistas com o JSON (`started`); a sala passa a `racing` e ninguém mais entra nem troca de cor. É o mesmo campeonato do offline (`Champ.MakeHeats`: N baterias por etapa, cada piloto uma vez em cada trilho).
+- **Acabou ou desistiu.** O host manda `end` e todos voltam ao lobby (`lobby`), com o "pronto" zerado. Se o **host sai** no meio, o campeonato é encerrado para todos. Se um **visitante sai**, o campeonato segue: o carrinho dele fica parado e a bateria dele vale como não terminada (e se os dois da bateria saíram, o host a grava sozinho como não terminada).
 
 ### 23.2 Protocolo
 
-JSON de uma linha por mensagem WebSocket, com o tipo em `t`. Classes em `Online/OnlineProtocol.cs` (o `JsonUtility` não faz herança: `NetMsg` junta tudo o que o servidor manda; `NetOut` e `NetOutStages` são o que o cliente manda).
+JSON de uma linha por mensagem WebSocket, com o tipo em `t`. Classes em `Online/OnlineProtocol.cs` (o `JsonUtility` não faz herança: `NetMsg` junta tudo o que o servidor manda; `NetOut`, `NetOutStages`, `NetOutSnap` e `NetOutEv` são o que o cliente manda).
 
 | Cliente → servidor | Campos | Quem pode |
 |---|---|---|
 | `create` | `name`, `roomName` (opcional), `pub` | qualquer um |
 | `join` | `name`, `code` | qualquer um |
 | `list` | | qualquer um |
-| `color` | `color` (`#RRGGBB` da paleta) | todos na sala |
+| `color` | `color` (`#RRGGBB` da paleta) | todos na sala, só no lobby |
 | `chat` | `text` (até 200; 5 mensagens a cada 3 s) | todos na sala |
-| `stages` | `stages`: `[{ name, laps, hash, json }]` | **só o host** |
+| `ready` | `ready` | visitantes, só no lobby |
+| `stages` | `stages`: `[{ name, laps, hash, json }]` | **só o host**, só no lobby |
 | `visibility` | `pub` | **só o host** |
+| `start` | `name`, `vmax`, `ramp`, `grip`, `collide` | **só o host**, com todos prontos |
+| `end` | `text` | **só o host**, no campeonato |
+| `in` | `held`, `re` (contador de "recolocar") | visitantes, no campeonato; vai **só para o host**, até 120 por segundo |
+| `snap` | `snap`: `{ hi, ph, t, w, cars[2] }` | **só o host**; repassado a todos os outros (até 16 KB) |
+| `ev` | `k` (`res` ou `reset`), `hi`, `heatRes[2]` | **só o host**; repassado a todos os outros |
 | `leave`, `ping` | | |
 
 | Servidor → cliente | Campos |
 |---|---|
 | `hello` | `id` |
 | `joined` | `you` (meu id), `room`, `chat` (últimas 50) |
-| `room` | `room`: `code, name, pub, host, max, state, players[{id,name,color}], stages[{name,laps,hash}]` (sem o JSON das pistas) |
+| `room` | `room`: `code, name, pub, host, max, state, players[{id,name,color,ready}], stages[{name,laps,hash}]` (sem o JSON das pistas) |
 | `rooms` | `rooms`: `[{ code, name, host, players, max, stages }]` (só as públicas em `lobby`) |
 | `chat` | `name`, `color`, `text`, `time`; ou `sys: true` (aviso do servidor) |
+| `started` | `title`, `rules`, `pilots[{id,name,color}]`, `stages[{name,laps,hash,json}]` |
+| `lobby` | `text`: o campeonato acabou ou foi interrompido; todos voltam ao lobby |
+| `in` | `from` (id de quem mandou), `held`, `re` (só o host recebe) |
+| `snap`, `ev` | os do host, como foram mandados |
 | `error` | `code`, `text` (em português, para mostrar ao jogador) |
 
-Códigos de erro: `nome`, `sem-sala`, `cheia`, `nome-usado`, `andamento`, `cor`, `cor-usada`, `host`, `etapas`, `rapido`, `sala`, `cheio`, `json`, `tipo`.
+Códigos de erro: `nome`, `sem-sala`, `cheia`, `nome-usado`, `andamento`, `cor`, `cor-usada`, `host`, `etapas`, `poucos`, `sem-etapas`, `nao-prontos`, `regras`, `rapido`, `sala`, `cheio`, `json`, `tipo`.
 
 ### 23.3 Servidor
 
@@ -2300,7 +2313,7 @@ Códigos de erro: `nome`, `sem-sala`, `cheia`, `nome-usado`, `andamento`, `cor`,
 cd servidor
 npm install
 npm start          # ws://localhost:8080 (variável PORT muda a porta)
-npm test           # 19 verificações com vários clientes simulados
+npm test           # 32 verificações com vários clientes simulados
 ```
 
 - Mensagem de até 2 MB; o servidor derruba quem não responde a um ping de 15 s e tira o jogador da sala.
@@ -2312,9 +2325,11 @@ npm test           # 19 verificações com vários clientes simulados
 
 - **`OnlineClient`** usa `System.Net.WebSockets.ClientWebSocket` (não funciona em WebGL). A rede roda em tarefas com `ConfigureAwait(false)` e só põe eventos numa fila; **`Pump()` entrega tudo na thread principal**, chamado a cada quadro por `RaceController.Update` (`OnlineTick`). Cada conexão tem uma geração: o que sobrou de uma conexão fechada é descartado. Um envio por vez (fila de saída + `SemaphoreSlim`), porque o `ClientWebSocket` não aceita dois `SendAsync` juntos. Conectar tem limite de 8 s.
 - **Conexão preguiçosa:** só conecta quando o jogador cria, entra ou atualiza a lista (`WhenConnected`). Sair da sala fecha a conexão.
-- **`BuilderPanel`:** `Mode.Online` e a aba **ONLINE** (fonte das abas 10 px, para caberem as quatro). `RaceMode` agora é só Corrida/Campeonato (carrinhos andam); `Locked` é "não é o construtor" (nada de editar a pista, atalho Q, célula sob o mouse), e `EditLocked` substitui o antigo `InRace` no `BuilderInput`.
-- **`RaceController.Online.cs`** monta a aba, no mesmo estilo da aba Campeonato: tela de entrada (servidor, nome, criar, código, salas públicas) e tela do lobby (sala e código com **Copiar**, pilotos, cores, etapas com a lista de pistas do host, chat, sair). No lobby a pista do construtor fica só de fundo e os carrinhos parados no grid.
-- **Rich text:** nomes e mensagens dos outros passam por `Safe` (`<` vira `<` + espaço de largura zero), para ninguém mudar o visual do chat com `<b>`, `<size>` etc.
+- **`BuilderPanel`:** `Mode.Online` e a aba **ONLINE** (fonte das abas 10 px, para caberem as quatro). `RaceMode` é só "os carrinhos andam": Corrida, Campeonato e a aba Online **durante o campeonato online** (`OnlineRacing`, ligado por `SetOnlineRacing`). `Locked` é "não é o construtor" (nada de editar a pista, atalho Q, célula sob o mouse), e `EditLocked` substitui o antigo `InRace` no `BuilderInput`. Com o campeonato online andando não dá para trocar de aba (aparece um aviso); só sair da sala ou terminar.
+- **`RaceController.Online.cs`** monta a aba, no mesmo estilo da aba Campeonato: tela de entrada (servidor, nome, criar, código, salas públicas) e tela do lobby (sala e código com **Copiar**, pilotos com "✓ pronto", cores, etapas com a lista de pistas do host, chat, **Estou pronto** / **Começar campeonato**, sair). No lobby a pista do construtor fica só de fundo e os carrinhos parados no grid.
+- **`RaceController.OnlineRace.cs`** é a corrida online (seção 23.5); **`NetSync`** (`Online/NetSync.cs`) copia o estado de um carrinho do `RaceSim` para o snapshot e de volta.
+- **`RaceSim.Mirror(fase, tempo, vencedor)`:** o visitante copia esses três valores (que têm `set` privado) do host.
+- **Rich text:** nomes e mensagens dos outros passam por `Safe` (`<` vira `<` + espaço de largura zero), para ninguém mudar o visual do chat com `<b>`, `<size>` etc. Vale também para o nome dos pilotos, do campeonato e das etapas que chegam em `started`.
 - **USS:** `.chat-log`, `.chat-line`; as abas ficaram com `font-size: 10px`.
 
 ```csharp
@@ -2328,15 +2343,48 @@ net.Connect("ws://localhost:8080");
 net.Pump();
 ```
 
-### 23.5 Testes feitos
+### 23.5 A corrida online
 
-- **Servidor** (`npm test`, Node 22, clientes `ws`): criar sem nome é recusado; sala pública na lista e privada fora dela; entrar pelo código sem diferenciar maiúsculas; nome repetido recusado; cor fora da paleta e cor já usada recusadas; chat chega a todos com nome e cor; chat vazio ignorado; limite de ritmo; visitante não escolhe pistas; etapa inválida (hash, JSON grande, 13 etapas) recusada; sala cheia (8) recusa; host sai e o próximo vira host; sala vazia apagada; JSON quebrado e tipo desconhecido não derrubam o servidor.
-- **Cliente Unity** (`OnlineSmokeTest`, no Editor, contra o servidor de verdade): as mesmas regras pelo `JsonUtility` (18 verificações), incluindo a lista de salas, a cor do visitante vista pelo host, o texto do chat com `<b>` chegando inteiro, as etapas com os hashes conhecidos (oval `a34f4cb9`, 8 com ponte `81546106`), host que sai e servidor fora do ar avisando em português (`Connection refused`).
-- **Tela** (Play mode, capturas): entrada, lobby do host (pistas disponíveis com miniaturas), lobby do visitante (sem lista de pistas, visibilidade desligada, cor do host esmaecida, chat com `<b>` mostrado como texto) e lista de salas públicas.
+**Host autoritativo.** O host roda o `RaceSim` de verdade; os visitantes mandam só o botão e rodam o mesmo `RaceSim` como predição, corrigida pelo host. A tela é a do campeonato offline (`DrawRun`: cartão da bateria com os dois trilhos, placar ao vivo, tabela da etapa, tabela geral, lista de etapas), com três diferenças: o **chat** entra logo abaixo do placar, não há **recordes** (cada computador tem os seus) e os botões são do host. Só o host vê **Largar (Enter)**, **Salvar e seguir (Enter)**, **Correr de novo** e **Voltar ao lobby**; os visitantes veem "Aguardando o host".
 
-### 23.6 Próximos passos
+| Constante | Valor |
+|---|---|
+| Snapshot na corrida (`SnapFast`) | 1/30 s (largada e prova) |
+| Snapshot parado ou encerrado (`SnapSlow`) | 0,25 s |
+| Tolerância do carro próprio (`NetSync.OwnTolerance`) | 1,5 células |
+| Repetição do botão do visitante (`HeldRefresh`) | 0,25 s |
+| Entradas por segundo de cada visitante (servidor) | 120 |
 
-1. **Largada online.** O mesmo desenho já discutido: host autoritativo roda o `RaceSim` em passo fixo e manda 20–30 snapshots por segundo; o visitante manda só o estado do botão e interpola. O servidor já guarda o JSON das etapas para entregar na largada (hoje o resumo não o leva).
-2. Rodízio, tabela e recordes do campeonato online (reaproveitando `Champ`).
-3. Expulsar jogador, trocar de host, reconectar.
-4. Depois que a Unity estiver fechada, portar o lobby para o HTML (o servidor é o mesmo).
+**Fluxo de uma bateria.**
+1. `started` chega a todos. Cada um monta o mesmo `Championship` (pilotos com o id da sala, regras, etapas, `Champ.MakeHeats`) e a bateria da vez é `Champ.CurrentHeat`. `UseChampTrack` carrega a pista e as regras; o carrinho de cada piloto ganha a cor dele (`CarTexture`).
+2. Quem está na bateria vê só o **seu** controle (acelerar **A**, **L** ou **Espaço**; recolocar **S** ou **K**; ou o mouse no botão). Quem não está só assiste (a câmera segue o trilho do jogador se ele está na bateria).
+3. **Visitante:** `sim.cars[meu].held` vale na hora (predição) e o estado do botão vai ao host (`in`) a cada mudança e a cada 0,25 s. "Recolocar" usa um contador (`re`): o host só recoloca quando o contador sobe.
+4. **Host:** junta o botão de cada trilho (o dele, ou o último `in` de quem está na sala; quem saiu fica sem acelerar), roda o `Step` e manda o snapshot (`NetSync.Pack`: fase, relógio, vencedor e os dois carrinhos inteiros; cerca de 1,2 KB, ~35 KB/s por visitante).
+5. **Aplicar o snapshot** (`NetSync.Apply`): fase, relógio e vencedor sempre; o carrinho do outro piloto, por inteiro; o **meu** carrinho só se a predição se afastou mais que 1,5 célula ou o modo (no trilho, fora, voltando) é outro. Se não, fica a predição (senão a latência faria o carrinho "andar para trás" a cada snapshot) e só o placar (voltas, saídas, toques, melhor volta, chegada) vem do host. Snapshot de outra bateria é ignorado (`hi`).
+6. A bateria acaba (`Done`). O host aperta **Salvar e seguir**: grava o resultado (`HeatResult` sem recordes), manda `ev res` (a bateria e os dois resultados) e carrega a próxima. Os visitantes aplicam o mesmo resultado e carregam a mesma bateria. **Correr de novo** manda `ev reset`.
+7. Acabadas as baterias, o cartão vira o pódio e os prêmios (`DrawPodium`) e o host manda `end`.
+
+```csharp
+// Visitante: o snapshot do host vira o estado do RaceSim local
+NetSync.Apply(snap, sim, ownLane);          // ownLane: 0, 1, ou -1 se só assiste
+// Host: o que mandar a cada 1/30 s
+net.Send(new NetOutSnap { snap = NetSync.Pack(sim, heatIndex) });
+```
+
+**Cuidados.**
+- O `RaceController` usa `ActiveChamp` (o campeonato online, se houver; senão o offline) e `ChampLike` (aba Campeonato **ou** campeonato online) no lugar de `store.Active` e `panel.ChampMode` na tela, no placar, nos controles, no status e no banner. O `OnLapDone` (avisos de recorde) continua só no offline.
+- Com o campeonato online, o `Update` vai para `OnlineRunUpdate`; `OnlineExitRun` devolve a tela do campeonato à aba Campeonato (`cRun` troca de pai) e restaura a mesa.
+- Os recordes da pista **não** são gravados no campeonato online.
+
+### 23.6 Testes feitos
+
+- **Servidor** (`npm test`, Node 22, clientes `ws`, 32 verificações): criar sem nome é recusado; sala pública na lista e privada fora dela; entrar pelo código sem diferenciar maiúsculas; nome repetido recusado; cor fora da paleta e cor já usada recusadas; chat chega a todos com nome e cor; chat vazio ignorado; limite de ritmo; visitante não escolhe pistas; etapa inválida (hash, JSON grande, 13 etapas) recusada; sala cheia (8) recusa; host sai e o próximo vira host; sala vazia apagada; JSON quebrado e tipo desconhecido não derrubam o servidor. **Corrida:** começar sozinho, sem pistas ou sem todos prontos é recusado (com os nomes de quem falta); mexer nas pistas zera o "pronto" (o host é sempre pronto); visitante não começa; regras fora dos limites recusadas; `started` igual para todos, com pilotos na ordem, regras e o JSON; ninguém entra nem troca de cor com o campeonato andando; `in` vai só ao host, com o `from`, e é limitado (119 de 150); `snap` e `ev` só valem do host e vão a todos menos a ele; snapshot grande demais é descartado; só o host encerra; o fim zera o "pronto"; host que sai encerra o campeonato; visitante que sai não derruba.
+- **Cliente Unity** (`OnlineSmokeTest`, no Editor, contra o servidor de verdade): as regras do lobby pelo `JsonUtility` (18 verificações), o fluxo pronto → largar → `in` → `snap` → `ev` → fim (16) e a **sincronização** (6): host e visitante (80 ms de ida e 80 ms de volta, snapshots a 30 Hz, o visitante acelera e solta o carro 0 e recoloca quando sai da pista) rodam a corrida de 3 voltas no oval até o fim: mesma fase, vencedor, voltas, saídas, toques, chegada e melhor volta nos dois carros (45,2 s, vencedor carro 1, 32 recolocações); desvio máximo 0,89 célula no carro próprio e 0,90 no outro.
+- **Tela** (Play mode, com a Unity de host e um visitante-robô em Node): lobby do host com "Começar campeonato" liberado só com o robô pronto ("Todos prontos: 2 pilotos · 2 etapas · 4 baterias"); a largada para os dois; o robô recebeu os snapshots (fase 0 → 1 → 2 → 3, cerca de 26 por segundo na prova) e o `ev res` com os resultados `[5 voltas 32,00 s]` e `[5 voltas 55,88 s]`; a bateria 2 com os trilhos trocados (Hugo no trilho 2, tabela da etapa "1 de 2 baterias"); **Encerrar campeonato** levou os dois ao lobby com o "pronto" zerado. A tela do campeonato offline continua igual (cartão da bateria, botão Largar e a dica).
+
+### 23.7 Próximos passos
+
+1. Recordes da pista e histórico no campeonato online (hoje só o offline grava).
+2. Reduzir o snapshot (campos que quase nunca mudam, ou só o que mudou) se a banda for um problema.
+3. Expulsar jogador, passar o host adiante sem encerrar o campeonato, reconectar no meio da prova.
+4. Depois que a Unity estiver fechada, portar a aba Online para o HTML (o servidor e o protocolo são os mesmos).

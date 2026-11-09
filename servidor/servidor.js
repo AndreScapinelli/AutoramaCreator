@@ -13,6 +13,8 @@ const CHAT_MAX = 200, CHAT_KEEP = 50;
 const NAME_MAX = 20, ROOM_MAX = 30;
 const CHAT_RATE = { n: 5, ms: 3000 };  // 5 mensagens a cada 3 s
 const PING_MS = 15000;
+const MAX_RELAY = 16 * 1024;           // snapshot ou evento da corrida
+const IN_RATE = 120;                   // entradas (botão) por segundo de cada visitante
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';   // sem 0/O/1/I
 const COLORS = ['#E0362C', '#2563EB', '#F2B705', '#16A34A', '#9333EA', '#F97316', '#0EA5B7', '#E04B95'];   // PILOT_COLORS do guia
 
@@ -33,7 +35,7 @@ function criarServidor({ port = 8080, host = '0.0.0.0' } = {}) {
   const fail = (c, code, text) => send(c, { t: 'error', code, text });
   const snapshot = r => ({
     code: r.code, name: r.name, pub: r.pub, host: r.host, max: MAX_PLAYERS, state: r.state,
-    players: r.players.map(p => ({ id: p.id, name: p.name, color: p.color })),
+    players: r.players.map(p => ({ id: p.id, name: p.name, color: p.color, ready: p.id === r.host || !!p.ready })),   // o host está sempre pronto
     stages: r.stages.map(s => ({ name: s.name, laps: s.laps, hash: s.hash })),
   });
   const broadcast = (r, msg) => r.players.forEach(p => send(p, msg));
@@ -66,15 +68,34 @@ function criarServidor({ port = 8080, host = '0.0.0.0' } = {}) {
     pushRoom(r);
   }
 
+  // Campeonato acabou (ou foi interrompido): todos voltam ao lobby e precisam confirmar "pronto" de novo.
+  function backToLobby(r, text) {
+    r.state = 'lobby';
+    r.players.forEach(p => { p.ready = false; });
+    broadcast(r, { t: 'lobby', text });
+    pushRoom(r);
+  }
+
   function leave(c) {
     const r = c.room; if (!r) return;
     c.room = null;
     r.players = r.players.filter(p => p !== c);
     if (!r.players.length) { rooms.delete(r.code); return; }
     say(r, `${c.name} saiu da sala.`);
-    if (r.host === c.id) { r.host = r.players[0].id; say(r, `${r.players[0].name} agora é o host.`); }
+    if (r.host === c.id) {
+      r.host = r.players[0].id; say(r, `${r.players[0].name} agora é o host.`);
+      // Quem roda a corrida era o host: sem ele não dá para continuar.
+      if (r.state === 'racing') return backToLobby(r, 'O host saiu: o campeonato foi encerrado.');
+    }
     pushRoom(r);
   }
+
+  // Corrida: o host manda snapshots e eventos para todos; os outros só mandam o botão, e só para o host.
+  const forward = (c, raw) => {
+    const r = c.room;
+    if (!r || r.state !== 'racing' || r.host !== c.id || raw.length > MAX_RELAY) return;
+    r.players.forEach(p => { if (p !== c) p.ws.readyState === 1 && p.ws.send(raw); });
+  };
 
   const handlers = {
     list(c) {
@@ -102,8 +123,50 @@ function criarServidor({ port = 8080, host = '0.0.0.0' } = {}) {
       enter(c, r, name);
     },
     leave(c) { leave(c); send(c, { t: 'left' }); },
+    // Pronto para largar. O host está sempre pronto; mexer nas pistas (ou chegar alguém) zera os outros.
+    ready(c, m) {
+      const r = c.room; if (!r) return;
+      if (r.state !== 'lobby') return fail(c, 'andamento', 'O campeonato já começou.');
+      if (r.host === c.id) return;
+      c.ready = !!m.ready; pushRoom(r);
+    },
+    // Só o host, com todos prontos: começa o campeonato e entrega a todos as pistas (JSON) e as regras.
+    start(c, m) {
+      const r = c.room; if (!r) return;
+      if (r.host !== c.id) return fail(c, 'host', 'Só o host começa o campeonato.');
+      if (r.state !== 'lobby') return fail(c, 'andamento', 'O campeonato já começou.');
+      if (r.players.length < 2) return fail(c, 'poucos', 'Precisa de pelo menos 2 pilotos.');
+      if (!r.stages.length) return fail(c, 'sem-etapas', 'Escolha pelo menos uma pista.');
+      const falta = r.players.filter(p => p !== c && !p.ready);
+      if (falta.length) return fail(c, 'nao-prontos', `Falta ficar pronto: ${falta.map(p => p.name).join(', ')}.`);
+      const rules = { vmax: Number(m.vmax), ramp: Number(m.ramp), grip: Number(m.grip), collide: !!m.collide };
+      if (!(rules.vmax >= 8 && rules.vmax <= 20 && rules.ramp >= 0.2 && rules.ramp <= 1.5 && rules.grip >= 15 && rules.grip <= 45)) return fail(c, 'regras', 'Regras inválidas.');
+      r.state = 'racing';
+      const title = clean(m.name, 40) || `Campeonato de ${c.name}`;
+      const msg = { t: 'started', title, rules, pilots: snapshot(r).players, stages: r.stages.map(s => ({ name: s.name, laps: s.laps, hash: s.hash, json: s.json })) };
+      broadcast(r, msg);
+      say(r, `${c.name} largou o campeonato "${title}".`);
+      pushRoom(r);
+    },
+    // Host: acabou (ou desistiu). Todos voltam ao lobby.
+    end(c, m) {
+      const r = c.room; if (!r || r.state !== 'racing') return;
+      if (r.host !== c.id) return fail(c, 'host', 'Só o host encerra o campeonato.');
+      backToLobby(r, clean(m.text, 100) || 'O campeonato terminou.');
+    },
+    // Visitante → host: o estado do botão (held) e o contador de "recolocar" (re).
+    in(c, m) {
+      const r = c.room; if (!r || r.state !== 'racing' || r.host === c.id) return;
+      const now = Date.now();
+      c.inTimes = (c.inTimes || []).filter(t => now - t < 1000);
+      if (c.inTimes.length >= IN_RATE) return;
+      c.inTimes.push(now);
+      const host = r.players.find(p => p.id === r.host);
+      if (host) send(host, { t: 'in', from: c.id, held: !!m.held, re: Math.max(0, Math.min(1e6, Math.round(Number(m.re)) || 0)) });
+    },
     color(c, m) {
       const r = c.room; if (!r) return;
+      if (r.state !== 'lobby') return fail(c, 'andamento', 'O campeonato já começou.');
       const col = String(m.color || '').toUpperCase();
       if (!COLORS.includes(col)) return fail(c, 'cor', 'Cor inválida.');
       if (r.players.some(p => p !== c && p.color === col)) return fail(c, 'cor-usada', 'Essa cor já é de outro piloto.');
@@ -124,6 +187,7 @@ function criarServidor({ port = 8080, host = '0.0.0.0' } = {}) {
     stages(c, m) {
       const r = c.room; if (!r) return;
       if (r.host !== c.id) return fail(c, 'host', 'Só o host escolhe as pistas.');
+      if (r.state !== 'lobby') return fail(c, 'andamento', 'O campeonato já começou.');
       if (!Array.isArray(m.stages) || m.stages.length > MAX_STAGES) return fail(c, 'etapas', `No máximo ${MAX_STAGES} etapas.`);
       const out = [];
       for (const s of m.stages) {
@@ -132,7 +196,10 @@ function criarServidor({ port = 8080, host = '0.0.0.0' } = {}) {
           return fail(c, 'etapas', 'Etapa inválida ou pista grande demais.');
         out.push({ name: clean(s.name, 60) || 'Pista', laps, hash: s.hash, json: s.json });
       }
-      r.stages = out; pushRoom(r);
+      const mudou = JSON.stringify(out.map(s => [s.hash, s.laps])) !== JSON.stringify(r.stages.map(s => [s.hash, s.laps]));
+      r.stages = out;
+      if (mudou && r.players.some(p => p !== c && p.ready)) { r.players.forEach(p => { p.ready = false; }); say(r, 'O host mudou as etapas: confirmem "pronto" de novo.'); }
+      pushRoom(r);
     },
     visibility(c, m) {
       const r = c.room; if (!r) return;
@@ -140,6 +207,8 @@ function criarServidor({ port = 8080, host = '0.0.0.0' } = {}) {
       r.pub = !!m.pub; pushRoom(r);
     },
     ping(c) { send(c, { t: 'pong' }); },
+    snap(c, m, raw) { forward(c, raw); },
+    ev(c, m, raw) { forward(c, raw); },
   };
 
   wss.on('connection', ws => {
@@ -149,10 +218,10 @@ function criarServidor({ port = 8080, host = '0.0.0.0' } = {}) {
     ws.on('message', (data, isBinary) => {
       ws.alive = true;
       if (isBinary) return;
-      let m; try { m = JSON.parse(data.toString()); } catch (e) { return fail(c, 'json', 'Mensagem inválida.'); }
+      let raw = data.toString(), m; try { m = JSON.parse(raw); } catch (e) { return fail(c, 'json', 'Mensagem inválida.'); }
       const h = m && Object.prototype.hasOwnProperty.call(handlers, m.t) ? handlers[m.t] : null;
       if (!h) return fail(c, 'tipo', 'Mensagem desconhecida.');
-      try { h(c, m); } catch (e) { console.error(e); fail(c, 'erro', 'Erro no servidor.'); }
+      try { h(c, m, raw); } catch (e) { console.error(e); fail(c, 'erro', 'Erro no servidor.'); }
     });
     ws.on('close', () => leave(c));
     ws.on('error', () => {});

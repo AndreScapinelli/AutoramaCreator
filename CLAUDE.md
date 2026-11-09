@@ -22,8 +22,8 @@ O usuário escreve em português, e o projeto inteiro também: textos da interfa
 |---|---|
 | `Core/` | Peças (`Pieces.cs`), geometria (`TrackMath`), montagem e análise (`TrackLayout`), JSON e biblioteca (`TrackSave`), fechar circuito (`TrackCloser`) |
 | `Builder/` | `TrackBuilder` (lista de peças, desfazer, mesa que cresce), `BuilderPanel` (painel UI Toolkit e as 4 abas), `BuilderInput` |
-| `Race/` | `RaceSim` (física pura, sem cena, mais a IA), `RaceController` (aba Corrida), `RaceController.Champ.cs` (aba Campeonato), `RaceController.Online.cs` (aba Online) |
-| `Online/` | `OnlineProtocol.cs` (mensagens), `OnlineClient.cs` (WebSocket, fila de eventos) |
+| `Race/` | `RaceSim` (física pura, sem cena, mais a IA), `RaceController` (aba Corrida), `RaceController.Champ.cs` (aba Campeonato), `RaceController.Online.cs` (aba Online: lobby), `RaceController.OnlineRace.cs` (corrida online) |
+| `Online/` | `OnlineProtocol.cs` (mensagens), `OnlineClient.cs` (WebSocket, fila de eventos), `NetSync.cs` (carrinho ↔ snapshot) |
 | `Champ/` | `ChampData.cs`: dados, rodízio, tabela, recordes, arquivos |
 | `View/` | Malha das peças, grade da mesa, câmera |
 | `Editor/AutoramaSetup.cs` | Menus **Autorama > Montar cena do construtor** e **Atualizar materiais e ícones** |

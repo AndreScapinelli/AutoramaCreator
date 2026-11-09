@@ -40,7 +40,9 @@ namespace Autorama
 
         public enum Mode { Build, Race, Champ, Online }
         public Mode CurrentMode { get; private set; }
-        public bool RaceMode => CurrentMode == Mode.Race || CurrentMode == Mode.Champ;        // corrida ou campeonato: os carrinhos andam
+        public bool RaceMode => CurrentMode == Mode.Race || CurrentMode == Mode.Champ || (CurrentMode == Mode.Online && OnlineRacing);        // corrida ou campeonato: os carrinhos andam
+        public bool OnlineRacing { get; private set; }            // campeonato online em andamento: a aba Online vira a tela de corrida
+        public void SetOnlineRacing(bool on) { OnlineRacing = on; Refresh(); }
         public bool ChampMode => CurrentMode == Mode.Champ;
         public bool OnlineMode => CurrentMode == Mode.Online;
         public bool Locked => CurrentMode != Mode.Build;          // fora do construtor a pista não se edita
@@ -55,6 +57,7 @@ namespace Autorama
         public void SetMode(Mode m)
         {
             if (m == CurrentMode) return;
+            if (OnlineRacing && m != Mode.Online) { Say("Termine o campeonato online (ou saia da sala) antes de trocar de aba."); return; }
             CurrentMode = m;
             tabBuild.EnableInClassList("tab--on", m == Mode.Build);
             tabRace.EnableInClassList("tab--on", m == Mode.Race);

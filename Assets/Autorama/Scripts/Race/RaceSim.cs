@@ -195,6 +195,9 @@ namespace Autorama
             ScoreChanged?.Invoke();
         }
 
+        // Campeonato online: o visitante copia do host a fase, o relógio e quem ganhou (a física dos carrinhos vem em NetSync).
+        public void Mirror(Phase p, float time, int win) { phase = p; t = time; winner = win; }
+
         public void StartRace()
         {
             if (!closed || !Ready) return;

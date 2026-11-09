@@ -204,6 +204,7 @@ namespace Autorama
         void Update()
         {
             OnlineTick();
+            if (OnlineRun) { OnlineRunUpdate(); return; }
             if (sim == null || !sim.Ready) return;
             if (!panel.RaceMode) { PlaceCars(); return; }       // no construtor, os carrinhos ficam no grid
 
@@ -428,7 +429,7 @@ namespace Autorama
             p.speed = El("meter-fill", El("meter", side));
             Text("Derrapagem", "meter-label", side);
             p.slip = El("meter-fill", El("meter", side));
-            p.reslot = Btn($"Recolocar  {ReslotKeys[k]}", () => sim.Reslot(idx), "btn reslot", side);
+            p.reslot = Btn($"Recolocar  {ReslotKeys[k]}", () => ReslotPressed(idx), "btn reslot", side);
             return p;
         }
 
@@ -453,7 +454,7 @@ namespace Autorama
 
         void DrawScore()
         {
-            if (panel.ChampMode) { DrawChampScore(); return; }
+            if (ChampLike) { DrawChampScore(); return; }
             scoreBox.Clear();
             void Row(string[] cells, string cls)
             {
@@ -479,7 +480,7 @@ namespace Autorama
         void DrawStatus()
         {
             if (!panel.RaceMode) return;
-            if (panel.ChampMode) { ChampStatus(); return; }
+            if (ChampLike) { ChampStatus(); return; }
             if (!sim.closed) panel.SetStatus("Feche o circuito no Construtor para correr", "status--warn");
             else if (sim.winner >= 0) panel.SetStatus($"{LaneNames[sim.winner]} venceu", "status--ok");
             else if (sim.phase == RaceSim.Phase.Countdown) panel.SetStatus("Atenção à largada", "");
@@ -534,7 +535,7 @@ namespace Autorama
                     lightDots[i].EnableInClassList("light--green", sim.phase == RaceSim.Phase.Running);
                 }
             }
-            if (panel.ChampMode)
+            if (ChampLike)
             {
                 bool champShow = ChampBanner(out string title, out string sub) && !showLights;
                 banner.style.display = champShow ? DisplayStyle.Flex : DisplayStyle.None;

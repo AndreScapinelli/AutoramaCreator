@@ -418,7 +418,7 @@ namespace Autorama
 
         bool HeatNow(out Championship C, out int idx, out Heat heat, out Stage stage, out Pilot[] pilots)
         {
-            C = store.Active; idx = C != null ? Champ.CurrentHeat(C) : -1;
+            C = ActiveChamp; idx = C != null ? Champ.CurrentHeat(C) : -1;
             heat = null; stage = null; pilots = null;
             if (idx < 0) return false;
             heat = C.heats[idx]; stage = C.stages[heat.s];
@@ -456,21 +456,25 @@ namespace Autorama
                     string side = LaneSide(k);
                     Text($"{LaneNames[k]}{(side != "" ? " · " + side : "")}", "small", hp);
                     Text(p.name.ToUpperInvariant(), "hp-name", hp);
-                    Text(p.ai ? $"IA · qualidade {p.skill}" : $"acelera {GasKeys[k]} · recoloca {ReslotKeys[k]}", "small", hp);
+                    Text(OnlineRun ? OnlineWho(p) : p.ai ? $"IA · qualidade {p.skill}" : $"acelera {GasKeys[k]} · recoloca {ReslotKeys[k]}", "small", hp);
                 }
             }
             else DrawPodium(C);
 
             cActs.Clear();
             var ph = sim.phase;
-            if (!live) Btn("Arquivar e montar outro", ChampArchive, "btn btn--primary", cActs);
-            else if (ph == RaceSim.Phase.Idle) Btn("Largar (Enter)", ChampStart, "btn btn--primary", cActs).SetEnabled(sim.closed);
-            else if (ph == RaceSim.Phase.Done) { Btn("Salvar e seguir (Enter)", ChampSave, "btn btn--primary", cActs); Btn("Correr de novo", ChampRestart, "btn", cActs); }
-            else Btn("Recomeçar bateria", ChampRestart, "btn", cActs);
-            cHint.text = !live ? "Arquivar guarda a tabela final no histórico. Os recordes ficam salvos nas pistas."
-                : ph == RaceSim.Phase.Idle ? "Confira quem está em cada trilho e passe o controle. Depois, Largar e esperar as luzes."
-                : ph == RaceSim.Phase.Done ? "Salve para o resultado contar na tabela. Se algo deu errado, corra de novo: esta bateria é descartada."
-                : $"Vence a bateria quem completar {stage.laps} {(stage.laps == 1 ? "volta" : "voltas")} primeiro. Quem não terminar tem {Champ.Cutoff:0} s depois da bandeirada.";
+            if (OnlineRun) DrawOnlineActs(live, idx, stage);
+            else
+            {
+                if (!live) Btn("Arquivar e montar outro", ChampArchive, "btn btn--primary", cActs);
+                else if (ph == RaceSim.Phase.Idle) Btn("Largar (Enter)", ChampStart, "btn btn--primary", cActs).SetEnabled(sim.closed);
+                else if (ph == RaceSim.Phase.Done) { Btn("Salvar e seguir (Enter)", ChampSave, "btn btn--primary", cActs); Btn("Correr de novo", ChampRestart, "btn", cActs); }
+                else Btn("Recomeçar bateria", ChampRestart, "btn", cActs);
+                cHint.text = !live ? "Arquivar guarda a tabela final no histórico. Os recordes ficam salvos nas pistas."
+                    : ph == RaceSim.Phase.Idle ? "Confira quem está em cada trilho e passe o controle. Depois, Largar e esperar as luzes."
+                    : ph == RaceSim.Phase.Done ? "Salve para o resultado contar na tabela. Se algo deu errado, corra de novo: esta bateria é descartada."
+                    : $"Vence a bateria quem completar {stage.laps} {(stage.laps == 1 ? "volta" : "voltas")} primeiro. Quem não terminar tem {Champ.Cutoff:0} s depois da bandeirada.";
+            }
             cLive.style.display = live ? DisplayStyle.Flex : DisplayStyle.None;
             if (live) DrawChampScore();
 
@@ -513,7 +517,9 @@ namespace Autorama
             }
             cPts.text = $"Pontos por etapa: {string.Join(" · ", System.Linq.Enumerable.Take(Champ.Points, Mathf.Clamp(C.pilots.Count, 2, Champ.Points.Length)))}, mais 1 para a melhor volta. Desempate: vitórias, pódios, tempo total.";
 
-            // Recordes da pista em uso.
+            // Recordes da pista em uso (só no campeonato offline: os recordes ficam no computador de cada um).
+            if (!OnlineRun)
+            {
             var cur = C.stages[live ? heat.s : sIdx];
             var rec = FindRecords(cur.hash);
             bool odd = Champ.CrossCount(cur.data) % 2 == 1;
@@ -543,6 +549,8 @@ namespace Autorama
                 }
             }
 
+            }
+
             cStageList.Clear();
             for (int i = 0; i < S; i++)
             {
@@ -558,7 +566,7 @@ namespace Autorama
                 if (comp && r.Count > 0) { Text("✓ ", "small ok", sub); Tag(C.pilots[r[0].i], sub); Text(" venceu", "small", sub); }
                 else Text(sv > 0 ? $"{sv} de {tot} baterias" : isCur ? "próxima" : $"{tot} baterias", "small", sub);
             }
-            cQuit.style.display = live ? DisplayStyle.Flex : DisplayStyle.None;
+            cQuit.style.display = live && !OnlineRun ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
         void DrawPodium(Championship C)
@@ -763,7 +771,7 @@ namespace Autorama
 
         void ChampStatus()
         {
-            var C = store.Active;
+            var C = ActiveChamp;
             if (C == null) { panel.SetStatus("Monte o campeonato: pilotos e etapas", ""); return; }
             if (!HeatNow(out _, out int idx, out var heat, out _, out _))
             {
@@ -773,7 +781,7 @@ namespace Autorama
             }
             string where = $"Etapa {heat.s + 1} de {C.stages.Count} · bateria {idx + 1} de {C.heats.Count}";
             if (sim.phase == RaceSim.Phase.Running) panel.SetStatus($"{where} · volta {Mathf.Min(Mathf.Max(sim.cars[0].laps, sim.cars[1].laps) + 1, sim.set.laps)} de {sim.set.laps}", "");
-            else if (sim.phase == RaceSim.Phase.Done) panel.SetStatus($"Bateria {idx + 1} encerrada · salve para seguir", "status--ok");
+            else if (sim.phase == RaceSim.Phase.Done) panel.SetStatus(OnlineRun && !IsHost ? $"Bateria {idx + 1} encerrada · o host salva e segue" : $"Bateria {idx + 1} encerrada · salve para seguir", "status--ok");
             else if (sim.phase == RaceSim.Phase.Countdown) panel.SetStatus("Atenção à largada", "");
             else panel.SetStatus(where, "");
         }
@@ -781,7 +789,7 @@ namespace Autorama
         bool ChampBanner(out string title, out string sub)
         {
             title = sub = "";
-            var C = store.Active;
+            var C = ActiveChamp;
             if (C == null) return false;
             if (!HeatNow(out _, out int idx, out var heat, out var stage, out var pl))
             {
@@ -796,9 +804,9 @@ namespace Autorama
                 title = $"{pl[sim.winner].name} vence a bateria";
                 sub = $"{Fmt(c.finish)} · melhor volta {Fmt(c.best)}";
                 // Recorde de volta na bateria: pode ter sido de quem perdeu, então diz de quem é.
-                var R = FindRecords(stage.hash);
+                var R = OnlineRun ? null : FindRecords(stage.hash);     // recordes só no campeonato offline
                 float hb = sim.HumanBest();
-                if (!float.IsPositiveInfinity(hb) && (R == null || !R.lap.Has || hb < R.lap.t))
+                if (!OnlineRun && !float.IsPositiveInfinity(hb) && (R == null || !R.lap.Has || hb < R.lap.t))
                     for (int k = 0; k < 2; k++) if (!pl[k].ai && sim.cars[k].best == hb) { sub += $" · RECORDE {pl[k].tag} {Fmt(hb)}"; break; }
                 return true;
             }
@@ -819,16 +827,19 @@ namespace Autorama
         void DrawPadHeads()
         {
             Pilot[] pl = null;
-            bool champ = panel.ChampMode, live = champ && HeatNow(out _, out _, out _, out _, out pl);
-            padsBox.style.display = panel.RaceMode && (!champ || live) ? DisplayStyle.Flex : DisplayStyle.None;
+            bool champ = ChampLike, live = champ && HeatNow(out _, out _, out _, out _, out pl);
+            int lane = OnlineRun ? MyLane() : -1;                // online: cada um só tem o controle do próprio carrinho
+            padsBox.style.display = panel.RaceMode && (!champ || live) && (!OnlineRun || lane >= 0) ? DisplayStyle.Flex : DisplayStyle.None;
             for (int k = 0; k < 2; k++)
             {
                 var p = pads[k];
+                p.root.style.display = !OnlineRun || k == lane ? DisplayStyle.Flex : DisplayStyle.None;
                 var pilot = live ? pl[k] : null;
                 bool ai = sim.aiSkill[k] > 0;
                 p.name.text = pilot != null ? $"{pilot.name.ToUpperInvariant()} · {LaneNames[k].ToUpperInvariant()}"
                     : ai ? $"ROBÔ · {LaneNames[k].ToUpperInvariant()}" : $"JOGADOR {k + 1}";
-                p.gasText.text = ai ? $"IA PILOTANDO · {sim.aiSkill[k]}" : $"ACELERAR  {GasKeys[k]}";
+                p.gasText.text = OnlineRun ? "ACELERAR  A" : ai ? $"IA PILOTANDO · {sim.aiSkill[k]}" : $"ACELERAR  {GasKeys[k]}";
+                p.reslot.text = OnlineRun ? "Recolocar  S" : $"Recolocar  {ReslotKeys[k]}";
                 p.gas.EnableInClassList("gas--ai", ai);
                 if (pilot != null)
                 {

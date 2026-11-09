@@ -23,12 +23,13 @@ namespace Autorama
         List<NetListed> listed = new List<NetListed>();
         readonly List<Stage> onlineStages = new List<Stage>();    // do host: com os dados completos (o servidor guarda e devolve só o resumo)
 
-        VisualElement oEntry, oLobby, oRooms, oPlayers, oColors, oStages, oPick, oHostPick;
-        Label oMsg, oRoomTitle, oRoomCode, oStageHint, oLobbyMsg;
-        TextField oServer, oName, oRoomName, oCode, oChatInput;
+        VisualElement oEntry, oLobby, oRooms, oPlayers, oColors, oStages, oPick, oHostPick, oRun, oRunChatSec;
+        Label oMsg, oRoomTitle, oRoomCode, oStageHint, oLobbyMsg, oRulesHint, oStartHint;
+        TextField oServer, oName, oRoomName, oCode, oChatInput, oRunChatInput;
         Toggle oPublic, oVisibility;
-        ScrollView oChat;
-        Button oStartBtn;
+        ScrollView oChat, oRunChat;
+        Button oStartBtn, oReadyBtn, oRunQuit;
+        readonly List<NetChat> chatLog = new List<NetChat>();
 
         // Tira "<" de nomes e mensagens dos outros: o rótulo aceita rich text e não pode deixar ninguém mudar o visual.
         static string Safe(string s) => (s ?? "").Replace("<", "<\u200B");
@@ -108,25 +109,42 @@ namespace Autorama
             oPick = El(null, oHostPick);
 
             var chat = Section(oLobby, "CHAT");
-            oChat = new ScrollView(ScrollViewMode.Vertical);
-            oChat.AddToClassList("chat-log");
-            chat.Add(oChat);
-            var chatRow = El("row", chat);
-            chatRow.style.flexWrap = Wrap.NoWrap;
-            chatRow.style.marginTop = 6;
-            oChatInput = Field("Escreva uma mensagem", 200, chatRow);
-            oChatInput.RegisterCallback<KeyDownEvent>(ev => { if (IsEnter(ev)) { SendChat(); ev.StopPropagation(); } }, TrickleDown.TrickleDown);
-            Btn("Enviar", SendChat, "btn", chatRow);
+            BuildChatBox(chat, out oChat, out oChatInput);
 
             var acts = Section(oLobby, "CAMPEONATO");
+            oRulesHint = Text("", "small", acts);
+            oRulesHint.style.marginBottom = 6;
             oLobbyMsg = Text("", "small bad", acts);
-            oStartBtn = Btn("Começar campeonato (em breve)", null, "btn btn--primary", acts);
-            oStartBtn.SetEnabled(false);
-            oStartBtn.tooltip = "A largada online ainda não está pronta: por enquanto só o lobby funciona.";
+            oReadyBtn = Btn("Estou pronto", ToggleReady, "btn btn--primary", acts);
+            oStartBtn = Btn("Começar campeonato", OnlineStartChamp, "btn btn--primary", acts);
+            oStartHint = Text("", "small", acts);
+            oStartHint.style.marginTop = 4;
             var leave = Btn("Sair da sala", LeaveRoom, "btn btn--danger", acts);
             leave.style.marginTop = 8;
 
+            // Campeonato em andamento: a tela do campeonato offline (cRun) com o chat no meio (BeginOnlineRun).
+            oRun = El(null, box);
+            oRunChatSec = El("section");
+            Text("CHAT", "h2", oRunChatSec);
+            BuildChatBox(oRunChatSec, out oRunChat, out oRunChatInput);
+            var runActs = El("section", oRun);
+            oRunQuit = Btn("", null, "btn btn--danger", runActs);
+            oRunQuit.clicked += OnlineQuit;
+
             DrawOnline();
+        }
+
+        void BuildChatBox(VisualElement parent, out ScrollView log, out TextField input)
+        {
+            var l = log = new ScrollView(ScrollViewMode.Vertical);
+            l.AddToClassList("chat-log");
+            parent.Add(l);
+            var row = El("row", parent);
+            row.style.flexWrap = Wrap.NoWrap;
+            row.style.marginTop = 6;
+            var f = input = Field("Escreva uma mensagem", 200, row);
+            f.RegisterCallback<KeyDownEvent>(ev => { if (IsEnter(ev)) { SendChat(f); ev.StopPropagation(); } }, TrickleDown.TrickleDown);
+            Btn("Enviar", () => SendChat(f), "btn", row);
         }
 
         static bool IsEnter(KeyDownEvent ev) => ev.keyCode == KeyCode.Return || ev.keyCode == KeyCode.KeypadEnter;
@@ -141,7 +159,7 @@ namespace Autorama
 
         void OnlineStatus()
         {
-            if (!panel.OnlineMode) return;
+            if (!panel.OnlineMode || OnlineRun) return;
             if (room != null) panel.SetStatus($"Sala {room.code} · {room.players.Count}/{room.max} pilotos", "status--ok");
             else if (net.state == OnlineClient.State.Connecting) panel.SetStatus("Conectando ao servidor…", "");
             else panel.SetStatus("Online: crie uma sala ou entre numa", "");
@@ -201,17 +219,40 @@ namespace Autorama
 
         void ResetOnlineState()
         {
+            OnlineExitRun();
             room = null; myId = null; wasHost = false; pendingNet = null;
             onlineStages.Clear();
-            oChat.Clear();
+            chatLog.Clear();
+            oChat.Clear(); oRunChat.Clear();
         }
 
-        void SendChat()
+        void SendChat(TextField input)
         {
-            string text = (oChatInput.value ?? "").Trim();
+            string text = (input.value ?? "").Trim();
             if (text.Length == 0 || room == null) return;
             net.Send(new NetOut { t = "chat", text = text });
-            oChatInput.SetValueWithoutNotify("");
+            input.SetValueWithoutNotify("");
+        }
+
+        void ToggleReady()
+        {
+            var me = room?.Player(myId);
+            if (me != null && !IsHost) net.Send(new NetOut { t = "ready", ready = !me.ready });
+        }
+
+        // Só o host, com todos prontos. As regras são os ajustes da aba Corrida, como no campeonato offline.
+        void OnlineStartChamp()
+        {
+            if (!IsHost || LobbyBlocker() != "") return;
+            net.Send(new NetOut { t = "start", name = room.name, vmax = set.vmax, ramp = set.ramp, grip = set.grip, collide = set.collide });
+        }
+
+        string LobbyBlocker()
+        {
+            if (room.players.Count < 2) return "Falta gente: são precisos pelo menos 2 pilotos.";
+            if (room.stages.Count == 0) return "Escolha pelo menos uma pista.";
+            var wait = room.players.FindAll(p => p.id != room.host && !p.ready);
+            return wait.Count > 0 ? "Aguardando ficar pronto: " + string.Join(", ", wait.ConvertAll(p => Safe(p.name))) + "." : "";
         }
 
         // ---------- Rede ----------
@@ -239,7 +280,7 @@ namespace Autorama
                 case "joined":
                     myId = m.you; room = m.room; wasHost = IsHost;
                     onlineStages.Clear();
-                    oChat.Clear();
+                    chatLog.Clear(); oChat.Clear(); oRunChat.Clear();
                     foreach (var c in m.chat) AddChat(c);
                     SetOnlineMsg("");
                     DrawOnline(); OnlineStatus();
@@ -262,6 +303,15 @@ namespace Autorama
                     SetOnlineMsg(m.text);
                     if (room != null) panel.Toast(m.text);
                     break;
+                case "started": if (room != null) BeginOnlineRun(m); break;
+                case "lobby":
+                    OnlineExitRun();
+                    if (!string.IsNullOrEmpty(m.text)) { panel.Toast(m.text); AddChat(new NetChat { sys = true, text = m.text }); }
+                    DrawOnline(); OnlineStatus();
+                    break;
+                case "in": OnlineInput(m); break;
+                case "snap": if (OnlineRun && !IsHost) OnlineApplySnap(m.snap); break;
+                case "ev": OnlineEvent(m); break;
             }
         }
 
@@ -307,8 +357,11 @@ namespace Autorama
         {
             if (oEntry == null) return;
             oEntry.style.display = room == null ? DisplayStyle.Flex : DisplayStyle.None;
-            oLobby.style.display = room != null ? DisplayStyle.Flex : DisplayStyle.None;
-            if (room == null) DrawRooms(); else DrawLobby();
+            oLobby.style.display = room != null && !OnlineRun ? DisplayStyle.Flex : DisplayStyle.None;
+            oRun.style.display = OnlineRun ? DisplayStyle.Flex : DisplayStyle.None;
+            if (room == null) DrawRooms();
+            else if (OnlineRun) champDirty = true;               // quem entrou ou saiu muda os nomes na tela da corrida
+            else DrawLobby();
         }
 
         void DrawRooms()
@@ -352,6 +405,8 @@ namespace Autorama
                 Text(Safe(p.name), "lib-name", texts);
                 string tag = (p.id == room.host ? "host" : "") + (p.id == myId ? (p.id == room.host ? " · você" : "você") : "");
                 if (tag != "") Text(tag, "small", texts);
+                bool ok = p.ready || p.id == room.host;
+                Text(ok ? "✓ pronto" : "aguardando", ok ? "small ok" : "small", row);
             }
 
             // Cores
@@ -416,19 +471,37 @@ namespace Autorama
                     Text("+", "pick-plus", item).pickingMode = PickingMode.Ignore;
                     oPick.Add(item);
                 }
+
+            // Pronto e largada
+            string blocker = LobbyBlocker();
+            oRulesHint.style.display = host ? DisplayStyle.Flex : DisplayStyle.None;
+            oRulesHint.text = $"Regras: os ajustes da aba Corrida (velocidade {Num(set.vmax)} cél/s, até 100% em {Num(set.ramp, 2)} s, aderência {Mathf.RoundToInt(set.grip)}, colisão {(set.collide ? "ligada" : "desligada")}). Ficam fixos até o fim.";
+            oReadyBtn.style.display = host ? DisplayStyle.None : DisplayStyle.Flex;
+            oReadyBtn.text = me != null && me.ready ? "Não estou pronto" : "Estou pronto";
+            oReadyBtn.EnableInClassList("btn--primary", !(me != null && me.ready));
+            oStartBtn.style.display = host ? DisplayStyle.Flex : DisplayStyle.None;
+            oStartBtn.SetEnabled(host && blocker == "");
+            oStartHint.text = host ? (blocker != "" ? blocker : $"Todos prontos: {room.players.Count} pilotos · {room.stages.Count} {(room.stages.Count == 1 ? "etapa" : "etapas")} · {room.players.Count * room.stages.Count} baterias.")
+                : me != null && me.ready ? "Você está pronto. Aguardando o host largar." : "Confirme quando estiver pronto: o host só larga com todos prontos.";
         }
 
         // ---------- Chat ----------
 
         void AddChat(NetChat c)
         {
+            chatLog.Add(c);
+            if (chatLog.Count > ChatKeep) chatLog.RemoveAt(0);
+            foreach (var log in new[] { oChat, oRunChat }) AppendChatLine(log, c);
+        }
+
+        static void AppendChatLine(ScrollView log, NetChat c)
+        {
             string text = Safe(c.text);
             string line = c.sys ? $"<i><color=#94A197>{text}</color></i>"
                 : $"<b><color={(ColorUtility.TryParseHtmlString(c.color, out _) ? c.color : "#E5EBE3")}>{Safe(c.name)}</color></b>: {text}";
-            var l = Text(line, "chat-line");
-            oChat.Add(l);
-            while (oChat.contentContainer.childCount > ChatKeep) oChat.contentContainer.RemoveAt(0);
-            oChat.schedule.Execute(() => oChat.scrollOffset = new Vector2(0f, oChat.contentContainer.layout.height)).ExecuteLater(30);
+            log.Add(Text(line, "chat-line"));
+            while (log.contentContainer.childCount > ChatKeep) log.contentContainer.RemoveAt(0);
+            log.schedule.Execute(() => log.scrollOffset = new Vector2(0f, log.contentContainer.layout.height)).ExecuteLater(30);
         }
     }
 }

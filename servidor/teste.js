@@ -148,7 +148,89 @@ const trilha = (n, extra = {}) => ({ name: 'Pista ' + n, laps: 3, hash: 'a34f4cb
   x.send({ t: 'chat', text: 'oi' }); await x.quiet('chat');
   x.send({ t: 'stages', stages: 1 }); await x.quiet('error'); ok('mensagens estranhas são toleradas');
 
+  // ---------- corrida: pronto, largar, relay ----------
+  const H = await cliente(P), A = await cliente(P), B = await cliente(P);
+  H.send({ t: 'create', name: 'Hugo', pub: false }); const room2 = (await H.next('joined')).room.code;
+  H.send({ t: 'start', vmax: 14, ramp: .5, grip: 29, collide: true });
+  assert.strictEqual((await H.next('error')).code, 'poucos'); ok('começar sozinho é recusado');
+  A.send({ t: 'join', name: 'Ana', code: room2 }); const idA = (await A.next('joined')).you;
+  B.send({ t: 'join', name: 'Beto', code: room2 }); const idB = (await B.next('joined')).you;
+  H.send({ t: 'start', vmax: 14, ramp: .5, grip: 29, collide: true });
+  assert.strictEqual((await H.next('error')).code, 'sem-etapas'); ok('começar sem pistas é recusado');
+  H.send({ t: 'stages', stages: [trilha(1), trilha(2)] }); await H.next('room');
+  H.send({ t: 'start', vmax: 14, ramp: .5, grip: 29, collide: true });
+  let e = await H.next('error'); assert.strictEqual(e.code, 'nao-prontos'); assert(/Ana/.test(e.text) && /Beto/.test(e.text)); ok('começar sem todos prontos é recusado');
+  A.send({ t: 'ready', ready: true }); B.send({ t: 'ready', ready: true });
+  await new Promise(r => setTimeout(r, 150)); H.drain();
+  H.send({ t: 'ready', ready: false }); await H.quiet('room');   // o host não alterna: está sempre pronto
+  H.send({ t: 'stages', stages: [trilha(1), trilha(2), trilha(3)] });
+  r = await H.next('room');
+  assert.deepStrictEqual(r.room.players.map(p => p.ready), [true, false, false]); ok('mexer nas pistas zera o "pronto" dos visitantes (host sempre pronto)');
+  A.send({ t: 'ready', ready: true }); B.send({ t: 'ready', ready: true });
+  await new Promise(r => setTimeout(r, 150)); A.drain(); B.drain(); H.drain();
+  A.send({ t: 'start', vmax: 14, ramp: .5, grip: 29, collide: true });
+  assert.strictEqual((await A.next('error')).code, 'host'); ok('visitante não começa');
+  H.send({ t: 'start', vmax: 99, ramp: .5, grip: 29, collide: true });
+  assert.strictEqual((await H.next('error')).code, 'regras'); ok('regras fora dos limites são recusadas');
+  H.send({ t: 'start', name: '  Copa  Teste ', vmax: 14, ramp: .5, grip: 29, collide: true });
+  const st = [await H.next('started'), await A.next('started'), await B.next('started')];
+  assert.deepStrictEqual(st[1], st[2]);
+  assert.strictEqual(st[1].title, 'Copa Teste'); assert.deepStrictEqual(st[1].pilots.map(p => p.name), ['Hugo', 'Ana', 'Beto']);
+  assert.strictEqual(st[1].stages.length, 3); assert.strictEqual(st[1].stages[0].json, '{"nome":"x"}'); assert.strictEqual(st[1].rules.vmax, 14);
+  ok('todos prontos: o host começa e todos recebem pilotos, regras e o JSON das pistas');
+
+  const C = await cliente(P); C.send({ t: 'join', name: 'Caio', code: room2 });
+  assert.strictEqual((await C.next('error')).code, 'andamento');
+  A.drain(); A.send({ t: 'color', color: COLORS[7] });
+  assert.strictEqual((await A.next('error')).code, 'andamento'); ok('com o campeonato andando ninguém entra nem troca de cor');
+
+  // entradas: visitante → só o host (com o id de quem mandou)
+  H.drain(); A.drain(); B.drain();
+  A.send({ t: 'in', held: true, re: 2 });
+  const inp = await H.next('in');
+  assert.deepStrictEqual([inp.from, inp.held, inp.re], [idA, true, 2]); await B.quiet('in'); await A.quiet('in'); ok('entrada do visitante vai só para o host');
+  H.send({ t: 'in', held: true }); await A.quiet('in'); ok('entrada do host não é repassada');
+  for (let i = 0; i < 150; i++) A.send({ t: 'in', held: i % 2 === 0, re: 0 });
+  await new Promise(r => setTimeout(r, 300));
+  let n = 0; for (;;) { try { await H.next('in', 50); n++; } catch (e) { break; } }
+  assert(n <= 121, 'entradas passaram do limite: ' + n); ok('entradas são limitadas por segundo (' + n + ')');
+
+  // snapshots e eventos: só do host, para todos os outros
+  H.drain(); A.drain(); B.drain();
+  const snap = JSON.stringify({ t: 'snap', snap: { hi: 0, ph: 2, t: 1.5, cars: [{ s: 3 }, { s: 4 }] } });
+  H.ws.send(snap);
+  const s1 = await A.next('snap'), s2 = await B.next('snap'); assert.deepStrictEqual(s1, s2); assert.strictEqual(s1.snap.cars[1].s, 4); await H.quiet('snap');
+  H.ws.send(JSON.stringify({ t: 'ev', k: 'res', hi: 0 })); assert.strictEqual((await A.next('ev')).k, 'res');
+  A.ws.send(snap); B.ws.send(JSON.stringify({ t: 'ev', k: 'res' })); await H.quiet('snap'); await H.quiet('ev'); await B.quiet('snap');
+  ok('snapshot e evento só valem se vierem do host');
+  H.ws.send(JSON.stringify({ t: 'snap', pad: 'x'.repeat(20000) })); await A.quiet('snap'); ok('snapshot grande demais é descartado');
+
+  // fim: só o host
+  A.send({ t: 'end' }); assert.strictEqual((await A.next('error')).code, 'host');
+  H.drain(); A.drain(); B.drain();
+  H.send({ t: 'end', text: 'Fim de papo' });
+  const l1 = await A.next('lobby'); await B.next('lobby'); await H.next('lobby');
+  assert.strictEqual(l1.text, 'Fim de papo');
+  r = await A.next('room'); assert.strictEqual(r.room.state, 'lobby'); assert.deepStrictEqual(r.room.players.map(p => p.ready), [true, false, false]);
+  ok('o host encerra: todos voltam ao lobby e o "pronto" zera');
+
+  // host sai no meio da corrida: encerra
+  A.send({ t: 'ready', ready: true }); B.send({ t: 'ready', ready: true });
+  await new Promise(r => setTimeout(r, 150));
+  H.send({ t: 'start', vmax: 14, ramp: .5, grip: 29, collide: true }); await A.next('started');
+  A.drain(); B.drain();
+  H.send({ t: 'leave' });
+  const l2 = await A.next('lobby'); assert(/host saiu/.test(l2.text)); ok('host que sai no meio da corrida encerra o campeonato');
+  r = await A.next('room'); assert.strictEqual(r.room.host, idA);
+  // visitante sai no meio: o campeonato segue
+  B.send({ t: 'ready', ready: true }); await new Promise(r => setTimeout(r, 100));
+  A.send({ t: 'start', vmax: 14, ramp: .5, grip: 29, collide: true }); await B.next('started');
+  await new Promise(r => setTimeout(r, 150)); A.drain(); B.drain();
+  B.send({ t: 'leave' }); r = await A.next('room'); assert.strictEqual(r.room.state, 'racing'); assert.strictEqual(r.room.players.length, 1); ok('visitante que sai no meio não derruba o campeonato');
+  for (const c of [H, A, B, C]) c.close();
+
   x.close(); host.close();
+
   await srv.close();
   console.log('\ntudo certo');
 })().catch(e => { console.error('FALHOU:', e); process.exit(1); });
