@@ -36,6 +36,7 @@ namespace Autorama
         public event Action MembersChanged;                   // entrou, saiu, mudou cor ou pronto
         public event Action DataChanged;                      // dados do lobby (nome, etapas, estado)
         public event Action<SteamMember, string> Chat;        // quem, texto
+        public event Action<ulong> JoinRequested;             // um amigo convidou: o lobby para entrar
 
         readonly CallResult<LobbyCreated_t> onCreated;
         readonly CallResult<LobbyEnter_t> onEnter;
@@ -43,6 +44,7 @@ namespace Autorama
         readonly Callback<LobbyChatMsg_t> onChat;
         readonly Callback<LobbyChatUpdate_t> onUpdate;
         readonly Callback<LobbyDataUpdate_t> onData;
+        readonly Callback<GameLobbyJoinRequested_t> onJoinRequested;
         string pendingName, pendingCode;
         bool pendingPub;
 
@@ -54,6 +56,7 @@ namespace Autorama
             onChat = Callback<LobbyChatMsg_t>.Create(OnChatMsg);
             onUpdate = Callback<LobbyChatUpdate_t>.Create(_ => MembersChanged?.Invoke());
             onData = Callback<LobbyDataUpdate_t>.Create(OnDataUpdate);
+            onJoinRequested = Callback<GameLobbyJoinRequested_t>.Create(r => JoinRequested?.Invoke(r.m_steamIDLobby.m_SteamID));
         }
 
         public static string NewCode()
@@ -110,6 +113,26 @@ namespace Autorama
         }
 
         public void SetJoinable(bool on) { if (IsOwner) SteamMatchmaking.SetLobbyJoinable(Lobby, on); }
+
+        // ---------- Amigos e convites ----------
+
+        // Os amigos da conta: online primeiro, depois por nome.
+        public List<LobbyFriend> Friends()
+        {
+            var list = new List<LobbyFriend>();
+            int n = SteamFriends.GetFriendCount(EFriendFlags.k_EFriendFlagImmediate);
+            for (int i = 0; i < n; i++)
+            {
+                var id = SteamFriends.GetFriendByIndex(i, EFriendFlags.k_EFriendFlagImmediate);
+                list.Add(new LobbyFriend { id = id.m_SteamID, name = SteamFriends.GetFriendPersonaName(id), online = SteamFriends.GetFriendPersonaState(id) != EPersonaState.k_EPersonaStateOffline });
+            }
+            list.Sort((a, b) => a.online != b.online ? (a.online ? -1 : 1) : string.Compare(a.name, b.name, StringComparison.CurrentCultureIgnoreCase));
+            return list;
+        }
+
+        public bool Invite(ulong friend) => InLobby && SteamMatchmaking.InviteUserToLobby(Lobby, new CSteamID(friend));
+
+        public void OpenInviteDialog() { if (InLobby) SteamFriends.ActivateGameOverlayInviteDialog(Lobby); }
 
         public List<SteamMember> Members()
         {
@@ -195,7 +218,7 @@ namespace Autorama
         public void Dispose()
         {
             Leave();
-            onCreated.Dispose(); onEnter.Dispose(); onList.Dispose(); onChat.Dispose(); onUpdate.Dispose(); onData.Dispose();
+            onCreated.Dispose(); onEnter.Dispose(); onList.Dispose(); onChat.Dispose(); onUpdate.Dispose(); onData.Dispose(); onJoinRequested.Dispose();
         }
     }
 }

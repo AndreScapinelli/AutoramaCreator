@@ -29,6 +29,9 @@ namespace Autorama
         Label oMsg, oRoomTitle, oRoomCode, oStageHint, oLobbyMsg, oRulesHint, oStartHint;
         TextField oServer, oName, oRoomName, oCode, oChatInput, oRunChatInput;
         Toggle oPublic, oVisibility, oSteam;
+        VisualElement oInviteBox, oFriends;
+        readonly HashSet<ulong> invited = new HashSet<ulong>();      // amigos já convidados nesta sala
+        ulong launchLobby;
         ScrollView oChat, oRunChat;
         Button oStartBtn, oReadyBtn, oRunQuit;
         readonly List<NetChat> chatLog = new List<NetChat>();
@@ -43,6 +46,7 @@ namespace Autorama
         {
             wsNet = new OnlineClient();
             SetTransport(wsNet);
+            launchLobby = LaunchLobby();
             var box = panel.OnlineBox;
 
             // Antes de entrar numa sala
@@ -101,6 +105,17 @@ namespace Autorama
             oVisibility.RegisterValueChangedCallback(e => { if (IsHost && room != null && e.newValue != room.pub) net.Send(new NetOut { t = "visibility", pub = e.newValue }); });
             sala.Add(oVisibility);
 
+            // Só com a Steam: convidar amigos para a sala.
+            oInviteBox = El(null, sala);
+            oInviteBox.style.marginTop = 8;
+            var invRow = El("row", oInviteBox);
+            Btn("Convidar amigos (Steam)", () => steamNet?.OpenInviteDialog(), "btn btn--primary", invRow).tooltip =
+                "Abre a janela de convite da Steam. Ela só aparece no jogo instalado (não no Editor): lá, use a lista abaixo.";
+            var refresh = Btn("Atualizar", DrawFriends, "btn", invRow);
+            refresh.style.marginLeft = 6;
+            oFriends = El(null, oInviteBox);
+            oFriends.style.marginTop = 6;
+
             var pl = Section(oLobby, "PILOTOS");
             oPlayers = El(null, pl);
             Text("SUA COR", "h3", pl);
@@ -156,7 +171,57 @@ namespace Autorama
 
         // ---------- Quadro a quadro e ciclo de vida ----------
 
-        void OnlineTick() => net?.Pump();
+        void OnlineTick()
+        {
+            net?.Pump();
+            if (launchLobby != 0) { ulong id = launchLobby; launchLobby = 0; OnSteamJoinRequested(id); }     // o jogo foi aberto pelo convite de um amigo
+        }
+
+        // Um amigo convidou (ou usou "Entrar no jogo"): liga a Steam, abre a aba e entra no lobby dele.
+        void OnSteamJoinRequested(ulong lobbyId)
+        {
+            if (room != null) { panel.Toast("Você já está numa sala. Saia dela para entrar na do amigo."); return; }
+            oSteam.SetValueWithoutNotify(true);
+            SteamToggled(true);
+            if (!oSteam.value) return;                                   // a Steam não iniciou: SteamToggled já avisou
+            panel.SetMode(BuilderPanel.Mode.Online);
+            WhenConnected(() => steamNet.JoinById(lobbyId));
+        }
+
+        // A Steam abre o jogo com "+connect_lobby <id>" quando o convite é aceito com o jogo fechado.
+        static ulong LaunchLobby()
+        {
+            var args = Environment.GetCommandLineArgs();
+            for (int i = 0; i + 1 < args.Length; i++) if (args[i] == "+connect_lobby" && ulong.TryParse(args[i + 1], out ulong id)) return id;
+            return 0;
+        }
+
+        // ---------- Convites (Steam) ----------
+
+        bool SteamRoom => room != null && oSteam.value && steamNet != null && net == steamNet;
+
+        void DrawFriends()
+        {
+            oFriends.Clear();
+            if (!SteamRoom) return;
+            var list = steamNet.InvitableFriends();
+            if (list.Count == 0) { Text("Nenhum amigo online agora. Use o botão acima para convidar quem está offline ou em outro jogo.", "small", oFriends); return; }
+            Text("AMIGOS ONLINE", "h3", oFriends);
+            foreach (var f in list.GetRange(0, Mathf.Min(list.Count, 20)))
+            {
+                var friend = f;
+                var row = El("lib-item", oFriends);
+                Text(Safe(f.name), "lib-name", El("lib-texts", row));
+                bool sent = invited.Contains(f.id);
+                var b = Btn(sent ? "Convidado ✓" : "Convidar", () =>
+                {
+                    if (steamNet.Invite(friend.id)) { invited.Add(friend.id); panel.Toast($"Convite enviado a {Safe(friend.name)}."); }
+                    else panel.Toast("Não deu para convidar. Confira se a Steam está aberta.");
+                    DrawFriends();
+                }, "btn", row);
+                b.SetEnabled(!sent);
+            }
+        }
 
         void OnlineDestroy()
         {
@@ -185,7 +250,7 @@ namespace Autorama
             if (room == null && net.state != OnlineClient.State.Closed) { net.Close(); pendingNet = null; }     // a próxima ação conecta pela rede escolhida
             if (on)
             {
-                steamNet ??= new SteamTransport();
+                if (steamNet == null) { steamNet = new SteamTransport(); steamNet.JoinRequested += OnSteamJoinRequested; }
                 if (!steamNet.Prepare(out string err))
                 {
                     oSteam.SetValueWithoutNotify(false);
@@ -268,6 +333,7 @@ namespace Autorama
             OnlineExitRun();
             room = null; myId = null; wasHost = false; pendingNet = null;
             onlineStages.Clear();
+            invited.Clear();
             chatLog.Clear();
             oChat.Clear(); oRunChat.Clear();
         }
@@ -440,6 +506,9 @@ namespace Autorama
             oVisibility.SetEnabled(host);
             oVisibility.SetValueWithoutNotify(room.pub);
             oVisibility.label = host ? "Sala pública (aparece na lista)" : room.pub ? "Sala pública" : "Sala privada (só entra com o código)";
+            bool steamRoom = SteamRoom && room.state == "lobby";
+            oInviteBox.style.display = steamRoom ? DisplayStyle.Flex : DisplayStyle.None;
+            if (steamRoom) DrawFriends();
 
             // Pilotos
             oPlayers.Clear();

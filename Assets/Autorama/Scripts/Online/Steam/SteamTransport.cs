@@ -26,6 +26,7 @@ namespace Autorama
         public event Action Opened;
         public event Action<string> Closed;
         public event Action<NetMsg> Message;
+        public event Action<ulong> JoinRequested;                    // um amigo convidou: a aba decide como entrar (JoinById)
 
         bool joined, racing;
         ulong raceHost, lastOwner;
@@ -42,6 +43,36 @@ namespace Autorama
             b.DataChanged += () => { if (joined) EmitRoom(); };
             b.Chat += OnChat;
             b.Peer += OnPeer;
+            b.JoinRequested += id => JoinRequested?.Invoke(id);
+        }
+
+        // ---------- Convites ----------
+
+        // Amigos online que ainda não estão na sala.
+        public List<LobbyFriend> InvitableFriends()
+        {
+            var inRoom = new HashSet<ulong>(); foreach (var m in b.Members()) inRoom.Add(m.id);
+            return b.Friends().FindAll(f => f.online && !inRoom.Contains(f.id));
+        }
+
+        public bool Invite(ulong friend) => joined && state == OnlineClient.State.Open && b.Invite(friend);
+        public void OpenInviteDialog() { if (joined) b.OpenInviteDialog(); }
+
+        // Entrar no lobby de um amigo (convite aceito, ou "+connect_lobby" na linha de comando).
+        public void JoinById(ulong lobbyId)
+        {
+            if (state != OnlineClient.State.Open) return;
+            if (joined) { Err("sala", "Você já está numa sala."); return; }
+            b.Join(lobbyId, ok =>
+            {
+                if (state != OnlineClient.State.Open) { b.Leave(); return; }
+                if (!ok) { Err("sem-sala", "Não deu para entrar na sala do amigo."); return; }
+                if (b.Data(SteamLobbyClient.Tag) != "1" || b.Data("ver") != OnlineClient.Protocol.ToString()) { b.Leave(); Err("sem-sala", "Esse lobby não é de uma sala do Autorama (ou é de outra versão do jogo)."); return; }
+                if (b.Data("state") != "lobby") { b.Leave(); Err("andamento", "O campeonato dessa sala já começou."); return; }
+                b.SetMyData("ready", "0");
+                AssignColor();
+                Enter();
+            });
         }
 
         // O nome do jogador é o da conta (a aba mostra e não deixa editar).

@@ -2489,13 +2489,19 @@ A aba (`RaceController.Online*.cs`) fala com a rede só por `IOnlineTransport` (
 - **Chat:** `SendLobbyChatMsg`; não há histórico para quem entra depois (o servidor Node guarda as últimas 50).
 - **Botão na aba:** ligar **Jogar pela Steam** inicia a Steam (se falhar, desliga e avisa, por exemplo "O cliente da Steam não está aberto"), mostra o nome da conta e esconde o endereço do servidor. A escolha fica em `PlayerPrefs` (`autorama.online.steam`).
 
+**Convidar amigos** (só com a Steam ligada, dentro da sala, no lobby):
+- **Convidar amigos (Steam):** abre a janela de convite da Steam (`ActivateGameOverlayInviteDialog`). O overlay só existe no jogo instalado, **não no Editor**.
+- **Amigos online** (lista dentro do jogo, funciona no Editor): os amigos da conta que estão online e ainda não estão na sala, com **Convidar** (`InviteUserToLobby`; vira **Convidado ✓**). **Atualizar** relê a lista. O convite aparece na Steam do amigo; ao aceitar com o jogo aberto, a Steam avisa (`GameLobbyJoinRequested`) e a aba liga a Steam, abre a aba Online e entra no lobby sozinha (`JoinById`). Com o jogo fechado, a Steam abre o jogo com `+connect_lobby <id>` na linha de comando e a aba entra assim que inicia. O lobby precisa ser do Autorama (`autorama=1`, mesma versão do protocolo) e estar em `lobby`; com o campeonato andando ele nem aceita mais ninguém.
+- Quem convida pode ser qualquer um da sala (não só o host).
+
 ### 24.5 Testes do transporte
 
 `SteamTransportTest.Run` (Editor): `script eval 'Autorama.SteamTransportTest.Run(); return Autorama.SteamTransportTest.Last;'`.
 
 - **Mundo falso, três jogadores** (a mesma lista de regras do `npm test`): conectar; lista vazia; criar sala (host, 1ª cor, nome da conta, código); sala pública na lista; código errado e maiúsculas; cor inválida e cor usada; chat com texto limpo, nome e cor, e limite de ritmo; visitante não escolhe pistas; resumo das etapas com os hashes conhecidos; etapa inválida; sala privada fora da lista; largar sem todos prontos; pronto; mexer nas pistas zera o pronto (e o host é sempre pronto); visitante não larga; regras fora dos limites; `started` com pilotos, regras e o JSON da pista (mesmo hash); com o campeonato andando ninguém entra nem troca de cor; `in` só ao host, com o id certo; `snap` só do host; `ev`; só o host encerra; o fim zera o pronto; host que sai no meio encerra e o visitante vira host; sala vazia some. Descobriu um erro real: a época começava em `0`, igual a "não pronto" (corrigido: começa em 1).
 - **Steam de verdade** (uma conta, Spacewar): o transporte abre; o nome vem da conta; criar sala; as etapas ficam no lobby; o chat volta com o nome; a cor muda; largar sozinho é recusado; a lista enxerga a sala; torná-la privada; e uma mensagem direta para si mesmo **chegou** (a Steam aceita loopback entre contas iguais).
-- **Tela** (Play mode, Unity de host com o botão da Steam ligado e um visitante-robô no mundo falso, `SteamTransportTest.UiSetup`/`BotTick`): o nome fica "Hugo" e o campo desligado; a sala é criada; o robô entra e fica pronto; ao mexer nas etapas o pronto dele zera e ele confirma de novo; o host larga; a corrida roda (755 snapshots entregues ao robô) e o carrinho do robô anda com o botão dele; a tela é a do campeonato offline, com o chat.
+- **Convites** (mundo falso, 3 jogadores): só os amigos online aparecem; amigo offline não recebe; o host convida o Caio, que recebe o pedido e **entra sozinho** na sala certa (privada, sem estar pronto); quem já está na sala sai da lista; o botão da janela da Steam chama o overlay; com o campeonato andando o lobby não aceita mais ninguém. Na Steam de verdade a lista de amigos foi lida sem erro (26 online); **nenhum convite real foi enviado** nos testes.
+- **Tela** (Play mode, Unity de host com o botão da Steam ligado e um visitante-robô no mundo falso, `SteamTransportTest.UiSetup`/`BotTick`): o nome fica "Hugo" e o campo desligado; a sala é criada; o robô entra e fica pronto; ao mexer nas etapas o pronto dele zera e ele confirma de novo; o host larga; a corrida roda (755 snapshots entregues ao robô) e o carrinho do robô anda com o botão dele; a tela é a do campeonato offline, com o chat. Na sala, a lista **Amigos online** mostrou o robô, o clique em **Convidar** (evento de teclado/gamepad do UI Toolkit) fez o robô entrar e ficar pronto, e ele saiu da lista.
 
 Regressão: `OnlineSmokeTest` (servidor Node, 42 verificações) e `SteamSpacewarTest` (24) continuam passando.
 
@@ -2503,5 +2509,5 @@ Regressão: `OnlineSmokeTest` (servidor Node, 42 verificações) e `SteamSpacewa
 
 1. **Duas contas de verdade:** nada disso provou ainda a chegada entre dois jogadores em máquinas diferentes (ver o roteiro em 24.3). A mensagem direta para si mesmo chegou, o que é um bom sinal, mas não é a rede.
 2. **Tamanho do snapshot** (~1,2 KB): na rede real a Steam fragmenta mensagens grandes sem confiabilidade e perde a mensagem toda se um pedaço se perder. Se houver perda visível, reduzir o snapshot ou mandá-lo confiável.
-3. **Convites de amigos** e *Rich Presence* (opcional); entrar na sala pela lista de amigos.
+3. **Rich Presence** (mostrar "numa sala do Autorama" para os amigos, com o botão "Entrar no jogo") e testar o convite de verdade entre duas contas, incluindo o jogo fechado (`+connect_lobby`).
 4. **AppId próprio** e a taxa da Steam Direct (US$ 100) antes de publicar; o 480 serve só para teste. Num app seu, o transporte já filtra por `autorama=1` e pela versão do protocolo.

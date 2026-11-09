@@ -56,6 +56,30 @@ namespace Autorama
         public event Action MembersChanged, DataChanged;
         public event Action<ulong, string> Chat;
         public event Action<ulong, byte[]> Peer;
+        public event Action<ulong> JoinRequested;
+        public readonly List<ulong> invited = new List<ulong>();
+
+        // Todos os outros jogadores do mundo são "amigos" (os que já estão nesta sala, também: a aba os esconde).
+        public List<LobbyFriend> Friends()
+        {
+            var list = new List<LobbyFriend>();
+            foreach (var p in hub.peers.Values) if (p.MyId != MyId) list.Add(new LobbyFriend { id = p.MyId, name = p.MyName, online = !p.offline });
+            return list;
+        }
+
+        // O convite aceito na hora: o amigo recebe o pedido de entrada, como depois de clicar em "Aceitar" na Steam.
+        public bool Invite(ulong friend)
+        {
+            if (lobby == null || !hub.peers.TryGetValue(friend, out var to) || to.offline) return false;
+            var id = lobby.id; invited.Add(friend);
+            to.Enqueue(() => to.JoinRequested?.Invoke(id));
+            return true;
+        }
+
+        public ulong LobbyIdForTest => lobby?.id ?? 0;
+        public int dialogOpened;
+        public bool offline;
+        public void OpenInviteDialog() => dialogOpened++;
 
         public FakeBackend(FakeLobbyHub hub, ulong id, string name) { this.hub = hub; MyId = id; MyName = name; }
 

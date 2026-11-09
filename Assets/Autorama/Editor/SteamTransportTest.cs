@@ -63,7 +63,8 @@ namespace Autorama
         static void RunFake()
         {
             var hub = new FakeLobbyHub();
-            P a = new P(hub.NewPlayer(1001, "Ana")), b = new P(hub.NewPlayer(1002, "Beto")), c = new P(hub.NewPlayer(1003, "Caio"));
+            FakeBackend fa = hub.NewPlayer(1001, "Ana"), fb = hub.NewPlayer(1002, "Beto"), fc = hub.NewPlayer(1003, "Caio");
+            P a = new P(fa), b = new P(fb), c = new P(fc);
             var all = new[] { a, b, c };
             foreach (var p in all) { int opened = 0; p.t.Opened += () => opened++; p.t.Connect(""); if (opened != 1 || p.t.state != OnlineClient.State.Open) throw new Exception("não abriu"); }
             Check(true, "fake: os três jogadores conectam");
@@ -193,6 +194,38 @@ namespace Autorama
             Check(b.t.state == OnlineClient.State.Open, "fake: a conexão segue aberta");
             foreach (var p in all) p.t.Close();
             Check(hub.lobbies.Count == 0, "fake: sala vazia some do mundo");
+
+            // ---------- convites ----------
+            foreach (var p in all) { p.got.Clear(); p.t.Connect(""); }
+            fb.offline = true;
+            ulong lobbyToJoin = 0;
+            c.t.JoinRequested += id => { lobbyToJoin = id; c.t.JoinById(id); };
+            a.t.Send(new NetOut { t = "create", roomName = "Sala de convites", pub = false });
+            Check(WaitFor(() => a.Has("joined"), all), "convite: o host cria a sala (privada)");
+            a.Take("joined");
+            var friends = a.t.InvitableFriends();
+            Check(friends.Count == 1 && friends[0].name == "Caio" && friends[0].online, "convite: só os amigos online aparecem (Beto está offline)");
+            Check(!a.t.Invite(1002), "convite: amigo offline não recebe");
+            Check(a.t.Invite(1003) && fa.invited.Contains(1003), "convite: o host convida o Caio");
+            Check(WaitFor(() => c.Has("joined"), all) && lobbyToJoin != 0, "convite: o Caio recebe o pedido e entra na sala sozinho");
+            var jc = c.Take("joined");
+            Check(jc.room.host == "1001" && jc.room.players.Count == 2 && jc.room.players[1].name == "Caio" && jc.room.name == "Sala de convites" && !jc.room.pub, "convite: entra na sala certa (privada, só por convite), sem estar pronto");
+            Check(a.t.InvitableFriends().Count == 0, "convite: quem já está na sala sai da lista de amigos");
+            a.t.OpenInviteDialog();
+            Check(fa.dialogOpened == 1, "convite: o botão da janela da Steam chama o overlay");
+
+            // convite para uma sala que já largou, e para um lobby que não é do Autorama
+            a.t.Send(new NetOutStages { stages = { Stage("Oval", TrackSave.Oval(), 3) } });
+            WaitFor(() => c.Has("room", m => m.room.stages.Count == 1), all);
+            c.t.Send(new NetOut { t = "ready", ready = true });
+            WaitFor(() => a.Has("room", m => m.room.Player("1003")?.ready == true), all);
+            a.t.Send(new NetOut { t = "start", vmax = 14, ramp = .5f, grip = 29, collide = true });
+            Check(WaitFor(() => c.Has("started"), all), "convite: o campeonato largou");
+            fb.offline = false;
+            b.got.Clear();
+            b.t.JoinById(fa.LobbyIdForTest);
+            Check(WaitFor(() => b.Has("error"), all) && b.Take("error").code == "sem-sala", "convite: com o campeonato andando o lobby não aceita mais ninguém");
+            foreach (var p in all) p.t.Close();
         }
 
         // ---------- UI com o transporte Steam, no Play mode (host na tela, visitante-robô no mundo falso) ----------
@@ -210,19 +243,15 @@ namespace Autorama
             SteamTransport.BackendFactory = () => host;
             uiBot = new P(bot);
             uiBot.t.Connect("");
+            uiBot.t.JoinRequested += id => uiBot.t.JoinById(id);      // o robô aceita o convite na hora
             botJoined = botReady = botHeld = false; BotSnaps = BotEvents = 0;
         }
 
-        // Chamar a cada quadro: o robô entra na sala, fica pronto e, na corrida, acelera e solta.
+        // Chamar a cada quadro: o robô entra na sala quando convidado, fica pronto e, na corrida, acelera e solta.
         public static string BotTick(int frame)
         {
             if (uiBot == null) return "sem robô";
             uiBot.t.Pump();
-            if (!botJoined && uiHub.lobbies.Count > 0)
-            {
-                foreach (var l in uiHub.lobbies.Values) { uiBot.t.Send(new NetOut { t = "join", code = l.data["code"] }); break; }
-                botJoined = uiBot.Has("joined") || true;
-            }
             // Fica pronto de novo toda vez que o host mexe nas etapas (o servidor zera o "pronto").
             var lastRoom = uiBot.got.FindLast(m => m.t == "room");
             if (uiBot.Has("joined") && !uiBot.Has("started") && (!botReady || (lastRoom != null && lastRoom.room.Player("2002") is var me && me != null && !me.ready && lastRoom.room.state == "lobby")))
@@ -298,6 +327,8 @@ namespace Autorama
                 Check(WaitFor(() => real.got.Exists(m => m.t == "room" && !m.room.pub), ps), "steam: o host torna a sala privada");
 
                 // Mensagem direta para si mesmo: a Steam aceita? (só informação; o teste de verdade é com duas contas)
+                var amigos = real.t.InvitableFriends();
+                report.AppendLine($"    amigos online que podem ser convidados: {amigos.Count} (lista da Steam lida sem erro)");
                 var be = new SteamBackend(); be.Init(out _);
                 ulong from = 0; byte[] rx = null; be.Peer += (f, d) => { from = f; rx = d; };
                 be.SendTo(be.MyId, Encoding.UTF8.GetBytes("{\"t\":\"ev\"}"), true);

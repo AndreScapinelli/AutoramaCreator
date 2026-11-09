@@ -18,9 +18,11 @@ namespace Autorama
         public event Action MembersChanged, DataChanged;
         public event Action<ulong, string> Chat;
         public event Action<ulong, byte[]> Peer;
+        public event Action<ulong> JoinRequested;
 
         public SteamBackend()
         {
+            lobby.JoinRequested += id => JoinRequested?.Invoke(id);
             lobby.MembersChanged += () => MembersChanged?.Invoke();
             lobby.DataChanged += () => DataChanged?.Invoke();
             lobby.Chat += (who, text) => Chat?.Invoke(who.id.m_SteamID, text);
@@ -72,6 +74,10 @@ namespace Autorama
         public void SetPublic(bool pub) => lobby.SetPublic(pub);
         public void SetJoinable(bool on) => lobby.SetJoinable(on);
         public bool SendChat(string text) => lobby.SendChat(text);
+
+        public List<LobbyFriend> Friends() => SteamBoot.Ready ? lobby.Friends() : new List<LobbyFriend>();
+        public bool Invite(ulong friend) => lobby.Invite(friend);
+        public void OpenInviteDialog() => lobby.OpenInviteDialog();
 
         public void SendTo(ulong member, byte[] data, bool reliable)
         {
