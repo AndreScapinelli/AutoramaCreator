@@ -1332,6 +1332,12 @@ Por jogador, o mínimo:
 
 No meio da tela, as **três luzes** da largada e o **aviso de vitória**.
 
+**Placar sobre a mesa** (Unity, `RaceController.UpdateHud`): acima das luzes, uma ficha por carrinho com posição, a bolinha na cor do carrinho (a mesma borda do controle, então no campeonato é a cor do piloto), o nome, `Volta n/N` (ou "Chegou") e a melhor volta. O líder tem borda amarela. Quem lidera (`Leader()`): quem chegou antes; senão quem tem mais voltas; senão quem está mais adiante (`s`). Na vitória, a posição vira 🏁. A ficha some no grid (`Idle`) e quando a pista não é um circuito fechado. Estilos `.hud*` no fim de `UI/Construtor.uss`.
+
+**Painel recolhido na corrida** (`RaceController.SideForPhase`, chamado quando a fase muda, offline e online): na largada (`Countdown`/`Running`) o painel lateral se recolhe para a mesa ficar inteira; ao voltar ao grid ou terminar, ele volta. Só devolve se foi a largada que recolheu (`sideAutoHidden`): se o jogador já estava com o painel fechado, ele continua fechado; e o `Tab` abre o painel no meio da prova. `BuilderPanel.SideVisible` e `SetSideFromRace(bool)` expõem isso.
+
+Teste (Play mode, `script eval`): `StartRace()` + 200 quadros → painel fechado, placar "1º JOGADOR 1 Volta 1/3 · 2º JOGADOR 2 Volta 1/3"; `sim.Reset()` → painel aberto, placar escondido.
+
 ### 15.7.1 Modos de câmera na corrida
 
 A câmera fica num **menu no canto superior direito da mesa** (só nas abas Corrida e Campeonato e na corrida online). O botão mostra o modo atual (`Câmera: Dinâmica ▾`); clicar abre a lista embaixo, com os 4 modos, o alvo e a distância. O painel lateral não tem mais os seletores de câmera.

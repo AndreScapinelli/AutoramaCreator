@@ -522,6 +522,11 @@ namespace Autorama
             return side.layout.width * Screen.width / root.layout.width;
         }
 
+        public bool SideVisible => sideVisible;
+
+        // A corrida recolhe o painel na largada e devolve na chegada (só se foi ela quem recolheu).
+        public void SetSideFromRace(bool visible) { if (visible != sideVisible) SetSide(visible); }
+
         void SetSide(bool visible)
         {
             sideVisible = visible;

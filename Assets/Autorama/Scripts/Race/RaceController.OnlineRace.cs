@@ -154,7 +154,7 @@ namespace Autorama
             }
 
             sim.Step(dt);
-            if (sim.phase != lastPhase) { lastPhase = sim.phase; scoreDirty = champDirty = true; snapAcc = 1f; }
+            if (sim.phase != lastPhase) { lastPhase = sim.phase; scoreDirty = champDirty = true; snapAcc = 1f; SideForPhase(); }
             if (IsHost && live) SendSnapshot(dt, idx);
 
             PlaceCars();

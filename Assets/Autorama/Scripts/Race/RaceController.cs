@@ -45,6 +45,11 @@ namespace Autorama
         Label camTargetNote;
         SliderInt cameraDistanceSlider;
         readonly List<VisualElement> lightDots = new List<VisualElement>();
+        // Placar sobre a mesa: uma ficha por carrinho (posição, nome, volta, melhor volta).
+        class HudCard { public VisualElement root, dot; public Label pos, name, lap, best; }
+        readonly HudCard[] hud = new HudCard[2];
+        VisualElement hudBox;
+        bool sideAutoHidden;                 // o painel foi recolhido pela largada (devolve na chegada)
 
         // ---------- Início ----------
 
@@ -228,7 +233,7 @@ namespace Autorama
             PlaceCars();
             UpdatePads();
             UpdateTop();
-            if (sim.phase != lastPhase) { lastPhase = sim.phase; scoreDirty = true; champDirty = true; }
+            if (sim.phase != lastPhase) { lastPhase = sim.phase; scoreDirty = true; champDirty = true; SideForPhase(); }
             if (scoreDirty) { scoreDirty = false; DrawScore(); DrawStatus(); }
             if (champDirty && panel.ChampMode) { champDirty = false; DrawChampSide(); }
             (panel.ChampMode ? cClock : clock).text = Fmt(sim.phase == RaceSim.Phase.Idle || sim.phase == RaceSim.Phase.Countdown ? 0f : sim.t);
@@ -337,6 +342,20 @@ namespace Autorama
             // Sobre a mesa: luzes e aviso de vitória no topo; os dois jogadores embaixo.
             var root = panel.Root;
             topBox = El("race-top", root); topBox.pickingMode = PickingMode.Ignore;
+            hudBox = El("hud", topBox); hudBox.pickingMode = PickingMode.Ignore;
+            for (int k = 0; k < 2; k++)
+            {
+                var h = new HudCard { root = El("hud-card " + (k == 0 ? "hud-card--a" : "hud-card--b"), hudBox) };
+                h.pos = Text("1º", "hud-pos", h.root);
+                h.dot = El("hud-dot", h.root);
+                var info = El("hud-info", h.root);
+                h.name = Text("", "hud-name", info);
+                var hudRow = El("hud-row", info);
+                h.lap = Text("", "hud-lap", hudRow);
+                h.best = Text("", "hud-best", hudRow);
+                foreach (var e in h.root.Query<VisualElement>().ToList()) e.pickingMode = PickingMode.Ignore;
+                hud[k] = h;
+            }
             lights = El("lights", topBox);
             for (int i = 0; i < 3; i++) lightDots.Add(El("light", lights));
             banner = El("banner", topBox);
@@ -552,9 +571,49 @@ namespace Autorama
             }
         }
 
+        // Largada: recolhe o painel lateral para a mesa ficar inteira. Chegada (ou volta ao grid): devolve.
+        // Se o jogador abriu o painel no meio da prova (Tab), ele fica aberto.
+        void SideForPhase()
+        {
+            bool racing = sim.phase == RaceSim.Phase.Countdown || sim.phase == RaceSim.Phase.Running;
+            if (racing && panel.SideVisible) { sideAutoHidden = true; panel.SetSideFromRace(false); }
+            else if (!racing && sideAutoHidden) { sideAutoHidden = false; panel.SetSideFromRace(true); }
+        }
+
+        // Quem está na frente: quem chegou antes; senão mais voltas; senão mais adiante na volta.
+        int Leader()
+        {
+            var a = sim.cars[0]; var b = sim.cars[1];
+            if (a.finish != null || b.finish != null)
+                return b.finish == null ? 0 : a.finish == null ? 1 : a.finish <= b.finish ? 0 : 1;
+            if (a.laps != b.laps) return a.laps > b.laps ? 0 : 1;
+            return a.s >= b.s ? 0 : 1;
+        }
+
+        void UpdateHud()
+        {
+            bool show = sim.closed && sim.phase != RaceSim.Phase.Idle;
+            hudBox.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+            if (!show) return;
+            int L = sim.set.laps, lead = Leader();
+            for (int k = 0; k < 2; k++)
+            {
+                var c = sim.cars[k]; var h = hud[k];
+                string nm = pads[k].name.text;
+                int cut = nm.IndexOf(" · ");
+                h.name.text = cut > 0 ? nm.Substring(0, cut) : nm;
+                h.dot.style.backgroundColor = pads[k].root.resolvedStyle.borderTopColor;
+                h.pos.text = sim.winner == k ? "🏁" : (k == lead ? "1º" : "2º");
+                h.root.EnableInClassList("hud-card--lead", k == lead);
+                h.lap.text = c.finish != null ? "Chegou" : $"Volta {Mathf.Clamp(c.laps + 1, 1, L)}/{L}";
+                h.best.text = c.best != null ? $"Melhor {Fmt(c.best)}" : "";
+            }
+        }
+
         void UpdateTop()
         {
             topBox.style.left = panel.SideWidth;
+            UpdateHud();
             bool showLights = sim.phase == RaceSim.Phase.Countdown || (sim.phase == RaceSim.Phase.Running && sim.t < 1f);
             lights.style.display = showLights ? DisplayStyle.Flex : DisplayStyle.None;
             if (showLights)
