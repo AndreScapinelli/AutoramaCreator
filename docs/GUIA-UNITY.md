@@ -2768,3 +2768,45 @@ Numa pista de 4 podem correr menos carros. O trilho sem carro fica **vazio**: `R
 - **Sincronia online** sem rede (`NetSync.Pack` → JSON → `Apply` a cada 3 quadros, como o host manda): 3 carros na oval de 4, por voltas e por tempo. O visitante termina na mesma fase, com o mesmo vencedor, a mesma distância (até a 3ª casa) e o mesmo trilho em cada carro. Snapshot de 4 carros: **1,8 a 2,0 KB** (o de 2 tinha ~1,25 KB).
 - `OnlineSmokeTest` contra o servidor Node: as 42 verificações continuam passando; `npm test` também.
 - Falta: dois jogadores de verdade numa pista de 4, e conferir na Steam real se o snapshot de ~2 KB (sem confiabilidade) chega bem (ver 24.6).
+
+## 28. Jogo em 3D (branch `jogo-3d`, experimento)
+
+Estilo **brinquedo low-poly**, pensando na Steam (sem a restrição do celular). A física não muda: o 3D é só a camada visual. A interface e as cores continuam as mesmas.
+
+### 28.1 Pista com volume (`TrackPieceView`)
+
+A malha continua gerada por código a partir da lista de peças, agora com corpo. Medidas no mundo (na pista de 4, a malha é em células e a raiz tem escala 2, então dividem por `TrackMath.Scale`):
+
+- **Base** com espessura `Thickness = 0,09`: laterais, fundo (só nas peças no alto) e tampas nas pontas (`AddCaps`), no submesh 3 (`TrackTheme.side` / `side4`: plástico escuro; sem eles, o material dos pilares).
+- **Fendas afundadas** `SlotDepth = 0,035`: o tampo é cortado em faixas entre as fendas; cada fenda tem duas paredes e um fundo. O `u` da textura continua sendo o deslocamento lateral (`o + 0,5`), então a pintura fica no lugar; paredes e fundo usam o `u` do meio da fenda (preto na textura). Meia largura da fenda: 0,022 (2 trilhos) e 0,011 célula (4 trilhos).
+- **Cruzamento:** as fendas se cruzam, então o tampo fica liso (fenda só pintada).
+- **Muro com corpo** (topo e face de dentro; a face de fora emenda na lateral da base): nas peças no alto, dos dois lados (0,10 de altura; 0,12 na pista de 4), e no **lado de fora das curvas inclinadas** (0,14).
+- `AddBand(tri, s, ts, a, b, vScale, y)`: faixa entre duas bordas (`Edge`: deslocamento, altura sobre a superfície e `u`). Indo de `a` para `b` para a direita a face olha para cima; para baixo, olha para a direita; para cima, para a esquerda; para a esquerda, para baixo. Cada faixa tem os próprios vértices (quinas vivas).
+- Como a base desce 0,09, o **tampo da mesa fica em y = −0,10** e os carrinhos continuam correndo no nível 0. Os pilares e a célula sob o mouse acompanham.
+
+### 28.2 Mesa (`GridBoard`)
+
+Tampo de madeira com moldura (0,7 além da grade, 0,5 de espessura), quatro pés e um chão claro 9 unidades abaixo, feitos com cubos e cópias do material da mesa sem a textura. Só são refeitos quando a mesa muda de tamanho.
+
+### 28.3 Carrinho 3D (`CarView`)
+
+- **Provisório**, montado com cubos e cilindros: assoalho, capô, traseira, cabine escura, teto, faixa e bico na segunda cor, aerofólio sobre dois apoios e quatro rodas. Mesma caixa da física (0,60 × 0,32), frente em +X, chão em y = 0.
+- **Duas cores:** a principal é a do trilho ou a do piloto (`SetColors`); a segunda é branca, ou escura quando a principal é clara. Substitui a pintura `CarTexture` do carrinho chapado.
+- **Movimento:** rodas giram com a velocidade; o carrinho inclina na rampa (pitch), **deita na curva inclinada** (`RaceSim.CarBank`, de `LanePoint.bank`: o ângulo lateral da superfície) e **capota** ao sair da pista. A derrapagem (traseira saindo) já vinha da pose da física.
+- Modelo escolhido para substituir o provisório: https://poly.pizza/m/EMcTJiXibv. O site é bloqueado no navegador do assistente: o arquivo (GLB ou FBX) precisa ser baixado à mão e colocado em `Assets/Autorama/Modelos/`.
+
+### 28.4 Teste
+
+Play mode, 8 com ponte, câmera perto do carrinho azul (`docs/previa-3d.png`): fendas afundadas, curva inclinada com muro, ponte com pilares, mesa com moldura e os dois carrinhos com volume e sombra. Corrida rodando normalmente (a física é a mesma).
+
+### 28.5 Zebra em relevo e pórtico de largada
+
+- **Zebra em relevo** no lado de fora das curvas planas, onde a textura já pinta a zebra: sobe em chanfro (0,012 de largura), fica plana a 0,022 de altura e desce na borda. Vai de 0,40 a 0,48 do centro (0,43 a 0,475 na pista de 4). Nas peças no alto o muro ocupa o lugar.
+- **Pórtico** sobre a bandeirada (`BuildGantry`, na peça de largada): dois postes fora da pista (0,09 além da borda), travessa quadriculada a 0,95 de altura e um **semáforo de três luzes**. `TrackPieceView.SetStartLights(vermelhas, verde)` acende as luzes (cor e emissão) junto com as da tela: 1, 2, 3 vermelhas na contagem e as três verdes no primeiro segundo de cada largada ou manche.
+- Teste (Play mode, construtor, oval): `docs/previa-3d-largada.png` (2 carros) e `docs/previa-3d-pista4.png` (4 carros). Zebra com volume nas curvas, pórtico com as três luzes, carrinhos no grid, seta de encaixe e célula sob o mouse no lugar. A pista de 4 usa o mesmo código, com as medidas divididas pela escala.
+
+### 28.6 Próximos passos
+
+1. Trocar o carrinho provisório pelo modelo.
+2. Sala em volta da mesa (ProBuilder), luz mais quente e pós-processamento leve.
+3. Ajustar as câmeras 3D e "Atrás do carro" para o novo visual (não foram vistas em movimento: o Editor estava em segundo plano).

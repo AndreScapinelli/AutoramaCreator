@@ -17,19 +17,19 @@ namespace Autorama
 
         static readonly List<Vector3> V = new List<Vector3>();
         static readonly List<Vector2> UV = new List<Vector2>();
-        static readonly List<int> Surface = new List<int>(), Checker = new List<int>(), Guard = new List<int>();
+        static readonly List<int> Surface = new List<int>(), Checker = new List<int>(), Guard = new List<int>(), Side = new List<int>();
 
         // only: desenha tudo com este material (peça fantasma), sem pilares.
         // faixas 4: a arte da pista larga (a malha é em células; a raiz da pista tem escala 2).
         public void Build(Segment s, TrackTheme theme, Material only = null, int faixas = 2)
         {
             bool wide = faixas == 4 && theme != null && theme.Has4;
-            V.Clear(); UV.Clear(); Surface.Clear(); Checker.Clear(); Guard.Clear();
+            V.Clear(); UV.Clear(); Surface.Clear(); Checker.Clear(); Guard.Clear(); Side.Clear();
             var d = s.def;
             int dir = s.piece.dir;
             int n = TrackMath.Steps(d, 4f);
             var ts = new float[n + 1];
-            for (int k = 0; k <= n; k++) ts[k] = k / (float)n;
+            for (int j = 0; j <= n; j++) ts[j] = j / (float)n;
 
             // A mesma altura que os carrinhos usam (nível da peça + inclinação das curvas inclinadas).
             float Y(float t, float lateral) => TrackLayout.SurfaceY(s, t, lateral);
@@ -37,25 +37,82 @@ namespace Autorama
             // A textura do cruzamento cobre a peça inteira (v de 0 a 1 nas 4 células); as outras repetem a cada célula.
             // Na pista de 4, a largada também é uma imagem só (boxes numerados e bandeirada pintados nela).
             bool whole = d.IsCross || (wide && d.IsStart);
-            AddStrip(Surface, s, ts, -0.5f, 0.5f, 0f, whole ? 1f / d.Length : 1f, Y);
+            float vScale = whole ? 1f / d.Length : 1f;
+
+            // ----- Volume (seção 28 do guia) -----
+            // Medidas no mundo; a malha é em células, então na pista de 4 (raiz com escala 2) dividem por 2.
+            float k = TrackMath.Scale(faixas);
+            float thick = Thickness / k, depth = SlotDepth / k, hw = (faixas == 4 ? 0.011f : 0.022f);
+            Edge At(float o, float dy = 0f) => t => (o, dy, o + 0.5f);
+
+            // Tampo: no cruzamento as fendas se cruzam, então ele fica liso (a fenda é só pintada). Nas outras peças o
+            // tampo é cortado em faixas entre as fendas, e cada fenda desce "depth" com duas paredes e um fundo.
+            // O u da textura é sempre o deslocamento lateral (o + 0,5): a pintura continua no lugar; paredes e fundo
+            // usam o u do meio da fenda, que na textura é preto.
+            if (d.IsCross) AddBand(Surface, s, ts, At(-0.5f), At(0.5f), vScale, Y);
+            else
+            {
+                // Zebra em relevo no lado de fora das curvas planas (onde a textura pinta a zebra): sobe em chanfro,
+                // fica plana e desce na borda. Nas peças no alto o muro ocupa o lugar.
+                float kIn = wide ? 0.43f : 0.40f, kOut = wide ? 0.475f : 0.48f, kH = 0.022f / k, kB = 0.012f;
+                bool kerbL = only == null && d.IsCurve && !d.Banked && !s.High && dir > 0;
+                bool kerbR = only == null && d.IsCurve && !d.Banked && !s.High && dir < 0;
+                float from = -0.5f;
+                if (kerbL)
+                {
+                    AddBand(Surface, s, ts, At(-0.5f), At(-kOut, kH), vScale, Y);
+                    AddBand(Surface, s, ts, At(-kOut, kH), At(-kIn - kB, kH), vScale, Y);
+                    AddBand(Surface, s, ts, At(-kIn - kB, kH), At(-kIn), vScale, Y);
+                    from = -kIn;
+                }
+                foreach (float l in TrackMath.LanesOf(faixas))
+                {
+                    Edge dark(float o, float dy) => t => (o, dy, l + 0.5f);
+                    AddBand(Surface, s, ts, At(from), At(l - hw), vScale, Y);
+                    AddBand(Surface, s, ts, dark(l - hw, 0f), dark(l - hw, -depth), vScale, Y);          // parede esquerda (olha para a direita)
+                    AddBand(Surface, s, ts, dark(l - hw, -depth), dark(l + hw, -depth), vScale, Y);      // fundo
+                    AddBand(Surface, s, ts, dark(l + hw, -depth), dark(l + hw, 0f), vScale, Y);          // parede direita
+                    from = l + hw;
+                }
+                if (kerbR)
+                {
+                    AddBand(Surface, s, ts, At(from), At(kIn), vScale, Y);
+                    AddBand(Surface, s, ts, At(kIn), At(kIn + kB, kH), vScale, Y);
+                    AddBand(Surface, s, ts, At(kIn + kB, kH), At(kOut, kH), vScale, Y);
+                    AddBand(Surface, s, ts, At(kOut, kH), At(0.5f), vScale, Y);
+                }
+                else AddBand(Surface, s, ts, At(from), At(0.5f), vScale, Y);
+            }
+
+            // Muro com corpo: nas peças no alto (dos dois lados) e no lado de fora das curvas inclinadas.
+            float wallIn = wide ? 0.48f : 0.45f;
+            float wallH = (s.High ? (wide ? 0.12f : 0.1f) : 0.14f) / k;
+            bool wallL = only == null && (s.High || (d.Banked && dir > 0)), wallR = only == null && (s.High || (d.Banked && dir < 0));
+            float gv = wide ? 2f : 1f;
+            if (wallL)
+            {
+                AddBand(Guard, s, ts, At(-0.5f, wallH), At(-wallIn, wallH), gv, Y);                      // topo
+                AddBand(Guard, s, ts, At(-wallIn, wallH), At(-wallIn, 0f), gv, Y);                       // face de dentro
+            }
+            if (wallR)
+            {
+                AddBand(Guard, s, ts, At(wallIn, wallH), At(0.5f, wallH), gv, Y);
+                AddBand(Guard, s, ts, At(wallIn, 0f), At(wallIn, wallH), gv, Y);
+            }
+            // Laterais da base (do topo do muro, se houver, até embaixo) e, nas peças no alto, o fundo.
+            if (only == null)
+            {
+                AddBand(Side, s, ts, At(-0.5f, -thick), At(-0.5f, wallL ? wallH : 0f), 1f, Y);
+                AddBand(Side, s, ts, At(0.5f, wallR ? wallH : 0f), At(0.5f, -thick), 1f, Y);
+                if (s.High) AddBand(Side, s, ts, At(0.5f, -thick), At(-0.5f, -thick), 1f, Y);
+                AddCaps(s, thick, Y);
+            }
 
             if (d.IsStart && !wide)
             {
                 // Bandeirada: 1 célula de largura × 0,25 ao longo, a 1,2 célula do começo.
                 float t0 = 1.2f / d.Length, t1 = 1.45f / d.Length;
                 AddStrip(Checker, s, new[] { t0, t1 }, -0.5f, 0.5f, 0.004f, 1f / 0.25f, Y);
-            }
-            if (s.High && wide)
-            {
-                // Pista de 4: muro azul listrado, mais fino e mais alto, nas bordas de fora (o asfalto vai até ±0,475).
-                AddStrip(Guard, s, ts, -0.5f, -0.48f, 0.06f, 2f, Y);
-                AddStrip(Guard, s, ts, 0.48f, 0.5f, 0.06f, 2f, Y);
-            }
-            else if (s.High)
-            {
-                // Mureta clara dos dois lados das peças no alto.
-                AddStrip(Guard, s, ts, -0.5f, -0.45f, 0.05f, 1f, Y);
-                AddStrip(Guard, s, ts, 0.45f, 0.5f, 0.05f, 1f, Y);
             }
 
             if (mesh == null)
@@ -66,23 +123,78 @@ namespace Autorama
             mesh.Clear();
             mesh.SetVertices(V);
             mesh.SetUVs(0, UV);
-            mesh.subMeshCount = 3;
+            mesh.subMeshCount = 4;
             mesh.SetTriangles(Surface, 0);
             mesh.SetTriangles(Checker, 1);
             mesh.SetTriangles(Guard, 2);
+            mesh.SetTriangles(Side, 3);
             mesh.RecalculateNormals();
             mesh.RecalculateBounds();
 
             var mr = GetComponent<MeshRenderer>();
-            mr.sharedMaterials = only != null ? new[] { only, only, only }
-                : wide ? new[] { theme.Surface(d, dir, 4), theme.checker, theme.guard4 != null ? theme.guard4 : theme.guard }
-                : new[] { theme.Surface(d, dir), theme.checker, theme.guard };
+            var side = theme != null && theme.side != null ? theme.side : theme != null ? theme.support : null;
+            mr.sharedMaterials = only != null ? new[] { only, only, only, only }
+                : wide ? new[] { theme.Surface(d, dir, 4), theme.checker, theme.guard4 != null ? theme.guard4 : theme.guard, theme.side4 != null ? theme.side4 : side }
+                : new[] { theme.Surface(d, dir), theme.checker, theme.guard, side };
             mr.shadowCastingMode = only != null ? UnityEngine.Rendering.ShadowCastingMode.Off : UnityEngine.Rendering.ShadowCastingMode.On;
 
             var col = GetComponent<MeshCollider>();
             if (col) { col.sharedMesh = null; col.sharedMesh = mesh; }
 
             BuildPillars(s, only == null ? theme : null, wide);
+            if (only == null && d.IsStart) BuildGantry(s, theme, wide, k);
+        }
+
+        // Pórtico sobre a bandeirada: dois postes fora da pista, uma travessa quadriculada e o semáforo de três luzes
+        // (StartLights acende com a contagem da corrida). Medidas no mundo, divididas pela escala da pista.
+        public static readonly List<Renderer> StartLights = new List<Renderer>();
+
+        void BuildGantry(Segment s, TrackTheme theme, bool wide, float k)
+        {
+            StartLights.Clear();
+            float t = RaceSim.LineS / s.def.Length;
+            var q = TrackMath.PoseAt(s.a, s.def, s.piece.dir, t);
+            var rot = Quaternion.Euler(0f, -q.heading, 0f);
+            float baseY = TrackLayout.SurfaceY(s, t, 0f);
+            float h = 0.95f / k, post = 0.07f / k, beamH = 0.16f / k, half = 0.5f + 0.09f / k;
+            var steel = wide && theme.support4 != null ? theme.support4 : theme.support;
+            foreach (float side in new[] { -half, half })
+            {
+                var o = TrackMath.Offset(q, side);
+                pillars.Add(Box("Poste da largada", steel, new Vector3(o.x, baseY + (h - Thickness / k) / 2f, o.y), new Vector3(post, h + Thickness / k, post), rot));
+            }
+            // Travessa: comprimento atravessando a pista (eixo Z local da peça, depois da rotação do rumo).
+            pillars.Add(Box("Travessa da largada", theme.checker, new Vector3(q.pos.x, baseY + h - beamH / 2f, q.pos.y), new Vector3(post * 0.8f, beamH, half * 2f + post), rot));
+            // Semáforo: três luzes penduradas na frente da travessa, viradas para quem larga.
+            var back = TrackMath.Dir(q.heading) * -(post * 0.8f);
+            for (int i = -1; i <= 1; i++)
+            {
+                var o = TrackMath.Offset(q, i * 0.16f) + back;
+                var go = Box("Luz da largada", steel, new Vector3(o.x, baseY + h - beamH - 0.05f / k, o.y), Vector3.one * (0.09f / k), rot);
+                // Cada luz tem o próprio material, para acender sem mexer nas outras.
+                var r = go.GetComponent<MeshRenderer>();
+                r.sharedMaterial = new Material(steel) { hideFlags = HideFlags.DontSave };
+                r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                StartLights.Add(r);
+                pillars.Add(go);
+            }
+            SetStartLights(0, false);
+        }
+
+        // red: quantas luzes vermelhas acesas (0 a 3); green: todas verdes (largada).
+        public static void SetStartLights(int red, bool green)
+        {
+            for (int i = 0; i < StartLights.Count; i++)
+            {
+                var r = StartLights[i];
+                if (!r) continue;
+                Color c = green ? new Color(0.17f, 0.76f, 0.4f) : i < red ? new Color(0.88f, 0.22f, 0.17f) : new Color(0.16f, 0.18f, 0.18f);
+                var m = r.sharedMaterial;
+                m.SetColor("_BaseColor", c);
+                bool on = green || i < red;
+                if (on) m.EnableKeyword("_EMISSION"); else m.DisableKeyword("_EMISSION");
+                m.SetColor("_EmissionColor", on ? c * 2.2f : Color.black);
+            }
         }
 
         // Destaque por cima da peça: seleção (amarelo) ou sobreposição (vermelho).
@@ -99,7 +211,7 @@ namespace Autorama
                 overlay.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             }
             overlay.GetComponent<MeshFilter>().sharedMesh = mesh;
-            overlay.sharedMaterials = new[] { m, m, m };
+            overlay.sharedMaterials = new[] { m, m, m, m };
             overlay.enabled = true;
         }
 
@@ -107,7 +219,12 @@ namespace Autorama
         // (bordas e meio), com uma travessa embaixo do tabuleiro.
         void BuildPillars(Segment s, TrackTheme theme, bool wide = false)
         {
-            foreach (var p in pillars) Kill(p);
+            foreach (var p in pillars)
+            {
+                // As luzes do pórtico têm material próprio: vai junto.
+                if (p != null && p.name == "Luz da largada") Kill(p.GetComponent<MeshRenderer>().sharedMaterial);
+                Kill(p);
+            }
             pillars.Clear();
             if (theme == null || !s.High) return;
             if (wide) { BuildPillars4(s, theme); return; }
@@ -125,8 +242,9 @@ namespace Autorama
                     Kill(go.GetComponent<Collider>());
                     go.transform.SetParent(transform, false);
                     var o = TrackMath.Offset(q, side);
-                    go.transform.localPosition = new Vector3(o.x, h / 2f - 0.01f, o.y);
-                    go.transform.localScale = new Vector3(0.1f, h / 2f, 0.1f);
+                    // Do tampo da mesa (que fica Thickness abaixo do nível 0) até a pista.
+                    go.transform.localPosition = new Vector3(o.x, (h - Thickness) / 2f, o.y);
+                    go.transform.localScale = new Vector3(0.1f, (h + Thickness) / 2f, 0.1f);
                     go.GetComponent<MeshRenderer>().sharedMaterial = theme.support;
                     pillars.Add(go);
                 }
@@ -147,7 +265,8 @@ namespace Autorama
                 {
                     var o = TrackMath.Offset(q, side);
                     float top = TrackLayout.SurfaceY(s, t, side) - 0.06f;
-                    pillars.Add(Box("Pilar", mat, new Vector3(o.x, top / 2f, o.y), new Vector3(0.05f, top, 0.05f), rot));
+                    float foot = Thickness / 2f;      // a mesa fica Thickness (mundo) abaixo do nível 0; aqui a escala é 2
+                    pillars.Add(Box("Pilar", mat, new Vector3(o.x, (top - foot) / 2f, o.y), new Vector3(0.05f, top + foot, 0.05f), rot));
                 }
                 // Travessa logo abaixo da pista, de borda a borda.
                 pillars.Add(Box("Travessa", mat, new Vector3(q.pos.x, TrackLayout.SurfaceY(s, t, 0f) - 0.035f, q.pos.y), new Vector3(0.06f, 0.05f, 0.95f), rot));
@@ -166,6 +285,57 @@ namespace Autorama
             go.transform.localScale = size;
             go.GetComponent<MeshRenderer>().sharedMaterial = mat;
             return go;
+        }
+
+        // Medidas do volume, no mundo: espessura da base e fundura da fenda.
+        public const float Thickness = 0.09f, SlotDepth = 0.035f;
+
+        // Uma borda de faixa num ponto t da peça: deslocamento lateral, altura sobre a superfície e u da textura.
+        delegate (float o, float dy, float u) Edge(float t);
+
+        // Faixa entre duas bordas ao longo da peça. Indo de a para b "para a direita", a face olha para cima;
+        // indo para baixo, olha para a direita; para cima, para a esquerda; para a esquerda, para baixo.
+        // Cada faixa tem os próprios vértices: as quinas ficam vivas (low-poly).
+        static void AddBand(List<int> tri, Segment s, float[] ts, Edge a, Edge b, float vScale, System.Func<float, float, float> y)
+        {
+            int start = V.Count;
+            float dist = 0f;
+            Vector2 prev = default;
+            for (int i = 0; i < ts.Length; i++)
+            {
+                var q = TrackMath.PoseAt(s.a, s.def, s.piece.dir, ts[i]);
+                if (i > 0) dist += Vector2.Distance(q.pos, prev);
+                prev = q.pos;
+                var ea = a(ts[i]); var eb = b(ts[i]);
+                Vector2 l = TrackMath.Offset(q, ea.o), r = TrackMath.Offset(q, eb.o);
+                V.Add(new Vector3(l.x, y(ts[i], ea.o) + ea.dy, l.y));
+                V.Add(new Vector3(r.x, y(ts[i], eb.o) + eb.dy, r.y));
+                UV.Add(new Vector2(ea.u, dist * vScale));
+                UV.Add(new Vector2(eb.u, dist * vScale));
+                if (i > 0)
+                {
+                    int k = start + i * 2;
+                    tri.Add(k - 2); tri.Add(k); tri.Add(k - 1);
+                    tri.Add(k - 1); tri.Add(k); tri.Add(k + 1);
+                }
+            }
+        }
+
+        // Tampas nas duas pontas da peça (o corte da base), para a ponta aberta da pista não ficar oca.
+        static void AddCaps(Segment s, float thick, System.Func<float, float, float> y)
+        {
+            foreach (float t in new[] { 0f, 1f })
+            {
+                var q = TrackMath.PoseAt(s.a, s.def, s.piece.dir, t);
+                Vector2 l = TrackMath.Offset(q, -0.5f), r = TrackMath.Offset(q, 0.5f);
+                float yl = y(t, -0.5f), yr = y(t, 0.5f);
+                int k = V.Count;
+                V.Add(new Vector3(l.x, yl, l.y)); V.Add(new Vector3(r.x, yr, r.y));
+                V.Add(new Vector3(l.x, yl - thick, l.y)); V.Add(new Vector3(r.x, yr - thick, r.y));
+                for (int i = 0; i < 4; i++) UV.Add(new Vector2(i % 2, i / 2));
+                if (t == 0f) { Side.Add(k); Side.Add(k + 1); Side.Add(k + 2); Side.Add(k + 2); Side.Add(k + 1); Side.Add(k + 3); }
+                else { Side.Add(k); Side.Add(k + 2); Side.Add(k + 1); Side.Add(k + 1); Side.Add(k + 2); Side.Add(k + 3); }
+            }
         }
 
         // Faixa entre os deslocamentos o1 (esquerda) e o2 (direita) nos pontos ts da peça.

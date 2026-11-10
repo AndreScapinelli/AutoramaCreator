@@ -148,6 +148,8 @@ namespace Autorama.EditorTools
             theme.guard      = Lit("Mureta", null, new Color32(0xD9, 0xDC, 0xD6, 0xFF));
             theme.support    = Lit("Pilar", null, new Color32(0x8A, 0x91, 0x96, 0xFF));
             theme.arrow      = Unlit("Seta", T("seta-insercao"), Color.white, true);
+            theme.side       = Lit("Base Pista", null, new Color32(0x1F, 0x24, 0x22, 0xFF));     // plástico escuro da base (3D)
+            theme.side4      = Lit("Base Pista4", null, new Color32(0x1C, 0x22, 0x28, 0xFF));
             theme.selected   = Unlit("Selecao", null, new Color(0.96f, 0.76f, 0.1f, 0.35f), true);
             theme.overlap    = Unlit("Sobreposicao", T("sobreposicao"), Color.white, true);
             boardMat         = Lit("Mesa", T("grade-mesa"), Color.white);

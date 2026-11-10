@@ -51,6 +51,7 @@ namespace Autorama
         public float slope;      // níveis por célula (rampa)
         public float z;          // nível de altura
         public int piece;
+        public float bank;       // inclinação lateral da pista em graus (> 0: o lado direito é mais alto), para deitar o carrinho 3D
     }
 
     // Um trilho como polilinha com distância acumulada. Cada ponto sabe a curvatura, a aderência, a altura e a peça.
@@ -61,6 +62,7 @@ namespace Autorama
         readonly List<Vector2> pts = new List<Vector2>();
         readonly List<float> ys = new List<float>(), ks = new List<float>(), gm = new List<float>(), zs = new List<float>(), gs = new List<float>(), cum = new List<float>();
         readonly List<int> pis = new List<int>();
+        readonly List<float> bks = new List<float>();
         public readonly List<float> marks = new List<float>();     // distâncias da bandeirada dentro do caminho
         public float Total => cum.Count > 0 ? cum[cum.Count - 1] : 0f;
 
@@ -91,6 +93,7 @@ namespace Autorama
                         var q = TrackMath.PoseAt(s.a, d, s.piece.dir, t);
                         pts.Add(TrackMath.Offset(q, o) * scale);
                         ys.Add(TrackLayout.SurfaceY(s, t, o) * scale);
+                        bks.Add(d.Banked ? Mathf.Atan2(TrackLayout.SurfaceY(s, t, o + 0.1f) - TrackLayout.SurfaceY(s, t, o - 0.1f), 0.2f) * Mathf.Rad2Deg : 0f);
                         ks.Add(kap); gm.Add(d.GripMultiplier); zs.Add(s.ZAt(t)); gs.Add(slope); pis.Add(si);
                     }
                     if (d.IsCross) off = -off;
@@ -139,6 +142,7 @@ namespace Autorama
                 pos = Vector2.Lerp(a, b, t),
                 heading = Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg,
                 y = Mathf.Lerp(ys[lo], ys[hi], t),
+                bank = Mathf.Lerp(bks[lo], bks[hi], t),
                 k = ks[hi], grip = gm[hi], slope = gs[hi], z = Mathf.Lerp(zs[lo], zs[hi], t), piece = pis[hi],
             };
         }
@@ -469,6 +473,9 @@ namespace Autorama
             var c = cars[k];
             return c.mode == CarMode.Off ? c.flyZ : PathOf(k).At(c.s).z;
         }
+
+        // Inclinação lateral da pista embaixo do carrinho (0 fora da pista).
+        public float CarBank(int k) => cars[k].mode == CarMode.Off ? 0f : PathOf(k).At(cars[k].s).bank;
 
         public int CarPiece(int k) => PathOf(k).At(cars[k].s).piece;
 

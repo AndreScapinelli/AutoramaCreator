@@ -19,6 +19,7 @@ namespace Autorama
         public Material guard;                      // mureta das peças no alto
         public Material support;                    // pilares
         public Material arrow;                      // seta do ponto de inserção
+        public Material side, side4;                // laterais e fundo da base da pista (3D, seção 28); sem eles, usa o dos pilares
 
         [Header("Pista de 4 carros (arte própria, seção 25)")]
         public Material straight4;

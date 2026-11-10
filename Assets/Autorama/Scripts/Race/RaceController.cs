@@ -162,20 +162,15 @@ namespace Autorama
             return carMaterials[k % 2];      // sem o tema novo: repete a cor (a pintura do campeonato cobre)
         }
 
+        readonly CarView[] carViews = new CarView[RaceSim.MaxCars];
+
         void CreateCars()
         {
             for (int k = 0; k < RaceSim.MaxCars; k++)
             {
-                var go = GameObject.CreatePrimitive(PrimitiveType.Quad);
-                go.name = CarNames[k];
-                Destroy(go.GetComponent<Collider>());
-                var baseMat = BaseCarMaterial(k);
-                carMats[k] = new Material(baseMat) { name = baseMat.name + " (cópia)" };
-                go.GetComponent<MeshRenderer>().sharedMaterial = carMats[k];
-                // A imagem cobre 0,64 × 0,384 célula; a carroceria (0,60 × 0,32) é a mesma caixa da colisão.
-                go.transform.localScale = new Vector3(0.64f, 0.384f, 1f);
-                go.transform.SetParent(transform, false);
-                cars[k] = go.transform;
+                // Carrinho 3D (seção 28): duas cores, a principal é a do trilho ou a do piloto.
+                carViews[k] = CarView.Create(CarNames[k], builder.theme.support, LaneColors[k], transform);
+                cars[k] = carViews[k].transform;
             }
         }
 
@@ -348,10 +343,12 @@ namespace Autorama
                 if (cars[k].gameObject.activeSelf != on) cars[k].gameObject.SetActive(on);
                 if (!on) continue;
                 var p = sim.CarPose(k, out float y, out float pitch);
-                var pos = new Vector3(p.pos.x, y + 0.035f, p.pos.y);
+                var pos = new Vector3(p.pos.x, y, p.pos.y);
                 cars[k].position = pos;
-                // Deitado, frente para +X; inclina na rampa e gira para o rumo.
-                cars[k].rotation = Quaternion.Euler(0f, -p.heading, 0f) * Quaternion.Euler(0f, 0f, pitch) * Quaternion.Euler(90f, 0f, 0f);
+                // Frente para +X: gira para o rumo, inclina na rampa e deita na curva inclinada.
+                cars[k].rotation = Quaternion.Euler(0f, -p.heading, 0f) * Quaternion.Euler(0f, 0f, pitch) * Quaternion.Euler(sim.CarBank(k), 0f, 0f);
+                var st = sim.cars[k];
+                carViews[k].Tick(st.mode == CarMode.OnSlot ? st.v : 0f, st.mode == CarMode.Off, Time.deltaTime);
                 carPos[k] = pos; carHeading[k] = p.heading;
             }
             if (panel != null && panel.RaceMode)
@@ -903,6 +900,8 @@ namespace Autorama
             UpdateCountdown();
             bool showLights = sim.phase == RaceSim.Phase.Countdown || (sim.phase == RaceSim.Phase.Running && sim.t - sim.Manche * (sim.ByTime ? sim.MancheLen : 0f) < 1f);
             lights.style.display = showLights ? DisplayStyle.Flex : DisplayStyle.None;
+            // O semáforo 3D do pórtico acompanha as luzes da tela.
+            TrackPieceView.SetStartLights(sim.phase == RaceSim.Phase.Countdown ? Mathf.Min(3, Mathf.FloorToInt(sim.t / (RaceSim.Count / 3f)) + 1) : 0, sim.phase == RaceSim.Phase.Running && showLights);
             if (showLights)
             {
                 int n = sim.phase == RaceSim.Phase.Countdown ? Mathf.Min(3, Mathf.FloorToInt(sim.t / (RaceSim.Count / 3f)) + 1) : 0;
