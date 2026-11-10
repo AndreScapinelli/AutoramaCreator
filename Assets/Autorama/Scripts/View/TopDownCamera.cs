@@ -210,23 +210,31 @@ namespace Autorama
             Vector3 lo = raceCarPos[0], hi = raceCarPos[0];
             for (int i = 1; i < raceCars; i++) { lo = Vector3.Min(lo, raceCarPos[i]); hi = Vector3.Max(hi, raceCarPos[i]); }
             Vector3 center = focusCar >= 0 ? raceCarPos[focusCar] : (lo + hi) * 0.5f;
+            // Folga em volta dos carrinhos: pelo menos 2,5 unidades ou 30% da distância entre eles (na pista de 4 tudo é
+            // 2× maior), mais o que a câmera atrasa ao seguir. O placar (em cima) e os painéis dos jogadores (embaixo)
+            // cobrem ~30% da altura: o enquadramento usa só a faixa livre (UiFree) e sobe o centro para o meio dela.
+            const float UiFree = 0.7f, UiLift = 0.12f;
             float needed;
             if (focusCar >= 0)
             {
-                needed = 5.5f;
+                needed = 7f;
             }
             else
             {
-                float halfX = (hi.x - lo.x) * 0.5f + 1.3f;
-                float halfZ = (hi.z - lo.z) * 0.5f + 1.1f;
+                float sx = hi.x - lo.x, sz = hi.z - lo.z;
+                float margin = Mathf.Max(2.5f, 0.3f * Mathf.Max(sx, sz));
+                float halfX = sx * 0.5f + margin;
+                float halfZ = (sz * 0.5f + margin) / UiFree;
                 needed = Mathf.Max(halfZ, halfX / Mathf.Max(0.1f, cam.aspect));
             }
-            needed = Mathf.Clamp(needed * distanceScale, Mathf.Max(minSize, 3f), maxSize);
+            needed = Mathf.Clamp(needed * distanceScale, Mathf.Max(minSize, 4f), Mathf.Max(maxSize, 60f));
 
             float dt = Time.unscaledDeltaTime;
             float blendPos = 1f - Mathf.Exp(-8f * dt);
-            focus = Vector3.Lerp(focus, new Vector3(center.x, 0f, center.z), blendPos);
-            autoSize = Mathf.Lerp(autoSize, needed, 1f - Mathf.Exp(-6f * dt));
+            focus = Vector3.Lerp(focus, new Vector3(center.x, 0f, center.z - UiLift * autoSize), blendPos);
+            // Afasta rápido (ninguém sai da tela) e aproxima devagar (sem ficar pulsando).
+            float rate = needed > autoSize ? 10f : 2.5f;
+            autoSize = Mathf.Lerp(autoSize, needed, 1f - Mathf.Exp(-rate * dt));
 
             cam.orthographic = true;
             cam.orthographicSize = autoSize;

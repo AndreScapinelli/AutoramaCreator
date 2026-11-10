@@ -1428,6 +1428,8 @@ Implementação Unity:
 
 Teste da correção (Play mode, `script eval` chamando `ApplyAutoDoisCarros` com os carrinhos em (−8, 0) e (8, 3)): `focus -1` → câmera em x 0,0 / z 1,5 (meio); `focus 0` → (−8, 0); `focus 1` → (8, 3).
 
+**Folga da Dinâmica** (os carrinhos chegavam no limite da tela, principalmente na pista de 4): a folga em volta do retângulo dos carrinhos passou de fixa (1,3 de lado, 1,1 em cima) para **max(2,5; 30% da maior distância entre eles)**. O placar em cima e os painéis dos jogadores embaixo cobrem ~30% da altura: a altura pedida é dividida por `UiFree = 0,7` e o centro sobe `UiLift = 0,12 × tamanho` para ficar no meio da faixa livre. A câmera **afasta rápido** (taxa 10) e **aproxima devagar** (2,5). Com um carrinho em foco (online), o enquadramento-base subiu de 5,5 para 7. Tamanho entre 4 e `max(maxSize, 60)`. Ainda não conferido na tela.
+
 Parâmetros usados no first pass (podem ser refinados com playtest):
 
 - Third person:
