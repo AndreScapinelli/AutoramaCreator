@@ -21,6 +21,8 @@ namespace Autorama
         public int cameraDistance = 100; // escala do enquadramento: 70% mais perto, 160% mais longe
         public int halfGas = 60;        // tecla de meia aceleração (Q · O): até onde o acelerador vai, em %
         public bool bot34 = true;       // pista de 4 carros, corrida livre: os trilhos 3 e 4 são robôs (qualidade botSkill)
+        public int motorSound = 3;      // qual som de motor (0 broca, 1 elétrico suave, 2 escovas, 3 turbina, 4 ronco, 5 motor.wav)
+        public int volume = 70;         // volume dos sons da corrida, 0 a 100 (seção 29)
         public int cars4 = 4;           // pista de 4, corrida livre: quantos carrinhos (2, 3 ou 4); os trilhos de cima ficam vazios
         public bool byTime;             // corrida por tempo (seção 26): dura "secs" e se divide em uma manche por trilho
         public int secs = 120;          // duração total da corrida por tempo, em segundos

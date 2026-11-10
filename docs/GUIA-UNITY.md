@@ -2810,3 +2810,54 @@ Play mode, 8 com ponte, câmera perto do carrinho azul (`docs/previa-3d.png`): f
 1. Trocar o carrinho provisório pelo modelo.
 2. Sala em volta da mesa (ProBuilder), luz mais quente e pós-processamento leve.
 3. Ajustar as câmeras 3D e "Atrás do carro" para o novo visual (não foram vistas em movimento: o Editor estava em segundo plano).
+
+## 29. Som (branch `jogo-3d`)
+
+Todos os sons são **sintetizados em tempo de execução** (`RaceController.Audio.cs`), sem arquivos de áudio: `AudioClip.Create` + `SetData`, 44,1 kHz, mono. A cena não tinha `AudioListener`; `AudioStart` põe um na câmera.
+
+| Som | Como é feito | Quando toca |
+|---|---|---|
+| **Motor** (um por carrinho, em laço) | Silvo agudo tipo broca de dentista: 1400 e 1409 Hz batendo entre si, mais 2800, 4200 e 5609 Hz e um chiado de ar leve; sem grave (a 1ª versão era um zumbido de 90 Hz, que não agradou) | Volume `(0,25 + 0,75·T) × min(1, 6·v/vmax + T)`; **tom** `0,55 + 1,9 · √(v/vmax)` (× 1,03 por trilho): de ~770 Hz parado a ~3,4 kHz no fundo. 0,15 por carro (0,10 na pista de 4) |
+| **Pneu** (um por carrinho, em laço) | Ruído num ressonador de dois polos em 2,2 kHz, pontas cruzadas | Quando a derrapagem passa de 25%: volume `((slip − 0,25)/0,75)² × 0,5` |
+| Bipe | 520 Hz, 0,2 s | A cada luz vermelha da contagem (também nas manches) |
+| Largada | 1040 Hz + oitava, 0,55 s | Luz verde |
+| Batida | Ruído + grave descendo, 0,22 s | `sim.Spark` (primeiro toque de cada par) |
+| Saída de pista | Três estalos de "plástico quicando", 0,6 s | Quando `offs` de um carrinho sobe |
+| Volta | Dois tons (880 → 1320 Hz), 0,35 s | `sim.LapDone` (mais baixo para os robôs) |
+| Troca de trilho | 660 → 440 Hz, 0,5 s | Entrada na fase `Switch` (corrida por tempo) |
+| Vitória | Dó, mi, sol, dó, 1,1 s | Quando `winner` aparece |
+
+- **Volume:** `RaceSettings.volume` (0 a 100, padrão 70), controle "Som" nos Ajustes da aba Corrida. Fora das abas de corrida fica tudo mudo.
+- `AudioTick` roda em todo `Update` (corrida livre, campeonato e online).
+- Os laços ficam sempre tocando, com volume 0 quando não há o que ouvir; se a Unity parar algum, `AudioTick` religa.
+
+### 29.0 Opções de motor
+
+O timbre do motor não agradou nas duas primeiras versões (zumbido grave, depois o silvo de broca) e não dá para o assistente ouvir. Por isso o motor virou uma **escolha**: nos Ajustes da aba Corrida, o botão **Som do motor: … ▸** alterna as opções, inclusive no meio da corrida (`RaceSettings.motorSound`, `NextMotor`, `MotorSound { clip, p0, p1, vol }`; tom = `Lerp(p0, p1, √(v/vmax))`).
+
+| Opção | Receita | Tom (parado → fundo) |
+|---|---|---|
+| Broca | 1400 + 1409 Hz batendo, 2800, 4200, 5609 Hz e chiado leve | 0,55 → 2,45 |
+| Elétrico suave | 420 Hz quase puro, com um pouco de 840 e 1260 Hz | 0,6 → 2,6 |
+| Escovas | Dente de serra de 170 Hz (9 harmônicos) modulado em 340 Hz, com "areia" | 0,6 → 2,4 |
+| **Turbina** (padrão, a escolhida; volume 0,4, quase metade do primeiro ajuste) | Chiado de ar forte com silvo de 2100 + 2112 Hz | 0,6 → 2,0 |
+| Ronco | Dente de serra de 70 Hz (6 harmônicos) com 35 Hz | 0,7 → 2,8 |
+| Seu arquivo | `persistentDataPath/autorama/sons/motor.wav` (PCM 16 bits, mono ou estéreo), lido por `LoadWav`; só aparece se o arquivo existir | 0,6 → 2,0 |
+
+Para a gravação: um trecho curto (1 a 3 s) de motor em rotação constante, que emende bem em laço.
+
+Teste: as 5 opções carregam, alternam em sequência e ficam tocando (pico entre 0,62 e 0,89). O `motor.wav` não foi testado (não havia arquivo).
+
+### 29.1 Teste
+
+Play mode, `script eval` (os números, não o ouvido: **ninguém ouviu ainda**):
+
+- 1 `AudioListener`; os 9 clipes existem com as durações da tabela, pico entre 0,34 e 1,00, e todos começam e terminam em 0 (sem estalo). O primeiro teste achou o som de saída de pista começando em −0,40 e a vitória terminando em 0,08: corrigidos com um ataque de 3 ms e uma queda de 50 ms.
+- Corrida no oval com dois robôs (qualidade 90 e 30): motor do carro 1 com volume máximo 0,168 e tom de 0,70 a 2,74; pneu com volume máximo 0,288; 1 saída de pista; efeitos tocando no fim (vitória). No grid: motor e pneu em 0.
+- Os laços não estavam tocando no primeiro teste (`isPlaying` falso); com o religar no `AudioTick`, motor e pneu aparecem tocando.
+
+### 29.2 O que falta
+
+1. **Ouvir e ajustar o timbre** (principalmente o motor e o pneu).
+2. Som nos menus e no construtor (clique, encaixe de peça), música.
+3. Som posicional (3D) seguindo cada carrinho.

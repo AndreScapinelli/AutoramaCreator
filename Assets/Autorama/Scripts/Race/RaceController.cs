@@ -136,6 +136,7 @@ namespace Autorama
             sim.LapDone += OnLapDone;
             CreateCars();
             CreateSparks();
+            AudioStart();
             BuildUI();
             BuildChampUI();
             BuildOnlineUI();
@@ -306,6 +307,7 @@ namespace Autorama
         void Update()
         {
             OnlineTick();
+            AudioTick();
             if (OnlineRun) { OnlineRunUpdate(); return; }
             if (sim == null || !sim.Ready) return;
             if (!panel.RaceMode) { PlaceCars(); return; }       // no construtor, os carrinhos ficam no grid
@@ -439,6 +441,7 @@ namespace Autorama
             var ramp = new Slider(0.2f, 1.5f) { value = set.ramp };
             var grip = new Slider(15f, 45f) { value = set.grip };
             var col = new Toggle("Colisão entre carrinhos") { value = set.collide };
+            var vol = new SliderInt(0, 100) { value = Mathf.Clamp(set.volume, 0, 100) };
             var half = new SliderInt(20, 90) { value = Mathf.Clamp(set.halfGas, 20, 90) };
             void Labels()
             {
@@ -471,6 +474,14 @@ namespace Autorama
             ramp.RegisterValueChangedCallback(e => { set.ramp = e.newValue; set.Save(); Labels(); });
             grip.RegisterValueChangedCallback(e => { set.grip = e.newValue; set.Save(); Labels(); });
             col.RegisterValueChangedCallback(e => { set.collide = e.newValue; set.Save(); });
+            vol.AddToClassList("setting"); adj.Add(vol);
+            // Som do motor: alterna entre as opções (dá para trocar no meio da corrida e ouvir na hora).
+            Button motorBtn = null;
+            motorBtn = Btn("", () => { NextMotor(); motorBtn.text = $"Som do motor: <b>{MotorName}</b>  ▸"; }, "btn", adj);
+            motorBtn.text = $"Som do motor: <b>{MotorName}</b>  ▸";
+            motorBtn.tooltip = "Clique para ouvir o próximo. Para usar uma gravação sua, ponha motor.wav (PCM 16 bits) em " + System.IO.Path.Combine(TrackLibrary.Root, "sons");
+            vol.label = $"Som: {set.volume}%";
+            vol.RegisterValueChangedCallback(e => { set.volume = e.newValue; set.Save(); vol.label = $"Som: {set.volume}%"; });
             half.RegisterValueChangedCallback(e => { set.halfGas = e.newValue; set.Save(); Labels(); });
             Labels();
 
