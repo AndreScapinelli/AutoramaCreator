@@ -46,7 +46,7 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
   const snapshot = r => ({
     code: r.code, name: r.name, pub: r.pub, host: r.host, max: MAX_PLAYERS, state: r.state,
     players: r.players.map(p => ({ id: p.id, name: p.name, color: p.color, ready: p.id === r.host || !!p.ready })),   // o host está sempre pronto
-    stages: r.stages.map(s => ({ name: s.name, laps: s.laps, secs: s.secs, hash: s.hash })),
+    stages: r.stages.map(s => ({ name: s.name, laps: s.laps, secs: s.secs, tempo: s.tempo, faixas: s.faixas, hash: s.hash })),
   });
   const broadcast = (r, msg) => r.players.forEach(p => send(p, msg));
   const pushRoom = r => broadcast(r, { t: 'room', room: snapshot(r) });
@@ -161,7 +161,7 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
       if (!(rules.vmax >= 8 && rules.vmax <= 20 && rules.ramp >= 0.2 && rules.ramp <= 1.5 && rules.grip >= 15 && rules.grip <= 45)) return fail(c, 'regras', 'Regras inválidas.');
       r.state = 'racing';
       const title = clean(m.name, 40) || `Campeonato de ${c.name}`;
-      const msg = { t: 'started', title, rules, pilots: snapshot(r).players, stages: r.stages.map(s => ({ name: s.name, laps: s.laps, secs: s.secs, hash: s.hash, json: s.json })) };
+      const msg = { t: 'started', title, rules, pilots: snapshot(r).players, stages: r.stages.map(s => ({ name: s.name, laps: s.laps, secs: s.secs, tempo: s.tempo, faixas: s.faixas, hash: s.hash, json: s.json })) };
       broadcast(r, msg);
       say(r, `${c.name} largou o campeonato "${title}".`);
       pushRoom(r);
@@ -215,9 +215,10 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
         const secs = s && s.secs != null && Number(s.secs) !== 0 ? Math.round(Number(s.secs)) : 120;   // corrida por tempo (cliente antigo: 120)
         if (!s || !/^[0-9a-f]{8}$/.test(String(s.hash)) || !(laps >= 1 && laps <= 30) || !(secs >= 60 && secs <= 600) || typeof s.json !== 'string' || !s.json || s.json.length > MAX_TRACK_JSON)
           return fail(c, 'etapas', 'Etapa inválida ou pista grande demais.');
-        out.push({ name: clean(s.name, 60) || 'Pista', laps, secs, hash: s.hash, json: s.json });
+        // tempo: o formato que o host escolheu (por tempo); faixas: pista de 2 ou 4 carros. Só repassados para os visitantes verem.
+        out.push({ name: clean(s.name, 60) || 'Pista', laps, secs, tempo: !!s.tempo, faixas: Number(s.faixas) === 4 ? 4 : 2, hash: s.hash, json: s.json });
       }
-      const mudou = JSON.stringify(out.map(s => [s.hash, s.laps, s.secs])) !== JSON.stringify(r.stages.map(s => [s.hash, s.laps, s.secs]));
+      const mudou = JSON.stringify(out.map(s => [s.hash, s.laps, s.secs, s.tempo])) !== JSON.stringify(r.stages.map(s => [s.hash, s.laps, s.secs, s.tempo]));
       r.stages = out;
       if (mudou && r.players.some(p => p !== c && p.ready)) { r.players.forEach(p => { p.ready = false; }); say(r, 'O host mudou as etapas: confirmem "pronto" de novo.'); }
       pushRoom(r);

@@ -2721,7 +2721,8 @@ Segundo formato de prova, ao lado do **por voltas**. A corrida tem uma duração
 
 ### 26.5 Online
 
-- O formato é o da aba Corrida do host, como as outras regras: `start` leva `byTime`, e cada etapa leva `secs` (`NetStage.secs`; cliente antigo sem o campo vale 120). No lobby, o host ajusta a duração de cada etapa quando está por tempo.
+- No lobby, seção **ETAPAS**, o host tem **FORMATO: Por voltas · Por tempo** (o mesmo ajuste `set.byTime` da aba Corrida, então largar usa o que está ali) e **PISTA: 2 carros · 4 carros** (`onlineFaixas`; a lista de pistas mostra só as do tipo escolhido, e trocar com etapas na lista pede um segundo clique e as tira). Todos leem a linha "**Por tempo · pistas de 4 carros** · com 3 jogadores, 1 trilho fica vazio em cada bateria".
+- `start` leva `byTime`; cada etapa leva `secs`, `tempo` (o formato) e `faixas` (`NetStage`). O servidor Node e o transporte da Steam só validam `secs` (60 a 600) e repassam `tempo` e `faixas` no resumo da sala, que é de onde os visitantes leem o formato. Cliente antigo sem os campos: 120 s, por voltas, 2 carros.
 - O servidor Node e o transporte da Steam validam `secs` entre 60 e 600 e repassam `byTime` no `started`.
 - Snapshot: `mi` (manche) e `rt` (relógio guardado) na corrida; cada carro leva `lane`, `cb` (crossBase) e `ld` (lapDirty). O visitante só mantém a predição do próprio carrinho se ele estiver no mesmo trilho do host.
 - Online continua só de 2 carros; por tempo com 3 pilotos, o grupo de 1 corre sozinho.
@@ -2740,7 +2741,7 @@ Segundo formato de prova, ao lado do **por voltas**. A corrida tem uma duração
 - O relógio de prova fecha em 60,000 s; com as pausas, o tempo real foi 67,4 s (pista de 2) e 77,3 s (pista de 4).
 - Por voltas: os números da seção 25.7 continuam idênticos.
 - Grupos: os cinco exemplos acima conferidos. Etapa por tempo com 3 pilotos em 2 trilhos: ordem pela distância (11,2 · 10,9 · 10,5), pontos 10+1 (melhor volta), 8, 6.
-- `servidor`: `npm test` continua passando.
+- `servidor`: `npm test` continua passando, com dois testes novos: `secs`, `tempo` e `faixas` chegam aos visitantes (sem os campos: 120, por voltas, 2), e duração de 30 s é recusada.
 - Tela (Play mode, Editor em segundo plano, então a simulação foi avançada pelo script): oval de 4 por tempo na troca de trilho, com as fichas por distância, os painéis "Vai para o trilho n" e o aviso no meio.
 
 ### 26.7 O que falta

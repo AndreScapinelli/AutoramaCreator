@@ -7,7 +7,8 @@ namespace Autorama
     // São JSON de uma linha com o tipo em "t". O JsonUtility não faz herança, então cada direção tem classes enxutas.
 
     [Serializable] public class NetPlayer { public string id, name, color; public bool ready; }
-    [Serializable] public class NetStage { public string name, hash, json; public int laps, secs; }   // secs: corrida por tempo (0 = cliente antigo, vale 120)   // json: a pista (TrackSave); o servidor só devolve o resumo
+    // secs: duração por tempo (0 = cliente antigo, vale 120) · tempo: o host escolheu "por tempo" · faixas: pista de 2 ou 4 carros
+    [Serializable] public class NetStage { public string name, hash, json; public int laps, secs, faixas; public bool tempo; }   // json: a pista (TrackSave); o servidor só devolve o resumo
 
     [Serializable]
     public class NetRoom

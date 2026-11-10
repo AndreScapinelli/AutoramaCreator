@@ -108,6 +108,13 @@ const trilha = (n, extra = {}) => ({ name: 'Pista ' + n, laps: 3, hash: 'a34f4cb
   r = await g1.next('room');
   assert.deepStrictEqual(r.room.stages.map(s => [s.name, s.laps]), [['Pista 1', 3], ['Pista 2', 5]]);
   assert(!('json' in r.room.stages[0])); ok('host escolhe pistas; o JSON não vai no resumo');
+  host.send({ t: 'stages', stages: [trilha(1, { secs: 90, tempo: true, faixas: 4 }), trilha(2, { laps: 5 })] });
+  r = await g1.next('room');
+  assert.deepStrictEqual(r.room.stages.map(s => [s.secs, s.tempo, s.faixas]), [[90, true, 4], [120, false, 2]]);
+  ok('duração, formato e tipo de pista chegam aos visitantes (sem o campo: 120 s, por voltas, 2 carros)');
+  host.send({ t: 'stages', stages: [trilha(1, { secs: 30 })] });
+  assert.strictEqual((await host.next('error')).code, 'etapas'); ok('duração fora de 1 a 10 min é recusada');
+  host.send({ t: 'stages', stages: [trilha(1), trilha(2, { laps: 5 })] }); await g1.next('room');
   host.send({ t: 'stages', stages: [trilha(1, { hash: 'xyz' })] });
   assert.strictEqual((await host.next('error')).code, 'etapas');
   host.send({ t: 'stages', stages: [trilha(1, { json: 'x'.repeat(200 * 1024) })] });

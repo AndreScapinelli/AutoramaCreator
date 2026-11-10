@@ -251,10 +251,10 @@ namespace Autorama
                 if (st != null && st.secs == 0) st.secs = 120;
                 if (st == null || string.IsNullOrEmpty(st.json) || st.json.Length > MaxTrackJson || st.laps < 1 || st.laps > 30 || st.secs < 60 || st.secs > 600 || st.hash == null || st.hash.Length != 8)
                 { Err("etapas", "Etapa inválida ou pista grande demais."); return; }
-                list.Add(new NetStage { name = Clean(st.name, 60) is var n && n.Length > 0 ? n : "Pista", laps = st.laps, secs = st.secs, hash = st.hash, json = st.json });
+                list.Add(new NetStage { name = Clean(st.name, 60) is var n && n.Length > 0 ? n : "Pista", laps = st.laps, secs = st.secs, tempo = st.tempo, faixas = st.faixas == 4 ? 4 : 2, hash = st.hash, json = st.json });
             }
             bool changed = list.Count != stageData.Count;
-            for (int i = 0; !changed && i < list.Count; i++) changed = list[i].hash != stageData[i].hash || list[i].laps != stageData[i].laps || list[i].secs != stageData[i].secs;
+            for (int i = 0; !changed && i < list.Count; i++) changed = list[i].hash != stageData[i].hash || list[i].laps != stageData[i].laps || list[i].secs != stageData[i].secs || list[i].tempo != stageData[i].tempo;
             stageData.Clear(); stageData.AddRange(list);
             SaveSummaries();
             if (changed && b.Members().Exists(m => m.id != b.MyId && IsReady(m.id)))
@@ -278,7 +278,7 @@ namespace Autorama
 
             var m = new NetMsg { t = "started", title = Clean(o.name, 40) is var t && t.Length > 0 ? t : $"Campeonato de {NameOf(b.MyId)}", rules = new NetRules { vmax = o.vmax, ramp = o.ramp, grip = o.grip, collide = o.collide, byTime = o.byTime } };
             foreach (var p in room.players) m.pilots.Add(new NetPlayer { id = p.id, name = p.name, color = p.color });
-            foreach (var s in stageData) m.stages.Add(new NetStage { name = s.name, laps = s.laps, secs = s.secs, hash = s.hash, json = s.json });
+            foreach (var s in stageData) m.stages.Add(new NetStage { name = s.name, laps = s.laps, secs = s.secs, tempo = s.tempo, faixas = s.faixas, hash = s.hash, json = s.json });
             var bytes = Encoding.UTF8.GetBytes(JsonUtility.ToJson(m));
             if (bytes.Length > MaxReliable) { Err("etapas", "As pistas são grandes demais para a Steam. Tire alguma etapa."); return; }
 
@@ -386,7 +386,7 @@ namespace Autorama
         void SaveSummaries()
         {
             var sum = new StageSummary();
-            foreach (var s in stageData) sum.s.Add(new NetStage { name = s.name, laps = s.laps, secs = s.secs, hash = s.hash });
+            foreach (var s in stageData) sum.s.Add(new NetStage { name = s.name, laps = s.laps, secs = s.secs, tempo = s.tempo, faixas = s.faixas, hash = s.hash });
             b.SetData("stages", stageData.Count.ToString());
             b.SetData("stl", JsonUtility.ToJson(sum));
         }
