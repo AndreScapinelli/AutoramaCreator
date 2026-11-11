@@ -52,6 +52,9 @@ namespace Autorama
         public string t;
         public string you, code, text;                    // you: meu id (joined) · code/text: erro
         public bool sys;                                  // chat: aviso do servidor
+        // suggested (visitante → host): uma pista sugerida (o remetente vem em from/name/color)
+        public string track, hash, json;
+        public int faixas;
         public string from, name, color;                  // chat · in: quem mandou
         public long time;
         public NetRoom room = new NetRoom();              // joined, room
@@ -82,6 +85,8 @@ namespace Autorama
         public int re, ver;                               // ver: versão do protocolo (hello)
         public int gp;                                    // in: nível do acelerador em % (1–100)
         public float vmax, ramp, grip;                    // start: as regras (os ajustes da aba Corrida do host)
+        public string track, hash, json;                  // suggest: a pista que o visitante sugere ao host (nome, identidade e o JSON)
+        public int faixas;                                // suggest: 2 ou 4 carros
     }
     [Serializable] public class NetOutStages { public string t = "stages"; public List<NetStage> stages = new List<NetStage>(); }
     [Serializable] public class NetOutSnap { public string t = "snap"; public NetSnap snap; }

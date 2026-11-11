@@ -122,6 +122,25 @@ const trilha = (n, extra = {}) => ({ name: 'Pista ' + n, laps: 3, hash: 'a34f4cb
   host.send({ t: 'stages', stages: Array.from({ length: 13 }, (_, i) => trilha(i)) });
   assert.strictEqual((await host.next('error')).code, 'etapas'); ok('pistas inválidas são recusadas');
 
+  // sugestão de pista: visitante → host
+  host.drain(); g1.drain();
+  const sug = (extra = {}) => ({ t: 'suggest', track: '  Minha   pista ', hash: 'a34f4cb9', faixas: 4, json: '{"nome":"x"}', ...extra });
+  g1.send(sug());
+  const sg = await host.next('suggested');
+  assert.deepStrictEqual([sg.name, sg.track, sg.hash, sg.faixas, sg.json, /^\d+$/.test(sg.from)], ['Beto', 'Minha pista', 'a34f4cb9', 4, '{"nome":"x"}', true]);
+  ok('a sugestão do visitante chega ao host, com quem mandou e o nome limpo');
+  await g1.quiet('suggested'); ok('a sugestão não volta para o próprio visitante');
+  host.send(sug()); await host.quiet('suggested'); ok('o host não sugere para si mesmo');
+  g1.send(sug({ hash: 'xyz' }));
+  assert.strictEqual((await g1.next('error')).code, 'sugestao'); ok('sugestão com identidade inválida é recusada');
+  g1.send(sug({ json: 'x'.repeat(200 * 1024) }));
+  assert.strictEqual((await g1.next('error')).code, 'sugestao'); ok('sugestão grande demais é recusada');
+  g1.send(sug({ faixas: 7 })); assert.strictEqual((await host.next('suggested')).faixas, 2); ok('tipo de pista desconhecido vira 2 carros');
+  g1.send(sug()); await host.next('suggested');
+  g1.send(sug());
+  assert.strictEqual((await g1.next('error')).code, 'rapido'); ok('sugestões limitam o ritmo (3 por minuto)');
+  host.drain(); g1.drain();
+
   // visibilidade
   host.send({ t: 'visibility', pub: false }); await host.next('room');
   g2.send({ t: 'list' });

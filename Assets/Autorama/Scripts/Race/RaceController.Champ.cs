@@ -926,14 +926,14 @@ namespace Autorama
                     p.root.style.borderTopColor = col;
                     p.gas.style.borderTopColor = p.gas.style.borderBottomColor = p.gas.style.borderLeftColor = p.gas.style.borderRightColor = col;
                     p.fill.style.backgroundColor = new Color(col.r, col.g, col.b, 0.35f);
-                    carMats[k].SetTexture("_BaseMap", CarTexture(pilot.color, col));
+                    carViews[k].SetColors(col);
                 }
                 else
                 {
                     p.root.style.borderTopColor = StyleKeyword.Null;
                     p.gas.style.borderTopColor = p.gas.style.borderBottomColor = p.gas.style.borderLeftColor = p.gas.style.borderRightColor = StyleKeyword.Null;
                     p.fill.style.backgroundColor = StyleKeyword.Null;
-                    carMats[k].SetTexture("_BaseMap", BaseCarMaterial(k).GetTexture("_BaseMap"));
+                    carViews[k].SetColors(LaneColors[k]);
                 }
             }
         }

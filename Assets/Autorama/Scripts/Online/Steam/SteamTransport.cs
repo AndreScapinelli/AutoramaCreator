@@ -151,6 +151,7 @@ namespace Autorama
                 case "start": Start(o); break;
                 case "end": End(o.text); break;
                 case "in": if (joined && racing && !IsHost) b.SendTo(b.Owner, Encoding.UTF8.GetBytes(JsonUtility.ToJson(o)), true); break;
+                case "suggest": Suggest(o); break;
             }
         }
 
@@ -225,6 +226,33 @@ namespace Autorama
             if (ColorTaken(col)) { Err("cor-usada", "Essa cor já é de outro piloto."); return; }
             b.SetMyData("color", col);
             EmitRoom();
+        }
+
+        // Visitante: sugere uma pista ao host (só no lobby), com o mesmo limite de tamanho e de ritmo do servidor Node.
+        readonly List<float> suggTimes = new List<float>();
+        readonly Dictionary<ulong, List<float>> suggFrom = new Dictionary<ulong, List<float>>();    // host: ritmo de cada remetente
+        const int MaxSuggPerMin = 3;
+
+        static bool SuggestionOk(string hash, string json) =>
+            hash != null && hash.Length == 8 && !string.IsNullOrEmpty(json) && json.Length <= MaxTrackJson;
+
+        static bool Rate(List<float> times)
+        {
+            float now = Time.realtimeSinceStartup;
+            times.RemoveAll(t => now - t > 60f);
+            if (times.Count >= MaxSuggPerMin) return false;
+            times.Add(now);
+            return true;
+        }
+
+        void Suggest(NetOut o)
+        {
+            if (!joined || IsHost) return;
+            if (racing) { Err("andamento", "O campeonato já começou."); return; }
+            if (!SuggestionOk(o.hash, o.json)) { Err("sugestao", "Pista inválida ou grande demais."); return; }
+            if (!Rate(suggTimes)) { Err("rapido", "Você sugeriu pistas demais em pouco tempo. Espere um minuto."); return; }
+            o.t = "suggested"; o.track = Clean(o.track, 60); o.faixas = o.faixas == 4 ? 4 : 2;
+            b.SendTo(b.Owner, Encoding.UTF8.GetBytes(JsonUtility.ToJson(o)), true);
         }
 
         void Chat(string text)
@@ -335,6 +363,13 @@ namespace Autorama
             switch (m.t)
             {
                 case "in": if (IsHost && racing) { m.from = from.ToString(); Emit(m); } break;      // o id vem de quem mandou, não do texto
+                case "suggested":
+                    if (!IsHost || racing || !SuggestionOk(m.hash, m.json)) break;
+                    if (!suggFrom.TryGetValue(from, out var times)) suggFrom[from] = times = new List<float>();
+                    if (!Rate(times)) break;
+                    m.from = from.ToString(); m.name = Clean(NameOf(from), 20); m.color = ColorOf(from);   // quem mandou vem da Steam, não do texto
+                    m.track = Clean(m.track, 60); m.faixas = m.faixas == 4 ? 4 : 2;
+                    Emit(m); break;
                 case "started": if (fromHost && !racing) { racing = true; raceHost = from; lobbyFlipSince = -1f; Emit(m); } break;
                 case "lobby": if (fromHost && racing) { racing = false; lobbyFlipSince = -1f; Emit(m); EmitRoom(); } break;
                 case "snap": case "ev": if (fromHost && racing) Emit(m); break;

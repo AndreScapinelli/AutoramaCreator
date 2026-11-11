@@ -2580,6 +2580,15 @@ A aba (`RaceController.Online*.cs`) fala com a rede só por `IOnlineTransport` (
 
 Regressão: `OnlineSmokeTest` (servidor Node, 42 verificações) e `SteamSpacewarTest` (24) continuam passando.
 
+### 24.5b steam_appid.txt nas builds (Windows e macOS)
+
+A Steam procura `steam_appid.txt` **ao lado do executável**. `SteamBuildPostprocessor` copia o arquivo da raiz do projeto (`480` = Spacewar) depois de cada build:
+
+- **Windows e Linux:** para a pasta da build, ao lado do `.exe`.
+- **macOS:** o executável fica **dentro do pacote**. Antes o arquivo ia só para a pasta que contém o `Autorama.app`, onde a Steam não o via ("sem AppId" no Mac). Agora vai para `Autorama.app/Contents/MacOS/` **e** para o lado do `.app`.
+- Só vale para o teste com o Spacewar. Numa build enviada à Steam (SteamPipe) com o AppId próprio, a Steam informa o app ao abrir o jogo e o arquivo não é necessário (convém não enviá-lo).
+- Não foi possível gerar uma build de macOS nesta máquina (Windows): a correção está conferida só pela leitura do código e pela compilação.
+
 ### 24.6 O que falta
 
 1. **Duas contas de verdade:** nada disso provou ainda a chegada entre dois jogadores em máquinas diferentes (ver o roteiro em 24.3). A mensagem direta para si mesmo chegou, o que é um bom sinal, mas não é a rede.
@@ -2768,3 +2777,123 @@ Numa pista de 4 podem correr menos carros. O trilho sem carro fica **vazio**: `R
 - **Sincronia online** sem rede (`NetSync.Pack` → JSON → `Apply` a cada 3 quadros, como o host manda): 3 carros na oval de 4, por voltas e por tempo. O visitante termina na mesma fase, com o mesmo vencedor, a mesma distância (até a 3ª casa) e o mesmo trilho em cada carro. Snapshot de 4 carros: **1,8 a 2,0 KB** (o de 2 tinha ~1,25 KB).
 - `OnlineSmokeTest` contra o servidor Node: as 42 verificações continuam passando; `npm test` também.
 - Falta: dois jogadores de verdade numa pista de 4, e conferir na Steam real se o snapshot de ~2 KB (sem confiabilidade) chega bem (ver 24.6).
+
+## 28. Jogo em 3D (branch `jogo-3d`, experimento)
+
+Estilo **brinquedo low-poly**, pensando na Steam (sem a restrição do celular). A física não muda: o 3D é só a camada visual. A interface e as cores continuam as mesmas.
+
+### 28.1 Pista com volume (`TrackPieceView`)
+
+A malha continua gerada por código a partir da lista de peças, agora com corpo. Medidas no mundo (na pista de 4, a malha é em células e a raiz tem escala 2, então dividem por `TrackMath.Scale`):
+
+- **Base** com espessura `Thickness = 0,09`: laterais, fundo (só nas peças no alto) e tampas nas pontas (`AddCaps`), no submesh 3 (`TrackTheme.side` / `side4`: plástico escuro; sem eles, o material dos pilares).
+- **Fendas afundadas** `SlotDepth = 0,035`: o tampo é cortado em faixas entre as fendas; cada fenda tem duas paredes e um fundo. O `u` da textura continua sendo o deslocamento lateral (`o + 0,5`), então a pintura fica no lugar; paredes e fundo usam o `u` do meio da fenda (preto na textura). Meia largura da fenda: 0,022 (2 trilhos) e 0,011 célula (4 trilhos).
+- **Cruzamento:** as fendas se cruzam, então o tampo fica liso (fenda só pintada).
+- **Muro com corpo** (topo e face de dentro; a face de fora emenda na lateral da base): nas peças no alto, dos dois lados (0,10 de altura; 0,12 na pista de 4), e no **lado de fora das curvas inclinadas** (0,14).
+- `AddBand(tri, s, ts, a, b, vScale, y)`: faixa entre duas bordas (`Edge`: deslocamento, altura sobre a superfície e `u`). Indo de `a` para `b` para a direita a face olha para cima; para baixo, olha para a direita; para cima, para a esquerda; para a esquerda, para baixo. Cada faixa tem os próprios vértices (quinas vivas).
+- Como a base desce 0,09, o **tampo da mesa fica em y = −0,10** e os carrinhos continuam correndo no nível 0. Os pilares e a célula sob o mouse acompanham.
+
+### 28.2 Mesa (`GridBoard`)
+
+Tampo de madeira com moldura (0,7 além da grade, 0,5 de espessura), quatro pés e um chão claro 9 unidades abaixo, feitos com cubos e cópias do material da mesa sem a textura. Só são refeitos quando a mesa muda de tamanho.
+
+### 28.3 Carrinho 3D (`CarView`)
+
+- **Provisório**, montado com cubos e cilindros: assoalho, capô, traseira, cabine escura, teto, faixa e bico na segunda cor, aerofólio sobre dois apoios e quatro rodas. Mesma caixa da física (0,60 × 0,32), frente em +X, chão em y = 0.
+- **Duas cores:** a principal é a do trilho ou a do piloto (`SetColors`); a segunda é branca, ou escura quando a principal é clara. Substitui a pintura `CarTexture` do carrinho chapado.
+- **Movimento:** rodas giram com a velocidade; o carrinho inclina na rampa (pitch), **deita na curva inclinada** (`RaceSim.CarBank`, de `LanePoint.bank`: o ângulo lateral da superfície) e **capota** ao sair da pista. A derrapagem (traseira saindo) já vinha da pose da física.
+- Modelo escolhido para substituir o provisório: https://poly.pizza/m/EMcTJiXibv. O site é bloqueado no navegador do assistente: o arquivo (GLB ou FBX) precisa ser baixado à mão e colocado em `Assets/Autorama/Modelos/`.
+
+### 28.4 Teste
+
+Play mode, 8 com ponte, câmera perto do carrinho azul (`docs/previa-3d.png`): fendas afundadas, curva inclinada com muro, ponte com pilares, mesa com moldura e os dois carrinhos com volume e sombra. Corrida rodando normalmente (a física é a mesma).
+
+### 28.5 Zebra em relevo e pórtico de largada
+
+- **Zebra em relevo** no lado de fora das curvas planas, onde a textura já pinta a zebra: sobe em chanfro (0,012 de largura), fica plana a 0,022 de altura e desce na borda. Vai de 0,40 a 0,48 do centro (0,43 a 0,475 na pista de 4). Nas peças no alto o muro ocupa o lugar.
+- **Pórtico** sobre a bandeirada (`BuildGantry`, na peça de largada): dois postes fora da pista (0,09 além da borda), travessa quadriculada a 0,95 de altura e um **semáforo de três luzes**. `TrackPieceView.SetStartLights(vermelhas, verde)` acende as luzes (cor e emissão) junto com as da tela: 1, 2, 3 vermelhas na contagem e as três verdes no primeiro segundo de cada largada ou manche.
+- Teste (Play mode, construtor, oval): `docs/previa-3d-largada.png` (2 carros) e `docs/previa-3d-pista4.png` (4 carros). Zebra com volume nas curvas, pórtico com as três luzes, carrinhos no grid, seta de encaixe e célula sob o mouse no lugar. A pista de 4 usa o mesmo código, com as medidas divididas pela escala.
+
+### 28.6 Próximos passos
+
+1. Trocar o carrinho provisório pelo modelo.
+2. Sala em volta da mesa (ProBuilder), luz mais quente e pós-processamento leve.
+3. Ajustar as câmeras 3D e "Atrás do carro" para o novo visual (não foram vistas em movimento: o Editor estava em segundo plano).
+
+## 29. Som (branch `jogo-3d`)
+
+Todos os sons são **sintetizados em tempo de execução** (`RaceController.Audio.cs`), sem arquivos de áudio: `AudioClip.Create` + `SetData`, 44,1 kHz, mono. A cena não tinha `AudioListener`; `AudioStart` põe um na câmera.
+
+| Som | Como é feito | Quando toca |
+|---|---|---|
+| **Motor** (um por carrinho, em laço) | Silvo agudo tipo broca de dentista: 1400 e 1409 Hz batendo entre si, mais 2800, 4200 e 5609 Hz e um chiado de ar leve; sem grave (a 1ª versão era um zumbido de 90 Hz, que não agradou) | Volume `(0,25 + 0,75·T) × min(1, 6·v/vmax + T)`; **tom** `0,55 + 1,9 · √(v/vmax)` (× 1,03 por trilho): de ~770 Hz parado a ~3,4 kHz no fundo. 0,15 por carro (0,10 na pista de 4) |
+| **Pneu** (um por carrinho, em laço) | Ruído num ressonador de dois polos em 2,2 kHz, pontas cruzadas | Quando a derrapagem passa de 25%: volume `((slip − 0,25)/0,75)² × 0,5` |
+| Bipe | 520 Hz, 0,2 s | A cada luz vermelha da contagem (também nas manches) |
+| Largada | 1040 Hz + oitava, 0,55 s | Luz verde |
+| Batida | Ruído + grave descendo, 0,22 s | `sim.Spark` (primeiro toque de cada par) |
+| Saída de pista | Três estalos de "plástico quicando", 0,6 s | Quando `offs` de um carrinho sobe |
+| Volta | Dois tons (880 → 1320 Hz), 0,35 s | `sim.LapDone` (mais baixo para os robôs) |
+| Troca de trilho | 660 → 440 Hz, 0,5 s | Entrada na fase `Switch` (corrida por tempo) |
+| Vitória | Dó, mi, sol, dó, 1,1 s | Quando `winner` aparece |
+
+- **Volume:** `RaceSettings.volume` (0 a 100, padrão 70), controle "Som" nos Ajustes da aba Corrida. Fora das abas de corrida fica tudo mudo.
+- `AudioTick` roda em todo `Update` (corrida livre, campeonato e online).
+- Os laços ficam sempre tocando, com volume 0 quando não há o que ouvir; se a Unity parar algum, `AudioTick` religa.
+
+### 29.0 Opções de motor
+
+O timbre do motor não agradou nas duas primeiras versões (zumbido grave, depois o silvo de broca) e não dá para o assistente ouvir. Por isso o motor virou uma **escolha**: nos Ajustes da aba Corrida, o botão **Som do motor: … ▸** alterna as opções, inclusive no meio da corrida (`RaceSettings.motorSound`, `NextMotor`, `MotorSound { clip, p0, p1, vol }`; tom = `Lerp(p0, p1, √(v/vmax))`).
+
+| Opção | Receita | Tom (parado → fundo) |
+|---|---|---|
+| Broca | 1400 + 1409 Hz batendo, 2800, 4200, 5609 Hz e chiado leve | 0,55 → 2,45 |
+| Elétrico suave | 420 Hz quase puro, com um pouco de 840 e 1260 Hz | 0,6 → 2,6 |
+| Escovas | Dente de serra de 170 Hz (9 harmônicos) modulado em 340 Hz, com "areia" | 0,6 → 2,4 |
+| **Turbina** (padrão, a escolhida; volume 0,4, quase metade do primeiro ajuste) | Chiado de ar forte com silvo de 2100 + 2112 Hz | 0,6 → 2,0 |
+| Ronco | Dente de serra de 70 Hz (6 harmônicos) com 35 Hz | 0,7 → 2,8 |
+| Seu arquivo | `persistentDataPath/autorama/sons/motor.wav` (PCM 16 bits, mono ou estéreo), lido por `LoadWav`; só aparece se o arquivo existir | 0,6 → 2,0 |
+
+Para a gravação: um trecho curto (1 a 3 s) de motor em rotação constante, que emende bem em laço.
+
+Teste: as 5 opções carregam, alternam em sequência e ficam tocando (pico entre 0,62 e 0,89). O `motor.wav` não foi testado (não havia arquivo).
+
+### 29.1 Teste
+
+Play mode, `script eval` (os números, não o ouvido: **ninguém ouviu ainda**):
+
+- 1 `AudioListener`; os 9 clipes existem com as durações da tabela, pico entre 0,34 e 1,00, e todos começam e terminam em 0 (sem estalo). O primeiro teste achou o som de saída de pista começando em −0,40 e a vitória terminando em 0,08: corrigidos com um ataque de 3 ms e uma queda de 50 ms.
+- Corrida no oval com dois robôs (qualidade 90 e 30): motor do carro 1 com volume máximo 0,168 e tom de 0,70 a 2,74; pneu com volume máximo 0,288; 1 saída de pista; efeitos tocando no fim (vitória). No grid: motor e pneu em 0.
+- Os laços não estavam tocando no primeiro teste (`isPlaying` falso); com o religar no `AudioTick`, motor e pneu aparecem tocando.
+
+### 29.2 O que falta
+
+1. **Ouvir e ajustar o timbre** (principalmente o motor e o pneu).
+2. Som nos menus e no construtor (clique, encaixe de peça), música.
+3. Som posicional (3D) seguindo cada carrinho.
+
+## 30. Sugerir pistas ao host (online)
+
+No lobby, qualquer visitante pode **sugerir uma das próprias pistas** ao host; o host decide. Vale no servidor Node e na Steam, com as mesmas regras.
+
+### 30.1 Fluxo
+
+- **Visitante** (seção "SUGERIR UMA PISTA AO HOST", em ETAPAS): lista as pistas dele que são **circuitos fechados**; se o host já escolheu o tipo (2 ou 4 carros), só as desse tipo. Clicar manda a pista e marca "enviada ✓" (cada pista só uma vez por sala).
+- **Host** (seção "SUGESTÕES DOS PILOTOS"): cada sugestão mostra miniatura, nome, "de Fulano" e três botões: **Incluir** (vira etapa, com a mesma regra de tipo de qualquer etapa: se for de 4 e o campeonato é de 2, recusa e a sugestão fica), **Salvar** (guarda na biblioteca do host, sem sobrescrever: se já há uma pista com o nome, grava "Nome (de Fulano)") e **Ignorar**. Também aparece um aviso: "Beto sugeriu a pista “…”".
+- As sugestões existem só no lobby, na memória do host; saem ao largar, ao sair da sala ou ao entrar numa sala.
+
+### 30.2 Mensagens
+
+- Visitante → host: `{t:"suggest", track, hash, faixas, json}` (`NetOut`). O servidor (ou a Steam) repassa só ao **host**, como `{t:"suggested", from, name, color, track, hash, faixas, json}` (`NetMsg`). O remetente (`from`, `name`, `color`) vem do servidor ou da Steam, **nunca do texto**.
+- Servidor Node (`suggest`): só no lobby; o host não sugere para si; `hash` com 8 hexadecimais; `json` até 100 KB; **3 sugestões por minuto** por jogador; `faixas` diferente de 4 vira 2; o nome é limpo (`clean`, 60 caracteres).
+- Steam (`Suggest` no visitante, `case "suggested"` no host): as mesmas regras, refeitas **dos dois lados** (o host não confia no visitante); mensagem direta confiável ao dono do lobby.
+
+### 30.3 O que o host confere (`OnSuggested`)
+
+Nada que veio da rede é confiado: o JSON é lido, a pista precisa ser **um circuito fechado**, `Champ.TrackHash` tem que **bater** com o `hash` dito, e valem os limites **12 sugestões no total**, **3 por jogador**, sem repetir a mesma pista do mesmo jogador e sem sugerir o que já é etapa. JSON inválido é ignorado em silêncio. O nome vem com `Safe` (sem rich text).
+
+### 30.4 Testes
+
+- `servidor`: `npm test` ganhou 6 verificações (chega ao host com quem mandou e o nome limpo; não volta ao visitante; host não sugere para si; identidade inválida; grande demais; tipo desconhecido vira 2; 3 por minuto).
+- `SteamTransportTest` (mundo falso, 3 jogadores): as mesmas 7 verificações, passando; a parte da Steam de verdade falhou no "criar sala" (esta máquina), como antes de mudar o código.
+- Play mode, host simulado (`OnSuggested`, `AcceptSuggestion`, `SaveSuggestion`): sugestão válida entra; repetida, de identidade errada, pista aberta e lixo no lugar do JSON são recusadas; 4 formas diferentes do mesmo jogador ficam em 3, e a mesma forma de outro jogador entra; a lista do host desenha uma linha por sugestão; incluir pista de 4 num campeonato de 2 é recusado e, depois de escolher 4 carros, entra como etapa e sai da lista; salvar grava na biblioteca (o arquivo de teste foi apagado).
+- **Não testado:** a tela com dois jogadores reais, e a Steam de verdade.

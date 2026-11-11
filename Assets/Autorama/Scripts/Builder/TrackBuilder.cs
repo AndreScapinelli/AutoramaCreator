@@ -512,7 +512,8 @@ namespace Autorama
             if (!hoverCell) hoverCell = Quad("Célula sob o mouse", theme.selected, 0f);
             hoverCell.gameObject.SetActive(true);
             hoverCell.localRotation = Quaternion.Euler(90f, 0f, 0f);
-            hoverCell.localPosition = new Vector3(cell.Value.x + 0.5f, 0.002f, cell.Value.y + 0.5f);
+            // O tampo da mesa fica Thickness abaixo do nível 0 (a base da pista tem espessura).
+            hoverCell.localPosition = new Vector3(cell.Value.x + 0.5f, (-TrackPieceView.Thickness + 0.004f) / Scale, cell.Value.y + 0.5f);
         }
 
         public int IndexOf(Collider c)

@@ -14,6 +14,7 @@ const CHAT_MAX = 200, CHAT_KEEP = 50;
 const NAME_MAX = 20, ROOM_MAX = 30;
 const CHAT_RATE = { n: 5, ms: 3000 };  // 5 mensagens a cada 3 s
 const PING_MS = 15000;
+const MAX_SUGG_MIN = 3;               // pistas sugeridas por minuto por jogador
 const MAX_RELAY = 16 * 1024;           // snapshot ou evento da corrida
 const IN_RATE = 120;                   // entradas (botão) por segundo de cada visitante
 const MAX_CONN_IP = 20;                // conexões abertas ao mesmo tempo por endereço
@@ -222,6 +223,19 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
       r.stages = out;
       if (mudou && r.players.some(p => p !== c && p.ready)) { r.players.forEach(p => { p.ready = false; }); say(r, 'O host mudou as etapas: confirmem "pronto" de novo.'); }
       pushRoom(r);
+    },
+    // Visitante: sugere uma pista ao host (só no lobby). O servidor só repassa ao host; quem decide é ele.
+    suggest(c, m) {
+      const r = c.room; if (!r) return;
+      if (r.state !== 'lobby') return fail(c, 'andamento', 'O campeonato já começou.');
+      if (r.host === c.id) return;
+      if (!/^[0-9a-f]{8}$/.test(String(m.hash)) || typeof m.json !== 'string' || !m.json || m.json.length > MAX_TRACK_JSON)
+        return fail(c, 'sugestao', 'Pista inválida ou grande demais.');
+      const now = Date.now(); c.sugg = (c.sugg || []).filter(t => now - t < 60000);
+      if (c.sugg.length >= MAX_SUGG_MIN) return fail(c, 'rapido', 'Você sugeriu pistas demais em pouco tempo. Espere um minuto.');
+      c.sugg.push(now);
+      const host = r.players.find(p => p.id === r.host); if (!host) return;
+      send(host, { t: 'suggested', from: c.id, name: c.name, color: c.color, track: clean(m.track, 60) || 'Pista', hash: m.hash, faixas: Number(m.faixas) === 4 ? 4 : 2, json: m.json });
     },
     visibility(c, m) {
       const r = c.room; if (!r) return;
