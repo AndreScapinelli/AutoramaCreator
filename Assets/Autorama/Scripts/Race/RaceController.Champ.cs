@@ -20,11 +20,11 @@ namespace Autorama
         TextField cName, pName, pTag;
         Toggle pAi;
         SliderInt pSkill;
-        Button pSave, pCancel, cStart, cQuit, cKind2, cKind4, cByLaps, cByTime;
+        Button pSave, pCancel, cStart, cQuit, cKind2, cKind4, cKind6, cByLaps, cByTime;
         string editPilot, pColor;
         bool tagTouched;
         readonly Dictionary<string, Texture2D> carTex = new Dictionary<string, Texture2D>();
-        static readonly Color[] LaneColors = { new Color32(240, 74, 63, 255), new Color32(80, 137, 242, 255), new Color32(56, 186, 98, 255), new Color32(242, 183, 40, 255) };
+        static readonly Color[] LaneColors = { new Color32(240, 74, 63, 255), new Color32(80, 137, 242, 255), new Color32(56, 186, 98, 255), new Color32(242, 183, 40, 255), new Color32(139, 63, 217, 255), new Color32(25, 181, 201, 255) };
 
         // ---------- Montagem ----------
 
@@ -47,6 +47,8 @@ namespace Autorama
             cKind2 = Btn("2 carros", () => ChampKind(2), "btn", kind);
             cKind4 = Btn("4 carros", () => ChampKind(4), "btn", kind);
             cKind4.tooltip = "Só pistas de 4 carros. Com menos de 4 pilotos, sobra trilho vazio em cada bateria.";
+            cKind6 = Btn("6 carros", () => ChampKind(6), "btn", kind);
+            cKind6.tooltip = "Só pistas de 6 carros. Com menos de 6 pilotos, sobra trilho vazio em cada bateria.";
             // Formato: por voltas (rodízio de baterias) ou por tempo (cada bateria passa por todos os trilhos em manches).
             Text("FORMATO", "h3", head);
             var fmt = El("segmented", head);
@@ -286,9 +288,10 @@ namespace Autorama
             var D = store.draft;
             var ps = DraftPilots();
             if (!IsTyping) cName.SetValueWithoutNotify(D.name);
-            cPilotCount.text = $"{ps.Count} de {Champ.MaxPilots}" + (D.faixas == 4 && ps.Count > 0 && ps.Count < 4 ? $" · {4 - ps.Count} {(4 - ps.Count == 1 ? "trilho vazio" : "trilhos vazios")} por bateria" : "");
-            cKind2.EnableInClassList("btn--on", D.faixas != 4);
+            cPilotCount.text = $"{ps.Count} de {Champ.MaxPilots}" + (D.faixas >= 4 && ps.Count > 0 && ps.Count < D.faixas ? $" · {D.faixas - ps.Count} {(D.faixas - ps.Count == 1 ? "trilho vazio" : "trilhos vazios")} por bateria" : "");
+            cKind2.EnableInClassList("btn--on", D.faixas < 4);
             cKind4.EnableInClassList("btn--on", D.faixas == 4);
+            cKind6.EnableInClassList("btn--on", D.faixas == 6);
             cByLaps.EnableInClassList("btn--on", !D.byTime);
             cByTime.EnableInClassList("btn--on", D.byTime);
 
@@ -499,7 +502,8 @@ namespace Autorama
                 var card = El("heat", cHeat);
                 Text($"{stage.name.ToUpperInvariant()} · {StageGoal(C, stage).ToUpperInvariant()}", "heat-stage", card);
                 var vs = El("vs", card);
-                vs.EnableInClassList("vs--4", pl.Length > 2);
+                vs.EnableInClassList("vs--4", pl.Length == 3 || pl.Length == 4);
+                vs.EnableInClassList("vs--6", pl.Length > 4);
                 for (int k = 0; k < pl.Length; k++)
                 {
                     if (k > 0 && pl.Length == 2) Text("×", "vs-x", vs);
@@ -512,7 +516,7 @@ namespace Autorama
                     Text(p.name.ToUpperInvariant(), "hp-name", hp);
                     // As teclas seguem a ordem dos humanos (KeySet): o 1º humano A·S, o 2º L·K, o 3º ↑·↓, o 4º 8·5.
                     int ks = 0; for (int i = 0; i < k; i++) if (pl[i] != null && !pl[i].ai) ks++;
-                    Text(OnlineRun ? OnlineWho(p) : p.ai ? $"IA · qualidade {p.skill}" : $"acelera {KeyText(GasKeys[ks])} · recoloca {KeyText(ReslotKeys[ks])}", "small", hp);
+                    Text(OnlineRun ? OnlineWho(p) : p.ai ? $"IA · qualidade {p.skill}" : ks >= GasKeys.Length ? "só com controle" : $"acelera {KeyText(GasKeys[ks])} · recoloca {KeyText(ReslotKeys[ks])}", "small", hp);
                 }
             }
             else DrawPodium(C);

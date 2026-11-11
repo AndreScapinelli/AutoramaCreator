@@ -31,6 +31,10 @@ namespace Autorama
         public Material board4;                     // mesa em tom frio
         public Material[] cars34 = new Material[0]; // carrinhos 3 (verde) e 4 (amarelo), mesmo molde dos de 2
 
+        [Header("Pista de 6 carros (arte própria, seção 31)")]
+        public WideArt art6 = new WideArt();
+        public Material[] cars56 = new Material[0]; // carrinhos 5 (roxo) e 6 (ciano)
+
         [Header("Destaques")]
         public Material selected;
         public Material overlap;
@@ -38,10 +42,34 @@ namespace Autorama
         [Header("Ícones da paleta")]
         public List<Texture2D> icons = new List<Texture2D>();
 
+        // As superfícies de uma pista larga (a de 6 usa este conjunto; a de 4 tem os campos soltos acima, de antes).
+        [System.Serializable]
+        public class WideArt
+        {
+            public Material straight, curveRight, curveLeft, bankRight, bankLeft, cross, crossShort, start, guard, support, board;
+        }
+
         public bool Has4 => straight4 != null;
+        public bool Has6 => art6 != null && art6.straight != null;
+        // Existe arte própria para esse tipo de pista? (2 sempre; 4 e 6 se o menu Atualizar materiais já rodou.)
+        public bool HasWide(int faixas) => faixas == 6 ? Has6 : faixas == 4 && Has4;
+
+        public Material Guard(int faixas) => faixas == 6 && art6.guard != null ? art6.guard : faixas == 4 && guard4 != null ? guard4 : guard;
+        public Material Support(int faixas) => faixas == 6 && art6.support != null ? art6.support : faixas == 4 && support4 != null ? support4 : support;
+        public Material Board(int faixas) => faixas == 6 ? art6.board : faixas == 4 ? board4 : null;
 
         public Material Surface(PieceDef d, int dir, int faixas)
         {
+            if (faixas == 6 && Has6)
+            {
+                var a = art6;
+                if (d.IsStart && a.start != null) return a.start;
+                if (d.IsCross && d.Length < 3f && a.crossShort != null) return a.crossShort;
+                if (d.IsCross && a.cross != null) return a.cross;
+                if (!d.IsCurve) return a.straight;
+                if (d.Banked) return dir > 0 ? a.bankRight : a.bankLeft;
+                return dir > 0 ? a.curveRight : a.curveLeft;
+            }
             if (faixas == 4 && Has4)
             {
                 if (d.IsStart && start4 != null) return start4;

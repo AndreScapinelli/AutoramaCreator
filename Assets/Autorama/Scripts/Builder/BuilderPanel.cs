@@ -219,16 +219,18 @@ namespace Autorama
         // Na pista de 4 carros, o ícone da peça larga ("icone4-…"); se ainda não existir, o de 2 trilhos.
         Texture2D IconTex(string name)
         {
-            if (builder.Faixas == 4 && name.StartsWith("icone-"))
+            if (builder.Faixas >= 4 && name.StartsWith("icone-"))
             {
-                var t = builder.theme.Icon("icone4-" + name.Substring(6));
+                // Pista de 6: "icone6-…", e se faltar, o de 4.
+                Texture2D t = builder.Faixas == 6 ? builder.theme.Icon("icone6-" + name.Substring(6)) : null;
+                t = t != null ? t : builder.theme.Icon("icone4-" + name.Substring(6));
                 if (t != null) return t;
             }
             return builder.theme.Icon(name);
         }
 
         readonly List<(Image img, string name)> paletteIcons = new List<(Image, string)>();
-        Button kind2Btn, kind4Btn;
+        Button kind2Btn, kind4Btn, kind6Btn;
         Label subtitle;
         int iconsFor;
 
@@ -238,7 +240,8 @@ namespace Autorama
             int f = builder.Faixas;
             kind2Btn.EnableInClassList("btn--on", f == 2);
             kind4Btn.EnableInClassList("btn--on", f == 4);
-            subtitle.text = f == 4 ? "AUTORAMA · 4 TRILHOS" : "AUTORAMA · 2 TRILHOS";
+            kind6Btn.EnableInClassList("btn--on", f == 6);
+            subtitle.text = $"AUTORAMA · {f} TRILHOS";
             if (iconsFor == f) return;
             iconsFor = f;
             foreach (var (img, name) in paletteIcons) img.image = IconTex(name);
@@ -306,11 +309,13 @@ namespace Autorama
             onlineBox = El(null, content);
             onlineBox.style.display = DisplayStyle.None;
 
-            // Tipo da pista: 2 ou 4 carros. Uma pista nasce de um tipo e fica nele.
+            // Tipo da pista: 2, 4 ou 6 carros. Uma pista nasce de um tipo e fica nele.
             var kind = Section("TIPO DA PISTA");
             var kindRow = El("segmented", kind);
             kind2Btn = Btn("2 carros", () => ChooseKind(2), "btn", kindRow);
             kind4Btn = Btn("4 carros", () => ChooseKind(4), "btn", kindRow);
+            kind6Btn = Btn("6 carros", () => ChooseKind(6), "btn", kindRow);
+            kind6Btn.tooltip = "Pista muito larga, de 6 trilhos (1 célula = o triplo da largura). Campeonatos não misturam os tipos.";
             kind2Btn.tooltip = "Pista estreita, de 2 trilhos";
             kind4Btn.tooltip = "Pista larga, de 4 trilhos (1 célula = o dobro da largura). Campeonatos não misturam os dois tipos.";
 

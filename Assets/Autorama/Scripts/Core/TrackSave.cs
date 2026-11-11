@@ -86,6 +86,7 @@ namespace Autorama
 
         // O mesmo exemplo como pista de 4 carros (a forma em células é a mesma; no mundo fica 2× maior).
         public static TrackSave Four(TrackSave s) { s.faixas = 4; s.nome += " (4 carros)"; return s; }
+        public static TrackSave Six(TrackSave s) { s.faixas = 6; s.nome += " (6 carros)"; return s; }
 
         static PieceSave P(string tipo, string sentido = "", string altura = "") => new PieceSave { tipo = tipo, sentido = sentido, altura = altura };
 

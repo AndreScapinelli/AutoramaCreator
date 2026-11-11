@@ -24,9 +24,12 @@ namespace Autorama
         // Pista de 4 carros (seção 25 do guia): a geometria em células é a mesma, mas 1 célula vale 2 no mundo
         // (Scale) e a largura tem 4 trilhos, a cada 0,25 célula. No mundo: trilhos a ±0,25 e ±0,75 e raio 5 no centro.
         public static readonly float[] Lanes4 = { -0.375f, -0.125f, 0.125f, 0.375f };
-        public static int Faixas(int f) => f == 4 ? 4 : 2;
-        public static float[] LanesOf(int faixas) => faixas == 4 ? Lanes4 : Lanes;
-        public static float Scale(int faixas) => faixas == 4 ? 2f : 1f;
+        // Pista de 6 carros (seção 31 do guia): célula = 3 no mundo, trilhos a ±0,25, ±0,75 e ±1,25 no mundo
+        // (em células: ±1/12, ±1/4 e ±5/12). O espaço entre trilhos é sempre 0,5 no mundo, nos três tipos de pista.
+        public static readonly float[] Lanes6 = { -5f / 12f, -0.25f, -1f / 12f, 1f / 12f, 0.25f, 5f / 12f };
+        public static int Faixas(int f) => f == 6 ? 6 : f == 4 ? 4 : 2;
+        public static float[] LanesOf(int faixas) => faixas == 6 ? Lanes6 : faixas == 4 ? Lanes4 : Lanes;
+        public static float Scale(int faixas) => faixas == 6 ? 3f : faixas == 4 ? 2f : 1f;
         public const int MaxLevel = 2;            // 0 = chão, 1 = ponte, 2 = ponte sobre ponte
         public const float LevelHeight = 0.75f;   // 1 nível = 3/4 de célula: vão para o carrinho e sombra visível de cima
 

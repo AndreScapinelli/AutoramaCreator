@@ -23,7 +23,7 @@ namespace Autorama
         // faixas 4: a arte da pista larga (a malha é em células; a raiz da pista tem escala 2).
         public void Build(Segment s, TrackTheme theme, Material only = null, int faixas = 2)
         {
-            bool wide = faixas == 4 && theme != null && theme.Has4;
+            bool wide = faixas >= 4 && theme != null && theme.HasWide(faixas);
             V.Clear(); UV.Clear(); Surface.Clear(); Checker.Clear(); Guard.Clear();
             var d = s.def;
             int dir = s.piece.dir;
@@ -75,14 +75,14 @@ namespace Autorama
 
             var mr = GetComponent<MeshRenderer>();
             mr.sharedMaterials = only != null ? new[] { only, only, only }
-                : wide ? new[] { theme.Surface(d, dir, 4), theme.checker, theme.guard4 != null ? theme.guard4 : theme.guard }
+                : wide ? new[] { theme.Surface(d, dir, faixas), theme.checker, theme.Guard(faixas) }
                 : new[] { theme.Surface(d, dir), theme.checker, theme.guard };
             mr.shadowCastingMode = only != null ? UnityEngine.Rendering.ShadowCastingMode.Off : UnityEngine.Rendering.ShadowCastingMode.On;
 
             var col = GetComponent<MeshCollider>();
             if (col) { col.sharedMesh = null; col.sharedMesh = mesh; }
 
-            BuildPillars(s, only == null ? theme : null, wide);
+            BuildPillars(s, only == null ? theme : null, wide ? faixas : 2);
         }
 
         // Destaque por cima da peça: seleção (amarelo) ou sobreposição (vermelho).
@@ -105,12 +105,12 @@ namespace Autorama
 
         // Pista de 2: dois pilares redondos por fileira. Pista de 4: três pilares quadrados e finos de aço escuro
         // (bordas e meio), com uma travessa embaixo do tabuleiro.
-        void BuildPillars(Segment s, TrackTheme theme, bool wide = false)
+        void BuildPillars(Segment s, TrackTheme theme, int faixas = 2)
         {
             foreach (var p in pillars) Kill(p);
             pillars.Clear();
             if (theme == null || !s.High) return;
-            if (wide) { BuildPillars4(s, theme); return; }
+            if (faixas >= 4) { BuildPillars4(s, theme, faixas); return; }
             int count = Mathf.Max(1, Mathf.RoundToInt(s.def.CenterLength / 1.25f));
             for (int j = 0; j <= count; j++)
             {
@@ -133,10 +133,13 @@ namespace Autorama
             }
         }
 
-        void BuildPillars4(Segment s, TrackTheme theme)
+        // Pista de 4 e de 6: a malha é em células (raiz com escala 2 ou 3), então a espessura e o espaçamento dos pilares
+        // dividem por "k / 2" para ficarem do mesmo tamanho no mundo nas duas.
+        void BuildPillars4(Segment s, TrackTheme theme, int faixas)
         {
-            var mat = theme.support4 != null ? theme.support4 : theme.support;
-            int count = Mathf.Max(1, Mathf.RoundToInt(s.def.CenterLength));
+            var mat = theme.Support(faixas);
+            float k = TrackMath.Scale(faixas), thin = 0.05f * 2f / k;
+            int count = Mathf.Max(1, Mathf.RoundToInt(s.def.CenterLength * k / 2f));
             for (int j = 0; j <= count; j++)
             {
                 float t = j / (float)count;
@@ -147,10 +150,10 @@ namespace Autorama
                 {
                     var o = TrackMath.Offset(q, side);
                     float top = TrackLayout.SurfaceY(s, t, side) - 0.06f;
-                    pillars.Add(Box("Pilar", mat, new Vector3(o.x, top / 2f, o.y), new Vector3(0.05f, top, 0.05f), rot));
+                    pillars.Add(Box("Pilar", mat, new Vector3(o.x, top / 2f, o.y), new Vector3(thin, top, thin), rot));
                 }
                 // Travessa logo abaixo da pista, de borda a borda.
-                pillars.Add(Box("Travessa", mat, new Vector3(q.pos.x, TrackLayout.SurfaceY(s, t, 0f) - 0.035f, q.pos.y), new Vector3(0.06f, 0.05f, 0.95f), rot));
+                pillars.Add(Box("Travessa", mat, new Vector3(q.pos.x, TrackLayout.SurfaceY(s, t, 0f) - 0.035f, q.pos.y), new Vector3(0.06f * 2f / k, 0.05f * 2f / k, 0.95f), rot));
             }
         }
 

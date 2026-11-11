@@ -13,6 +13,8 @@
     --trilho-b: rgb(80, 137, 242);
     --trilho-c: rgb(56, 186, 98);
     --trilho-d: rgb(242, 183, 40);
+    --trilho-e: rgb(139, 63, 217);
+    --trilho-f: rgb(25, 181, 201);
     --fundo: rgb(22, 28, 25);
     --fundo-vidro: rgba(22, 28, 25, 0.94);
     --fundo-painel: rgba(22, 28, 25, 0.97);
@@ -110,6 +112,8 @@
 .swatch--b { background-color: var(--trilho-b); }
 .swatch--c { background-color: var(--trilho-c); }
 .swatch--d { background-color: var(--trilho-d); }
+.swatch--e { background-color: var(--trilho-e); }
+.swatch--f { background-color: var(--trilho-f); }
 
 /* ---------- Sequência ---------- */
 .seq { flex-direction: row; flex-wrap: wrap; }
@@ -201,6 +205,8 @@
 .score-b .score-cell--name { color: var(--trilho-b); -unity-font-style: bold; }
 .score-c .score-cell--name { color: var(--trilho-c); -unity-font-style: bold; }
 .score-d .score-cell--name { color: var(--trilho-d); -unity-font-style: bold; }
+.score-e .score-cell--name { color: var(--trilho-e); -unity-font-style: bold; }
+.score-f .score-cell--name { color: var(--trilho-f); -unity-font-style: bold; }
 .score-win .score-cell { -unity-font-style: bold; }
 .setting { margin: 0 0 8px 0; }
 .setting .unity-label { color: var(--texto); font-size: 12px; min-width: 150px; }
@@ -218,6 +224,8 @@
 .banner-title--b { color: var(--trilho-b); }
 .banner-title--c { color: var(--trilho-c); }
 .banner-title--d { color: var(--trilho-d); }
+.banner-title--e { color: var(--trilho-e); }
+.banner-title--f { color: var(--trilho-f); }
 .banner-sub { font-size: 13px; color: var(--texto-fraco); margin: 4px 0 0 0; padding: 0; }
 
 .pads { position: absolute; bottom: 12px; right: 12px; flex-direction: row; }
@@ -228,6 +236,8 @@
 .pad--b { border-color: var(--trilho-b); }
 .pad--c { border-color: var(--trilho-c); }
 .pad--d { border-color: var(--trilho-d); }
+.pad--e { border-color: var(--trilho-e); }
+.pad--f { border-color: var(--trilho-f); }
 .pad--last { margin-right: 0; }
 .pad-head { flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 6px; }
 .pad-name { font-size: 14px; -unity-font-style: bold; letter-spacing: 1px; color: var(--texto); margin: 0; padding: 0; }
@@ -241,6 +251,8 @@
 .pad--b .gas { border-color: var(--trilho-b); }
 .pad--c .gas { border-color: var(--trilho-c); }
 .pad--d .gas { border-color: var(--trilho-d); }
+.pad--e .gas { border-color: var(--trilho-e); }
+.pad--f .gas { border-color: var(--trilho-f); }
 .gas-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background-color: rgba(240, 74, 63, 0.35); }
 .pad--b .gas-fill { background-color: rgba(80, 137, 242, 0.35); }
 .pad--c .gas-fill { background-color: rgba(56, 186, 98, 0.35); }
@@ -252,6 +264,24 @@
 .pads--4 .gas-text { font-size: 12px; letter-spacing: 1px; white-space: normal; -unity-text-align: middle-center; }
 .pads--4 .pad-side { width: 104px; }
 .pads--4 .pad-name { font-size: 12px; }
+/* Pista de 6 carros: seis painéis lado a lado, ainda mais compactos (sem a legenda dos medidores). */
+.pads--6 .pad { margin-right: 5px; padding: 4px 6px 6px 6px; border-top-width: 3px; }
+.pads--6 .pad--last { margin-right: 0; }
+.pads--6 .pad-head { margin-bottom: 3px; }
+.pads--6 .pad-name { font-size: 10px; letter-spacing: 0; }
+.pads--6 .pad-state { font-size: 10px; }
+.pads--6 .pad-body { flex-direction: column; }
+.pads--6 .gas { height: 40px; margin-right: 0; margin-bottom: 4px; border-width: 1px; }
+.pads--6 .gas-text { font-size: 10px; letter-spacing: 0; white-space: normal; -unity-text-align: middle-center; }
+.pads--6 .pad-side { width: auto; }
+.pads--6 .meter-label { display: none; }
+.pads--6 .meter { height: 5px; margin-bottom: 3px; }
+.pads--6 .reslot { height: 22px; font-size: 10px; margin: 0; padding: 0; }
+.hud--6 .hud-card { min-width: 0; margin: 0 2px; padding: 4px 8px 4px 4px; }
+.hud--6 .hud-pos { width: 22px; font-size: 14px; }
+.hud--6 .hud-name { font-size: 10px; letter-spacing: 0; }
+.hud--6 .hud-lap { font-size: 10px; margin-right: 6px; }
+.hud--6 .hud-best { display: none; }
 .pad--held .gas { background-color: rgb(30, 36, 33); }
 .gas-text { font-size: 18px; -unity-font-style: bold; letter-spacing: 2px; color: var(--texto); margin: 0; padding: 0; }
 .pad-side { width: 150px; }
@@ -314,6 +344,8 @@
 .heat-stage { font-size: 10px; letter-spacing: 1px; color: var(--texto-fraco); margin: 0 0 6px 0; padding: 0; }
 .vs { flex-direction: row; align-items: center; }
 .vs--4 { flex-wrap: wrap; }
+.vs--6 { flex-wrap: wrap; }
+.vs--6 .hp { flex-basis: 30%; margin: 0 4px 4px 0; }
 .hp--empty { opacity: 0.45; border-left-color: var(--borda-media); }
 .vs--4 .hp { flex-basis: 45%; margin: 0 4px 4px 0; }
 .vs-x { font-size: 14px; color: var(--texto-fraco); margin: 0 6px; padding: 0; }

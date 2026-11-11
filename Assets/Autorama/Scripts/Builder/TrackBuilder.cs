@@ -344,7 +344,7 @@ namespace Autorama
             if (arrow2) arrow2.gameObject.SetActive(!RaceMode);
             if (ghostEntry.HasValue && !RaceMode) ShowGhost(ghostEntry.Value); else if (ghost) ghost.gameObject.SetActive(false);
             if (RaceMode) SetHoverCell(null);
-            if (board) board.Build(boardSize, Scale, theme.board4);
+            if (board) board.Build(boardSize, Scale, theme.Board(Faixas));
             // Só salva o rascunho no Play e fora da corrida: no Editor a pista é só mostrada,
             // e na corrida a pista em uso pode ser outra (escolhida na lista).
             if (Application.isPlaying && !RaceMode)

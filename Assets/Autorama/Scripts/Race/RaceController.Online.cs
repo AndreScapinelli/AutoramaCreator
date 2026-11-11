@@ -26,7 +26,7 @@ namespace Autorama
         readonly List<Stage> onlineStages = new List<Stage>();    // do host: com os dados completos (o servidor guarda e devolve só o resumo)
 
         VisualElement oEntry, oLobby, oRooms, oPlayers, oColors, oStages, oPick, oHostPick, oRun, oRunChatSec, oFormat;
-        Button oByLaps, oByTime, oKind2, oKind4;
+        Button oByLaps, oByTime, oKind2, oKind4, oKind6;
         Label oFormatText;
         int onlineFaixas = 2;          // tipo de pista que o host está escolhendo (vale enquanto não há etapas)
         Label oMsg, oRoomTitle, oRoomCode, oStageHint, oLobbyMsg, oRulesHint, oStartHint;
@@ -138,6 +138,8 @@ namespace Autorama
             var kind = El("segmented", oFormat);
             oKind2 = Btn("2 carros", () => OnlineKind(2), "btn", kind);
             oKind4 = Btn("4 carros", () => OnlineKind(4), "btn", kind);
+            oKind6 = Btn("6 carros", () => OnlineKind(6), "btn", kind);
+            oKind6.tooltip = "Pista de 6 trilhos. Com menos de 6 jogadores, sobra trilho vazio em cada bateria.";
             oKind4.tooltip = "Pista de 4 trilhos. Com menos de 4 jogadores, sobra trilho vazio em cada bateria.";
             oStageHint = Text("", "hint", st);
             oStages = El(null, st);
@@ -594,13 +596,13 @@ namespace Autorama
             // Formato e tipo: o host vê os botões; todos leem a linha (os visitantes pelo que o host mandou nas etapas).
             if (host && onlineStages.Count > 0) onlineFaixas = onlineStages[0].data.Faixas;
             bool byTimeNow = host ? set.byTime : room.stages.Count > 0 && room.stages[0].tempo;
-            int faixasNow = host ? onlineFaixas : room.stages.Count > 0 && room.stages[0].faixas == 4 ? 4 : 2;
+            int faixasNow = host ? onlineFaixas : room.stages.Count > 0 ? TrackMath.Faixas(room.stages[0].faixas) : 2;
             oFormat.style.display = host ? DisplayStyle.Flex : DisplayStyle.None;
             oByLaps.EnableInClassList("btn--on", !byTimeNow); oByTime.EnableInClassList("btn--on", byTimeNow);
-            oKind2.EnableInClassList("btn--on", faixasNow == 2); oKind4.EnableInClassList("btn--on", faixasNow == 4);
+            oKind2.EnableInClassList("btn--on", faixasNow == 2); oKind4.EnableInClassList("btn--on", faixasNow == 4); oKind6.EnableInClassList("btn--on", faixasNow == 6);
             int n = room.players.Count, gaps = faixasNow - Mathf.Min(n, faixasNow);
             oFormatText.text = (host || room.stages.Count > 0)
-                ? $"<b>{(byTimeNow ? "Por tempo" : "Por voltas")}</b> · <b>pistas de {faixasNow} carros</b>" + (faixasNow == 4 && gaps > 0 ? $" · com {n} {(n == 1 ? "jogador" : "jogadores")}, {gaps} {(gaps == 1 ? "trilho fica vazio" : "trilhos ficam vazios")} em cada bateria" : "")
+                ? $"<b>{(byTimeNow ? "Por tempo" : "Por voltas")}</b> · <b>pistas de {faixasNow} carros</b>" + (faixasNow >= 4 && gaps > 0 ? $" · com {n} {(n == 1 ? "jogador" : "jogadores")}, {gaps} {(gaps == 1 ? "trilho fica vazio" : "trilhos ficam vazios")} em cada bateria" : "")
                 : "Formato e tipo de pista: o host ainda não escolheu.";
 
             // Etapas
@@ -647,7 +649,7 @@ namespace Autorama
             if (host)
                 foreach (var o in Options())
                 {
-                    if (o.save.Faixas != (onlineStages.Count > 0 ? onlineStages[0].data.Faixas : onlineFaixas)) continue;    // não mistura 2 e 4 carros
+                    if (o.save.Faixas != (onlineStages.Count > 0 ? onlineStages[0].data.Faixas : onlineFaixas)) continue;    // não mistura pistas de tipos diferentes
                     var opt = o;
                     var item = new Button(() => AddOnlineStage(opt));
                     item.AddToClassList("lib-item"); item.AddToClassList("pick");

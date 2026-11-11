@@ -17,7 +17,7 @@ namespace Autorama
             AutoDoisCarros = 3,
         }
 
-        public float minSize = 2f, maxSize = 40f;
+        public float minSize = 2f, maxSize = 80f;      // a pista de 6 carros é 3× maior no mundo
         public float tiltPitch = 52f, fieldOfView = 32f;
 
         public bool Tilted { get; private set; }
@@ -34,8 +34,8 @@ namespace Autorama
         Vector3 dragOrigin;
         bool panning, orbiting;
         Vector2 lastMouse;
-        readonly Vector3[] raceCarPos = new Vector3[4];
-        readonly float[] raceCarHeading = new float[4];
+        readonly Vector3[] raceCarPos = new Vector3[6];
+        readonly float[] raceCarHeading = new float[6];
         int raceCars = 2;            // carrinhos na pista (2 ou 4)
         bool hasRaceTargets;
         int focusCar = -1;           // carrinho que a vista dinâmica acompanha de perto; -1 enquadra todos
@@ -50,6 +50,7 @@ namespace Autorama
             focus = new Vector3(transform.position.x, 0f, transform.position.z);
             size = cam.orthographicSize;
             pitch = tiltPitch;
+            maxSize = Mathf.Max(maxSize, 80f);           // a cena guarda o valor antigo (40): a pista de 6 não cabe nele
         }
 
         public void ToggleTilt() => Tilted = !Tilted;
@@ -57,7 +58,7 @@ namespace Autorama
         // Zoom pelos botões da barra do construtor (k < 1 aproxima): no centro da vista, como a roda.
         public void ZoomStep(float k)
         {
-            if (Tilted) distance = Mathf.Clamp(distance * k, 4f, 150f);
+            if (Tilted) distance = Mathf.Clamp(distance * k, 4f, 300f);
             else size = Mathf.Clamp(size * k, minSize, maxSize);
         }
 
@@ -104,7 +105,7 @@ namespace Autorama
             // Na 3D, a distância que mostra a pista inteira.
             // A pista vista inclinada encurta na profundidade; a largura é que manda (com a tela mais larga que alta).
             float halfWidth = Mathf.Max(r.width * 0.5f / (aspect * usable), r.height * 0.5f) + 0.8f;
-            distance = Mathf.Clamp(halfWidth / Mathf.Tan(fieldOfView * 0.5f * Mathf.Deg2Rad), 6f, 120f);
+            distance = Mathf.Clamp(halfWidth / Mathf.Tan(fieldOfView * 0.5f * Mathf.Deg2Rad), 6f, 260f);
         }
 
         void Update()
@@ -129,7 +130,7 @@ namespace Autorama
                 {
                     // Neste modo o zoom é automático, então ignoramos a roda para manter previsibilidade.
                 }
-                else if (Tilted) distance = Mathf.Clamp(distance * k, 4f, 150f);
+                else if (Tilted) distance = Mathf.Clamp(distance * k, 4f, 300f);
                 else
                 {
                     Vector3 before = MouseOnTable();

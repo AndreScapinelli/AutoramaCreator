@@ -87,12 +87,12 @@ namespace Autorama
     {
         public string hash, name;
         public Rec lap = new Rec();
-        public Rec lane1 = new Rec(), lane2 = new Rec(), lane3 = new Rec(), lane4 = new Rec();   // 3 e 4: só nas pistas de 4
+        public Rec lane1 = new Rec(), lane2 = new Rec(), lane3 = new Rec(), lane4 = new Rec(), lane5 = new Rec(), lane6 = new Rec();   // 3 a 6: só nas pistas de 4 e 6
         public List<RaceRec> race = new List<RaceRec>();
         public List<PilotBest> pb = new List<PilotBest>();
 
-        public Rec Lane(int k) => k == 0 ? lane1 : k == 1 ? lane2 : k == 2 ? (lane3 ??= new Rec()) : (lane4 ??= new Rec());
-        public void SetLane(int k, Rec r) { if (k == 0) lane1 = r; else if (k == 1) lane2 = r; else if (k == 2) lane3 = r; else lane4 = r; }
+        public Rec Lane(int k) => k == 0 ? lane1 : k == 1 ? lane2 : k == 2 ? (lane3 ??= new Rec()) : k == 3 ? (lane4 ??= new Rec()) : k == 4 ? (lane5 ??= new Rec()) : (lane6 ??= new Rec());
+        public void SetLane(int k, Rec r) { if (k == 0) lane1 = r; else if (k == 1) lane2 = r; else if (k == 2) lane3 = r; else if (k == 3) lane4 = r; else if (k == 4) lane5 = r; else lane6 = r; }
         public Rec Race(int laps) { var r = race.Find(x => x.laps == laps); return r != null ? r.rec : null; }
         public void SetRace(int laps, Rec r) { var e = race.Find(x => x.laps == laps); if (e == null) race.Add(new RaceRec { laps = laps, rec = r }); else e.rec = r; }
         public PilotBest Best(string id, bool create)
@@ -232,7 +232,7 @@ namespace Autorama
         // A pista de 4 carros começa com "f4|": a mesma forma em 2 e em 4 faixas são pistas diferentes, e as de 2 não mudam.
         public static string TrackHash(TrackSave t)
         {
-            var sb = new StringBuilder(t.Faixas == 4 ? "f4|largada:0:0" : "largada:0:0");
+            var sb = new StringBuilder(t.Faixas == 6 ? "f6|largada:0:0" : t.Faixas == 4 ? "f4|largada:0:0" : "largada:0:0");
             foreach (var p in t.pecas)
             {
                 var def = PieceCatalog.ById(p.tipo);

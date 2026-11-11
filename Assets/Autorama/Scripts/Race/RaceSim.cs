@@ -21,7 +21,7 @@ namespace Autorama
         public int cameraDistance = 100; // escala do enquadramento: 70% mais perto, 160% mais longe
         public int halfGas = 60;        // tecla de meia aceleração (Q · O): até onde o acelerador vai, em %
         public bool bot34 = true;       // pista de 4 carros, corrida livre: os trilhos 3 e 4 são robôs (qualidade botSkill)
-        public int cars4 = 4;           // pista de 4, corrida livre: quantos carrinhos (2, 3 ou 4); os trilhos de cima ficam vazios
+        public int cars4 = 6;           // pista de 4 ou de 6, corrida livre: quantos carrinhos (2 até o número de trilhos); os trilhos de cima ficam vazios
         public bool byTime;             // corrida por tempo (seção 26): dura "secs" e se divide em uma manche por trilho
         public int secs = 120;          // duração total da corrida por tempo, em segundos
 
@@ -194,11 +194,11 @@ namespace Autorama
         public RaceSettings set;                // na corrida livre, os ajustes salvos; no campeonato, as regras dele
         public float? cutoff;                   // campeonato: a bateria acaba esse tanto depois da bandeirada do primeiro
         public float? bestT;                    // melhor volta da bateria até agora
-        public const int MaxCars = 4;
+        public const int MaxCars = 6;
         public readonly int[] aiSkill = new int[MaxCars];   // 0: gente; 1–100: piloto IA com essa qualidade
         public readonly LanePath[] paths = new LanePath[MaxCars];
         public CarState[] cars { get; private set; } = { new CarState(), new CarState() };
-        public readonly bool[] present = { true, true, true, true };   // trilho vazio na bateria (campeonato por tempo com menos pilotos que trilhos)
+        public readonly bool[] present = { true, true, true, true, true, true };   // trilho vazio na bateria (campeonato por tempo com menos pilotos que trilhos)
 
         // ---------- Corrida por tempo (seção 26) ----------
         // A prova dura set.secs e tem uma manche por trilho (N). No fim de cada manche os carrinhos param, cada um passa

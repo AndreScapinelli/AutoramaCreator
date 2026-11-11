@@ -215,8 +215,8 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
         const secs = s && s.secs != null && Number(s.secs) !== 0 ? Math.round(Number(s.secs)) : 120;   // corrida por tempo (cliente antigo: 120)
         if (!s || !/^[0-9a-f]{8}$/.test(String(s.hash)) || !(laps >= 1 && laps <= 30) || !(secs >= 60 && secs <= 600) || typeof s.json !== 'string' || !s.json || s.json.length > MAX_TRACK_JSON)
           return fail(c, 'etapas', 'Etapa inválida ou pista grande demais.');
-        // tempo: o formato que o host escolheu (por tempo); faixas: pista de 2 ou 4 carros. Só repassados para os visitantes verem.
-        out.push({ name: clean(s.name, 60) || 'Pista', laps, secs, tempo: !!s.tempo, faixas: Number(s.faixas) === 4 ? 4 : 2, hash: s.hash, json: s.json });
+        // tempo: o formato que o host escolheu (por tempo); faixas: pista de 2, 4 ou 6 carros. Só repassados para os visitantes verem.
+        out.push({ name: clean(s.name, 60) || 'Pista', laps, secs, tempo: !!s.tempo, faixas: [4, 6].includes(Number(s.faixas)) ? Number(s.faixas) : 2, hash: s.hash, json: s.json });
       }
       const mudou = JSON.stringify(out.map(s => [s.hash, s.laps, s.secs, s.tempo])) !== JSON.stringify(r.stages.map(s => [s.hash, s.laps, s.secs, s.tempo]));
       r.stages = out;
