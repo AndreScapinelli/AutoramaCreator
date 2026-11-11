@@ -12,6 +12,8 @@ namespace Autorama
         public Pose2 a, b;
         public int zIn, zOut;
         public bool bankIn, bankOut;     // vizinha também inclinada para o mesmo lado (sem transição naquela ponta)
+        public bool flatIn, flatOut;     // (inclinada) vizinha plana ligada: a inclinação continua nela, sem transição de 20%
+        public int bankDirIn, bankDirOut; // (plana) dir da peça inclinada vizinha, 0 se não há; a inclinação espalha por ela
 
         public float ZAt(float t) => zIn + (zOut - zIn) * t;
         public bool High => zIn > 0 || zOut > 0;
@@ -152,24 +154,72 @@ namespace Autorama
                 // Entre a ponta da frente e a peça de trás mais afastada só há ligação se a pista está fechada.
                 bool prevLinked = i == 0 ? closed || tail > 0 : i == fe && tail > 0 ? closed : true;
                 bool nextLinked = i == n - 1 ? closed || tail > 0 : i == fe - 1 && tail > 0 ? closed : true;
-                s.bankIn = prevLinked && SameBank(segs[i == 0 ? n - 1 : i - 1], s);
-                s.bankOut = nextLinked && SameBank(segs[i == n - 1 ? 0 : i + 1], s);
+                var prev = segs[i == 0 ? n - 1 : i - 1];
+                var next = segs[i == n - 1 ? 0 : i + 1];
+                s.bankIn = prevLinked && SameBank(prev, s);
+                s.bankOut = nextLinked && SameBank(next, s);
+                // Vizinha plana: a inclinação dela continua pela peça plana (Spill), então não precisa de rampa de 20%.
+                s.flatIn = prevLinked && !prev.def.Banked;
+                s.flatOut = nextLinked && !next.def.Banked;
+                s.bankDirIn = prevLinked && prev.def.Banked ? prev.piece.dir : 0;
+                s.bankDirOut = nextLinked && next.def.Banked ? next.piece.dir : 0;
             }
         }
 
         static bool SameBank(Segment a, Segment b) => a.def.Banked && b.def.Banked && a.piece.dir == b.piece.dir;
 
+        // Quanto da inclinação de uma peça inclinada vizinha chega numa peça plana (1 na emenda, 0 a SpillLength dentro).
+        // dirSide é o dir da peça inclinada (+1 curva à direita: o lado de fora é o esquerdo). Peça inclinada: 0.
+        // Vale para qualquer peça plana, inclusive reta, curva, cruzamento, rampa e ponte (no alto).
+        public const float SpillLength = 1.5f;          // células: reta e curva no mesmo sentido
+        public const float OppositeSpillLength = 2f;    // células: curva plana que vira para o lado oposto (S), sem vinco
+        public static float Spill(Segment s, float t, int dirSide)
+        {
+            if (s.def.Banked) return 0f;
+            // Curva para o lado oposto da inclinada: a transição é mais longa, senão a superfície dobra num vinco.
+            float LenIn = s.def.IsCurve && s.piece.dir == -dirSide ? OppositeSpillLength : SpillLength;
+            float wi = s.bankDirIn == dirSide ? Ease(t * s.def.CenterLength, LenIn) : 0f;
+            float wo = s.bankDirOut == dirSide ? Ease((1f - t) * s.def.CenterLength, LenIn) : 0f;
+            return Mathf.Max(wi, wo);
+        }
+
+        // Suavização (smoothstep invertido): 1 na emenda, 0 no fim do trecho, com inclinação zero nas duas pontas.
+        static float Ease(float dist, float length)
+        {
+            float p = Mathf.Clamp01(dist / length);
+            return 1f - p * p * (3f - 2f * p);
+        }
+
         // Altura (y do mundo) da superfície num ponto da peça: nível da peça + inclinação da curva.
         // A borda de dentro fica na altura da peça e a de fora sobe (na curva à direita, dir +1, o lado de fora é o esquerdo).
-        // Inclinação entra e sai em 20% da peça, a não ser que a vizinha também seja inclinada.
+        // A inclinação é inteira na curva; na vizinha plana ela desce com Spill (0,6 célula); contra outra inclinada
+        // de sentido oposto, entra e sai em 20% da peça.
         public static float SurfaceY(Segment s, float t, float lateral)
         {
             float y = s.ZAt(t) * TrackMath.LevelHeight;
-            if (!s.def.Banked) return y;
+            float tan = Mathf.Tan(PieceCatalog.BankAngle * Mathf.Deg2Rad);
+            if (!s.def.Banked)
+            {
+                // Peça no alto também recebe: a inclinação segue o mesmo caminho (a rampa só muda o nível).
+                float wp = Spill(s, t, 1), wm = Spill(s, t, -1);
+                if (wp <= 0f && wm <= 0f) return y;
+                int dir = wp >= wm ? 1 : -1;
+                return y + (0.5f - dir * lateral) * tan * Mathf.Max(wp, wm);
+            }
+            // Emenda com inclinada de sentido oposto (ou ponta aberta): a inclinação zera na emenda, com suavização de
+            // CrossLength célula (sem vinco). Assim o lado de fora passa pela altura da pista plana no meio.
             float w = 1f;
-            if (!s.bankIn) w = Mathf.Min(w, t / 0.2f);
-            if (!s.bankOut) w = Mathf.Min(w, (1f - t) / 0.2f);
-            return y + (0.5f - s.piece.dir * lateral) * Mathf.Tan(PieceCatalog.BankAngle * Mathf.Deg2Rad) * Mathf.Clamp01(w);
+            if (!s.bankIn && !s.flatIn) w = Mathf.Min(w, Cross(t * s.def.CenterLength));
+            if (!s.bankOut && !s.flatOut) w = Mathf.Min(w, Cross((1f - t) * s.def.CenterLength));
+            return y + (0.5f - s.piece.dir * lateral) * tan * Mathf.Clamp01(w);
+        }
+
+        public const float CrossLength = 1.5f;   // células: suavização de inclinada contra inclinada de sentido oposto
+        // Subida suave (smoothstep): 0 na emenda, 1 a CrossLength dentro da peça.
+        static float Cross(float dist)
+        {
+            float p = Mathf.Clamp01(dist / CrossLength);
+            return p * p * (3f - 2f * p);
         }
 
         static bool Touches(List<Vector3> a, List<Vector3> b, float minSqr)

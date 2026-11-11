@@ -118,7 +118,7 @@ namespace Autorama
                         var q = TrackMath.PoseAt(s.a, d, s.piece.dir, t);
                         pts.Add(TrackMath.Offset(q, o) * scale);
                         ys.Add(TrackLayout.SurfaceY(s, t, o) * scale);
-                        bks.Add(d.Banked ? Mathf.Atan2(TrackLayout.SurfaceY(s, t, o + 0.1f) - TrackLayout.SurfaceY(s, t, o - 0.1f), 0.2f) * Mathf.Rad2Deg : 0f);
+                        bks.Add(Mathf.Atan2(TrackLayout.SurfaceY(s, t, o + 0.1f) - TrackLayout.SurfaceY(s, t, o - 0.1f), 0.2f) * Mathf.Rad2Deg);
                         ks.Add(kap); gm.Add(d.GripMultiplier); zs.Add(s.ZAt(t)); gs.Add(slope); pis.Add(si);
                     }
                     if (d.IsCross) off = -off;

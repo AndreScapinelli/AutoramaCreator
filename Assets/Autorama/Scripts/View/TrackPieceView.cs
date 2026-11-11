@@ -99,6 +99,20 @@ namespace Autorama
                 AddBand(Guard, s, ts, At(wallIn, wallH), At(0.5f, wallH), gv, Y);
                 AddBand(Guard, s, ts, At(wallIn, 0f), At(wallIn, wallH), gv, Y);
             }
+            // Vizinha plana de peça inclinada: o muro da lateral de fora cresce com a inclinação e some longe dela.
+            // Onde a altura é zero, o muro fica 0,003 abaixo da pista (escondido), para não brigar com a superfície.
+            // Peças no alto já têm muro dos dois lados (acima), que acompanha a inclinação sozinho.
+            if (only == null && !d.Banked && !s.High)
+            {
+                foreach (int dirSide in new[] { 1, -1 })     // +1: a curva é para a direita, o muro de fora é o da esquerda
+                {
+                    if (s.bankDirIn != dirSide && s.bankDirOut != dirSide) continue;
+                    float e = -dirSide;                      // lateral do muro: -1 esquerda, +1 direita
+                    Edge WallEdge(float o, float h) => t => (o, h * TrackLayout.Spill(s, t, dirSide) - 0.003f, o + 0.5f);
+                    AddBand(Guard, s, ts, WallEdge(e * 0.5f, wallH), WallEdge(e * wallIn, wallH), gv, Y);     // topo
+                    AddBand(Guard, s, ts, WallEdge(e * wallIn, wallH), WallEdge(e * wallIn, 0f), gv, Y);      // face de dentro
+                }
+            }
             // Laterais da base (do topo do muro, se houver, até embaixo) e, nas peças no alto, o fundo.
             if (only == null)
             {

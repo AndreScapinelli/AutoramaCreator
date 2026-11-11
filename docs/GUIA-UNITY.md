@@ -1725,6 +1725,7 @@ float VertexY(Segment s, float t, float lateral, float layerY)
 
 // Transição de 20% em cada ponta, para não fazer degrau com a peça plana vizinha.
 // Se a vizinha também for inclinada para o mesmo lado, mantenha 1 naquela ponta.
+// (Versão atual: a vizinha plana também recebe a inclinação, em 0,6 célula; ver seção 16.5b.)
 float BankWeight(Segment s, float t) => Mathf.Clamp01(Mathf.Min(t, 1f - t) / 0.2f);
 ```
 
@@ -1777,6 +1778,55 @@ Como a velocidade limite é a raiz da aderência, a curva inclinada aceita √1,
 Na simulação da pista com ponte, os carrinhos chegaram a **13,4 cél/s** nas inclinadas e a 10,6 nas planas.
 
 Se o jogador abusar mesmo assim, ele derrapa e sai igual. A inclinada sobe o limite, não remove o limite.
+
+### 16.5b Inclinação que continua na vizinha plana
+
+Antes, a inclinação entrava e saía em 20% da própria curva, e a peça plana ao lado ficava reta. A torção acontecia num trecho curto e o muro de fora começava de repente na emenda. Agora:
+
+- **Na curva inclinada**, a inclinação é inteira até a emenda, sem rampa, quando a vizinha é plana (`flatIn`/`flatOut`).
+- **Inclinada contra inclinada de sentido oposto:** a inclinação sobe de zero na emenda com uma suavização de **1,5 célula** (`CrossLength`, smoothstep), em vez dos 20% de antes, que formavam vinco. Os dois lados chegam a zero na emenda, então a pista passa pela altura plana no meio. Teste: a emenda fecha em 0,0000 nos três pontos do trilho, e o degrau máximo por passo no lado de fora é 0,026.
+- **Comprimento:** a transição dura **1,5 célula** (`SpillLength`) nas retas e curvas no mesmo sentido, e **2 células** (`OppositeSpillLength`) na curva que vira para o lado oposto (S). Com 0,6, a superfície dobrava num vinco curto nas curvas longas, e a inclinada parecia encurtada. Na curva oposta, o lado de fora desce de 0,2679 a zero em 40 passos com degrau máximo de 0,020 por passo.
+- **Na peça plana vizinha** (reta, curva, meia curva, cruzamento, e também rampa ou ponte, as peças no alto), a inclinação desce junto com `Spill`. Na rampa, a inclinação segue o mesmo caminho e o nível sobe por cima: `Ease(d) = 1 − p²(3 − 2p)`, com `p = d / 0,6` célula, `d` = distância até a emenda. Ela é 1 na emenda e 0 a 0,6 célula dentro, com inclinação zero nas duas pontas (sem quina).
+- **Muro:** a peça plana ganha o muro da lateral de fora (só do lado da inclinada), com a altura multiplicada pelo mesmo `Spill`. Onde a altura é zero, o muro fica 0,003 abaixo da pista, escondido. Peça no alto já tem muro dos dois lados, então só acompanha a inclinação.
+- **Carrinho:** o ângulo lateral (`LanePoint.bank`) vale para qualquer peça, não só para as inclinadas, então o carrinho deita também no trecho de transição. A aderência continua só nas inclinadas (`GripMultiplier`), então a física não muda.
+
+```csharp
+// TrackLayout (Core). Segment ganha: flatIn, flatOut (bool) e bankDirIn, bankDirOut (int, dir da inclinada vizinha).
+public const float SpillLength = 1.5f;          // células: reta e curva no mesmo sentido
+public const float OppositeSpillLength = 2f;    // células: curva que vira para o lado oposto (S)
+public static float Spill(Segment s, float t, int dirSide)
+{
+    if (s.def.Banked) return 0f;          // qualquer peça plana, inclusive as no alto (rampa e ponte)
+    float LenIn = s.def.IsCurve && s.piece.dir == -dirSide ? OppositeSpillLength : SpillLength;
+    float wi = s.bankDirIn == dirSide ? Ease(t * s.def.CenterLength, LenIn) : 0f;
+    float wo = s.bankDirOut == dirSide ? Ease((1f - t) * s.def.CenterLength, LenIn) : 0f;
+    return Mathf.Max(wi, wo);
+}
+static float Ease(float dist, float length) { float p = Mathf.Clamp01(dist / length); return 1f - p * p * (3f - 2f * p); }
+
+public static float SurfaceY(Segment s, float t, float lateral)
+{
+    float y = s.ZAt(t) * TrackMath.LevelHeight;
+    float tan = Mathf.Tan(PieceCatalog.BankAngle * Mathf.Deg2Rad);
+    if (!s.def.Banked)
+    {
+        float wp = Spill(s, t, 1), wm = Spill(s, t, -1);
+        if (wp <= 0f && wm <= 0f) return y;
+        int dir = wp >= wm ? 1 : -1;
+        return y + (0.5f - dir * lateral) * tan * Mathf.Max(wp, wm);
+    }
+    float w = 1f;
+    if (!s.bankIn && !s.flatIn) w = Mathf.Min(w, t / 0.2f);
+    if (!s.bankOut && !s.flatOut) w = Mathf.Min(w, (1f - t) / 0.2f);
+    return y + (0.5f - s.piece.dir * lateral) * tan * Mathf.Clamp01(w);
+}
+```
+
+**Muro da vizinha plana** (`TrackPieceView.Build`): para cada lado com `bankDirIn`/`bankDirOut` igual ao sentido, o muro é uma faixa sobre toda a peça com a altura `wallH × Spill(s, t, dirSide) − 0,003`.
+
+**Teste (sem Play mode, `script eval`):** pista `largada, reta-comprida, curva-longa-inclinada (dir +1), reta-comprida, reta-curta`. Na emenda, a altura do lado de fora é **0,2679** dos dois lados (curva no fim e reta no início, iguais). Na reta, o lado de fora vai a 0,0695 em t = 0,1 (0,4 célula) e a 0 em t = 0,2 (0,8 célula, já fora dos 0,6).
+
+**Varredura de emendas:** inclinada (dir ±1) junto de cada peça plana (largada, curva longa, meia curva, reta comprida, curta e curtinha, cruzamento, cruzamento curto), com a plana antes ou depois, em nível 0 e em rampa (nível 0 → 1), com dir ±1. Todas batem: salto 0 na emenda e o mesmo valor do lado de fora dos dois lados. Na rampa, a emenda fica em 1,0179 (0,75 do nível + 0,2679 da inclinação). Antes desta correção, a rampa e as peças no alto ficavam de fora do espalhamento: a inclinada tinha 20% de transição contra a rampa. Não foi feito teste visual de Play mode.
 
 ### 16.6 Testes feitos (pista "Exemplo: 8 com ponte")
 
