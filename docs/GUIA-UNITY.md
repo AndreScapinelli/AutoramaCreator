@@ -2580,6 +2580,15 @@ A aba (`RaceController.Online*.cs`) fala com a rede só por `IOnlineTransport` (
 
 Regressão: `OnlineSmokeTest` (servidor Node, 42 verificações) e `SteamSpacewarTest` (24) continuam passando.
 
+### 24.5b steam_appid.txt nas builds (Windows e macOS)
+
+A Steam procura `steam_appid.txt` **ao lado do executável**. `SteamBuildPostprocessor` copia o arquivo da raiz do projeto (`480` = Spacewar) depois de cada build:
+
+- **Windows e Linux:** para a pasta da build, ao lado do `.exe`.
+- **macOS:** o executável fica **dentro do pacote**. Antes o arquivo ia só para a pasta que contém o `Autorama.app`, onde a Steam não o via ("sem AppId" no Mac). Agora vai para `Autorama.app/Contents/MacOS/` **e** para o lado do `.app`.
+- Só vale para o teste com o Spacewar. Numa build enviada à Steam (SteamPipe) com o AppId próprio, a Steam informa o app ao abrir o jogo e o arquivo não é necessário (convém não enviá-lo).
+- Não foi possível gerar uma build de macOS nesta máquina (Windows): a correção está conferida só pela leitura do código e pela compilação.
+
 ### 24.6 O que falta
 
 1. **Duas contas de verdade:** nada disso provou ainda a chegada entre dois jogadores em máquinas diferentes (ver o roteiro em 24.3). A mensagem direta para si mesmo chegou, o que é um bom sinal, mas não é a rede.
@@ -2861,3 +2870,30 @@ Play mode, `script eval` (os números, não o ouvido: **ninguém ouviu ainda**):
 1. **Ouvir e ajustar o timbre** (principalmente o motor e o pneu).
 2. Som nos menus e no construtor (clique, encaixe de peça), música.
 3. Som posicional (3D) seguindo cada carrinho.
+
+## 30. Sugerir pistas ao host (online)
+
+No lobby, qualquer visitante pode **sugerir uma das próprias pistas** ao host; o host decide. Vale no servidor Node e na Steam, com as mesmas regras.
+
+### 30.1 Fluxo
+
+- **Visitante** (seção "SUGERIR UMA PISTA AO HOST", em ETAPAS): lista as pistas dele que são **circuitos fechados**; se o host já escolheu o tipo (2 ou 4 carros), só as desse tipo. Clicar manda a pista e marca "enviada ✓" (cada pista só uma vez por sala).
+- **Host** (seção "SUGESTÕES DOS PILOTOS"): cada sugestão mostra miniatura, nome, "de Fulano" e três botões: **Incluir** (vira etapa, com a mesma regra de tipo de qualquer etapa: se for de 4 e o campeonato é de 2, recusa e a sugestão fica), **Salvar** (guarda na biblioteca do host, sem sobrescrever: se já há uma pista com o nome, grava "Nome (de Fulano)") e **Ignorar**. Também aparece um aviso: "Beto sugeriu a pista “…”".
+- As sugestões existem só no lobby, na memória do host; saem ao largar, ao sair da sala ou ao entrar numa sala.
+
+### 30.2 Mensagens
+
+- Visitante → host: `{t:"suggest", track, hash, faixas, json}` (`NetOut`). O servidor (ou a Steam) repassa só ao **host**, como `{t:"suggested", from, name, color, track, hash, faixas, json}` (`NetMsg`). O remetente (`from`, `name`, `color`) vem do servidor ou da Steam, **nunca do texto**.
+- Servidor Node (`suggest`): só no lobby; o host não sugere para si; `hash` com 8 hexadecimais; `json` até 100 KB; **3 sugestões por minuto** por jogador; `faixas` diferente de 4 vira 2; o nome é limpo (`clean`, 60 caracteres).
+- Steam (`Suggest` no visitante, `case "suggested"` no host): as mesmas regras, refeitas **dos dois lados** (o host não confia no visitante); mensagem direta confiável ao dono do lobby.
+
+### 30.3 O que o host confere (`OnSuggested`)
+
+Nada que veio da rede é confiado: o JSON é lido, a pista precisa ser **um circuito fechado**, `Champ.TrackHash` tem que **bater** com o `hash` dito, e valem os limites **12 sugestões no total**, **3 por jogador**, sem repetir a mesma pista do mesmo jogador e sem sugerir o que já é etapa. JSON inválido é ignorado em silêncio. O nome vem com `Safe` (sem rich text).
+
+### 30.4 Testes
+
+- `servidor`: `npm test` ganhou 6 verificações (chega ao host com quem mandou e o nome limpo; não volta ao visitante; host não sugere para si; identidade inválida; grande demais; tipo desconhecido vira 2; 3 por minuto).
+- `SteamTransportTest` (mundo falso, 3 jogadores): as mesmas 7 verificações, passando; a parte da Steam de verdade falhou no "criar sala" (esta máquina), como antes de mudar o código.
+- Play mode, host simulado (`OnSuggested`, `AcceptSuggestion`, `SaveSuggestion`): sugestão válida entra; repetida, de identidade errada, pista aberta e lixo no lugar do JSON são recusadas; 4 formas diferentes do mesmo jogador ficam em 3, e a mesma forma de outro jogador entra; a lista do host desenha uma linha por sugestão; incluir pista de 4 num campeonato de 2 é recusado e, depois de escolher 4 carros, entra como etapa e sai da lista; salvar grava na biblioteca (o arquivo de teste foi apagado).
+- **Não testado:** a tela com dois jogadores reais, e a Steam de verdade.

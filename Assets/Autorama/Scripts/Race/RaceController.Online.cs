@@ -25,6 +25,13 @@ namespace Autorama
         List<NetListed> listed = new List<NetListed>();
         readonly List<Stage> onlineStages = new List<Stage>();    // do host: com os dados completos (o servidor guarda e devolve só o resumo)
 
+        // Pistas que os visitantes sugeriram ao host (seção 30 do guia). Só o host as guarda, e só no lobby.
+        class Suggestion { public string from, name, track, hash; public TrackSave save; }
+        readonly List<Suggestion> suggestions = new List<Suggestion>();
+        readonly HashSet<string> sentSuggestions = new HashSet<string>();    // visitante: hashes que já mandei nesta sala
+        const int MaxSuggestions = 12, MaxSuggestionsPerPlayer = 3;
+        VisualElement oSuggestBox, oSuggest, oSendBox, oSend;
+
         VisualElement oEntry, oLobby, oRooms, oPlayers, oColors, oStages, oPick, oHostPick, oRun, oRunChatSec, oFormat;
         Button oByLaps, oByTime, oKind2, oKind4;
         Label oFormatText;
@@ -144,6 +151,15 @@ namespace Autorama
             oHostPick = El(null, st);
             Text("PISTAS DISPONÍVEIS", "h3", oHostPick);
             oPick = El(null, oHostPick);
+            // Host: o que os visitantes sugeriram. Visitante: as próprias pistas, para sugerir ao host.
+            oSuggestBox = El(null, st);
+            Text("SUGESTÕES DOS PILOTOS", "h3", oSuggestBox);
+            Text("Pistas que os outros pilotos mandaram. Você decide: inclui como etapa, salva na sua biblioteca ou ignora.", "hint", oSuggestBox);
+            oSuggest = El(null, oSuggestBox);
+            oSendBox = El(null, st);
+            Text("SUGERIR UMA PISTA AO HOST", "h3", oSendBox);
+            Text("Escolha uma das suas pistas (fechada) para o host incluir. Até 3 por minuto.", "hint", oSendBox);
+            oSend = El(null, oSendBox);
 
             var chat = Section(oLobby, "CHAT");
             BuildChatBox(chat, out oChat, out oChatInput);
@@ -357,6 +373,7 @@ namespace Autorama
             OnlineExitRun();
             room = null; myId = null; wasHost = false; pendingNet = null;
             onlineStages.Clear();
+            suggestions.Clear(); sentSuggestions.Clear();
             invited.Clear();
             chatLog.Clear();
             oChat.Clear(); oRunChat.Clear();
@@ -417,7 +434,7 @@ namespace Autorama
             {
                 case "joined":
                     myId = m.you; room = m.room; wasHost = IsHost;
-                    onlineStages.Clear();
+                    onlineStages.Clear(); suggestions.Clear(); sentSuggestions.Clear();
                     chatLog.Clear(); oChat.Clear(); oRunChat.Clear();
                     foreach (var c in m.chat) AddChat(c);
                     SetOnlineMsg("");
@@ -448,6 +465,7 @@ namespace Autorama
                     DrawOnline(); OnlineStatus();
                     break;
                 case "in": OnlineInput(m); break;
+                case "suggested": OnSuggested(m); break;
                 case "snap": if (OnlineRun && !IsHost) OnlineApplySnap(m.snap); break;
                 case "ev": OnlineEvent(m); break;
             }
@@ -504,6 +522,114 @@ namespace Autorama
             onlineFaixas = faixas;
             onlineStages.Clear();
             SendStages(); DrawLobby();
+        }
+
+        // ---------- Pistas sugeridas (seção 30) ----------
+
+        // Host: chegou uma sugestão. Nada que veio da rede é confiado: a pista é lida e conferida aqui (fechada, com a
+        // identidade que o remetente disse) e os limites são refeitos.
+        void OnSuggested(NetMsg m)
+        {
+            if (!IsHost || room == null || OnlineRun || string.IsNullOrEmpty(m.json)) return;
+            TrackSave save;
+            try
+            {
+                save = TrackSave.FromJson(m.json);
+                var segs = TrackLayout.Build(save.Origin, save.Pieces(), save.Tail);
+                if (!TrackLayout.Analyze(save.Origin, segs, save.Tail, save.Faixas).closed) return;      // só circuito fechado
+            }
+            catch { return; }
+            string hash = Champ.TrackHash(save);
+            if (hash != m.hash) return;                                                              // a identidade tem que bater
+            if (suggestions.Count >= MaxSuggestions) return;
+            int mine = 0;
+            foreach (var s in suggestions) { if (s.hash == hash && s.from == m.from) return; if (s.from == m.from) mine++; }
+            if (mine >= MaxSuggestionsPerPlayer) return;
+            if (onlineStages.Exists(s => s.hash == hash)) return;                                    // já é uma etapa
+            string track = string.IsNullOrWhiteSpace(m.track) ? (string.IsNullOrWhiteSpace(save.nome) ? "Pista" : save.nome) : m.track;
+            suggestions.Add(new Suggestion { from = m.from, name = Safe(m.name), track = Safe(track), hash = hash, save = save });
+            panel.Toast($"{Safe(m.name)} sugeriu a pista “{Safe(track)}”.");
+            DrawOnline();
+        }
+
+        // Host: inclui a pista sugerida como etapa (vale a mesma regra de tipo de pista de qualquer etapa).
+        void AcceptSuggestion(Suggestion s)
+        {
+            var data = TrackSave.FromJson(s.save.ToJson(false));
+            data.nome = s.track;
+            AddOnlineStage(new Option { key = "sug:" + s.hash, name = s.track, save = data, closed = true });
+            if (onlineStages.Exists(x => x.hash == s.hash)) suggestions.Remove(s);
+            DrawOnline();
+        }
+
+        // Host: guarda a pista sugerida na própria biblioteca (sem sobrescrever uma de mesmo nome).
+        void SaveSuggestion(Suggestion s)
+        {
+            var data = TrackSave.FromJson(s.save.ToJson(false));
+            data.nome = s.track;
+            if (TrackLibrary.List().Exists(e => e.save.nome == data.nome)) data.nome = $"{s.track} (de {s.name})";
+            TrackLibrary.Save(data);
+            panel.Toast($"“{data.nome}” salva na sua biblioteca.");
+        }
+
+        // Visitante: manda uma das minhas pistas ao host.
+        void SendSuggestion(Option o)
+        {
+            if (IsHost || room == null || !o.closed) return;
+            string json = o.save.ToJson(false);
+            if (json.Length > MaxTrackJson) { panel.Toast("Essa pista é grande demais para sugerir."); return; }
+            string hash = Champ.TrackHash(o.save);
+            if (sentSuggestions.Contains(hash)) return;
+            net.Send(new NetOut { t = "suggest", track = string.IsNullOrWhiteSpace(o.save.nome) ? o.name : o.save.nome, hash = hash, faixas = o.save.Faixas, json = json });
+            sentSuggestions.Add(hash);
+            panel.Toast("Pista enviada ao host.");
+            DrawOnline();
+        }
+
+        void DrawSuggestions(bool host)
+        {
+            oSuggestBox.style.display = host ? DisplayStyle.Flex : DisplayStyle.None;
+            oSendBox.style.display = !host && room != null ? DisplayStyle.Flex : DisplayStyle.None;
+            oSuggest.Clear(); oSend.Clear();
+            if (host)
+            {
+                if (suggestions.Count == 0) Text("Nenhuma sugestão ainda.", "small", oSuggest);
+                foreach (var sg in suggestions.ToArray())
+                {
+                    var s = sg;
+                    var item = El("lib-item", oSuggest);
+                    item.Add(new TrackThumb(s.save));
+                    var texts = El("lib-texts", item);
+                    Text(s.track, "lib-name", texts);
+                    Text($"de {s.name} · {TrackLine(s.save)}", "small", texts);
+                    var row = El("row", item);
+                    Btn("Incluir", () => AcceptSuggestion(s), "btn btn--primary", row);
+                    Btn("Salvar", () => SaveSuggestion(s), "btn", row).tooltip = "Guarda na sua biblioteca de pistas";
+                    Btn("Ignorar", () => { suggestions.Remove(s); DrawOnline(); }, "btn", row);
+                }
+                return;
+            }
+            if (room == null) return;
+            // Se o host já escolheu o tipo (2 ou 4 carros), só as pistas desse tipo fazem sentido.
+            int want = room.stages.Count > 0 ? (room.stages[0].faixas == 4 ? 4 : 2) : 0;
+            int shown = 0;
+            foreach (var o in Options())
+            {
+                if (!o.closed || (want != 0 && o.save.Faixas != want)) continue;
+                var opt = o;
+                bool sent = sentSuggestions.Contains(Champ.TrackHash(o.save));
+                var item = new Button(() => SendSuggestion(opt));
+                item.AddToClassList("lib-item"); item.AddToClassList("pick");
+                item.SetEnabled(!sent);
+                item.Add(new TrackThumb(o.save));
+                var texts = El("lib-texts", item); texts.pickingMode = PickingMode.Ignore;
+                Text(string.IsNullOrWhiteSpace(o.save.nome) ? o.name : o.save.nome, "lib-name", texts).pickingMode = PickingMode.Ignore;
+                Text(TrackLine(o.save), "small", texts).pickingMode = PickingMode.Ignore;
+                Text(sent ? "enviada ✓" : "enviar", "pick-plus", item).pickingMode = PickingMode.Ignore;
+                oSend.Add(item);
+                shown++;
+            }
+            if (shown == 0) Text(want != 0 ? $"Você não tem pistas fechadas de {want} carros." : "Você não tem pistas fechadas para sugerir.", "small", oSend);
         }
 
         void SendStages()
@@ -659,6 +785,8 @@ namespace Autorama
                     Text("+", "pick-plus", item).pickingMode = PickingMode.Ignore;
                     oPick.Add(item);
                 }
+
+            DrawSuggestions(host);
 
             // Pronto e largada
             string blocker = LobbyBlocker();

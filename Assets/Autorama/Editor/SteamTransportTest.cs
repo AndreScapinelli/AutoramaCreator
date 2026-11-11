@@ -118,6 +118,30 @@ namespace Autorama
             a.t.Send(new NetOutStages { stages = { new NetStage { name = "x", laps = 3, hash = "xyz", json = "{}" } } });
             Check(WaitFor(() => a.Has("error", m => m.code == "etapas"), all), "fake: etapa inválida é recusada");
 
+            // sugestão de pista: visitante → host
+            a.got.Clear(); b.got.Clear();
+            var four = TrackSave.Four(TrackSave.Oval());
+            string json4 = four.ToJson(false), hash4 = Champ.TrackHash(four);
+            b.t.Send(new NetOut { t = "suggest", track = "  Minha   pista ", hash = hash4, faixas = 4, json = json4 });
+            Check(WaitFor(() => a.Has("suggested"), all), "fake: a sugestão do visitante chega ao host");
+            var sg = a.Take("suggested");
+            Check(sg.from == "1002" && sg.name == "Beto" && sg.track == "Minha pista" && sg.hash == hash4 && sg.faixas == 4 && sg.json == json4, "fake: com quem mandou (vindo da Steam), o nome limpo, a identidade e o JSON");
+            Check(Quiet(() => b.Has("suggested") || c.Has("suggested"), all), "fake: a sugestão só vai ao host");
+            a.t.Send(new NetOut { t = "suggest", hash = hash4, json = json4 });
+            Check(Quiet(() => a.Has("suggested") || b.Has("suggested"), all), "fake: o host não sugere para si mesmo");
+            b.t.Send(new NetOut { t = "suggest", hash = "xyz", json = json4 });
+            Check(WaitFor(() => b.Has("error", m => m.code == "sugestao"), all), "fake: identidade inválida é recusada");
+            b.got.Clear();
+            b.t.Send(new NetOut { t = "suggest", hash = hash4, faixas = 9, json = new string('x', 200 * 1024) });
+            Check(WaitFor(() => b.Has("error", m => m.code == "sugestao"), all), "fake: sugestão grande demais é recusada");
+            b.got.Clear(); a.got.Clear();
+            b.t.Send(new NetOut { t = "suggest", hash = hash4, faixas = 9, json = json4 });
+            Check(WaitFor(() => a.Has("suggested"), all) && a.Take("suggested").faixas == 2, "fake: tipo de pista desconhecido vira 2 carros");
+            b.t.Send(new NetOut { t = "suggest", hash = hash4, faixas = 4, json = json4 });
+            b.t.Send(new NetOut { t = "suggest", hash = hash4, faixas = 4, json = json4 });
+            Check(WaitFor(() => b.Has("error", m => m.code == "rapido"), all), "fake: sugestões limitam o ritmo (3 por minuto)");
+            a.got.Clear(); b.got.Clear();
+
             // visibilidade
             a.t.Send(new NetOut { t = "visibility", pub = false });
             c.t.Send(new NetOut { t = "list" });
