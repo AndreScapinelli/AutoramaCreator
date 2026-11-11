@@ -71,6 +71,7 @@ namespace Autorama
             raceBox.style.display = m == Mode.Race ? DisplayStyle.Flex : DisplayStyle.None;
             champBox.style.display = m == Mode.Champ ? DisplayStyle.Flex : DisplayStyle.None;
             onlineBox.style.display = m == Mode.Online ? DisplayStyle.Flex : DisplayStyle.None;
+            if (m != Mode.Build) closeBtn.style.display = DisplayStyle.None;      // "Fechar circuito" é do Construtor: fora dele, pista aberta nem aparece
             if (Locked) { builder.CancelAutoClose(); builder.HideGhost(); builder.SetHoverCell(null); hover = null; }
             root.focusController?.focusedElement?.Blur();
             ModeChanged?.Invoke(m);
@@ -247,15 +248,13 @@ namespace Autorama
             foreach (var (img, name) in paletteIcons) img.image = IconTex(name);
         }
 
-        // Trocar o tipo: com só a largada, troca na hora; com peças, começa uma pista nova (pede um segundo clique).
+        // Trocar o tipo adapta a pista aberta: a mesma forma, com a largura e os trilhos do tipo novo (Ctrl+Z desfaz).
         void ChooseKind(int faixas)
         {
             if (builder.Faixas == faixas) return;
-            if (builder.CanChangeFaixas) { builder.SetFaixas(faixas); FrameTrack(); return; }
-            if (!Confirm("tipo:" + faixas)) { Say($"Clique de novo para começar uma pista nova de {faixas} carros (Ctrl+Z desfaz)."); return; }
-            builder.NewTrack(faixas);
+            builder.AdaptTo(faixas);
             FrameTrack();
-            Say($"Pista nova de {faixas} carros.");
+            Say(builder.pieces.Count > 1 ? $"Pista adaptada para {faixas} carros." : $"Pista de {faixas} carros.");
         }
 
         void BuildLayout()
@@ -309,14 +308,14 @@ namespace Autorama
             onlineBox = El(null, content);
             onlineBox.style.display = DisplayStyle.None;
 
-            // Tipo da pista: 2, 4 ou 6 carros. Uma pista nasce de um tipo e fica nele.
-            var kind = Section("TIPO DA PISTA");
+            // Tipo da pista: 2, 4 ou 6 carros. Trocar adapta a pista aberta, sem perder peças.
+            var kind = Section("TAMANHO DA PISTA");
             var kindRow = El("segmented", kind);
-            kind2Btn = Btn("2 carros", () => ChooseKind(2), "btn", kindRow);
-            kind4Btn = Btn("4 carros", () => ChooseKind(4), "btn", kindRow);
-            kind6Btn = Btn("6 carros", () => ChooseKind(6), "btn", kindRow);
+            kind2Btn = Btn("2 trilhos", () => ChooseKind(2), "btn", kindRow);
+            kind4Btn = Btn("4 trilhos", () => ChooseKind(4), "btn", kindRow);
+            kind6Btn = Btn("6 trilhos", () => ChooseKind(6), "btn", kindRow);
             kind6Btn.tooltip = "Pista muito larga, de 6 trilhos (1 célula = o triplo da largura). Campeonatos não misturam os tipos.";
-            kind2Btn.tooltip = "Pista estreita, de 2 trilhos";
+            kind2Btn.tooltip = "Pista estreita, de 2 trilhos. Adapta a pista aberta (Ctrl+Z desfaz).";
             kind4Btn.tooltip = "Pista larga, de 4 trilhos (1 célula = o dobro da largura). Campeonatos não misturam os dois tipos.";
 
             // Paleta
@@ -861,7 +860,7 @@ namespace Autorama
                 var o = s.Origin;
                 var segs = TrackLayout.Build(o, s.Pieces(), s.Tail);
                 var a = TrackLayout.Analyze(o, segs, s.Tail, s.Faixas);
-                return $"{s.Faixas} carros · {segs.Count} peças · {Num(a.centerLength * s.escalaCm * TrackMath.Scale(s.Faixas) / 100f)} m · " + (a.closed ? "fechada" : "<color=#F07A3A>aberta</color>");
+                return $"{s.Faixas} trilhos · {segs.Count} peças · {Num(a.centerLength * s.escalaCm * TrackMath.Scale(s.Faixas) / 100f)} m · " + (a.closed ? "fechada" : "<color=#F07A3A>aberta</color>");
             }
             catch { return "não deu para ler"; }
         }

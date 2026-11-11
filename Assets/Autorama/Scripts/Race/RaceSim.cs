@@ -20,10 +20,15 @@ namespace Autorama
         public int cameraTarget = 0;    // alvo do third person: 0 jogador 1, 1 jogador 2
         public int cameraDistance = 100; // escala do enquadramento: 70% mais perto, 160% mais longe
         public int halfGas = 60;        // tecla de meia aceleração (Q · O): até onde o acelerador vai, em %
-        public bool bot34 = true;       // pista de 4 carros, corrida livre: os trilhos 3 e 4 são robôs (qualidade botSkill)
+        public bool bot34 = true;       // (antigo, não usado: virou set.slots; fica para ler os ajustes salvos antes)
         public int motorSound = 3;      // qual som de motor (0 broca, 1 elétrico suave, 2 escovas, 3 turbina, 4 ronco, 5 motor.wav)
         public int volume = 70;         // volume dos sons da corrida, 0 a 100 (seção 29)
-        public int cars4 = 6;           // pista de 4 ou de 6, corrida livre: quantos carrinhos (2 até o número de trilhos); os trilhos de cima ficam vazios
+        public int cars4 = 6;           // (antigo, não usado: virou set.cars)   // os trilhos de cima ficam vazios
+        // Corrida livre (seção 33): tamanho escolhido para a pista (0 = o tamanho em que ela foi feita), quantos carros
+        // correm (1 até o número de trilhos) e, para cada carro, se é gente ou robô e a qualidade do robô.
+        public int raceFaixas;
+        public int cars = 2;
+        public PilotSlot[] slots;
         public bool byTime;             // corrida por tempo (seção 26): dura "secs" e se divide em uma manche por trilho
         public int secs = 120;          // duração total da corrida por tempo, em segundos
 
@@ -31,17 +36,35 @@ namespace Autorama
 
         public static RaceSettings Load()
         {
+            RaceSettings s = null;
             try
             {
                 var json = PlayerPrefs.GetString(Key, "");
-                if (json != "") return JsonUtility.FromJson<RaceSettings>(json) ?? new RaceSettings();
+                if (json != "") s = JsonUtility.FromJson<RaceSettings>(json);
             }
             catch { }
-            return new RaceSettings();
+            s ??= new RaceSettings();
+            s.FixSlots();
+            return s;
+        }
+
+        // Garante os 6 lugares. Ajustes antigos (sem "slots") viram: carro 1 gente, carro 2 conforme "Jogador 2 é um
+        // robô", os outros robôs, todos com a qualidade única de antes.
+        public void FixSlots()
+        {
+            if (slots != null && slots.Length == RaceSim.MaxCars) { foreach (var x in slots) x.skill = Mathf.Clamp(x.skill, 1, 100); return; }
+            int q = Mathf.Clamp(botSkill, 1, 100);
+            slots = new PilotSlot[RaceSim.MaxCars];
+            for (int k = 0; k < slots.Length; k++) slots[k] = new PilotSlot { ai = k == 1 ? bot : k > 1, skill = q };
+            cars = Mathf.Clamp(cars, 1, RaceSim.MaxCars);
+            raceFaixas = raceFaixas == 0 ? 0 : TrackMath.Faixas(raceFaixas);
         }
 
         public void Save() { PlayerPrefs.SetString(Key, JsonUtility.ToJson(this)); PlayerPrefs.Save(); }
     }
+
+    // Um lugar no grid da corrida livre: gente ou robô (com a qualidade dele).
+    [Serializable] public class PilotSlot { public bool ai; public int skill = 60; }
 
     public struct LanePoint
     {

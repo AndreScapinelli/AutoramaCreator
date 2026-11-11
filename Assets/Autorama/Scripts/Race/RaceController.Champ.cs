@@ -42,13 +42,12 @@ namespace Autorama
             cName = Field("Nome do campeonato", 40, head);
             cName.RegisterValueChangedCallback(e => { store.draft.name = e.newValue; SaveStore(); });
             // Tipo: 2 ou 4 carros por bateria. As etapas são todas pistas desse tipo (nunca se misturam).
-            Text("CARROS POR BATERIA", "h3", head);
+            Text("TAMANHO DA PISTA", "h3", head);
             var kind = El("segmented", head);
-            cKind2 = Btn("2 carros", () => ChampKind(2), "btn", kind);
-            cKind4 = Btn("4 carros", () => ChampKind(4), "btn", kind);
-            cKind4.tooltip = "Só pistas de 4 carros. Com menos de 4 pilotos, sobra trilho vazio em cada bateria.";
-            cKind6 = Btn("6 carros", () => ChampKind(6), "btn", kind);
-            cKind6.tooltip = "Só pistas de 6 carros. Com menos de 6 pilotos, sobra trilho vazio em cada bateria.";
+            cKind2 = Btn("2 trilhos", () => ChampKind(2), "btn", kind);
+            cKind4 = Btn("4 trilhos", () => ChampKind(4), "btn", kind);
+            cKind6 = Btn("6 trilhos", () => ChampKind(6), "btn", kind);
+            cKind2.tooltip = cKind4.tooltip = cKind6.tooltip = "Todas as etapas correm nesse tamanho (qualquer pista é adaptada). Depois de começar, o tamanho não muda. Com menos pilotos que trilhos, sobra trilho vazio.";
             // Formato: por voltas (rodízio de baterias) ou por tempo (cada bateria passa por todos os trilhos em manches).
             Text("FORMATO", "h3", head);
             var fmt = El("segmented", head);
@@ -144,12 +143,20 @@ namespace Autorama
         {
             var D = store.draft;
             if (D.faixas == faixas) return;
-            bool other = D.stages.Exists(s => s.data == null || s.data.Faixas != faixas);
-            if (other && !panel.ConfirmTwice("champ-tipo:" + faixas)) { panel.Toast($"As etapas de {D.faixas} carros saem do campeonato. Clique de novo para trocar."); return; }
-            D.faixas = faixas;
-            D.stages.RemoveAll(s => s.data == null || s.data.Faixas != faixas);
+            // O tamanho vale para o campeonato inteiro e é livre até começar: as etapas já escolhidas são adaptadas.
+            D.faixas = TrackMath.Faixas(faixas);
+            FitDraftStages();
             SaveStore();
             RefreshChamp();
+        }
+
+        // Deixa todas as etapas do rascunho no tamanho do campeonato (a identidade da pista muda com o tamanho).
+        void FitDraftStages()
+        {
+            var D = store.draft;
+            D.stages.RemoveAll(s => s.data == null);
+            foreach (var s in D.stages)
+                if (s.data.Faixas != D.faixas) { s.data.faixas = D.faixas; s.hash = Champ.TrackHash(s.data); }
         }
 
         static TextField Field(string placeholder, int max, VisualElement parent)
@@ -234,7 +241,7 @@ namespace Autorama
                 for (int j = 0; j < i; j++)
                     if (ps[i].color == ps[j].color) return $"{ps[j].name} e {ps[i].name} estão com a mesma cor. Troque a cor de um deles.";
             if (store.draft.stages.Count == 0) return "Inclua pelo menos uma pista nas etapas.";
-            if (store.draft.stages.Exists(s => s.data == null || s.data.Faixas != F)) return $"Todas as etapas precisam ser pistas de {F} carros.";
+            FitDraftStages();
             return "";
         }
 
@@ -394,12 +401,13 @@ namespace Autorama
                 Btn("✕", () => { D.stages.RemoveAt(idx); SaveStore(); RefreshChamp(); }, "btn step-btn", mv).tooltip = "Tirar etapa";
             }
 
-            // Pistas disponíveis (as mesmas da aba Corrida), com o recorde de cada uma. Só as do tipo do campeonato.
+            // Pistas disponíveis (as mesmas da aba Corrida): qualquer pista fechada, adaptada ao tamanho do campeonato.
+            // O recorde mostrado é o da pista nesse tamanho.
             cPick.Clear();
             int hidden = 0;
             foreach (var o in Options())
             {
-                if (o.save.Faixas != D.faixas) { hidden++; continue; }
+                if (!o.closed) { hidden++; continue; }
                 var opt = o;
                 var item = new Button(() => AddStage(opt));
                 item.AddToClassList("lib-item"); item.AddToClassList("pick");
@@ -407,13 +415,13 @@ namespace Autorama
                 item.Add(new TrackThumb(o.save));
                 var texts = El("lib-texts", item); texts.pickingMode = PickingMode.Ignore;
                 Text(o.name, "lib-name", texts).pickingMode = PickingMode.Ignore;
-                var rec = o.closed ? FindRecords(Champ.TrackHash(o.save)) : null;
+                var rec = FindRecords(Champ.TrackHash(Adapted(o.save, D.faixas)));
                 string recTxt = rec != null && rec.lap.Has ? $" · recorde {Fmt(rec.lap.t)} {rec.lap.pilot.tag}" : "";
                 Text((o.sub != null ? o.sub + " · " : "") + TrackLine(o.save) + recTxt, "small", texts).pickingMode = PickingMode.Ignore;
                 Text("+", "pick-plus", item).pickingMode = PickingMode.Ignore;
                 cPick.Add(item);
             }
-            if (hidden > 0) Text($"{hidden} {(hidden == 1 ? "pista de outro tipo não aparece" : "pistas de outro tipo não aparecem")}: um campeonato de {D.faixas} carros só usa pistas de {D.faixas}.", "small", cPick);
+            if (hidden > 0) Text(hidden == 1 ? "1 pista aberta não aparece: feche o circuito no Construtor." : $"{hidden} pistas abertas não aparecem: feche os circuitos no Construtor.", "small", cPick);
 
             cRules.text = $"• Usa os ajustes da aba Corrida: velocidade <b>{Num(set.vmax)} cél/s</b>, até 100% em <b>{Num(set.ramp, 2)} s</b>, aderência <b>{Mathf.RoundToInt(set.grip)}</b>, colisão <b>{(set.collide ? "ligada" : "desligada")}</b>. Ficam fixos até o fim.\n" +
                           (D.byTime
@@ -458,8 +466,8 @@ namespace Autorama
 
         void AddStage(Option o)
         {
-            if (o.save.Faixas != store.draft.faixas) { panel.Toast($"Esta é uma pista de {o.save.Faixas} carros; o campeonato é de {store.draft.faixas}."); return; }
-            var data = TrackSave.FromJson(o.save.ToJson(false));
+            if (!o.closed) return;
+            var data = Adapted(o.save, store.draft.faixas);       // a etapa corre no tamanho do campeonato
             data.nome = o.key == "builder" ? (string.IsNullOrEmpty(o.save.nome) ? "Pista do construtor" : o.save.nome) : o.name;
             store.draft.stages.Add(new Stage { name = data.nome, laps = set.laps, secs = Mathf.Clamp(set.secs, 60, 600), data = data, hash = Champ.TrackHash(data) });
             SaveStore();

@@ -375,6 +375,18 @@
 .pod-name { font-size: 12px; -unity-font-style: bold; color: var(--texto); margin: 0; padding: 0; }
 .award { flex-direction: row; align-items: center; flex-wrap: wrap; margin-bottom: 4px; }
 .award-label { font-size: 12px; color: var(--texto-fraco); width: 116px; margin: 0; padding: 0; }
+/* Corrida: cartões de piloto (um por carro), contagem de carros e seções recolhidas (seção 33 do guia). */
+.pcard { margin: 0 0 6px 0; padding: 6px 8px; background-color: var(--fundo); border-left-width: 4px; border-color: var(--borda-media); }
+.pcard-head { flex-direction: row; align-items: center; justify-content: space-between; }
+.pcard-name { font-size: 13px; -unity-font-style: bold; color: var(--texto); margin: 0; padding: 0; }
+.pcard-seg { margin-top: 0; }
+.pcard-seg .btn { height: 24px; font-size: 11px; margin-bottom: 0; }
+.pcard-skill { margin: 6px 0 2px 0; }
+.pcard .small { margin-top: 4px; }
+.car-count { flex-grow: 1; flex-basis: 0; min-width: 0; }
+.fold > .unity-foldout__toggle { margin: 0; }
+.fold .unity-foldout__text { color: var(--destaque); font-size: 12px; -unity-font-style: bold; letter-spacing: 1px; }
+.fold .unity-foldout__content { margin-left: 0; margin-top: 8px; }
 .hist { margin-bottom: 6px; }
 .hist .unity-foldout__text { color: var(--texto); font-size: 12px; }
 

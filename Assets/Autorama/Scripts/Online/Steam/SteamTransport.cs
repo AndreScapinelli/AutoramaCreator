@@ -251,7 +251,7 @@ namespace Autorama
             if (racing) { Err("andamento", "O campeonato já começou."); return; }
             if (!SuggestionOk(o.hash, o.json)) { Err("sugestao", "Pista inválida ou grande demais."); return; }
             if (!Rate(suggTimes)) { Err("rapido", "Você sugeriu pistas demais em pouco tempo. Espere um minuto."); return; }
-            o.t = "suggested"; o.track = Clean(o.track, 60); o.faixas = o.faixas == 4 ? 4 : 2;
+            o.t = "suggested"; o.track = Clean(o.track, 60); o.faixas = TrackMath.Faixas(o.faixas);
             b.SendTo(b.Owner, Encoding.UTF8.GetBytes(JsonUtility.ToJson(o)), true);
         }
 
@@ -368,7 +368,7 @@ namespace Autorama
                     if (!suggFrom.TryGetValue(from, out var times)) suggFrom[from] = times = new List<float>();
                     if (!Rate(times)) break;
                     m.from = from.ToString(); m.name = Clean(NameOf(from), 20); m.color = ColorOf(from);   // quem mandou vem da Steam, não do texto
-                    m.track = Clean(m.track, 60); m.faixas = m.faixas == 4 ? 4 : 2;
+                    m.track = Clean(m.track, 60); m.faixas = TrackMath.Faixas(m.faixas);
                     Emit(m); break;
                 case "started": if (fromHost && !racing) { racing = true; raceHost = from; lobbyFlipSince = -1f; Emit(m); } break;
                 case "lobby": if (fromHost && racing) { racing = false; lobbyFlipSince = -1f; Emit(m); EmitRoom(); } break;

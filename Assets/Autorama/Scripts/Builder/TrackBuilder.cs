@@ -229,13 +229,22 @@ namespace Autorama
 
         public TrackSave ToSave() => TrackSave.From(TrackName, boardSize, cellCm, Origin, pieces, Tail, Faixas);
 
-        // Troca o tipo da pista só enquanto ela tem apenas a largada: converter uma pista pronta não faz sentido.
-        public bool CanChangeFaixas => pieces.Count <= 1;
-        public void SetFaixas(int faixas)
+        // Adapta a pista aberta para 2, 4 ou 6 carros (seção 32 do guia). Sem perda: as peças, a forma em células, a
+        // largada e a mesa são as mesmas; só mudam a largura da pista, o número de trilhos e a escala no mundo.
+        // Entra no desfazer. O nome ganha o tipo ("Oval (6 carros)"), para salvar a adaptada não sobrescrever a original.
+        public void AdaptTo(int faixas)
         {
             faixas = TrackMath.Faixas(faixas);
-            if (faixas == Faixas || !CanChangeFaixas) return;
-            Commit(() => Faixas = faixas);
+            if (faixas == Faixas) return;
+            Commit(() => { Faixas = faixas; TrackName = RenameForKind(TrackName, faixas); });
+        }
+
+        // "Oval" → "Oval (6 carros)"; "Oval (6 carros)" → "Oval (2 carros)". Nome vazio continua vazio.
+        public static string RenameForKind(string name, int faixas)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return name ?? "";
+            name = System.Text.RegularExpressions.Regex.Replace(name.Trim(), @"\s*\((2|4|6) carros\)$", "");
+            return $"{name} ({faixas} carros)";
         }
 
         // ---------- Desfazer ----------

@@ -111,6 +111,10 @@ const trilha = (n, extra = {}) => ({ name: 'Pista ' + n, laps: 3, hash: 'a34f4cb
   host.send({ t: 'stages', stages: [trilha(1, { secs: 90, tempo: true, faixas: 4 }), trilha(2, { laps: 5 })] });
   r = await g1.next('room');
   assert.deepStrictEqual(r.room.stages.map(s => [s.secs, s.tempo, s.faixas]), [[90, true, 4], [120, false, 2]]);
+  host.send({ t: 'stages', stages: [trilha(1, { faixas: 6 }), trilha(2, { faixas: 5 })] });
+  r = await g1.next('room');
+  assert.deepStrictEqual(r.room.stages.map(s => s.faixas), [6, 2]); ok('tipo 6 chega aos visitantes; tipo desconhecido (5) vira 2');
+  host.send({ t: 'stages', stages: [trilha(1, { secs: 90, tempo: true, faixas: 4 }), trilha(2, { laps: 5 })] }); await g1.next('room');
   ok('duração, formato e tipo de pista chegam aos visitantes (sem o campo: 120 s, por voltas, 2 carros)');
   host.send({ t: 'stages', stages: [trilha(1, { secs: 30 })] });
   assert.strictEqual((await host.next('error')).code, 'etapas'); ok('duração fora de 1 a 10 min é recusada');
@@ -136,8 +140,8 @@ const trilha = (n, extra = {}) => ({ name: 'Pista ' + n, laps: 3, hash: 'a34f4cb
   g1.send(sug({ json: 'x'.repeat(200 * 1024) }));
   assert.strictEqual((await g1.next('error')).code, 'sugestao'); ok('sugestão grande demais é recusada');
   g1.send(sug({ faixas: 7 })); assert.strictEqual((await host.next('suggested')).faixas, 2); ok('tipo de pista desconhecido vira 2 carros');
-  g1.send(sug()); await host.next('suggested');
-  g1.send(sug());
+  g1.send(sug({ faixas: 6 })); assert.strictEqual((await host.next('suggested')).faixas, 6); ok('pista de 6 carros chega como 6');
+  g1.send(sug());      // a 4ª no mesmo minuto (1ª, tipo 7, tipo 6)
   assert.strictEqual((await g1.next('error')).code, 'rapido'); ok('sugestões limitam o ritmo (3 por minuto)');
   host.drain(); g1.drain();
 

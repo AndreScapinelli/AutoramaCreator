@@ -2897,3 +2897,66 @@ Nada que veio da rede é confiado: o JSON é lido, a pista precisa ser **um circ
 - `SteamTransportTest` (mundo falso, 3 jogadores): as mesmas 7 verificações, passando; a parte da Steam de verdade falhou no "criar sala" (esta máquina), como antes de mudar o código.
 - Play mode, host simulado (`OnSuggested`, `AcceptSuggestion`, `SaveSuggestion`): sugestão válida entra; repetida, de identidade errada, pista aberta e lixo no lugar do JSON são recusadas; 4 formas diferentes do mesmo jogador ficam em 3, e a mesma forma de outro jogador entra; a lista do host desenha uma linha por sugestão; incluir pista de 4 num campeonato de 2 é recusado e, depois de escolher 4 carros, entra como etapa e sai da lista; salvar grava na biblioteca (o arquivo de teste foi apagado).
 - **Não testado:** a tela com dois jogadores reais, e a Steam de verdade.
+
+## 31. Pista de 6 carros
+
+Terceiro tipo de pista, na mesma ideia da de 4 (seção 25): **mesmas peças e ids**, a geometria em células igual e a célula valendo mais no mundo. Existe só na Unity. Numa pista de 6 correm de 2 a 6 carros (trilho vazio, seção 27).
+
+### 31.1 Medidas
+
+| | 2 | 4 | **6** |
+|---|---|---|---|
+| 1 célula no mundo (`TrackMath.Scale`) | 1 | 2 | **3** |
+| Trilhos, em células (`LanesOf`) | ±0,25 | ±0,125 · ±0,375 | **±1/12 · ±1/4 · ±5/12** |
+| Trilhos, no mundo | ±0,25 | ±0,25 · ±0,75 | **±0,25 · ±0,75 · ±1,25** |
+| Raio no centro, no mundo | 2,5 | 5 | **7,5** |
+| Raio do trilho de dentro / de fora | 2,25 / 2,75 | 4,25 / 5,75 | **6,25 / 8,75** |
+
+O espaço entre trilhos é sempre **0,5 no mundo**. `TrackMath.Faixas(f)` aceita 2, 4 e 6 (qualquer outro valor vira 2). No JSON: `"faixas": 6`. A identidade da pista para os recordes começa com `f6|` (oval de 6 = `265259f3`, 8 com ponte de 6 = `27ae435c`; as de 2 e de 4 não mudaram). O cruzamento troca os trilhos em espelho: 1↔6, 2↔5, 3↔4 (`Analyze` faz a média de cada par com cruzamentos ímpares).
+
+`RaceSim.MaxCars = 6` (`present`, `aiSkill`, `paths`, `pairContact`: 15 pares de colisão). Na IA, a margem de coragem acima do limite é dividida pela escala (`m = √(1 + (m² − 1) / Scale)`), o que continua valendo com escala 3.
+
+### 31.2 Arte (`ferramentas/gen-texturas.js`, bloco "PISTA DE 6 CARROS")
+
+Mesma família da de 4 (asfalto azulado, trilhos de cobre, tracejado no meio entre o 3 e o 4, zebra azul e branca, chevrons nas inclinadas, losango no cruzamento), com as larguras em células multiplicadas por `R6 = 2/3` para os detalhes terem o mesmo tamanho no mundo. Largada com **6 boxes numerados de 1 a 6** (dígitos 5 e 6 novos). Texturas `pista6-*` (importam a 2048 px), ícones `icone6-*` e carrinhos **roxo** (`#8B3FD9`, trilho 5) e **ciano** (`#19B5C9`, trilho 6). A mureta e a mesa usam a imagem da de 4 (outros materiais). `TrackTheme.art6` (`WideArt`) guarda as superfícies, e `HasWide`, `Guard`, `Support` e `Board` escolhem por tipo.
+
+### 31.3 Construtor, corrida e campeonato
+
+- **Construtor:** botão **6 carros** em TIPO DA PISTA; título "AUTORAMA · 6 TRILHOS"; exemplos "oval de 6 carros" e "8 com ponte de 6 carros"; ícones `icone6-` (com `icone4-` e `icone-` como reserva). A câmera aceita pistas maiores (`maxSize` 80, distância 3D até 300).
+- **Corrida livre:** "2 · 3 · 4 · 5 · 6 carros" (os que cabem na pista; `RaceSettings.cars4` passou a padrão 6 e é limitado ao número de trilhos); "Jogadores 3 a N são robôs".
+- **Teclado só até 4 humanos** (A·S, L·K, ↑·↓, 8·5 do numérico). O **5º e o 6º humano jogam só de controle**: o painel mostra "ACELERAR · controle", ou "PRECISA DE UM CONTROLE" se não houver. Quem não tem controle, fica de robô (padrão). No campeonato a bateria mostra "só com controle".
+- **Seis painéis de jogador** e seis fichas de posição, compactos (`.pads--6`, `.hud--6`: sem a legenda dos medidores e sem a melhor volta).
+- **Campeonato:** "6 carros" no tipo; rodízio de `max(pilotos, 6)` baterias por voltas; por tempo, grupos de até 6; recordes por trilho 5 e 6 (`lane5`, `lane6`); o aviso de trilhos vazios vale para 4 e 6. **Online:** botão "6 carros" no lobby, `faixas` 6 no servidor e na Steam (sem o campo: 2).
+
+### 31.4 Testes
+
+`script eval`, robôs de qualidade 100, 4 voltas (por tempo, 120 s), `Random.InitState(7)`:
+
+| Pista | Trilhos (células) | Resultado |
+|---|---|---|
+| Oval, 6 | 38,180 · 37,133 · 36,086 · 35,038 · 33,991 · 32,944 | por voltas 33,1 · 32,2 · 31,3 · 30,4 · 29,5 · 28,6 s, 0 saídas; por tempo: cada carro passa pelos 6 trilhos, distâncias 15,548 a 15,554 |
+| 8 com ponte, 6 | 57,562 (os 6) | por voltas 49,749 s para os 6; por tempo 9,582 a 9,584 voltas |
+
+- Rodízio por voltas: 5 pilotos em 6 trilhos = 6 baterias; 3 em 6 = 6; 8 em 6 = 8; cada piloto corre **1× em cada trilho**. Por tempo: 5 → 1 grupo, 8 → 2 grupos de 4.
+- JSON de 6 ida e volta = 6; `faixas: 5` = 2. Hashes de 2 e de 4 iguais aos de antes.
+- Servidor: `npm test` com 2 verificações novas (tipo 6 chega aos visitantes e na sugestão; 5 vira 2).
+
+### 31.5 Merge com a branch `jogo-3d`
+
+A `pista-6-carros` nasceu da `main` (2D) e depois recebeu o 3D (`jogo-3d`). Conflitos resolvidos: `RaceSim.cs` (as duas linhas de ajustes), `TemaPista.asset` (fica o da 6; o menu Atualizar materiais refaz os campos do 3D) e `TrackPieceView.cs` (partiu da versão 3D com as mudanças de 6 trilhos por cima: fenda `0,022 / k`, zebra e muro em células próprias para 6, pilares e pórtico por tipo de pista).
+
+### 31.6 O que falta
+
+Conferir na tela a pista de 6 em 3D (construtor e corrida com 6 carros), os 6 painéis e as fichas, e jogar de verdade com 5 e 6 humanos (controles).
+
+## 32. Adaptar a pista para 2, 4 ou 6 carros
+
+Como as pistas de 2, 4 e 6 usam as **mesmas peças e a mesma forma em células** (seções 25 e 31), a pista aberta no construtor pode ser **adaptada** de um tipo para outro **sem perder nada**: só mudam a largura da pista, o número de trilhos e a escala no mundo.
+
+- Os botões **2 carros · 4 carros · 6 carros** (TIPO DA PISTA) agora **adaptam a pista aberta**. Antes, com peças na mesa, eles começavam uma pista nova. Para uma pista vazia nova continua o botão **Nova pista** (ela mantém o tipo atual).
+- `TrackBuilder.AdaptTo(faixas)`: troca `Faixas` e o nome dentro de um `Commit`, então **Ctrl+Z desfaz** (o instantâneo do desfazer já guarda `faixas` e o nome). A mesa e as peças são refeitas na escala nova e o painel enquadra a pista de novo.
+- **O nome ganha o tipo:** "Oval" vira "Oval (6 carros)", e "Oval (6 carros)" vira "Oval (2 carros)" (`RenameForKind`, que tira o sufixo antigo). Assim, salvar a adaptada **não sobrescreve** a original na biblioteca, que tem um arquivo por nome. Nome vazio continua vazio.
+- A **identidade da pista muda** (só as de 4 e 6 têm prefixo na identidade: `f4|` e `f6|`): a pista adaptada é outra pista para os recordes e para os campeonatos, que não misturam tipos. Os recordes da original ficam com a original.
+- Pode mudar a corrida: a pista maior tem trilhos e curvas mais longos, e o campeonato precisa de pistas do mesmo tipo (se quiser reaproveitar uma pista num campeonato de 2, adapte-a para 2).
+- A pista adaptada fecha, tem as mesmas peças sobrepostas ou não e cabe na mesma mesa (em células); só o tamanho no mundo muda.
+- Testes: pendentes na tela (a Unity ficou sem responder durante esta etapa). O código compila.

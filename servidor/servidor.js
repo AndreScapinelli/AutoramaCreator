@@ -235,7 +235,7 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
       if (c.sugg.length >= MAX_SUGG_MIN) return fail(c, 'rapido', 'Você sugeriu pistas demais em pouco tempo. Espere um minuto.');
       c.sugg.push(now);
       const host = r.players.find(p => p.id === r.host); if (!host) return;
-      send(host, { t: 'suggested', from: c.id, name: c.name, color: c.color, track: clean(m.track, 60) || 'Pista', hash: m.hash, faixas: Number(m.faixas) === 4 ? 4 : 2, json: m.json });
+      send(host, { t: 'suggested', from: c.id, name: c.name, color: c.color, track: clean(m.track, 60) || 'Pista', hash: m.hash, faixas: [4, 6].includes(Number(m.faixas)) ? Number(m.faixas) : 2, json: m.json });
     },
     visibility(c, m) {
       const r = c.room; if (!r) return;

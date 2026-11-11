@@ -141,11 +141,11 @@ namespace Autorama
             oByLaps = Btn("Por voltas", () => OnlineFormat(false), "btn", fmt);
             oByTime = Btn("Por tempo", () => OnlineFormat(true), "btn", fmt);
             oByTime.tooltip = "Cada bateria tem uma duração e se divide em uma manche por trilho; vence quem andar mais.";
-            Text("PISTA", "h3", oFormat);
+            Text("TAMANHO DA PISTA", "h3", oFormat);
             var kind = El("segmented", oFormat);
-            oKind2 = Btn("2 carros", () => OnlineKind(2), "btn", kind);
-            oKind4 = Btn("4 carros", () => OnlineKind(4), "btn", kind);
-            oKind6 = Btn("6 carros", () => OnlineKind(6), "btn", kind);
+            oKind2 = Btn("2 trilhos", () => OnlineKind(2), "btn", kind);
+            oKind4 = Btn("4 trilhos", () => OnlineKind(4), "btn", kind);
+            oKind6 = Btn("6 trilhos", () => OnlineKind(6), "btn", kind);
             oKind6.tooltip = "Pista de 6 trilhos. Com menos de 6 jogadores, sobra trilho vazio em cada bateria.";
             oKind4.tooltip = "Pista de 4 trilhos. Com menos de 4 jogadores, sobra trilho vazio em cada bateria.";
             oStageHint = Text("", "hint", st);
@@ -482,9 +482,11 @@ namespace Autorama
             int lost = 0;
             foreach (var s in room.stages)
             {
-                var o = opts.Find(x => x.closed && Champ.TrackHash(x.save) == s.hash);
+                // A etapa foi adaptada ao tamanho do campeonato: procura a pista daqui que, nesse tamanho, tem a mesma identidade.
+                int f = TrackMath.Faixas(s.faixas);
+                var o = opts.Find(x => x.closed && Champ.TrackHash(Adapted(x.save, f)) == s.hash);
                 if (o.save == null) { lost++; continue; }
-                var data = TrackSave.FromJson(o.save.ToJson(false));
+                var data = Adapted(o.save, f);
                 onlineStages.Add(new Stage { name = s.name, laps = s.laps, secs = s.secs > 0 ? s.secs : 120, data = data, hash = s.hash });
             }
             if (lost > 0) panel.Toast($"{lost} {(lost == 1 ? "pista não está" : "pistas não estão")} neste computador e saiu da lista.");
@@ -497,10 +499,10 @@ namespace Autorama
         {
             if (!IsHost) return;
             if (onlineStages.Count >= MaxOnlineStages) { panel.Toast($"No máximo {MaxOnlineStages} etapas."); return; }
-            // Etapas são todas do mesmo tipo: a primeira decide (2 ou 4 carros), como no campeonato offline.
+            // Qualquer pista fechada serve: ela entra adaptada ao tamanho do campeonato.
+            if (!o.closed) return;
             int want = onlineStages.Count > 0 ? onlineStages[0].data.Faixas : onlineFaixas;
-            if (o.save.Faixas != want) { panel.Toast($"O campeonato é de pistas de {want} carros: troque em PISTA para usar esta."); return; }
-            var data = TrackSave.FromJson(o.save.ToJson(false));
+            var data = Adapted(o.save, want);
             if (data.ToJson(false).Length > MaxTrackJson) { panel.Toast("Essa pista é grande demais para o servidor."); return; }
             onlineStages.Add(new Stage { name = data.nome, laps = set.laps, secs = Mathf.Clamp(set.secs, 60, 600), data = data, hash = Champ.TrackHash(data) });
             SendStages(); DrawLobby();
@@ -520,9 +522,9 @@ namespace Autorama
             if (!IsHost) return;
             int now = onlineStages.Count > 0 ? onlineStages[0].data.Faixas : onlineFaixas;
             if (now == faixas) return;
-            if (onlineStages.Count > 0 && !panel.ConfirmTwice("online-tipo:" + faixas)) { panel.Toast($"As etapas de {now} carros saem da lista. Clique de novo para trocar."); return; }
-            onlineFaixas = faixas;
-            onlineStages.Clear();
+            // O tamanho é livre até largar: as etapas já escolhidas são adaptadas (a identidade muda com o tamanho).
+            onlineFaixas = TrackMath.Faixas(faixas);
+            foreach (var s in onlineStages) { s.data.faixas = onlineFaixas; s.hash = Champ.TrackHash(s.data); }
             SendStages(); DrawLobby();
         }
 
@@ -613,11 +615,11 @@ namespace Autorama
             }
             if (room == null) return;
             // Se o host já escolheu o tipo (2 ou 4 carros), só as pistas desse tipo fazem sentido.
-            int want = room.stages.Count > 0 ? (room.stages[0].faixas == 4 ? 4 : 2) : 0;
+            int want = room.stages.Count > 0 ? TrackMath.Faixas(room.stages[0].faixas) : 0;
             int shown = 0;
             foreach (var o in Options())
             {
-                if (!o.closed || (want != 0 && o.save.Faixas != want)) continue;
+                if (!o.closed) continue;                         // qualquer tamanho serve: o host adapta
                 var opt = o;
                 bool sent = sentSuggestions.Contains(Champ.TrackHash(o.save));
                 var item = new Button(() => SendSuggestion(opt));
@@ -728,7 +730,7 @@ namespace Autorama
             oKind2.EnableInClassList("btn--on", faixasNow == 2); oKind4.EnableInClassList("btn--on", faixasNow == 4); oKind6.EnableInClassList("btn--on", faixasNow == 6);
             int n = room.players.Count, gaps = faixasNow - Mathf.Min(n, faixasNow);
             oFormatText.text = (host || room.stages.Count > 0)
-                ? $"<b>{(byTimeNow ? "Por tempo" : "Por voltas")}</b> · <b>pistas de {faixasNow} carros</b>" + (faixasNow >= 4 && gaps > 0 ? $" · com {n} {(n == 1 ? "jogador" : "jogadores")}, {gaps} {(gaps == 1 ? "trilho fica vazio" : "trilhos ficam vazios")} em cada bateria" : "")
+                ? $"<b>{(byTimeNow ? "Por tempo" : "Por voltas")}</b> · <b>pistas de {faixasNow} trilhos</b>" + (faixasNow >= 4 && gaps > 0 ? $" · com {n} {(n == 1 ? "jogador" : "jogadores")}, {gaps} {(gaps == 1 ? "trilho fica vazio" : "trilhos ficam vazios")} em cada bateria" : "")
                 : "Formato e tipo de pista: o host ainda não escolheu.";
 
             // Etapas
@@ -775,7 +777,7 @@ namespace Autorama
             if (host)
                 foreach (var o in Options())
                 {
-                    if (o.save.Faixas != (onlineStages.Count > 0 ? onlineStages[0].data.Faixas : onlineFaixas)) continue;    // não mistura pistas de tipos diferentes
+                    if (!o.closed) continue;                     // pista aberta não corre
                     var opt = o;
                     var item = new Button(() => AddOnlineStage(opt));
                     item.AddToClassList("lib-item"); item.AddToClassList("pick");
