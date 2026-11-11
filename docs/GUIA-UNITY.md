@@ -1407,8 +1407,50 @@ A câmera fica num **menu no canto superior direito da mesa** (só nas abas Corr
 |---|---|---|
 | **De cima** | `Atual` (0) | Comportamento original da `TopDownCamera`: de cima, `V` alterna para inclinada; pan com botão direito/meio, zoom na roda. |
 | **3D** | `ThreeD` (1) | Força a vista inclinada em perspectiva; pan/órbita/zoom manuais continuam. |
-| **Atrás do carro** | `ThirdPerson` (2) | Persegue um carrinho. Na corrida local, o menu mostra **Seguir: Jogador 1 · Jogador 2**. A roda ajusta só a distância. |
+| **Atrás do carro** | `ThirdPerson` (2) | Persegue um carrinho. Na corrida local, o menu mostra **Seguir: Jogador 1 · Jogador 2**. A roda ajusta só a distância. A câmera segue a direção *suavizada* do carro (ver abaixo). |
 | **Dinâmica** | `AutoDoisCarros` (3) | Ortográfica. Enquadra os dois carrinhos (centro no ponto médio, zoom automático) ou acompanha só um, conforme abaixo. |
+| **Primeira pessoa** | `FirstPerson` (4) | Dentro do carrinho que a seção *Seguir* escolhe. Quando ele roda ou sai da pista, corta para a *Atrás do carro* e volta à primeira pessoa ao retomar o trilho. |
+
+**Primeira pessoa** (`TopDownCamera.ApplyFirstPerson`, `SetCarTrack`, `InFirstPersonOf`):
+
+- **Olho:** `carro + frente × 0,02 + cima × 0,155`, olhando reto para `carro + frente × 2 + cima × 0,1`. O horizonte fica nivelado (não inclina na rampa nem na curva inclinada), e a perspectiva é de 70°. A distância de *near* vai a 0,02 nesse modo e volta ao padrão nos outros.
+- **Quando é "rodando":** a derrapagem (`CarState.slip`) passa de `SpinIn = 0,75`, ou o carrinho está fora do trilho (`mode != OnSlot`). `0,75` é a derrapagem em que a guinada chega a ~25° (`YawMax 38° × slip^1,4`, em `RaceSim`); o valor antigo, `0,3`, cortava com só ~9°, antes de o carrinho rodar de fato. Volta ao normal só com o carrinho no trilho e derrapagem abaixo de `SpinOut = 0,25`. A histerese evita piscar entre os dois modos.
+- **Corte:** quando "rodando" começa ou termina, não há transição. Ao cortar para a traseira, a câmera vai direto para a posição atrás do carro (sem deslizar pela pista). Trocar de modo ou de carrinho faz o mesmo.
+- **Cabine:** `CarView.SetCockpit` esconde o teto e a cabine do carrinho que a câmera ocupa, para não tapar a vista. Os outros carrinhos aparecem normalmente.
+- **Menu:** a opção "Seguir" aparece também na primeira pessoa. A dica do modo é "Dentro do carrinho; quando ele roda, vira a traseira".
+- Só a Unity tem esse modo; o HTML não foi alterado.
+
+Código principal:
+
+```csharp
+// TopDownCamera.LateUpdate
+if (RaceMode == RaceViewMode.FirstPerson && hasRaceTargets)
+    { if (spun[k]) ApplyThirdPerson(); else ApplyFirstPerson(); return; }
+
+// TopDownCamera.SetCarTrack (histerese)
+if (!onSlot || slip >= SpinIn) spun[k] = true;
+else if (slip < SpinOut)       spun[k] = false;
+```
+
+**Qual carrinho a câmera acompanha** (`RaceController.CamFocusCar()`, recalculado a cada quadro em `PlaceCars`):
+
+**Suavização da *Atrás do carro*** (`TopDownCamera.ApplyThirdPerson`). Antes, a câmera ficava presa ao rumo bruto do carrinho: qualquer curva ou rodopio virava um tranco. Agora:
+
+- **Direção:** `chaseFwd` gira em direção ao rumo do carrinho no máximo `ThirdTurnRate = 110` graus por segundo (`Vector3.RotateTowards`). Um rodopio vira uma panorâmica lenta.
+- **Posição:** `ThirdPosRate = 4.5` (antes 7), mais macia.
+- **Ponto olhado:** `chaseLook` vai até `carro + chaseFwd × 1.4`, suavizado com `ThirdLookRate = 6`.
+- **Rotação:** continua com `Slerp` a `9`.
+- **Reinício:** trocar de modo ou de carrinho (`SetRaceViewMode`, `SetThirdPersonCar`) zera a direção, para a câmera não dar a volta toda até o novo alvo.
+- Distância (`thirdDistance = 7`), altura (`thirdHeight = 2.2`) e o ajuste da roda não mudaram.
+
+Código principal:
+
+```csharp
+chaseFwd = Vector3.RotateTowards(chaseFwd, carFwd, ThirdTurnRate * Mathf.Deg2Rad * dt, 0f).normalized;
+Vector3 target  = raceCarPos[k] + chaseFwd * 1.4f + Vector3.up * 0.25f;
+chaseLook = Vector3.Lerp(chaseLook, target, 1f - Mathf.Exp(-ThirdLookRate * dt));
+Vector3 desired = raceCarPos[k] - chaseFwd * thirdDistance * distanceScale + Vector3.up * thirdHeight * distanceScale;
+```
 
 **Qual carrinho a câmera acompanha** (`RaceController.CamFocusCar()`, recalculado a cada quadro em `PlaceCars`):
 

@@ -93,6 +93,17 @@ namespace Autorama
         }
 
         // speed: velocidade ao longo do trilho; off: fora da pista (o carrinho capota enquanto desliza).
+        // Primeira pessoa: esconde o teto e a cabine para a câmera (dentro do carrinho) não ficar presa neles.
+        public void SetCockpit(bool hidden)
+        {
+            if (visual == null) return;
+            foreach (string n in new[] { "Teto", "Cabine" })
+            {
+                var t = visual.Find(n);
+                if (t != null && t.gameObject.activeSelf == hidden) t.gameObject.SetActive(!hidden);
+            }
+        }
+
         public void Tick(float speed, bool off, float dt)
         {
             spin += speed * dt / WheelR * Mathf.Rad2Deg;

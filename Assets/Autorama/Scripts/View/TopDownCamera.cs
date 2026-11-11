@@ -15,7 +15,15 @@ namespace Autorama
             ThreeD = 1,
             ThirdPerson = 2,
             AutoDoisCarros = 3,
+            FirstPerson = 4,        // dentro do carrinho; quando ele roda ou sai da pista, corta para ThirdPerson
         }
+
+        // "Primeira pessoa": o carrinho entra em "rodando" quando a derrapagem passa de SpinIn (ou está fora do trilho),
+        // e volta à primeira pessoa quando está no trilho com derrapagem abaixo de SpinOut (histerese, sem piscar).
+        // Derrapagem 0,75 ≈ 25° de guinada visível (YawMax 38° × slip^1,4); 0,3 cortava com só ~9°.
+        const float SpinIn = 0.75f, SpinOut = 0.25f;
+        readonly bool[] spun = new bool[6];
+        float nearDefault = 0.3f;
 
         public float minSize = 2f, maxSize = 80f;      // a pista de 6 carros é 3× maior no mundo
         public float tiltPitch = 52f, fieldOfView = 32f;
@@ -44,9 +52,19 @@ namespace Autorama
         float autoSize = 11f;
         float distanceScale = 1f;
 
+        // "Atrás do carro": a câmera segue a direção suavizada do carro, não o rumo bruto. Ela gira no máximo
+        // ThirdTurnRate graus por segundo, então um rodopio do carrinho vira uma panorâmica, não um tranco.
+        const float ThirdTurnRate = 110f;     // graus por segundo
+        const float ThirdPosRate = 4.5f;      // suavização da posição (maior = mais firme)
+        const float ThirdLookRate = 6f;       // suavização do ponto olhado
+        Vector3 chaseFwd;                     // direção suavizada, no plano XZ
+        Vector3 chaseLook;                    // ponto olhado suavizado
+        bool chaseReady;                      // false = começa a seguir do zero (troca de modo ou de carrinho)
+
         void Awake()
         {
             cam = GetComponent<Camera>();
+            nearDefault = cam.nearClipPlane;
             focus = new Vector3(transform.position.x, 0f, transform.position.z);
             size = cam.orthographicSize;
             pitch = tiltPitch;
@@ -67,9 +85,29 @@ namespace Autorama
             RaceMode = mode;
             if (mode == RaceViewMode.ThreeD) Tilted = true;
             panning = orbiting = false;
+            chaseReady = false;
+            if (cam != null) cam.nearClipPlane = nearDefault;
         }
 
-        public void SetThirdPersonCar(int idx) => ThirdPersonCar = Mathf.Clamp(idx, 0, raceCarPos.Length - 1);
+        // Estado de um carrinho vindo da simulação: no trilho (OnSlot) e a derrapagem. Com histerese, marca "rodando".
+        public void SetCarTrack(int k, bool onSlot, float slip)
+        {
+            if (k < 0 || k >= spun.Length) return;
+            bool before = spun[k];
+            if (!onSlot || slip >= SpinIn) spun[k] = true;
+            else if (slip < SpinOut) spun[k] = false;
+            if (spun[k] != before && k == ThirdPersonCar) chaseReady = false;   // o corte para a traseira começa do rumo atual
+        }
+
+        // A câmera mostra o interior deste carrinho? (só a primeira pessoa, e só do carrinho seguido)
+        public bool InFirstPersonOf(int k) => RaceMode == RaceViewMode.FirstPerson && k == ThirdPersonCar && !spun[k];
+
+        public void SetThirdPersonCar(int idx)
+        {
+            int k = Mathf.Clamp(idx, 0, raceCarPos.Length - 1);
+            if (k != ThirdPersonCar) chaseReady = false;
+            ThirdPersonCar = k;
+        }
 
         public void SetDistanceScale(float scale) => distanceScale = Mathf.Clamp(scale, 0.7f, 1.6f);
 
@@ -116,7 +154,7 @@ namespace Autorama
             if (allowTiltToggle && kb != null && kb.vKey.wasPressedThisFrame && !BuilderPanel.IsTyping) ToggleTilt();
             if (m == null) return;
 
-            bool autoFollow = RaceMode == RaceViewMode.ThirdPerson || RaceMode == RaceViewMode.AutoDoisCarros;
+            bool autoFollow = RaceMode == RaceViewMode.ThirdPerson || RaceMode == RaceViewMode.AutoDoisCarros || RaceMode == RaceViewMode.FirstPerson;
 
             Vector2 mouse = m.position.ReadValue();
             bool overUi = BuilderPanel.PointerOverUI(mouse);
@@ -126,9 +164,9 @@ namespace Autorama
             {
                 float k = Mathf.Pow(0.9f, Mathf.Sign(scroll));
                 if (RaceMode == RaceViewMode.ThirdPerson) thirdDistance = Mathf.Clamp(thirdDistance * k, 4f, 18f);
-                else if (RaceMode == RaceViewMode.AutoDoisCarros)
+                else if (RaceMode == RaceViewMode.AutoDoisCarros || RaceMode == RaceViewMode.FirstPerson)
                 {
-                    // Neste modo o zoom é automático, então ignoramos a roda para manter previsibilidade.
+                    // Neste modo o zoom é automático (ou não existe, na primeira pessoa), então ignoramos a roda.
                 }
                 else if (Tilted) distance = Mathf.Clamp(distance * k, 4f, 300f);
                 else
@@ -169,6 +207,12 @@ namespace Autorama
 
         void LateUpdate()
         {
+            if (RaceMode == RaceViewMode.FirstPerson && hasRaceTargets)
+            {
+                if (spun[Mathf.Clamp(ThirdPersonCar, 0, raceCars - 1)]) ApplyThirdPerson();
+                else ApplyFirstPerson();
+                return;
+            }
             if (RaceMode == RaceViewMode.ThirdPerson && hasRaceTargets)
             {
                 ApplyThirdPerson();
@@ -189,20 +233,49 @@ namespace Autorama
         {
             int k = Mathf.Clamp(ThirdPersonCar, 0, raceCars - 1);
             float rad = raceCarHeading[k] * Mathf.Deg2Rad;
-            Vector3 fwd = new Vector3(Mathf.Cos(rad), 0f, Mathf.Sin(rad));
-            Vector3 target = raceCarPos[k] + fwd * 1.4f + Vector3.up * 0.25f;
-            Vector3 desired = raceCarPos[k] - fwd * thirdDistance * distanceScale + Vector3.up * thirdHeight * distanceScale;
-
+            Vector3 carFwd = new Vector3(Mathf.Cos(rad), 0f, Mathf.Sin(rad));
             float dt = Time.unscaledDeltaTime;
-            float posLerp = 1f - Mathf.Exp(-7f * dt);
+
+            cam.nearClipPlane = nearDefault;
+            if (!chaseReady)
+            {
+                // Começo (ou corte da primeira pessoa): a câmera vai direto para a posição, sem deslizar pelo carrinho.
+                chaseFwd = carFwd;
+                chaseLook = raceCarPos[k] + carFwd * 1.4f + Vector3.up * 0.25f;
+                transform.position = raceCarPos[k] - carFwd * thirdDistance * distanceScale + Vector3.up * thirdHeight * distanceScale;
+                chaseReady = true;
+            }
+
+            // Direção: gira em direção ao carrinho, com limite de velocidade angular.
+            chaseFwd = Vector3.RotateTowards(chaseFwd, carFwd, ThirdTurnRate * Mathf.Deg2Rad * dt, 0f).normalized;
+
+            Vector3 target = raceCarPos[k] + chaseFwd * 1.4f + Vector3.up * 0.25f;
+            chaseLook = Vector3.Lerp(chaseLook, target, 1f - Mathf.Exp(-ThirdLookRate * dt));
+            Vector3 desired = raceCarPos[k] - chaseFwd * thirdDistance * distanceScale + Vector3.up * thirdHeight * distanceScale;
+
+            float posLerp = 1f - Mathf.Exp(-ThirdPosRate * dt);
             transform.position = Vector3.Lerp(transform.position, desired, posLerp);
 
-            var look = Quaternion.LookRotation((target - transform.position).normalized, Vector3.up);
+            var look = Quaternion.LookRotation((chaseLook - transform.position).normalized, Vector3.up);
             float rotLerp = 1f - Mathf.Exp(-9f * dt);
             transform.rotation = Quaternion.Slerp(transform.rotation, look, rotLerp);
 
             cam.orthographic = false;
             cam.fieldOfView = 50f;
+        }
+
+        // Dentro do carrinho: o olho fica um pouco à frente do centro da cabine e olha reto para a frente (horizonte nivelado).
+        void ApplyFirstPerson()
+        {
+            int k = Mathf.Clamp(ThirdPersonCar, 0, raceCars - 1);
+            float rad = raceCarHeading[k] * Mathf.Deg2Rad;
+            Vector3 fwd = new Vector3(Mathf.Cos(rad), 0f, Mathf.Sin(rad));
+            Vector3 eye = raceCarPos[k] + fwd * 0.02f + Vector3.up * 0.155f;
+            Vector3 look = raceCarPos[k] + fwd * 2f + Vector3.up * 0.1f;
+            transform.SetPositionAndRotation(eye, Quaternion.LookRotation((look - eye).normalized, Vector3.up));
+            cam.orthographic = false;
+            cam.fieldOfView = 70f;
+            cam.nearClipPlane = 0.02f;
         }
 
         void ApplyAutoDoisCarros()

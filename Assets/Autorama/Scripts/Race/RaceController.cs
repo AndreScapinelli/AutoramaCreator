@@ -96,8 +96,8 @@ namespace Autorama
         static readonly string[] LaneNames = { "Trilho 1", "Trilho 2", "Trilho 3", "Trilho 4", "Trilho 5", "Trilho 6" };
         static readonly string[] LaneCls = { "a", "b", "c", "d", "e", "f" };       // sufixo das classes de cor do USS (trilho 1 a 6)
         // Modos de câmera da corrida, na ordem de TopDownCamera.RaceViewMode.
-        static readonly string[] CamModes = { "De cima", "3D", "Atrás do carro", "Dinâmica" };
-        static readonly string[] CamModeHints = { "A vista livre da mesa", "Inclinada, gira com o botão direito", "Segue um carrinho por trás", "Acompanha os carrinhos sozinha" };
+        static readonly string[] CamModes = { "De cima", "3D", "Atrás do carro", "Dinâmica", "Primeira pessoa" };
+        static readonly string[] CamModeHints = { "A vista livre da mesa", "Inclinada, gira com o botão direito", "Segue um carrinho por trás", "Acompanha os carrinhos sozinha", "Dentro do carrinho; quando ele roda, vira a traseira" };
         static readonly string[] CamTargets = { "Jogador 1", "Jogador 2", "Jogador 3", "Jogador 4", "Jogador 5", "Jogador 6" };
 
         RaceSettings set;
@@ -118,7 +118,7 @@ namespace Autorama
         // Menu da câmera: botão no canto superior direito da mesa que abre a lista de modos.
         VisualElement camMenu, camPop, camTargetBox;
         Button camBtn;
-        readonly Button[] camModeBtns = new Button[4], camTargetBtns = new Button[RaceSim.MaxCars];
+        readonly Button[] camModeBtns = new Button[5], camTargetBtns = new Button[RaceSim.MaxCars];
         Label camTargetNote;
         SliderInt cameraDistanceSlider;
         readonly List<VisualElement> lightDots = new List<VisualElement>();
@@ -369,12 +369,15 @@ namespace Autorama
                 bool on = k < sim.N && sim.present[k];
                 if (cars[k].gameObject.activeSelf != on) cars[k].gameObject.SetActive(on);
                 if (!on) continue;
+                var st0 = sim.cars[k];
+                cam.SetCarTrack(k, st0.mode == CarMode.OnSlot, st0.slip);
                 var p = sim.CarPose(k, out float y, out float pitch);
                 var pos = new Vector3(p.pos.x, y, p.pos.y);
                 cars[k].position = pos;
                 // Frente para +X: gira para o rumo, inclina na rampa e deita na curva inclinada.
                 cars[k].rotation = Quaternion.Euler(0f, -p.heading, 0f) * Quaternion.Euler(0f, 0f, pitch) * Quaternion.Euler(sim.CarBank(k), 0f, 0f);
                 var st = sim.cars[k];
+                carViews[k].SetCockpit(cam.InFirstPersonOf(k));
                 carViews[k].Tick(st.mode == CarMode.OnSlot ? st.v : 0f, st.mode == CarMode.Off, Time.deltaTime);
                 carPos[k] = pos; carHeading[k] = p.heading;
             }
@@ -706,7 +709,7 @@ namespace Autorama
             if (camBtn == null) return;
             camBtn.text = $"Câmera: <b>{CamModes[mode]}</b>  ▾";
             for (int i = 0; i < camModeBtns.Length; i++) camModeBtns[i].EnableInClassList("cam-opt--on", i == mode);
-            camTargetBox.style.display = mode == (int)TopDownCamera.RaceViewMode.ThirdPerson ? DisplayStyle.Flex : DisplayStyle.None;
+            camTargetBox.style.display = mode == (int)TopDownCamera.RaceViewMode.ThirdPerson || mode == (int)TopDownCamera.RaceViewMode.FirstPerson ? DisplayStyle.Flex : DisplayStyle.None;
             for (int k = 0; k < RaceSim.MaxCars; k++)
             {
                 camTargetBtns[k].EnableInClassList("btn--on", k == target);
