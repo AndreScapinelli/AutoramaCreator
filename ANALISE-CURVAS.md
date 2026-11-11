@@ -231,7 +231,7 @@ Na simulação da pista de teste ("8 com ponte"), os carrinhos chegaram a **13,4
 
 ## Referência do Código
 
-**Constantes da física (`html/index.html` linhas 1359–1363):**
+**Constantes da física (`Assets/Autorama/Scripts/Race/RaceSim.cs`, `Accel`/`Brake` na linha 219 e `grip` na linha 14):**
 - `ACCEL = 3.5` (resposta do motor)
 - `BRAKE = 1.8`, `BRAKE0 = 0.5` (freio)
 - `SLIP_GAIN = 6`, `SLIP_DECAY = 1.5` (derrapagem)
@@ -246,7 +246,7 @@ Na simulação da pista de teste ("8 com ponte"), os carrinhos chegaram a **13,4
 - Ângulo de inclinação: `15°`
 - Fórmula física: `(tan θ + μ) / (μ × (1 − μ × tan θ))` ≈ 1,7
 
-**Física de derrapagem (`html/index.html` linhas 1440–1450 e `GUIA-UNITY.md` seção 15.3):**
+**Física de derrapagem (`RaceSim.cs` linha 365 e `GUIA-UNITY.md` seção 15.3):**
 - Cálculo: `ratio = v² × |curvatura| / (grip × multiplicador)`
 - Acúmulo: `slip += (ratio - 1) × SLIP_GAIN × dt`
 - Limite: `if (slip >= 1) rodar()`

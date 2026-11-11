@@ -1,21 +1,21 @@
 # Autorama Creator
 
-Construtor de pista de autorama (slot car), com corrida para 2 jogadores e campeonato. Existe em duas versões que precisam ficar iguais:
+Construtor de pista de autorama (slot car), com corrida, campeonato e campeonato online.
 
-- **`html/index.html`**: a versão de referência, num arquivo só (SVG, sem dependências). Toda ideia nova nasce aqui.
-- **Projeto Unity** (`Assets/Autorama`): Unity 6000.3.6f1, URP 17, Input System, UI Toolkit. É a mesma coisa portada.
-- **`docs/GUIA-UNITY.md`**: o guia de como cada recurso funciona e de como fazer na Unity. Tem medidas, constantes, algoritmos e os testes feitos. Leia a seção do assunto antes de mexer.
+- **Projeto Unity** (`Assets/Autorama`): Unity 6000.3.6f1, URP 17, Input System, UI Toolkit. É a única versão do jogo.
+- **`docs/GUIA-UNITY.md`**: o guia de como cada recurso funciona na Unity. Tem medidas, constantes, algoritmos e os testes feitos. Leia a seção do assunto antes de mexer.
 
 O usuário escreve em português, e o projeto inteiro também: textos da interface, comentários, nomes de ids no JSON e o guia.
 
 ## Regras
 
-- **HTML e Unity iguais.** Mesmas regras, constantes e física. Mesmos ids no JSON de pista (`reta-curta`, `curva-longa-inclinada`, `cruzamento-curto`…), então uma pista exportada num abre no outro. Mesma identidade de pista para os recordes (FNV-1a de `id:sentido:altura`; oval = `a34f4cb9`, 8 com ponte = `81546106`).
+- **A versão em HTML acabou.** O `html/index.html` foi removido; a última versão dele está na tag `html-final`. Não há mais nada a manter igual nem a portar para lá. Os textos antigos do guia que falam do HTML são histórico.
+- **Formato e identidade não mudam.** Os ids do JSON de pista (`reta-curta`, `curva-longa-inclinada`, `cruzamento-curto`…) e a identidade de pista dos recordes (FNV-1a de `id:sentido:altura`; oval = `a34f4cb9`, 8 com ponte = `81546106`) continuam iguais, para não perder as pistas salvas e os recordes.
 - **Sempre atualize `docs/GUIA-UNITY.md`** junto com qualquer recurso novo ou mudado: o que faz, constantes, código C# e os números do teste. Isso faz parte de terminar a tarefa.
-- **Coordenadas.** No HTML, y cresce para baixo e o ângulo cresce no sentido horário. Na Unity, o plano é XZ, com z = altura da mesa − y e ângulo = −h. 1 célula = largura da pista (2 trilhos, ±0,25). Raio das curvas: 2,5.
-- **Pistas de 4 e de 6 carros** (só na Unity, seções 25 e 31 do guia): mesmas peças e ids, `"faixas": 4` ou `6` no JSON, geometria igual em células e **escala 2 ou 3 no mundo** (`TrackMath.Scale`; o espaço entre trilhos é sempre 0,5 no mundo). Identidade com prefixo `f4|` ou `f6|`. Campeonato (offline e online) nunca mistura pistas de 2 e de 4; numa pista larga podem correr de 2 até o número de trilhos (trilho vazio, seção 27). Teclado só para 4 humanos: o 5º e o 6º jogam só de controle.
-- **Física da corrida** (os dois iguais): `ACCEL 3.5`, `BRAKE 1.8`, `BRAKE0 0.5`, `SLOPE_G 8`, `SLIP_GAIN 6`, `SLIP_DECAY 1.5`, curva inclinada × 1,7 de aderência. Mudou uma, mude na outra versão e no guia.
-- **Turbo** (só na Unity, seção 37 do guia): tanque que enche a cada saída de pista (de 0,2 para o líder até 0,5 para o último e longe: metade pela posição, metade pela distância até o líder, cheia a meia volta), +25% de velocidade máxima, 3 s de tanque cheio. Volta com turbo não vale como melhor volta nem recorde. Teclas em `Race/Controles.cs` (A · S · Espaço · D), trocáveis em Opções no menu inicial (seção 36).
+- **Coordenadas.** No JSON de pista (formato herdado do HTML), y cresce para baixo e o ângulo cresce no sentido horário. Na Unity, o plano é XZ, com z = altura da mesa − y e ângulo = −h (a conversão fica no `TrackSave`). 1 célula = largura da pista (2 trilhos, ±0,25). Raio das curvas: 2,5.
+- **Pistas de 4 e de 6 carros** (seções 25 e 31 do guia): mesmas peças e ids, `"faixas": 4` ou `6` no JSON, geometria igual em células e **escala 2 ou 3 no mundo** (`TrackMath.Scale`; o espaço entre trilhos é sempre 0,5 no mundo). Identidade com prefixo `f4|` ou `f6|`. Campeonato (offline e online) nunca mistura pistas de 2 e de 4; numa pista larga podem correr de 2 até o número de trilhos (trilho vazio, seção 27). Teclado só para 4 humanos: o 5º e o 6º jogam só de controle.
+- **Física da corrida** (`RaceSim`): `ACCEL 3.5`, `BRAKE 1.8`, `BRAKE0 0.5`, `SLOPE_G 8`, `SLIP_GAIN 6`, `SLIP_DECAY 1.5`, curva inclinada × 1,7 de aderência. Mudou uma, mude no guia.
+- **Turbo** (seção 37 do guia): tanque que enche a cada saída de pista (de 0,2 para o líder até 0,5 para o último e longe: metade pela posição, metade pela distância até o líder, cheia a meia volta), +25% de velocidade máxima, 3 s de tanque cheio. Volta com turbo não vale como melhor volta nem recorde. Teclas em `Race/Controles.cs` (A · S · Espaço · D), trocáveis em Opções no menu inicial (seção 36).
 - O piloto IA não bate recorde da pista; só o melhor pessoal dele.
 
 ## Mapa da Unity (`Assets/Autorama/Scripts`)
@@ -32,14 +32,12 @@ O usuário escreve em português, e o projeto inteiro também: textos da interfa
 | `Editor/OnlineSmokeTest.cs` | Teste do cliente online contra o servidor de verdade (`script eval`) |
 | `Editor/SteamSpacewarTest.cs`, `SteamTransportTest.cs`, `FakeLobbyBackend.cs` | Testes da camada Steam com o Spacewar (AppId 480; precisam da Steam aberta e logada) e do transporte com um mundo falso |
 
-O servidor de salas do campeonato online fica em `servidor/` (Node, fora do `Assets`). O campeonato online existe **só na Unity** por enquanto: o HTML não tem a aba Online (seção 23 do guia).
+O servidor de salas do campeonato online fica em `servidor/` (Node, fora do `Assets`). Campeonato online: seção 23 do guia.
 
-A cena é `Assets/Autorama/Cenas/Construtor.unity`. Os dados do jogo ficam em `Application.persistentDataPath/autorama/`: `pistas/`, `rascunho.json`, `pilotos.json`, `campeonatos.json` e `recordes.json`. No HTML ficam no `localStorage`, nas chaves `autorama-*-v1`.
+A cena é `Assets/Autorama/Cenas/Construtor.unity`. Os dados do jogo ficam em `Application.persistentDataPath/autorama/`: `pistas/`, `rascunho.json`, `pilotos.json`, `campeonatos.json` e `recordes.json`.
 
 ## Como testar
 
-- **HTML sem navegador:** `node ferramentas/teste-html.js meu-teste.js` roda a página no Node com um DOM falso. O teste vê todas as funções (`setMode`, `startRace`, `step`, `buildPaths`, `champBegin`…). Bom para física, regras e contas.
-- **HTML no navegador:** abra `html/index.html`. O `localStorage` pode estar bloqueado em `file://`/`data:`, e a página precisa funcionar assim mesmo.
 - **Unity:** com o Editor aberto, use o `unity` CLI (pacote `com.unity.pipeline`):
   - Online: `cd servidor && npm test` (servidor, sem Unity) e, com `node servidor.js` rodando, `script eval 'Autorama.OnlineSmokeTest.Run(); return Autorama.OnlineSmokeTest.Last;'` (cliente Unity + servidor). Com o Editor em segundo plano o Play mode não avança quadros: use `isPaused = true` + `EditorApplication.Step()` antes de capturar a tela.
   - `unity command script recompile`, depois `script recompile_status` até "completed";

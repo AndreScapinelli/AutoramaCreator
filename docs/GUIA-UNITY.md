@@ -1,8 +1,10 @@
 # Construtor de Pista de Autorama na Unity
 
-Guia para recriar na Unity o construtor que está em `index.html`: vista de cima, mesa quadriculada, pista de 2 trilhos, peças que encaixam umas nas outras a partir de uma base de largada.
+Guia do construtor de autorama na Unity: vista de cima, mesa quadriculada, pista de 2 trilhos, peças que encaixam umas nas outras a partir de uma base de largada.
 
-A ideia central é a mesma do HTML. **A pista é uma lista de peças, e a posição de cada peça não é guardada: ela é recalculada a partir da largada toda vez que algo muda.** Inserir, remover, trocar ou inverter uma peça é só mexer na lista e reconstruir.
+> **A versão em HTML acabou (seção 38).** O `html/index.html` foi removido; a última versão está na tag `html-final`. As menções ao HTML nas seções abaixo são histórico: contam de onde veio cada regra e os testes feitos na época.
+
+A ideia central: **a pista é uma lista de peças, e a posição de cada peça não é guardada: ela é recalculada a partir da largada toda vez que algo muda.** Inserir, remover, trocar ou inverter uma peça é só mexer na lista e reconstruir.
 
 ---
 
@@ -38,7 +40,7 @@ Os trilhos ficam a ±0,25 célula da linha central. **Trilho 1 à esquerda, tril
 - `dir = +1` vira à **direita** (o ângulo diminui) e `dir = -1` vira à **esquerda**.
 - Para girar um objeto pela pose: `Quaternion.Euler(0, -heading, 0)`. Modele os carrinhos apontando para **+X**.
 
-> O HTML usa Y para baixo (padrão de tela). Na seção 9 tem a conversão para abrir na Unity as pistas salvas no navegador.
+> O JSON de pista usa Y para baixo (herança do HTML). Na seção 9 tem a conversão.
 
 ---
 
@@ -685,11 +687,11 @@ public class BuilderInput : MonoBehaviour
 
 ---
 
-## 9. Salvar e carregar (mesmo formato do HTML)
+## 9. Salvar e carregar (formato herdado do HTML)
 
-Use o mesmo JSON do botão **Copiar** do HTML. Assim uma pista montada no navegador abre na Unity, e vice-versa.
+O JSON é o mesmo que o botão **Copiar** do antigo HTML gerava. Ele não muda: as pistas salvas e as exportadas na época continuam abrindo.
 
-O HTML usa Y para baixo e ângulo no sentido horário. Na Unity: **`z = altura da mesa - y`** e **`heading = -h`**.
+No JSON, Y cresce para baixo e o ângulo cresce no sentido horário. Na Unity: **`z = altura da mesa - y`** e **`heading = -h`**.
 
 `TrackSave.cs`:
 
@@ -2578,7 +2580,6 @@ Depois do deploy, escreva o endereço (`wss://SEU-APP.fly.dev`) em `OnlineClient
 1. Recordes da pista e histórico no campeonato online (hoje só o offline grava).
 2. Reduzir o snapshot (campos que quase nunca mudam, ou só o que mudou) se a banda for um problema.
 3. Expulsar jogador, passar o host adiante sem encerrar o campeonato, reconectar no meio da prova.
-4. Depois que a Unity estiver fechada, portar a aba Online para o HTML (o servidor e o protocolo são os mesmos).
 
 ---
 
@@ -2694,7 +2695,7 @@ A Steam procura `steam_appid.txt` **ao lado do executável**. `SteamBuildPostpro
 
 ## 25. Pista de 4 carros
 
-Uma pista nasce de **2 ou de 4 carros** e fica nesse tipo. Existe **só na Unity** (o HTML está congelado; ver a regra da memória do projeto). Construtor, corrida livre, campeonato e online suportam os dois tipos, e numa pista de 4 podem correr **2, 3 ou 4 carros** (seção 27).
+Uma pista nasce de **2 ou de 4 carros** e fica nesse tipo. Construtor, corrida livre, campeonato e online suportam os dois tipos, e numa pista de 4 podem correr **2, 3 ou 4 carros** (seção 27).
 
 ### 25.1 A ideia: mesma geometria em células, escala 2 no mundo
 
@@ -2729,7 +2730,6 @@ public static float Scale(int faixas) => faixas == 4 ? 2f : 1f;
 
 - Campo novo `"faixas": 4` no JSON da pista. Sem o campo (todas as pistas antigas e as do HTML) é **2**; qualquer valor diferente de 4 vira 2 (`TrackMath.Faixas`).
 - Identidade para os recordes: a pista de 4 começa a cadeia com `f4|` antes do FNV-1a (`"f4|largada:0:0|…"`). As de 2 **não mudam**: oval = `a34f4cb9`, 8 com ponte = `81546106`. A mesma forma em 2 e em 4 são pistas diferentes, com recordes separados.
-- O HTML não conhece o campo: ele abriria uma pista de 4 como se fosse de 2. Como o HTML está congelado, isso fica registrado aqui e não foi mexido lá.
 
 ### 25.3 Construtor
 
@@ -2788,11 +2788,11 @@ Tudo gerado por `ferramentas/gen-texturas.js` (bloco "PISTA DE 4 CARROS") e liga
 
 ### 25.8 O que falta
 
-1. O HTML não conhece `faixas` (congelado).
+Nada pendente.
 
 ## 26. Corrida por tempo (manches)
 
-Segundo formato de prova, ao lado do **por voltas**. A corrida tem uma duração total e se divide em **uma manche por trilho**: 2 manches na pista de 2, 4 na de 4. No fim de cada manche os carrinhos param, cada um passa para o **trilho seguinte** (1→2, …, último→1) e uma nova contagem larga a manche. Uma prova de 1 min tem manches de 30 s na pista de 2 e de 15 s na de 4. Vence quem **andar mais**. Existe só na Unity (o HTML está congelado).
+Segundo formato de prova, ao lado do **por voltas**. A corrida tem uma duração total e se divide em **uma manche por trilho**: 2 manches na pista de 2, 4 na de 4. No fim de cada manche os carrinhos param, cada um passa para o **trilho seguinte** (1→2, …, último→1) e uma nova contagem larga a manche. Uma prova de 1 min tem manches de 30 s na pista de 2 e de 15 s na de 4. Vence quem **andar mais**.
 
 ### 26.1 Regras
 
@@ -2853,8 +2853,7 @@ Segundo formato de prova, ao lado do **por voltas**. A corrida tem uma duração
 
 ### 26.7 O que falta
 
-1. HTML (congelado).
-2. Teste do online por tempo com dois jogadores de verdade.
+1. Teste do online por tempo com dois jogadores de verdade.
 
 ## 27. Trilho vazio: 2 ou 3 carros numa pista de 4
 
@@ -3082,7 +3081,7 @@ A aba **Corrida** ficou em blocos, de cima para baixo: **PISTA** (só pistas fec
 
 ## 34. Minimapa da corrida (só Unity)
 
-Um mapa esquemático da pista no canto superior direito da mesa, logo abaixo do botão **Câmera**. Mostra o traçado visto de cima, com um ponto por carrinho na cor do painel dele. **Não é uma câmera:** é um desenho 2D (`Painter2D`), então não se mexe com a vista, não gira e não tapa nada do que está na mesa. Funciona na aba Corrida, no Campeonato e na corrida online. Como é só Unity, o HTML não ganha o minimapa (ver a memória do projeto: o HTML está congelado).
+Um mapa esquemático da pista no canto superior direito da mesa, logo abaixo do botão **Câmera**. Mostra o traçado visto de cima, com um ponto por carrinho na cor do painel dele. **Não é uma câmera:** é um desenho 2D (`Painter2D`), então não se mexe com a vista, não gira e não tapa nada do que está na mesa. Funciona na aba Corrida, no Campeonato e na corrida online.
 
 **Arquivos:**
 - `Assets/Autorama/Scripts/Race/RaceMinimap.cs`: a classe `RaceMinimap : VisualElement`.
@@ -3215,7 +3214,7 @@ for (int i = 0; i < kb.allKeys.Count; i++)
 - Lógica (`script eval`): `Set(jogador 2, Meia, A)` com A sendo de P1 Acelerar: P2 meia = A e P1 acelerar = K (a tecla antiga de P2 meia, troca). Depois `Set(P1, Acelerar, S)` com S sendo de P1 meia: P1 acelerar = S e P1 meia = K. `Reservada(Enter)` = verdadeiro. Jogador 5 sem tecla (`None`). `Restaurar()` volta A (P1 acelerar) e K (P2 meia).
 - **Não testado no Play mode** (a tela, a captura por tecla real e o online com teclas de outro conjunto ainda não foram vistos rodando). Próximo passo: abrir a aba Corrida, abrir a tela, trocar uma tecla e correr.
 
-**O que falta:** o HTML continua com as teclas antigas (A·S·Q etc.), e a regra de "congelado" (memória do projeto) mantém assim. Não há tela de opções para o gamepad. Não há cor de conflito na tela (a troca é silenciosa, o outro botão mostra a tecla nova).
+**O que falta:** não há tela de opções para o gamepad. Não há cor de conflito na tela (a troca é silenciosa, o outro botão mostra a tecla nova).
 
 ## 37. Turbo (só Unity)
 
@@ -3252,7 +3251,7 @@ Sem turbo apertado a conta é a de antes: a física e os recordes não mudam.
 - `npm test` do servidor passou.
 - **Não testado no Play mode**: a barra TURBO na tela (inclusive se cabe no painel de 6 carros), a tecla real, o controle e uma corrida online com turbo.
 
-**O que falta:** o HTML não tem turbo (congelado). Não há efeito visual de turbo (os sons estão em 37.1). Os números (ganho, 25%, 3 s) são um primeiro chute e pedem afinação jogando.
+**O que falta:** não há efeito visual de turbo (os sons estão em 37.1). Os números (ganho, 25%, 3 s) são um primeiro chute e pedem afinação jogando.
 
 ### 37.1 Turbo como regra (ligar ou desligar) e sons
 
@@ -3304,3 +3303,23 @@ return Mathf.Lerp(TurboGainMin, TurboGainMax, Mathf.Lerp(pos, gap, TurboGapWeigh
 | Sozinho | 0,350 |
 
 **Não testado no Play mode.** `TurboGap` e `TurboGapWeight` são um primeiro chute: para a distância pesar mais, suba `TurboGapWeight` (1 = só distância); para exigir mais atraso antes do ganho cheio, suba `TurboGap`.
+
+---
+
+## 38. Fim da versão HTML
+
+O construtor em HTML (`html/index.html`, um arquivo só em SVG) foi a versão de referência até a seção 22: toda regra nascia lá e era portada para a Unity. Da seção 23 em diante os recursos novos (online, Steam, pistas de 4 e 6 carros, corrida por tempo, 3D, som, minimapa, teclas, turbo) foram feitos só na Unity, e o HTML ficou congelado. Agora ele foi removido.
+
+**O que saiu:**
+- `html/index.html` e `ferramentas/teste-html.js` (o teste do HTML no Node com DOM falso).
+- A regra "HTML e Unity iguais" do `CLAUDE.md`.
+
+**Onde está:** na tag `html-final` (o commit `2ea4c10`, "Turbo"). Para ver ou rodar: `git show html-final:html/index.html > index.html`.
+
+**O que não muda:**
+- **JSON de pista:** mesmos ids das peças (`reta-curta`, `curva-longa-inclinada`…), mesmos campos (`altura`, `faixas`, `nome`) e mesmas coordenadas (Y para baixo, ângulo horário, convertidos no `TrackSave`). Pistas salvas e exportadas continuam abrindo.
+- **Identidade da pista para os recordes:** FNV-1a de `id:sentido:altura`, com `f4|`/`f6|` nas pistas largas. Oval = `a34f4cb9`, 8 com ponte = `81546106`. Mudar isso apagaria os recordes guardados.
+- **Física:** as constantes da seção 15 ficam no `RaceSim` e neste guia.
+- **Texturas:** `ferramentas/gen-texturas.js` continua (gera as texturas da Unity; as cores vieram do HTML).
+
+**Testes:** o que antes se testava no HTML sem navegador agora se testa com `script eval` no `RaceSim`, no `Champ` e no `TrackLayout`, que não dependem de cena.
