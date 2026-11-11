@@ -403,6 +403,22 @@
 
 /* Menu da câmera (corrida): botão no canto superior direito, a lista abre embaixo */
 .cam-menu { position: absolute; top: 10px; right: 12px; align-items: flex-end; }
+/* Minimapa da corrida: janela solta sobre a mesa (posição e tamanho são calculados em RaceMinimap). */
+.minimap { position: absolute; background-color: var(--fundo-vidro); border-radius: 12px; border-width: 1px; border-color: var(--borda); overflow: hidden; }
+.minimap-head { flex-direction: row; justify-content: space-between; align-items: center; height: 24px; padding: 0 10px; background-color: rgba(255, 255, 255, 0.05); cursor: move; }
+.minimap-title { font-size: 10px; letter-spacing: 1px; -unity-font-style: bold; color: var(--texto-fraco); margin: 0; padding: 0; }
+.minimap-hint { font-size: 10px; color: var(--texto-fraco); margin: 0; padding: 0; }
+.minimap-canvas { position: relative; }
+.minimap-grip { position: absolute; right: 0; bottom: 0; width: 16px; height: 16px; background-color: rgba(255, 255, 255, 0.18); border-radius: 4px; }
+.minimap-toggle { height: 26px; padding: 0 12px; font-size: 12px; -unity-font-style: bold; color: var(--texto); -unity-text-align: middle-left; border-top-width: 1px; border-color: var(--borda); }
+.minimap-info { display: none; border-top-width: 1px; border-color: var(--borda); padding: 4px 0; max-height: 300px; overflow: hidden; }
+.minimap-row { padding: 4px 10px; }
+.minimap-row-top { flex-direction: row; align-items: center; }
+.minimap-dot { width: 9px; height: 9px; border-radius: 5px; margin-right: 6px; }
+.minimap-pos { font-size: 12px; -unity-font-style: bold; color: var(--texto-fraco); width: 26px; margin: 0; padding: 0; }
+.minimap-name { font-size: 11px; -unity-font-style: bold; color: var(--texto); flex-grow: 1; margin: 0; padding: 0; }
+.minimap-lap { font-size: 10px; color: var(--destaque); margin: 0; padding: 0; }
+.minimap-stats { font-size: 10px; color: var(--texto-fraco); white-space: normal; margin: 2px 0 0 0; padding: 0 0 0 15px; }
 .cam-btn { height: 34px; padding: 0 14px; background-color: var(--fundo-vidro); font-size: 13px; }
 .cam-btn--open { border-color: var(--destaque); }
 .cam-pop {
@@ -414,6 +430,26 @@
 .cam-opt--on { border-color: var(--destaque); background-color: rgb(52, 48, 22); }
 .cam-sub { margin: 6px 0 4px 0; }
 .cam-pop .unity-base-field__label { min-width: 84px; width: 84px; }
+
+/* Turbo no painel do jogador: a barra é o tanque e o botão */
+.turbo { height: 22px; margin: 2px 0 6px 0; border-radius: 6px; border-width: 1px; border-color: var(--borda-media); background-color: rgb(14, 17, 16); overflow: hidden; justify-content: center; }
+.turbo-fill { position: absolute; left: 0; top: 0; bottom: 0; background-color: rgb(40, 120, 200); }
+.turbo-text { font-size: 10px; -unity-font-style: bold; color: var(--texto); -unity-text-align: middle-center; margin: 0; padding: 0; }
+.turbo--on { border-color: rgb(140, 220, 255); }
+.turbo--on .turbo-fill { background-color: rgb(90, 190, 255); }
+.turbo--empty .turbo-text { color: var(--texto-fraco); }
+
+/* Menu inicial: Opções e Sair */
+.start-extra { flex-direction: row; justify-content: center; margin-top: 12px; }
+.start-btn { height: 34px; min-width: 120px; margin: 0 6px; font-size: 13px; }
+
+/* Teclas dos jogadores: tela de Opções, por cima do menu inicial (RaceController.BuildKeysUI) */
+.keys-screen { position: absolute; left: 0; right: 0; top: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.6); align-items: center; justify-content: center; }
+.keys-card { width: 680px; max-width: 92%; padding: 16px; border-radius: 12px; background-color: var(--fundo-painel); border-width: 1px; border-color: var(--borda-clara); }
+.keys-row { flex-direction: row; align-items: center; margin-bottom: 6px; }
+.keys-who { width: 80px; flex-grow: 0; margin: 0 8px 0 0; }
+.keys-btn { flex-grow: 1; flex-basis: 0; min-width: 0; height: 32px; margin: 0 6px 0 0; font-size: 11px; }
+.keys-btn--wait { border-color: var(--destaque); background-color: rgb(52, 48, 22); }
 
 /* Placar sobre a mesa (corrida): uma ficha por carrinho, o líder destacado */
 .hud { flex-direction: row; margin-bottom: 8px; }

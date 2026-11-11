@@ -423,7 +423,7 @@ namespace Autorama
             }
             if (hidden > 0) Text(hidden == 1 ? "1 pista aberta não aparece: feche o circuito no Construtor." : $"{hidden} pistas abertas não aparecem: feche os circuitos no Construtor.", "small", cPick);
 
-            cRules.text = $"• Usa os ajustes da aba Corrida: velocidade <b>{Num(set.vmax)} cél/s</b>, até 100% em <b>{Num(set.ramp, 2)} s</b>, aderência <b>{Mathf.RoundToInt(set.grip)}</b>, colisão <b>{(set.collide ? "ligada" : "desligada")}</b>. Ficam fixos até o fim.\n" +
+            cRules.text = $"• Usa os ajustes da aba Corrida: velocidade <b>{Num(set.vmax)} cél/s</b>, até 100% em <b>{Num(set.ramp, 2)} s</b>, aderência <b>{Mathf.RoundToInt(set.grip)}</b>, colisão <b>{(set.collide ? "ligada" : "desligada")}</b>, turbo <b>{(set.turbo ? "ligado" : "desligado")}</b>. Ficam fixos até o fim.\n" +
                           (D.byTime
                             ? $"• <b>Por tempo</b>: cada etapa tem {(ps.Count > D.faixas ? $"<b>{Champ.HeatsPerStage(ps.Count, D.faixas, true)} grupos</b>" : "<b>uma bateria</b>")} de até {D.faixas} carros. A bateria se divide em <b>{D.faixas} manches</b>, uma em cada trilho. Vale a <b>distância</b> (voltas e fração).\n"
                             : $"• Cada etapa: {(ps.Count >= 2 ? $"<b>{Champ.HeatsPerStage(ps.Count, D.faixas, false)} baterias</b>" : "uma bateria por piloto")} de até <b>{D.faixas} carros</b>, e cada piloto corre uma vez em cada trilho. Vale o <b>tempo somado</b> de todas.\n" +
@@ -522,9 +522,9 @@ namespace Autorama
                     string side = LaneSide(k);
                     Text($"{LaneNames[k]}{(side != "" ? " · " + side : "")}", "small", hp);
                     Text(p.name.ToUpperInvariant(), "hp-name", hp);
-                    // As teclas seguem a ordem dos humanos (KeySet): o 1º humano A·S, o 2º L·K, o 3º ↑·↓, o 4º 8·5.
+                    // As teclas seguem a ordem dos humanos (KeySet): o 1º humano usa as teclas do jogador 1, o 2º as do 2, e assim por diante.
                     int ks = 0; for (int i = 0; i < k; i++) if (pl[i] != null && !pl[i].ai) ks++;
-                    Text(OnlineRun ? OnlineWho(p) : p.ai ? $"IA · qualidade {p.skill}" : ks >= GasKeys.Length ? "só com controle" : $"acelera {KeyText(GasKeys[ks])} · recoloca {KeyText(ReslotKeys[ks])}", "small", hp);
+                    Text(OnlineRun ? OnlineWho(p) : p.ai ? $"IA · qualidade {p.skill}" : ks >= Controles.Jogadores ? "só com controle" : $"acelera {KeyText(GasKeyAt(ks))} · recoloca {KeyText(ReslotKeyAt(ks))}", "small", hp);
                 }
             }
             else DrawPodium(C);
@@ -709,7 +709,7 @@ namespace Autorama
             if (HeatNow(out var C, out _, out _, out var stage, out var pl))
             {
                 d = stage.data;
-                sim.set = new RaceSettings { laps = stage.laps, vmax = C.rules.vmax, ramp = C.rules.ramp, grip = C.rules.grip, collide = C.rules.collide, byTime = C.byTime, secs = stage.secs };
+                sim.set = new RaceSettings { laps = stage.laps, vmax = C.rules.vmax, ramp = C.rules.ramp, grip = C.rules.grip, collide = C.rules.collide, turbo = C.rules.turbo, byTime = C.byTime, secs = stage.secs };
                 sim.cutoff = C.byTime ? (float?)null : Champ.Cutoff;
                 for (int k = 0; k < RaceSim.MaxCars; k++)
                 {
@@ -753,7 +753,7 @@ namespace Autorama
             var C = new Championship
             {
                 id = Champ.NewId("c"), name = string.IsNullOrWhiteSpace(D.name) ? $"Campeonato {store.history.Count + 1}" : D.name.Trim(), created = Champ.Now,
-                rules = new ChampRules { vmax = set.vmax, ramp = set.ramp, grip = set.grip, collide = set.collide },
+                rules = new ChampRules { vmax = set.vmax, ramp = set.ramp, grip = set.grip, collide = set.collide, turbo = set.turbo },
                 faixas = D.faixas, byTime = D.byTime,
                 heats = Champ.MakeHeats(ps.Count, D.stages.Count, D.faixas, D.byTime),
             };

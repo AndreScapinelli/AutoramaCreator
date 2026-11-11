@@ -15,6 +15,7 @@ O usuário escreve em português, e o projeto inteiro também: textos da interfa
 - **Coordenadas.** No HTML, y cresce para baixo e o ângulo cresce no sentido horário. Na Unity, o plano é XZ, com z = altura da mesa − y e ângulo = −h. 1 célula = largura da pista (2 trilhos, ±0,25). Raio das curvas: 2,5.
 - **Pistas de 4 e de 6 carros** (só na Unity, seções 25 e 31 do guia): mesmas peças e ids, `"faixas": 4` ou `6` no JSON, geometria igual em células e **escala 2 ou 3 no mundo** (`TrackMath.Scale`; o espaço entre trilhos é sempre 0,5 no mundo). Identidade com prefixo `f4|` ou `f6|`. Campeonato (offline e online) nunca mistura pistas de 2 e de 4; numa pista larga podem correr de 2 até o número de trilhos (trilho vazio, seção 27). Teclado só para 4 humanos: o 5º e o 6º jogam só de controle.
 - **Física da corrida** (os dois iguais): `ACCEL 3.5`, `BRAKE 1.8`, `BRAKE0 0.5`, `SLOPE_G 8`, `SLIP_GAIN 6`, `SLIP_DECAY 1.5`, curva inclinada × 1,7 de aderência. Mudou uma, mude na outra versão e no guia.
+- **Turbo** (só na Unity, seção 37 do guia): tanque que enche a cada saída de pista (de 0,2 para o líder até 0,5 para o último e longe: metade pela posição, metade pela distância até o líder, cheia a meia volta), +25% de velocidade máxima, 3 s de tanque cheio. Volta com turbo não vale como melhor volta nem recorde. Teclas em `Race/Controles.cs` (A · S · Espaço · D), trocáveis em Opções no menu inicial (seção 36).
 - O piloto IA não bate recorde da pista; só o melhor pessoal dele.
 
 ## Mapa da Unity (`Assets/Autorama/Scripts`)

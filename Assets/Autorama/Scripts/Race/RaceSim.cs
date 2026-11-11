@@ -19,7 +19,7 @@ namespace Autorama
         public int cameraMode = 0;      // 0 atual, 1 3D, 2 third person, 3 auto dois carros
         public int cameraTarget = 0;    // alvo do third person: 0 jogador 1, 1 jogador 2
         public int cameraDistance = 100; // escala do enquadramento: 70% mais perto, 160% mais longe
-        public int halfGas = 60;        // tecla de meia aceleração (Q · O): até onde o acelerador vai, em %
+        public int halfGas = 60;        // tecla de meia aceleração (S no jogador 1; ver Controles): até onde o acelerador vai, em %
         public bool bot34 = true;       // (antigo, não usado: virou set.slots; fica para ler os ajustes salvos antes)
         public int motorSound = 3;      // qual som de motor (0 broca, 1 elétrico suave, 2 escovas, 3 turbina, 4 ronco, 5 motor.wav)
         public int volume = 70;         // volume dos sons da corrida, 0 a 100 (seção 29)
@@ -29,6 +29,9 @@ namespace Autorama
         public int raceFaixas;
         public int cars = 2;
         public PilotSlot[] slots;
+        public float miniX = -1f, miniY = -1f, miniW = 240f;   // minimapa: posição (no canto da mesa) e largura; X < 0 = ainda não arrastado
+        public bool miniOpen;           // aba Pilotos do minimapa aberta
+        public bool turbo = true;       // turbo ligado (seção 37): tanque que enche a cada saída de pista
         public bool byTime;             // corrida por tempo (seção 26): dura "secs" e se divide em uma manche por trilho
         public int secs = 120;          // duração total da corrida por tempo, em segundos
 
@@ -180,6 +183,9 @@ namespace Autorama
         public float s = RaceSim.GridS, v, hold, T, slip;
         public bool held;
         public float gas = 1f;   // até onde o acelerador vai enquanto está segurando (0–1): gatilho do controle ou tecla de meia
+        // Turbo (seção 37): tanque de 0 a 1 (começa vazio, enche a cada saída de pista), botão apertado e "esta volta usou turbo".
+        public float turbo;
+        public bool boost, turboLap;
         public int side = 1;
         public CarMode mode;
         // fora da pista
@@ -213,6 +219,12 @@ namespace Autorama
         const float Accel = 3.5f, Brake = 1.8f, Brake0 = 0.5f, SlopeG = 8f, Fall = 3f;
         const float SlipGain = 6f, SlipDecay = 1.5f, YawMax = 38f;
         const float CarHL = 0.3f, CarHW = 0.16f, Restitution = 0.35f;
+        // Turbo: cada saída de pista enche o tanque, de TurboGainMin (quem lidera) a TurboGainMax (o último). Apertado, o
+        // carrinho busca (1 + TurboBoost) × a velocidade máxima e o tanque cheio dura TurboTime segundos.
+        public const float TurboGainMin = 0.2f, TurboGainMax = 0.5f, TurboBoost = 0.25f, TurboTime = 3f;
+        // O ganho olha também a distância até o líder: TurboGap voltas atrás já conta como "longe"; TurboGapWeight é o
+        // peso da distância na conta (o resto é a posição).
+        public const float TurboGap = 0.5f, TurboGapWeight = 0.5f;
         const float RubKick = 0.15f, RubKickV = 0.03f, RubSlip = 8f, RubDrag = 1.2f, HitSlip = 0.12f, HitSlipSide = 0.14f, HitSpin = 60f;
 
         public enum Phase { Idle, Countdown, Running, Done, Switch }     // Switch: troca de trilho entre manches (corrida por tempo)
@@ -271,8 +283,11 @@ namespace Autorama
 
         public float GridPos => GridS * Scale;     // onde o carrinho para no grid, no mundo
 
+        public readonly float[] Travel = new float[MaxCars];   // distância percorrida na corrida, em unidades do mundo (× cellCm / 100 = metros)
+
         public void Reset()
         {
+            System.Array.Clear(Travel, 0, Travel.Length);
             phase = Phase.Idle; t = 0f; winner = -1; bestT = null; Manche = 0; resumeT = 0f; switchT = 0f;
             for (int k = 0; k < N; k++) { bool held = cars[k].held; cars[k] = new CarState { held = held, s = GridPos, lane = k }; }
             System.Array.Clear(pairContact, 0, pairContact.Length);
@@ -336,9 +351,14 @@ namespace Autorama
                 {
                     // Motor: busca T × velocidade máxima; soltou, freia. Rampa: subir freia, descer embala.
                     var here = P.At(c.s);
-                    float a = (c.T == 0f ? -(Brake * c.v + Brake0) : Accel * (c.T * set.vmax - c.v)) - SlopeG * here.slope;
+                    // Turbo: só com o acelerador apertado, tanque com carga e a prova valendo. Soma velocidade e gasta o tanque.
+                    bool tb = set.turbo && c.boost && c.turbo > 0f && c.T > 0f && phase == Phase.Running;
+                    float top = set.vmax * (tb ? 1f + TurboBoost : 1f);
+                    if (tb) { c.turbo = Mathf.Max(0f, c.turbo - dt / TurboTime); c.turboLap = true; }
+                    float a = (c.T == 0f ? -(Brake * c.v + Brake0) : Accel * (c.T * top - c.v)) - SlopeG * here.slope;
                     c.v = Mathf.Max(0f, c.v + a * dt);
                     c.s += c.v * dt;
+                    Travel[k] += c.v * dt;      // distância percorrida, em unidades do mundo (o painel converte para metros)
                     // Força lateral v²/r contra a aderência (maior na inclinada). O excesso enche a derrapagem.
                     var q = P.At(c.s);
                     if (q.k != 0f) c.side = q.k > 0f ? 1 : -1;
@@ -419,7 +439,29 @@ namespace Autorama
             c.flyW = -c.side * (220f + c.v * 30f);                           // gira no sentido da curva
             c.mode = CarMode.Off;
             c.exitS = c.s; c.v = 0f; c.slip = 0f; c.offs++;
+            if (set.turbo && phase == Phase.Running) c.turbo = Mathf.Min(1f, c.turbo + TurboGain(k));
             ScoreChanged?.Invoke();
+        }
+
+        // Quanto o tanque enche numa saída: quem está mais atrás ganha mais (como os itens do Mario Kart).
+        // Metade pela posição (líder 0, último 1, os do meio em linha reta) e metade pela distância até o líder
+        // (0 colado nele, 1 a partir de TurboGap voltas atrás). Assim o último que vem colado no líder ganha menos do
+        // que o último que ficou longe. Líder TurboGainMin; último e longe, TurboGainMax; sozinho na pista, o meio.
+        public float TurboGain(int k)
+        {
+            int n = 0, ahead = 0;
+            float d = Dist(k), lead = d;
+            for (int i = 0; i < N; i++)
+            {
+                if (!present[i]) continue;
+                n++;
+                float di = Dist(i);
+                if (i != k && di > d) ahead++;
+                if (di > lead) lead = di;
+            }
+            if (n <= 1) return Mathf.Lerp(TurboGainMin, TurboGainMax, 0.5f);
+            float pos = ahead / (float)(n - 1), gap = Mathf.Clamp01((lead - d) / TurboGap);
+            return Mathf.Lerp(TurboGainMin, TurboGainMax, Mathf.Lerp(pos, gap, TurboGapWeight));
         }
 
         // Recolocar: volta ao trilho um pouco antes de onde saiu, parado.
@@ -445,9 +487,15 @@ namespace Autorama
             // A volta que pegou a troca de trilho é metade num trilho e metade no outro: conta, mas não vale como tempo.
             if (c.lapDirty) { c.lapDirty = false; ScoreChanged?.Invoke(); return; }
             c.lastLap = lap;
-            LapDone?.Invoke(k, lap);
-            if (c.best == null || lap < c.best) c.best = lap;
-            if (bestT == null || lap < bestT) bestT = lap;
+            // Volta com turbo: conta para a prova e aparece como última, mas não vale como melhor volta nem recorde.
+            bool clean = !c.turboLap;
+            c.turboLap = false;
+            if (clean)
+            {
+                LapDone?.Invoke(k, lap);
+                if (c.best == null || lap < c.best) c.best = lap;
+                if (bestT == null || lap < bestT) bestT = lap;
+            }
             if (ByTime) { ScoreChanged?.Invoke(); return; }      // por tempo não há chegada: acaba no relógio
             if (cr >= set.laps)
             {
@@ -655,6 +703,8 @@ namespace Autorama
                 need = Mathf.Min(need, Mathf.Sqrt(v * v + 2f * AiBrake * d));
             }
             c.held = c.v < need;
+            // Turbo da IA: só quando nenhuma curva à frente pede freio nem na velocidade com turbo (retas longas).
+            c.boost = set.turbo && c.turbo > 0f && need > set.vmax * (1f + TurboBoost);
         }
 
         // Melhor volta da bateria só entre gente: piloto IA não bate recorde da pista.

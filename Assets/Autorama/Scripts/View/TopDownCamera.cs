@@ -54,9 +54,10 @@ namespace Autorama
 
         // "Atrás do carro": a câmera segue a direção suavizada do carro, não o rumo bruto. Ela gira no máximo
         // ThirdTurnRate graus por segundo, então um rodopio do carrinho vira uma panorâmica, não um tranco.
-        const float ThirdTurnRate = 110f;     // graus por segundo
-        const float ThirdPosRate = 4.5f;      // suavização da posição (maior = mais firme)
-        const float ThirdLookRate = 6f;       // suavização do ponto olhado
+        const float ThirdTurnRate = 110f;     // graus por segundo, só enquanto o carrinho roda
+        const float ThirdTrackTurnRate = 12f; // suavização do rumo na pista (maior = mais colada na curva)
+        const float ThirdPosRate = 9f;        // suavização da posição (maior = mais firme)
+        const float ThirdLookRate = 12f;      // suavização do ponto olhado
         Vector3 chaseFwd;                     // direção suavizada, no plano XZ
         Vector3 chaseLook;                    // ponto olhado suavizado
         bool chaseReady;                      // false = começa a seguir do zero (troca de modo ou de carrinho)
@@ -246,8 +247,12 @@ namespace Autorama
                 chaseReady = true;
             }
 
-            // Direção: gira em direção ao carrinho, com limite de velocidade angular.
-            chaseFwd = Vector3.RotateTowards(chaseFwd, carFwd, ThirdTurnRate * Mathf.Deg2Rad * dt, 0f).normalized;
+            // Direção: na pista, segue o rumo do carrinho com um lerp rápido; rodando, gira com limite de velocidade angular
+            // (um rodopio vira uma panorâmica, não um tranco).
+            if (spun[k])
+                chaseFwd = Vector3.RotateTowards(chaseFwd, carFwd, ThirdTurnRate * Mathf.Deg2Rad * dt, 0f).normalized;
+            else
+                chaseFwd = Vector3.Slerp(chaseFwd, carFwd, 1f - Mathf.Exp(-ThirdTrackTurnRate * dt)).normalized;
 
             Vector3 target = raceCarPos[k] + chaseFwd * 1.4f + Vector3.up * 0.25f;
             chaseLook = Vector3.Lerp(chaseLook, target, 1f - Mathf.Exp(-ThirdLookRate * dt));
@@ -256,9 +261,8 @@ namespace Autorama
             float posLerp = 1f - Mathf.Exp(-ThirdPosRate * dt);
             transform.position = Vector3.Lerp(transform.position, desired, posLerp);
 
-            var look = Quaternion.LookRotation((chaseLook - transform.position).normalized, Vector3.up);
-            float rotLerp = 1f - Mathf.Exp(-9f * dt);
-            transform.rotation = Quaternion.Slerp(transform.rotation, look, rotLerp);
+            // O ponto olhado já vem suavizado: a rotação segue direto, sem outra suavização por cima (que só atrasava).
+            transform.rotation = Quaternion.LookRotation((chaseLook - transform.position).normalized, Vector3.up);
 
             cam.orthographic = false;
             cam.fieldOfView = 50f;

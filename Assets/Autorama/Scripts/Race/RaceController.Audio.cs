@@ -9,9 +9,12 @@ namespace Autorama
     public partial class RaceController
     {
         const int Rate = 44100;
-        AudioSource[] motor, skid;
+        AudioSource[] motor, skid, jet;
         AudioSource fx;
-        AudioClip beepClip, goClip, hitClip, offClip, lapClip, winClip, switchClip;
+        AudioClip beepClip, goClip, hitClip, offClip, lapClip, winClip, switchClip, turboOnClip, turboFillClip;
+        // Turbo (seção 37): o sopro contínuo de cada carrinho, se o turbo estava soprando e a carga do tanque no quadro anterior.
+        readonly float[] jetVol = new float[RaceSim.MaxCars], lastTank = new float[RaceSim.MaxCars];
+        readonly bool[] jetOn = new bool[RaceSim.MaxCars];
         int lastLights = -1, lastWinner = -1;
         RaceSim.Phase audioPhase;
         readonly int[] lastOffs = new int[RaceSim.MaxCars];
@@ -150,12 +153,26 @@ namespace Autorama
             });
             switchClip = Clip("Troca de trilho", 0.5f, (t, i) => 0.4f * Sin(t < 0.2f ? 660f : 440f, t) * Env(t, 0.5f, 4f));
 
+            // Turbo. Sopro contínuo: ar forte que pulsa (o chiado do motor, mais cheio) com duas notas quase iguais por
+            // dentro; 1 s que emenda sem costura. Ligar: um "vuush" que sobe de 300 a 1500 Hz em 0,35 s.
+            // Tanque enchendo (saída de pista): três notas subindo, um "power-up" curto.
+            var jetClip = Clip("Turbo: sopro", 1f, (t, i) => 0.55f * hiss[i] * (0.75f + 0.25f * Sin(14f, t)) + 0.14f * Sin(930f, t) + 0.1f * Sin(941f, t) + 0.06f * Sin(1860f, t));
+            turboOnClip = Clip("Turbo: ligar", 0.35f, (t, i) =>
+                (0.45f * Mathf.Sin(2f * Mathf.PI * (300f * t + 1714f * t * t)) + 0.25f * Noise() * (t / 0.35f)) * Mathf.Min(1f, t / 0.01f) * Mathf.Min(1f, (0.35f - t) / 0.08f));
+            turboFillClip = Clip("Turbo: tanque", 0.3f, (t, i) =>
+            {
+                float hz = t < 0.08f ? 700f : t < 0.16f ? 930f : 1240f;
+                return 0.35f * (Sin(hz, t) + 0.3f * Sin(hz * 2f, t)) * Env(t, 0.3f, 5f);
+            });
+
             motor = new AudioSource[RaceSim.MaxCars];
             skid = new AudioSource[RaceSim.MaxCars];
+            jet = new AudioSource[RaceSim.MaxCars];
             for (int k = 0; k < RaceSim.MaxCars; k++)
             {
                 motor[k] = Loop("Som do motor " + (k + 1), motorClip);
                 skid[k] = Loop("Som do pneu " + (k + 1), skidClip);
+                jet[k] = Loop("Som do turbo " + (k + 1), jetClip);
             }
             fx = gameObject.AddComponent<AudioSource>();
             fx.playOnAwake = false; fx.spatialBlend = 0f;
@@ -205,6 +222,19 @@ namespace Autorama
                 float slip = running ? Mathf.Clamp01((c.slip - 0.25f) / 0.75f) : 0f;
                 skid[k].volume = slip * slip * 0.5f * master;
                 skid[k].pitch = 0.85f + 0.3f * slip + 0.05f * k;
+                // Turbo: o sopro enquanto o tanque está sendo gasto, o "vuush" ao ligar e as notas quando o tanque enche.
+                // O carrinho de robô soa mais baixo, como na volta completa.
+                if (!jet[k].isPlaying) jet[k].Play();
+                bool boosting = running && sim.set.turbo && sim.phase == RaceSim.Phase.Running && c.boost && c.turbo > 0f && c.T > 0f;
+                float quiet = car && sim.aiSkill[k] > 0 ? 0.4f : 1f;
+                jetVol[k] = Mathf.MoveTowards(jetVol[k], boosting ? 1f : 0f, dt * 8f);
+                jet[k].volume = jetVol[k] * (sim.N > 2 ? 0.22f : 0.3f) * quiet * master;
+                jet[k].pitch = 0.9f + 0.35f * speed + 0.03f * k;
+                if (boosting && !jetOn[k]) Play(turboOnClip, 0.6f * quiet);
+                jetOn[k] = boosting;
+                float tank = car ? c.turbo : 0f;
+                if (car && tank > lastTank[k] + 0.05f) Play(turboFillClip, 0.6f * quiet);
+                lastTank[k] = tank;
                 if (car && c.offs != lastOffs[k]) { if (c.offs > lastOffs[k]) Play(offClip, 0.9f); lastOffs[k] = c.offs; }
                 if (!car) lastOffs[k] = 0;
             }

@@ -158,7 +158,7 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
       if (!r.stages.length) return fail(c, 'sem-etapas', 'Escolha pelo menos uma pista.');
       const falta = r.players.filter(p => p !== c && !p.ready);
       if (falta.length) return fail(c, 'nao-prontos', `Falta ficar pronto: ${falta.map(p => p.name).join(', ')}.`);
-      const rules = { vmax: Number(m.vmax), ramp: Number(m.ramp), grip: Number(m.grip), collide: !!m.collide, byTime: !!m.byTime };
+      const rules = { vmax: Number(m.vmax), ramp: Number(m.ramp), grip: Number(m.grip), collide: !!m.collide, byTime: !!m.byTime, turbo: m.turbo !== false };   // turbo: ausente (cliente antigo) = ligado
       if (!(rules.vmax >= 8 && rules.vmax <= 20 && rules.ramp >= 0.2 && rules.ramp <= 1.5 && rules.grip >= 15 && rules.grip <= 45)) return fail(c, 'regras', 'Regras inválidas.');
       r.state = 'racing';
       const title = clean(m.name, 40) || `Campeonato de ${c.name}`;
@@ -183,7 +183,7 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
       const host = r.players.find(p => p.id === r.host);
       // gp: nível do acelerador em % (gatilho do controle ou tecla de meia). Ausente = 100.
       const gp = Math.max(1, Math.min(100, Math.round(Number(m.gp)) || 100));
-      if (host) send(host, { t: 'in', from: c.id, held: !!m.held, gp, re: Math.max(0, Math.min(1e6, Math.round(Number(m.re)) || 0)) });
+      if (host) send(host, { t: 'in', from: c.id, held: !!m.held, gp, tb: !!m.tb, re: Math.max(0, Math.min(1e6, Math.round(Number(m.re)) || 0)) });
     },
     color(c, m) {
       const r = c.room; if (!r) return;

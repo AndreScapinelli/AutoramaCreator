@@ -16,13 +16,10 @@ namespace Autorama
         public Material[] carMaterials = new Material[2];   // carrinho vermelho e azul (URP/Lit com recorte); o verde e o amarelo vêm do tema
         public Material sparkMaterial;
 
-        // Conjuntos de teclas: A·S (Q meia), L·K (O meia), ↑·↓ (← meia) e 8·5 do teclado numérico (7 meia).
-        static readonly Key[] GasKeys = { Key.A, Key.L, Key.UpArrow, Key.Numpad8 }, ReslotKeys = { Key.S, Key.K, Key.DownArrow, Key.Numpad5 },
-                              HalfKeys = { Key.Q, Key.O, Key.LeftArrow, Key.Numpad7 };
-
-        // Teclas de cada trilho: os humanos ganham os conjuntos na ordem dos trilhos (o 1º humano A·S, o 2º L·K…).
-        // Com 2 humanos na pista de 2 é A·S no 1 e L·K no 2; com um humano só (os outros são IA), ele usa sempre
-        // A·S, em qualquer trilho: no campeonato o rodízio troca o trilho a cada bateria. O mesmo vale para os controles.
+        // Teclas de cada trilho: os humanos ganham os conjuntos na ordem dos trilhos (o 1º humano são as teclas do
+        // jogador 1, o 2º as do jogador 2…). Elas são configuráveis (Controles, botão "Teclas dos jogadores").
+        // Com um humano só (os outros são IA), ele usa sempre o conjunto 1, em qualquer trilho: no campeonato o rodízio
+        // troca o trilho a cada bateria. O mesmo vale para os controles.
         int KeySet(int k)
         {
             if (sim == null) return k;
@@ -31,13 +28,25 @@ namespace Autorama
             return n;
         }
         // Teclado: só há 4 conjuntos de teclas. O 5º e o 6º humano (pista de 6) jogam só de controle: Key.None.
-        static Key GasKeyAt(int ks) => ks < GasKeys.Length ? GasKeys[ks] : Key.None;
-        static Key HalfKeyAt(int ks) => ks < HalfKeys.Length ? HalfKeys[ks] : Key.None;
-        static Key ReslotKeyAt(int ks) => ks < ReslotKeys.Length ? ReslotKeys[ks] : Key.None;
+        static Key GasKeyAt(int ks) => Controles.Get(ks, Controles.Acao.Acelerar);
+        static Key HalfKeyAt(int ks) => Controles.Get(ks, Controles.Acao.Meia);
+        static Key ReslotKeyAt(int ks) => Controles.Get(ks, Controles.Acao.Recolocar);
+        static Key TurboKeyAt(int ks) => Controles.Get(ks, Controles.Acao.Turbo);
         Key GasKey(int k) => GasKeyAt(KeySet(k));
         Key HalfKey(int k) => HalfKeyAt(KeySet(k));
         bool KeyPressed(Keyboard kb, Key key) => key != Key.None && kb[key].isPressed;
         bool KeyWasPressed(Keyboard kb, Key key) => key != Key.None && kb[key].wasPressedThisFrame;
+        // Online: o seu carrinho aceita as teclas de qualquer conjunto (quem está no teclado é o dono delas).
+        bool AnySetPressed(Keyboard kb, Controles.Acao a)
+        {
+            for (int j = 0; j < Controles.Jogadores; j++) if (KeyPressed(kb, Controles.Get(j, a))) return true;
+            return false;
+        }
+        bool AnySetWasPressed(Keyboard kb, Controles.Acao a)
+        {
+            for (int j = 0; j < Controles.Jogadores; j++) if (KeyWasPressed(kb, Controles.Get(j, a))) return true;
+            return false;
+        }
 
         // Controle (gamepad): o 1º conectado é do jogador 1 (A·S) e o 2º do jogador 2 (L·K); segue o KeySet,
         // então com um humano só o 1º controle pilota em qualquer trilho. Gatilho direito = acelerador analógico,
@@ -65,6 +74,17 @@ namespace Autorama
             return Mathf.Max(g, Trigger(PadOf(ks)));
         }
 
+        // Turbo (seção 37): a tecla de turbo do jogador, X/□ ou RB do controle dele, ou a barra TURBO da tela.
+        // Apertar o turbo também acelera a 100% (S = 60%, A = 100%, D = 100% + turbo enquanto houver carga).
+        static bool PadTurbo(Gamepad g) => g != null && (g.buttonWest.isPressed || g.rightShoulder.isPressed);
+        readonly bool[] uiTurbo = new bool[RaceSim.MaxCars];
+        bool TurboHeld(int k, bool keys)
+        {
+            var kb = Keyboard.current;
+            int ks = KeySet(k);
+            return uiTurbo[k] || (keys && kb != null && KeyPressed(kb, TurboKeyAt(ks))) || PadTurbo(PadOf(ks));
+        }
+
         bool PadPressed(int k, System.Func<Gamepad, UnityEngine.InputSystem.Controls.ButtonControl> b)
         {
             var g = PadOf(KeySet(k));
@@ -82,17 +102,12 @@ namespace Autorama
         {
             if (GasKey(k) == Key.None) return PadOf(KeySet(k)) != null ? "ACELERAR  ·  controle" : "PRECISA DE UM CONTROLE";     // 5º e 6º humano
             string pad = PadOf(KeySet(k)) != null ? "  ·  controle" : "";
-            return OnlineRun ? $"ACELERAR  A  ·  ½ Q{(Gamepad.all.Count > 0 ? "  ·  controle" : "")}" : $"ACELERAR  {KeyText(GasKey(k))}  ·  ½ {KeyText(HalfKey(k))}{pad}";
+            return OnlineRun ? $"ACELERAR  {KeyText(GasKeyAt(0))}  ·  ½ {KeyText(HalfKeyAt(0))}{(Gamepad.all.Count > 0 ? "  ·  controle" : "")}" : $"ACELERAR  {KeyText(GasKey(k))}  ·  ½ {KeyText(HalfKey(k))}{pad}";
         }
         Key ReslotKey(int k) => ReslotKeyAt(KeySet(k));
 
         // Nome curto da tecla para os botões e dicas.
-        static string KeyText(Key k) => k switch
-        {
-            Key.UpArrow => "↑", Key.DownArrow => "↓", Key.LeftArrow => "←", Key.RightArrow => "→",
-            Key.Numpad8 => "8 num.", Key.Numpad5 => "5 num.", Key.Numpad7 => "7 num.", Key.None => "controle",
-            _ => k.ToString(),
-        };
+        static string KeyText(Key k) => Controles.Nome(k);
         static readonly string[] LaneNames = { "Trilho 1", "Trilho 2", "Trilho 3", "Trilho 4", "Trilho 5", "Trilho 6" };
         static readonly string[] LaneCls = { "a", "b", "c", "d", "e", "f" };       // sufixo das classes de cor do USS (trilho 1 a 6)
         // Modos de câmera da corrida, na ordem de TopDownCamera.RaceViewMode.
@@ -110,7 +125,7 @@ namespace Autorama
         readonly Material[] carMats = new Material[RaceSim.MaxCars];      // cópia por carrinho: no campeonato ganha a cor do piloto
         RaceSim.Phase lastPhase;
 
-        class PadUI { public VisualElement root, gas, fill, speed, slip; public Label name, state, gasText; public Button reslot; public string flash; public bool flashRec; public float flashT; }
+        class PadUI { public VisualElement root, gas, fill, speed, slip, turbo, turboFill; public Label turboText; public Label name, state, gasText; public Button reslot; public string flash; public bool flashRec; public float flashT; }
         readonly PadUI[] pads = new PadUI[RaceSim.MaxCars];
         VisualElement pickList, scoreBox, padsBox, topBox, lights, banner;
         Label raceHint, clock, gripHint, bannerTitle, bannerSub;
@@ -149,13 +164,14 @@ namespace Autorama
             BuildOnlineUI();
             builder.Changed += OnTrackChanged;
             panel.ModeChanged += OnMode;
+            panel.OptionsRequested += ShowKeys;
             OnTrackChanged();
         }
 
         void OnDestroy()
         {
             if (builder) builder.Changed -= OnTrackChanged;
-            if (panel) panel.ModeChanged -= OnMode;
+            if (panel) { panel.ModeChanged -= OnMode; panel.OptionsRequested -= ShowKeys; }
             OnlineDestroy();
         }
 
@@ -227,7 +243,7 @@ namespace Autorama
             // Saindo do construtor, guarda a pista dele; voltando, reencontra.
             if (race && builderStash == null) builderStash = builder.ToSave();
             builder.RaceMode = race;
-            for (int k = 0; k < RaceSim.MaxCars; k++) uiHeld[k] = false;
+            for (int k = 0; k < RaceSim.MaxCars; k++) uiHeld[k] = uiTurbo[k] = false;
             if (m == BuilderPanel.Mode.Race)
             {
                 sim.set = set; sim.cutoff = null;
@@ -333,16 +349,19 @@ namespace Autorama
         {
             OnlineTick();
             AudioTick();
+            KeysUpdate();                                        // a tela de teclas captura a próxima tecla (e some com Esc)
             if (OnlineRun) { OnlineRunUpdate(); return; }
             if (sim == null || !sim.Ready) return;
             if (!panel.RaceMode) { PlaceCars(); return; }       // no construtor, os carrinhos ficam no grid
 
             var kb = Keyboard.current;
-            bool keys = kb != null && !IsTyping;
+            bool keys = kb != null && !IsTyping && !keysOpen;
             for (int k = 0; k < sim.N; k++)
             {
                 if (sim.aiSkill[k] > 0) { sim.cars[k].gas = 1f; continue; }   // o piloto IA segura e solta sozinho, sempre no fundo
-                float g = GasLevel(k, keys);
+                bool tb = sim.set.turbo && TurboHeld(k, keys);
+                float g = tb ? 1f : GasLevel(k, keys);
+                sim.cars[k].boost = tb;
                 sim.cars[k].held = g > 0f;
                 if (g > 0f) sim.cars[k].gas = g;
                 if ((keys && KeyWasPressed(kb, ReslotKey(k))) || PadPressed(k, p => p.buttonSouth)) sim.Reslot(k);
@@ -361,6 +380,10 @@ namespace Autorama
 
         readonly Vector3[] carPos = new Vector3[RaceSim.MaxCars];
         readonly float[] carHeading = new float[RaceSim.MaxCars];
+        // Minimapa (RaceMinimap): traçado 2D no canto superior direito, com um ponto por carrinho na cor do painel dele.
+        RaceMinimap minimap;
+        readonly Color[] miniColors = new Color[RaceSim.MaxCars];
+        readonly string[] miniNames = new string[RaceSim.MaxCars];
 
         void PlaceCars()
         {
@@ -394,6 +417,24 @@ namespace Autorama
                 camMenu.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
                 if (!show && camPop.style.display == DisplayStyle.Flex) ShowCamPop(false);
             }
+            UpdateMinimap();
+        }
+
+        // Minimapa: só na aba Corrida/Campeonato com pista pronta. Cada carrinho usa a cor do painel dele.
+        void UpdateMinimap()
+        {
+            if (minimap == null) return;
+            bool show = panel != null && panel.RaceMode && sim != null && sim.Ready;
+            minimap.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+            if (!show) return;
+            for (int k = 0; k < RaceSim.MaxCars; k++)
+            {
+                miniColors[k] = pads[k] != null ? pads[k].root.resolvedStyle.borderTopColor : Color.white;
+                string nm = pads[k] != null ? pads[k].name.text : "";
+                int cut = nm.IndexOf(" · ");
+                miniNames[k] = cut > 0 ? nm.Substring(0, cut) : nm;
+            }
+            minimap.Refresh(sim, set, miniNames, miniColors, Order(), builder != null ? builder.cellCm : 15f);
         }
 
         // ---------- Interface ----------
@@ -446,13 +487,9 @@ namespace Autorama
             scoreBox = El("score", race);
 
             var how = Fold(box, "COMO PILOTAR");
-            Text("<b>Segure</b> Acelerar e o acelerador sobe de 0 a 100%. <b>Soltou, zerou</b>: o carrinho freia.\n" +
-                 "Rápido demais na curva, a traseira escorrega e a barra de <b>derrapagem</b> enche. Cheia, o carrinho sai da pista.\n" +
-                 "<b>Recolocar</b> devolve o carrinho ao trilho, um pouco antes de onde ele saiu.\n\n" +
-                  "<b>A · S</b> jogador 1: acelerar · recolocar · <b>Q</b> meia aceleração\n<b>L · K</b> jogador 2: acelerar · recolocar · <b>O</b> meia aceleração\n" +
-                  "<b>↑ · ↓</b> jogador 3 (<b>←</b> meia) · <b>8 · 5</b> do teclado numérico jogador 4 (<b>7</b> meia) · o 5º e o 6º jogam só de controle\n" +
-                  "<b>Controle:</b> gatilho direito acelera aos poucos (o 1º controle é do jogador 1, o 2º do jogador 2, e assim por diante) · <b>A/✕</b> recoloca · <b>Start</b> larga\n" +
-                  "<b>Enter</b> largar · câmera no menu do canto direito", "small", how);
+            helpLabel = Text("", "small", how);
+            Text("<b>Controle:</b> gatilho direito acelera aos poucos (o 1º controle é do jogador 1, o 2º do jogador 2, e assim por diante) · <b>A/✕</b> recoloca · <b>X/□</b> ou <b>RB</b> turbo · <b>Start</b> larga\n" +
+                 "<b>Enter</b> largar · câmera no menu do canto direito", "small", how);
 
             var adj = Fold(box, "AJUSTES AVANÇADOS");
             var byLaps = Btn("Por voltas", null, "btn", kindRow);
@@ -463,6 +500,7 @@ namespace Autorama
             var ramp = new Slider(0.2f, 1.5f) { value = set.ramp };
             var grip = new Slider(15f, 45f) { value = set.grip };
             var col = new Toggle("Colisão entre carrinhos") { value = set.collide };
+            var turbo = new Toggle("Turbo") { value = set.turbo };
             var vol = new SliderInt(0, 100) { value = Mathf.Clamp(set.volume, 0, 100) };
             var half = new SliderInt(20, 90) { value = Mathf.Clamp(set.halfGas, 20, 90) };
             void Labels()
@@ -476,7 +514,7 @@ namespace Autorama
                 vmax.label = $"Velocidade máx.: {Num(set.vmax)} cél/s";
                 ramp.label = $"Tempo até 100%: {Num(set.ramp, 2)} s";
                 grip.label = $"Aderência: {Mathf.RoundToInt(set.grip)}";
-                half.label = $"Meia aceleração (Q · O): {set.halfGas}%";
+                half.label = $"Meia aceleração (tecla de meia): {set.halfGas}%";
                 float Lim(float r, float m) => Mathf.Min(100f, Mathf.Round(sim.CornerLimit(r, m) / set.vmax * 100f));
                 // Raio do trilho de dentro e do de fora, no mundo: 2,25 e 2,75 na pista de 2; 4,25 e 5,75 na de 4.
                 var lanes = TrackMath.LanesOf(sim.N);
@@ -485,7 +523,7 @@ namespace Autorama
                                 $"Nas inclinadas, até {Lim(rIn, PieceCatalog.BankGrip)}% e {Lim(rOut, PieceCatalog.BankGrip)}%.";
             }
             foreach (var s in new VisualElement[] { laps, secs }) { s.AddToClassList("setting"); fmt.Add(s); }
-            foreach (var s in new VisualElement[] { vmax, ramp, grip, half, col }) { s.AddToClassList("setting"); adj.Add(s); }
+            foreach (var s in new VisualElement[] { vmax, ramp, grip, half, col, turbo }) { s.AddToClassList("setting"); adj.Add(s); }
             void Kind(bool t) { if (Racing) return; set.byTime = t; set.Save(); Labels(); sim.Reset(); scoreDirty = true; }
             byLaps.clicked += () => Kind(false);
             byTime.clicked += () => Kind(true);
@@ -497,6 +535,7 @@ namespace Autorama
             ramp.RegisterValueChangedCallback(e => { set.ramp = e.newValue; set.Save(); Labels(); });
             grip.RegisterValueChangedCallback(e => { set.grip = e.newValue; set.Save(); Labels(); });
             col.RegisterValueChangedCallback(e => { set.collide = e.newValue; set.Save(); });
+            turbo.RegisterValueChangedCallback(e => { set.turbo = e.newValue; set.Save(); });
             vol.AddToClassList("setting"); adj.Add(vol);
             // Som do motor: alterna entre as opções (dá para trocar no meio da corrida e ouvir na hora).
             Button motorBtn = null;
@@ -535,6 +574,8 @@ namespace Autorama
             resAgain = Btn("Correr de novo  (Enter)", () => { if (ChampLike) ChampEnter(); else StartRace(); }, "btn btn--accent res-btn", resBtns);
             resNext = Btn("Trocar pista", () => { sideAutoHidden = false; panel.SetSideFromRace(true); }, "btn res-btn", resBtns);
             lights.pickingMode = PickingMode.Ignore;
+            minimap = new RaceMinimap();
+            root.Add(minimap);
 
             cdBox = El("cd-box", root); cdBox.pickingMode = PickingMode.Ignore;
             cdText = Text("", "cd-text", cdBox); cdText.pickingMode = PickingMode.Ignore;
@@ -546,6 +587,7 @@ namespace Autorama
             for (int k = 0; k < RaceSim.MaxCars; k++) pads[k] = BuildPad(k);
             padsBox.style.display = DisplayStyle.None;
             topBox.style.display = DisplayStyle.None;
+            BuildKeysUI(root);                  // por cima de tudo: a tela de teclas
             LayoutForCars();
             DrawPicker(Options());
         }
@@ -554,6 +596,123 @@ namespace Autorama
         Label pickNote;
         VisualElement pilotBox;
         readonly Button[] sizeBtns = new Button[3], carBtns = new Button[RaceSim.MaxCars];
+
+        // ---------- Teclas dos jogadores (tela de opções, seção 34 do guia) ----------
+
+        VisualElement keysBox;                  // a tela: cobre a aba inteira e some com Esc ou Fechar
+        Label helpLabel, keysHint;
+        readonly Button[,] keyBtns = new Button[Controles.Jogadores, Controles.Acoes];
+        int capJ = -1, capA;                    // a tecla que está esperando: jogador e ação (-1 = nenhuma)
+        bool keysOpen => keysBox != null && keysBox.style.display == DisplayStyle.Flex;
+
+        void BuildKeysUI(VisualElement root)
+        {
+            keysBox = El("keys-screen", root);
+            keysBox.style.display = DisplayStyle.None;
+            var card = El("keys-card", keysBox);
+            Text("OPÇÕES", "h2", card);
+            Text("TECLAS DOS JOGADORES", "hint", card);
+            Text("Clique num botão e aperte a tecla nova. Se ela já era de outra ação, as duas trocam. Esc cancela.", "hint", card);
+            for (int j = 0; j < Controles.Jogadores; j++)
+            {
+                int jj = j;
+                var row = El("keys-row", card);
+                Text($"Jogador {j + 1}", "pcard-name", El("keys-who", row));
+                for (int a = 0; a < Controles.Acoes; a++)
+                {
+                    int aa = a;
+                    keyBtns[j, a] = Btn("", () => StartCapture(jj, aa), "btn keys-btn", row);
+                }
+            }
+            Text("Jogadores 5 e 6 (pista de 6) jogam só com controle.", "small", card);
+            keysHint = Text("", "small", card);
+            var bottom = El("row", card);
+            bottom.style.marginTop = 8;
+            Btn("Restaurar padrão", () => { CancelCapture(); Controles.Restaurar(); KeysChanged(); }, "btn", bottom);
+            Btn("Fechar  (Esc)", CloseKeys, "btn btn--primary", bottom);
+            KeysChanged();
+        }
+
+        void ShowKeys()
+        {
+            if (keysBox == null || Racing) return;
+            keysBox.style.display = DisplayStyle.Flex;
+            keysBox.BringToFront();
+            KeysChanged();
+        }
+
+        void CloseKeys()
+        {
+            CancelCapture();
+            if (keysBox != null) keysBox.style.display = DisplayStyle.None;
+        }
+
+        void StartCapture(int j, int a)
+        {
+            capJ = j; capA = a;
+            KeysChanged();
+        }
+
+        void CancelCapture()
+        {
+            capJ = -1;
+            KeysChanged();
+        }
+
+        // Enquanto uma tecla espera, Esc cancela; qualquer outra tecla apertada vira a tecla da ação.
+        void KeysUpdate()
+        {
+            if (!keysOpen) return;
+            var kb = Keyboard.current;
+            if (kb == null) return;
+            if (kb.escapeKey.wasPressedThisFrame)
+            {
+                if (capJ >= 0) CancelCapture(); else CloseKeys();
+                return;
+            }
+            if (capJ < 0) return;
+            for (int i = 0; i < kb.allKeys.Count; i++)
+            {
+                var kc = kb.allKeys[i];
+                if (!kc.wasPressedThisFrame || kc.keyCode == Key.None) continue;
+                if (Controles.Reservada(kc.keyCode))
+                {
+                    keysHint.text = $"“{Controles.Nome(kc.keyCode)}” é do jogo (Enter larga). Aperte outra tecla.";
+                    return;
+                }
+                Controles.Set(capJ, (Controles.Acao)capA, kc.keyCode);
+                capJ = -1;
+                KeysChanged();
+                return;
+            }
+        }
+
+        // Redesenha a tela de teclas, a ajuda da aba e os cartões (com as teclas novas).
+        void KeysChanged()
+        {
+            for (int j = 0; j < Controles.Jogadores; j++)
+                for (int a = 0; a < Controles.Acoes; a++)
+                {
+                    var b = keyBtns[j, a];
+                    if (b == null) continue;
+                    bool wait = capJ == j && capA == a;
+                    b.text = wait ? $"{Controles.AcaoNomes[a]}: <b>aperte…</b>" : $"{Controles.AcaoNomes[a]}: <b>{KeyText(Controles.Get(j, (Controles.Acao)a))}</b>";
+                    b.EnableInClassList("keys-btn--wait", wait);
+                }
+            if (keysHint != null) keysHint.text = capJ >= 0 ? "Aperte a tecla nova (Esc cancela)." : "";
+            if (helpLabel != null)
+                helpLabel.text = "<b>Segure</b> Acelerar e o acelerador sobe de 0 a 100%. <b>Soltou, zerou</b>: o carrinho freia.\n" +
+                    "Rápido demais na curva, a traseira escorrega e a barra de <b>derrapagem</b> enche. Cheia, o carrinho sai da pista.\n" +
+                    "<b>Recolocar</b> devolve o carrinho ao trilho, um pouco antes de onde ele saiu.\n" +
+                    "<b>Turbo</b>: começa vazio e enche um pouco a cada saída de pista (mais para quem está atrás). Segure para andar acima da velocidade máxima até o tanque acabar. Volta com turbo não vale como melhor volta.\n" +
+                    $"<b>Teclas</b> (acelerar 100% · meia {set?.halfGas ?? 60}% · recolocar · turbo): " +
+                    $"jogador 1 {KeyText(GasKeyAt(0))} · {KeyText(HalfKeyAt(0))} · {KeyText(ReslotKeyAt(0))} · {KeyText(TurboKeyAt(0))}; " +
+                    $"jogador 2 {KeyText(GasKeyAt(1))} · {KeyText(HalfKeyAt(1))} · {KeyText(ReslotKeyAt(1))} · {KeyText(TurboKeyAt(1))}; " +
+                    $"jogador 3 {KeyText(GasKeyAt(2))} · {KeyText(HalfKeyAt(2))} · {KeyText(ReslotKeyAt(2))} · {KeyText(TurboKeyAt(2))}; " +
+                    $"jogador 4 {KeyText(GasKeyAt(3))} · {KeyText(HalfKeyAt(3))} · {KeyText(ReslotKeyAt(3))} · {KeyText(TurboKeyAt(3))}. " +
+                    "Mude no menu inicial, em <b>Opções</b>.";
+            DrawRaceSetup();                                // os cartões mostram as teclas novas
+        }
 
         // Seção recolhida (ajustes e ajuda): fica fora do caminho de quem só quer correr.
         static VisualElement Fold(VisualElement parent, string title)
@@ -623,7 +782,7 @@ namespace Autorama
                     // As teclas vão para os humanos na ordem dos carros; do 5º em diante, só controle.
                     int ks = humans++;
                     string pad = PadOf(ks) != null ? $" · controle {ks + 1}" : "";
-                    Text(ks < GasKeys.Length ? $"Acelera {KeyText(GasKeys[ks])} · recoloca {KeyText(ReslotKeys[ks])} · meia {KeyText(HalfKeys[ks])}{pad}"
+                    Text(ks < Controles.Jogadores ? $"Acelera {KeyText(GasKeyAt(ks))} · meia {KeyText(HalfKeyAt(ks))} · recoloca {KeyText(ReslotKeyAt(ks))} · turbo {KeyText(TurboKeyAt(ks))}{pad}"
                                              : PadOf(ks) != null ? $"Controle {ks + 1}" : "Só com controle: ligue mais um controle", "small", card);
                 }
             }
@@ -751,6 +910,14 @@ namespace Autorama
             p.speed = El("meter-fill", El("meter", side));
             Text("Derrapagem", "meter-label", side);
             p.slip = El("meter-fill", El("meter", side));
+            // Turbo: a barra é o tanque e também o botão (segurar com o mouse ou o dedo gasta o turbo).
+            p.turbo = El("turbo", side);
+            p.turboFill = El("turbo-fill", p.turbo); p.turboFill.pickingMode = PickingMode.Ignore;
+            p.turboText = Text("TURBO", "turbo-text", p.turbo); p.turboText.pickingMode = PickingMode.Ignore;
+            var tbo = p.turbo;
+            tbo.RegisterCallback<PointerDownEvent>(e => { uiTurbo[idx] = true; tbo.CapturePointer(e.pointerId); e.StopPropagation(); });
+            tbo.RegisterCallback<PointerUpEvent>(e => { uiTurbo[idx] = false; tbo.ReleasePointer(e.pointerId); });
+            tbo.RegisterCallback<PointerCaptureOutEvent>(_ => uiTurbo[idx] = false);
             p.reslot = Btn($"Recolocar  {KeyText(ReslotKeyAt(k))}", () => ReslotPressed(idx), "btn reslot", side);
             return p;
         }
@@ -838,6 +1005,14 @@ namespace Autorama
                 p.slip.style.width = Length.Percent(Mathf.Min(100f, c.slip * 100f));
                 p.slip.style.backgroundColor = c.slip < 0.45f ? new Color(0.24f, 0.75f, 0.45f) : c.slip < 0.75f ? new Color(0.96f, 0.76f, 0.1f) : new Color(0.94f, 0.48f, 0.23f);
                 bool off = c.mode == CarMode.Off, ai = sim.aiSkill[k] > 0;
+                p.turbo.style.display = sim.set.turbo ? DisplayStyle.Flex : DisplayStyle.None;
+                p.turboFill.style.width = Length.Percent(Mathf.Clamp01(c.turbo) * 100f);
+                p.turbo.EnableInClassList("turbo--on", c.boost && c.turbo > 0f && c.mode == CarMode.OnSlot);
+                p.turbo.EnableInClassList("turbo--empty", c.turbo <= 0f);
+                Key tk = OnlineRun ? TurboKeyAt(0) : TurboKeyAt(KeySet(k));
+                int tpc = Mathf.RoundToInt(c.turbo * 100f);
+                p.turboText.text = ai || tk == Key.None ? $"TURBO  {tpc}%" : $"TURBO  {KeyText(tk)}  ·  {tpc}%";
+                if (!ai) p.reslot.text = $"Recolocar  {KeyText(OnlineRun ? ReslotKeyAt(0) : ReslotKey(k))}";
                 if (!ai) p.gasText.text = GasLabel(k);         // muda com o rodízio e quando um controle é ligado
                 p.reslot.SetEnabled(off && !ai);                   // a IA se recoloca sozinha
                 p.reslot.EnableInClassList("reslot--ready", off && !ai);

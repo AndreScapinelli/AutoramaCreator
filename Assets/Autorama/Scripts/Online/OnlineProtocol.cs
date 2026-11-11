@@ -23,7 +23,7 @@ namespace Autorama
 
     [Serializable] public class NetListed { public string code, name, host; public int players, max, stages; }
     [Serializable] public class NetChat { public bool sys; public string from, name, color, text; public long time; }
-    [Serializable] public class NetRules { public float vmax, ramp, grip; public bool collide, byTime; }   // byTime: campeonato por tempo (seção 26)
+    [Serializable] public class NetRules { public float vmax, ramp, grip; public bool collide, byTime; public bool turbo = true; }   // byTime: campeonato por tempo (seção 26)
 
     // Um carrinho no snapshot: tudo o que o RaceSim guarda por carro. Os opcionais (voltas) usam −1 para "não tem".
     [Serializable]
@@ -33,6 +33,8 @@ namespace Autorama
         public bool held, contact;
         public int side, mode;                              // mode: CarMode
         public int gp;                                      // nível do acelerador em % (1–100); 0 = cliente antigo, vale 100
+        public float tb;                                    // turbo: carga do tanque (0–1)
+        public bool bo;                                     // turbo: botão apertado
         public float fx, fy, fvx, fvy, flyH, flyW, flyZ;    // fora da pista
         public float bx, by, backH, backY, backT;           // voltando ao trilho
         public float exitS, lapStart, hitFx;
@@ -69,6 +71,7 @@ namespace Autorama
         public bool held;
         public int re;
         public int gp;                                    // in: nível do acelerador em % (0 = cliente antigo, vale 100)
+        public bool tb;                                   // in: turbo apertado
         // snap / ev (host → todos)
         public NetSnap snap = new NetSnap();
         public string k;                                  // ev: res (resultado salvo) · reset (bateria de novo)
@@ -82,8 +85,10 @@ namespace Autorama
     {
         public string t, name, roomName, code, color, text;
         public bool pub, ready, held, collide, byTime;
+        public bool turbo = true;                         // start: turbo ligado (regra da sala, como a colisão)
         public int re, ver;                               // ver: versão do protocolo (hello)
         public int gp;                                    // in: nível do acelerador em % (1–100)
+        public bool tb;                                   // in: turbo apertado
         public float vmax, ramp, grip;                    // start: as regras (os ajustes da aba Corrida do host)
         public string track, hash, json;                  // suggest: a pista que o visitante sugere ao host (nome, identidade e o JSON)
         public int faixas;                                // suggest: 2 ou 4 carros

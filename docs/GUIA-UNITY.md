@@ -1026,12 +1026,12 @@ De onde vem o nível (`RaceController.GasLevel`, o maior dos quatro):
 
 | Entrada | Jogador 1 | Jogador 2 | Nível |
 |---|---|---|---|
-| Tecla de acelerar | **A** | **L** | 100% |
-| Tecla de meia | **Q** | **O** | `halfGas` (ajuste "Meia aceleração (Q · O)", 20–90%, padrão **60%**; em `RaceSettings`, não mexe nas regras do campeonato) |
+| Tecla de acelerar | **A** | **L** | 100% (padrões e trocáveis: seção 36) |
+| Tecla de meia | **S** | **K** | `halfGas` (ajuste "Meia aceleração (tecla de meia)", 20–90%, padrão **60%**; em `RaceSettings`, não mexe nas regras do campeonato) |
 | Gatilho direito do controle | 1º controle conectado | 2º controle | analógico, com zona morta de 6%: `(v − 0,06) / 0,94` |
 | Botão ACELERAR da tela | toque/clique | toque/clique | 100% (não ficou analógico: o arrastar com o mouse foi descartado) |
 
-No controle, **A/✕** recoloca e **Start** larga (como Enter). Os controles seguem o `KeySet` (19.3): com um humano só na bateria, o 1º controle e Q pilotam em qualquer trilho. O botão ACELERAR de cada jogador mostra as teclas e "controle" quando há um controle para ele: `ACELERAR  A  ·  ½ Q  ·  controle`.
+No controle, **A/✕** recoloca e **Start** larga (como Enter). Os controles seguem o `KeySet` (19.3): com um humano só na bateria, o 1º controle e as teclas do jogador 1 pilotam em qualquer trilho. O botão ACELERAR de cada jogador mostra as teclas e "controle" quando há um controle para ele: `ACELERAR  A  ·  ½ S  ·  controle`. As teclas de cada jogador são configuráveis (seção 36).
 
 **Online:** cada um pilota o seu carrinho com A/L/Espaço (100%), Q/O (meia) ou o gatilho de qualquer controle ligado. O visitante manda o nível na mensagem `in` como **`gp`** (inteiro 1–100), quando o botão muda, quando o nível anda 3 pontos ou mais, ou a cada 0,25 s. O host guarda em `remoteGas` e aplica no `RaceSim`. O snapshot leva `gp` de cada carrinho (`NetCar.gp`), para a predição do visitante usar o nível certo do adversário. `gp = 0` (campo ausente, cliente antigo) vale 100%, por isso o protocolo continua na versão 1. O servidor repassa `gp` limitado a 1–100 (ausente → 100); a Steam repassa a mensagem inteira.
 
@@ -1436,20 +1436,24 @@ else if (slip < SpinOut)       spun[k] = false;
 
 **Suavização da *Atrás do carro*** (`TopDownCamera.ApplyThirdPerson`). Antes, a câmera ficava presa ao rumo bruto do carrinho: qualquer curva ou rodopio virava um tranco. Agora:
 
-- **Direção:** `chaseFwd` gira em direção ao rumo do carrinho no máximo `ThirdTurnRate = 110` graus por segundo (`Vector3.RotateTowards`). Um rodopio vira uma panorâmica lenta.
-- **Posição:** `ThirdPosRate = 4.5` (antes 7), mais macia.
-- **Ponto olhado:** `chaseLook` vai até `carro + chaseFwd × 1.4`, suavizado com `ThirdLookRate = 6`.
-- **Rotação:** continua com `Slerp` a `9`.
+- **Direção na pista:** `chaseFwd` segue o rumo do carrinho com um lerp exponencial de `ThirdTrackTurnRate = 12` (antes havia um limite de 110°/s, que deixava a câmera atrasada nas curvas).
+- **Direção rodando:** quando `spun[k]`, `chaseFwd` gira no máximo `ThirdTurnRate = 110` graus por segundo (`Vector3.RotateTowards`). Um rodopio vira uma panorâmica lenta.
+- **Posição:** `ThirdPosRate = 9` (antes 4.5), bem mais colada no carrinho.
+- **Ponto olhado:** `chaseLook` vai até `carro + chaseFwd × 1.4`, suavizado com `ThirdLookRate = 12` (antes 6).
+- **Rotação:** aponta direto para `chaseLook`, sem o `Slerp` extra que atrasava a câmera.
 - **Reinício:** trocar de modo ou de carrinho (`SetRaceViewMode`, `SetThirdPersonCar`) zera a direção, para a câmera não dar a volta toda até o novo alvo.
 - Distância (`thirdDistance = 7`), altura (`thirdHeight = 2.2`) e o ajuste da roda não mudaram.
 
 Código principal:
 
 ```csharp
-chaseFwd = Vector3.RotateTowards(chaseFwd, carFwd, ThirdTurnRate * Mathf.Deg2Rad * dt, 0f).normalized;
+if (spun[k]) chaseFwd = Vector3.RotateTowards(chaseFwd, carFwd, ThirdTurnRate * Mathf.Deg2Rad * dt, 0f).normalized;
+else         chaseFwd = Vector3.Slerp(chaseFwd, carFwd, 1f - Mathf.Exp(-ThirdTrackTurnRate * dt)).normalized;
 Vector3 target  = raceCarPos[k] + chaseFwd * 1.4f + Vector3.up * 0.25f;
 chaseLook = Vector3.Lerp(chaseLook, target, 1f - Mathf.Exp(-ThirdLookRate * dt));
 Vector3 desired = raceCarPos[k] - chaseFwd * thirdDistance * distanceScale + Vector3.up * thirdHeight * distanceScale;
+transform.position = Vector3.Lerp(transform.position, desired, 1f - Mathf.Exp(-ThirdPosRate * dt));
+transform.rotation = Quaternion.LookRotation((chaseLook - transform.position).normalized, Vector3.up);
 ```
 
 **Qual carrinho a câmera acompanha** (`RaceController.CamFocusCar()`, recalculado a cada quadro em `PlaceCars`):
@@ -2527,7 +2531,7 @@ net.Pump();
 
 **Fluxo de uma bateria.**
 1. `started` chega a todos. Cada um monta o mesmo `Championship` (pilotos com o id da sala, regras, etapas, `Champ.MakeHeats`) e a bateria da vez é `Champ.CurrentHeat`. `UseChampTrack` carrega a pista e as regras; o carrinho de cada piloto ganha a cor dele (`CarTexture`).
-2. Quem está na bateria vê só o **seu** controle (acelerar **A**, **L** ou **Espaço**; recolocar **S** ou **K**; ou o mouse no botão). Quem não está só assiste (a câmera segue o trilho do jogador se ele está na bateria).
+2. Quem está na bateria vê só o **seu** controle (acelerar com as teclas de acelerar de qualquer jogador, por padrão **A**, **L** ou **↑**; recolocar com as de recolocar, **Espaço** por padrão; ou o mouse no botão). Quem não está só assiste (a câmera segue o trilho do jogador se ele está na bateria).
 3. **Visitante:** `sim.cars[meu].held` vale na hora (predição) e o estado do botão vai ao host (`in`) a cada mudança e a cada 0,25 s. "Recolocar" usa um contador (`re`): o host só recoloca quando o contador sobe.
 4. **Host:** junta o botão de cada trilho (o dele, ou o último `in` de quem está na sala; quem saiu fica sem acelerar), roda o `Step` e manda o snapshot (`NetSync.Pack`: fase, relógio, vencedor e os dois carrinhos inteiros; cerca de 1,2 KB, ~35 KB/s por visitante).
 5. **Aplicar o snapshot** (`NetSync.Apply`): fase, relógio e vencedor sempre; o carrinho do outro piloto, por inteiro; o **meu** carrinho só se a predição se afastou mais que 1,5 célula ou o modo (no trilho, fora, voltando) é outro. Se não, fica a predição (senão a latência faria o carrinho "andar para trás" a cada snapshot) e só o placar (voltas, saídas, toques, melhor volta, chegada) vem do host. Snapshot de outra bateria é ignorado (`hi`).
@@ -2751,7 +2755,7 @@ Tudo gerado por `ferramentas/gen-texturas.js` (bloco "PISTA DE 4 CARROS") e liga
 
 - `RaceSim.SetTrack(segs, closed, faixas)`: `cars` passa a ter 2 ou 4 (`sim.N`); `paths`/`aiSkill` têm 4 lugares (`MaxCars`). Tudo que era "os dois" virou laço até `N`: passo, IA, fim da prova (acaba quando **todos** chegam ou no limite do campeonato) e `HumanBest`.
 - **Colisão por pares:** 1 par na pista de 2, 6 na de 4 (`CollidePair`, com o "já estava encostado" guardado por par em `pairContact`). A conta de cada par é a mesma de antes.
-- **Teclas:** os humanos ganham os conjuntos **na ordem dos trilhos**: o 1º humano **A·S** (Q meia), o 2º **L·K** (O meia), o 3º **↑·↓** (← meia), o 4º **8·5 do teclado numérico** (7 meia). Com um humano só ele usa A·S em qualquer trilho (a regra antiga é o caso particular). Os controles seguem a mesma ordem (1º controle, 2º…).
+- **Teclas:** os humanos ganham os conjuntos **na ordem dos trilhos**: o 1º humano usa as teclas do **jogador 1** (padrão A · S, S = meia), o 2º as do jogador 2, o 3º as do 3 e o 4º as do 4 (seção 36). Com um humano só ele usa o conjunto 1 em qualquer trilho (a regra antiga é o caso particular). Os controles seguem a mesma ordem (1º controle, 2º…).
 - **Corrida livre na pista de 4:** "Jogador 2 é um robô" continua; aparece **"Jogadores 3 e 4 são robôs"** (`RaceSettings.bot34`, ligado por padrão), com a mesma qualidade.
 - Tela: 4 painéis de jogador mais baixos (`.pads--4`), 4 fichas no placar com a posição de cada um (`Order()`: chegada, voltas e depois a **fração da volta**, porque os trilhos têm comprimentos diferentes), resultado com as 4 posições, câmera **Atrás do carro** com Jogador 1 a 4 e a **Dinâmica** enquadrando o retângulo dos 4 (`SetRaceTargets(pos[], heading[], count, focus)`).
 - Exemplos novos na lista de pistas: **oval de 4 carros** e **8 com ponte de 4 carros** (`TrackSave.Four`).
@@ -3075,3 +3079,228 @@ A aba **Corrida** ficou em blocos, de cima para baixo: **PISTA** (só pistas fec
 - 4 trilhos com 3 carros: `aiSkill` = `[0, 85, 40, 0, 0, 0]`; 3 cartões de piloto; 3 pistas na lista (1 aberta escondida, com nota).
 - 1 carro, voltas: concluída em 21,5 s, 2 voltas. 1 carro, tempo: concluída em 60 s, distância 5,57, pista girada para a 4ª faixa.
 - Campeonato e online: a lógica foi escrita e compila, mas **não foi testada em Play mode** nesta etapa.
+
+## 34. Minimapa da corrida (só Unity)
+
+Um mapa esquemático da pista no canto superior direito da mesa, logo abaixo do botão **Câmera**. Mostra o traçado visto de cima, com um ponto por carrinho na cor do painel dele. **Não é uma câmera:** é um desenho 2D (`Painter2D`), então não se mexe com a vista, não gira e não tapa nada do que está na mesa. Funciona na aba Corrida, no Campeonato e na corrida online. Como é só Unity, o HTML não ganha o minimapa (ver a memória do projeto: o HTML está congelado).
+
+**Arquivos:**
+- `Assets/Autorama/Scripts/Race/RaceMinimap.cs`: a classe `RaceMinimap : VisualElement`.
+- `Assets/Autorama/Scripts/Race/RaceController.cs`: `UpdateMinimap()` (chamado no fim de `PlaceCars`, que roda em todo quadro, inclusive no construtor) e a criação do elemento em `BuildUI`.
+- `Assets/Autorama/UI/Construtor.uss`: a classe `.minimap`.
+
+**Posição e tamanho (USS):** `position: absolute; top: 56px; right: 12px; width: 200px; height: 200px`, borda `--borda`, cantos de 12px. O `top: 56px` deixa o botão da câmera (34px a partir de 10px) livre.
+
+**Traçado:** lido dos caminhos dos trilhos (`RaceSim.paths[k]`, `LanePath`), não de `TrackLayout`. Assim vale para qualquer tamanho (2, 4 ou 6 trilhos) e para a pista adaptada, sem código extra. Cada trilho é amostrado a cada `Step = 0,25` unidades do mundo (`LanePath.At(d).pos`). A caixa do traçado é o menor retângulo que contém os trilhos, com meia unidade de folga.
+
+**Orientação:** igual à mesa de cima. A coordenada `z` do mundo cresce para cima na tela (`oy + (box.yMax − z) · k`), a mesma regra da miniatura de pista salva (`TrackThumb`, seção 6).
+
+**Escala:** `k = (lado − 2 · Pad) / max(largura, altura)` da caixa, com `Pad = 10` px. A pista ocupa o maior lado possível e fica centrada.
+
+**Desenho, de baixo para cima:**
+1. Fundo arredondado, `rgb(22, 28, 25)` com alfa 0,88.
+2. Asfalto: cada trilho como traço de 6 px, cinza `rgb(69, 79, 74)`.
+3. Linha clara de 1,5 px no centro de cada trilho, `rgb(184, 194, 188)` com alfa 0,7.
+4. Chegada: um tracinho branco de 8 px na bandeirada do trilho 1 (`LanePath.marks[0]`).
+5. Carrinhos: um círculo escuro de raio 6 px e, por cima, um de raio 4,5 px na cor do carrinho. A cor vem de `pads[k].root.resolvedStyle.borderTopColor` (a mesma do cartão do HUD).
+
+**Atualização:** `RaceMinimap.Refresh()` recalcula a posição de cada carrinho com `RaceSim.CarPose(k)` (inclui o carrinho fora da pista, que aparece onde está) e chama `MarkDirtyRepaint()`. O traçado só é refeito quando os caminhos mudam (`builtFor` guarda a referência dos `LanePath`; `SetTrack` cria caminhos novos). Carrinho sem trilho ou fora da corrida (`present[k] = false`) não aparece.
+
+**Quando aparece:** `panel.RaceMode` e `sim.Ready`. No construtor, o minimapa fica escondido; ao entrar na aba Corrida, aparece.
+
+**Código principal (`UpdateMinimap`):**
+```csharp
+bool show = panel != null && panel.RaceMode && sim != null && sim.Ready;
+minimap.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+if (!show) return;
+for (int k = 0; k < RaceSim.MaxCars; k++) miniColors[k] = pads[k] != null ? pads[k].root.resolvedStyle.borderTopColor : Color.white;
+minimap.SetSim(sim);
+minimap.SetLaneColors(miniColors);
+minimap.Refresh();
+```
+
+**Testes (Unity, Play mode, pista de exemplo "oval"):**
+- Aba Corrida com o oval: o minimapa aparece no canto com o traçado e os dois carrinhos no grid (vermelho e azul). Não foi testado o construtor (o minimapa deve sumir lá, pela regra de `UpdateMinimap`).
+- Durante a corrida: o carrinho do robô (azul) aparece na parte de cima do traçado, perto da chegada; o carrinho do jogador (vermelho), fora da pista, aparece no lugar em que está, fora do traçado. Captura: `Assets/Temp/minimap2.png` (apagada depois).
+- O carrinho que sai da pista continua no minimapa; o traçado não some quando ele roda.
+- Compila sem erros (`script recompile` completo e `typeof(RaceMinimap)` acessível).
+
+**O que falta:** não há ícone de posição por volta nem marcação de pista com altura (o mapa é plano, como uma planta). Se fizer falta, a próxima melhoria é mostrar a diferença de altura com a cor do traço ou um sombreado.
+
+## 35. Minimapa solto e aba de pilotos
+
+O minimapa da seção 34 virou uma **janela solta** sobre a mesa. Cada jogador põe onde quiser e muda o tamanho. Abaixo do mapa há uma aba **Pilotos** que abre e fecha com as infos de cada carrinho.
+
+**Arquivos:** `Race/RaceMinimap.cs` (a janela inteira: cabeçalho, mapa, canto de redimensionar, aba), `Race/RaceSim.cs` (`Travel[]`, e os campos `miniX`, `miniY`, `miniW`, `miniOpen` em `RaceSettings`), `Race/RaceController.cs` (`UpdateMinimap`, que passa nomes, cores e a ordem), `UI/Construtor.uss` (classes `.minimap-*`).
+
+**Arrastar:** segure o cabeçalho ("MINIMAPA · ⠿ arraste") e mova. A posição é guardada em `RaceSettings.miniX/miniY` (pixels no painel) só ao soltar o botão. Fica sempre dentro da tela: `ApplyPos` prende `x` em `[0, largura − miniW]` e `y` em `[0, altura − 24]`, então o cabeçalho nunca some.
+
+**Redimensionar:** o quadradinho no canto inferior direito do mapa. A largura vai de **220 a 460 px** (`MinW`, `MaxW`) e a altura do mapa é igual à largura. Guardada em `miniW`. Padrão 240.
+
+**Primeira vez:** sem posição salva (`miniX < 0`), a janela nasce no canto superior direito da mesa, a 12 px da borda e 56 px do topo (abaixo do botão **Câmera**).
+
+**Aba Pilotos:** o botão "Pilotos ▸/▾" abre e fecha a lista. A escolha fica salva em `miniOpen`. Cada linha tem duas partes:
+- cima: bolinha na cor do carrinho, posição (`1º`, `🏁` para quem venceu), nome e volta (`Volta 2/5`, `Chegou`, ou `2 v · T1` no tempo);
+- baixo: **última volta**, **melhor volta** (`RaceController.Fmt`, o mesmo formato do HUD) e **distância percorrida** em metros.
+
+As linhas seguem a ordem da corrida (`Order()`): quem está na frente aparece primeiro. Carrinho que não está na pista (`present[k] = false`) não aparece.
+
+**Distância (`RaceSim.Travel`):** em cada passo da física, `Travel[k] += c.v · dt` (só quando o carrinho está no trilho, `OnSlot`). Zera em `Reset()`. A conversão para metros é `Travel × cellCm / 100` (`cellCm` do construtor). Vale nas duas escalas porque a unidade do mundo já carrega o tamanho físico da célula (na pista de 4, a célula tem o dobro do mundo e o dobro da largura). Na corrida por tempo a distância soma as manches.
+
+**Código (`RaceMinimap.Refresh`, chamado em `UpdateMinimap`):**
+```csharp
+minimap.Refresh(sim, set, miniNames, miniColors, Order(), builder != null ? builder.cellCm : 15f);
+```
+
+**Limite:** `Travel` é contado pela física local. Na corrida online, o visitante recebe as posições prontas (`NetSync`) e não passa pelo `Step` dessa parte, então a distância dele pode ficar em zero. A volta e a posição continuam certas, porque vêm do estado do carrinho.
+
+**Testes:**
+- Compila: `typeof(RaceMinimap)` acessível depois de `script recompile`.
+- Play mode, oval, corrida em andamento, aba aberta: o mapa com os dois carrinhos, a lista "1º JOGADOR 1 / 2º ROBÔ" e a volta "1/3" aparecem. Captura feita (`mini5.png`, apagada depois). Nas linhas, "última" e "melhor" ainda estavam em "—" (nenhuma volta concluída) e a distância em 0,0 m, como esperado no início da corrida.
+- **Pendente:** arrastar e redimensionar com o mouse, e a posição salva voltando depois de reiniciar o Play. Não foi testado porque o Editor parou de responder às chamadas de teste nesta sessão. Também falta conferir a distância depois de algumas voltas e a corrida online.
+
+## 36. Teclas dos jogadores (tela de opções, só Unity)
+
+Pedido: o controle de teclado mudou para **A = acelerar 100%**, **S = meia aceleração (60%)** e **Espaço = recolocar**, e os jogadores 1 a 4 precisam poder trocar as próprias teclas numa tela de opções. Depois entrou uma quarta ação, o **turbo** (seção 37): D, J, → e 6 do numérico; em `Controles` são 4 ações por jogador (`Acoes`) e 16 números salvos. Os controles de gamepad não mudaram.
+
+**Padrões** (`Race/Controles.cs`, `Padrao`):
+
+| Jogador | Acelerar 100% | Meia aceleração | Recolocar |
+|---|---|---|---|
+| 1 | **A** | **S** | **Espaço** |
+| 2 | **L** | **K** | **;** |
+| 3 | **↑** | **↓** | **Shift direito** |
+| 4 | **8** do numérico | **5** do numérico | **0** do numérico |
+
+Os jogadores 5 e 6 (pista de 6) continuam só com controle (`Controles.Get` devolve `Key.None` para eles).
+
+**A meia aceleração** usa o ajuste `RaceSettings.halfGas` (20–90%, padrão **60%**). Ele já existia; antes a tecla era Q/O. Mudar o ajuste muda a meia de todos os jogadores.
+
+**Classe `Controles` (static, sem cena):**
+- `Get(jogador, Acao)`: a tecla. `Set(jogador, Acao, Key)`: se a tecla já era de outra ação, as duas **trocam** (nenhuma fica sem tecla por engano).
+- `Reservada(Key)`: Enter, Enter do numérico, Esc e "nenhuma" não podem ser de jogador (Enter larga, Esc fecha a tela).
+- `Restaurar()`: volta aos padrões. `Nome(Key)`: o nome curto para botões ("Espaço", "↑", "8 num.").
+- Salvo em `PlayerPrefs` na chave `autorama.teclas`, como os outros ajustes da corrida. JSON com 12 inteiros (`Key` como número), nessa ordem: jogador × 3 + ação.
+
+**Tela (`RaceController.BuildKeysUI`, `UI/Construtor.uss` `.keys-*`):** o menu inicial (`BuilderPanel.BuildStartMenu`) tem o botão **Opções**, que dispara `BuilderPanel.OptionsRequested` e abre a tela (`RaceController.ShowKeys`, sobre o menu). A tela tem o título "OPÇÕES", a seção "TECLAS DOS JOGADORES" com uma linha por jogador e três botões por linha (Acelerar, Meia, Recolocar). O botão **Sair** do menu inicial fecha o jogo (`QuitGame`: `Application.Quit`, no Editor para o Play mode).
+- Clique no botão: ele mostra "aperte…". A próxima tecla apertada vira a tecla da ação (`KeysUpdate`, chamado no início do `Update`, antes do modo online).
+- **Esc** cancela a espera; sem espera, fecha a tela. **Fechar** e **Restaurar padrão** também.
+- Enquanto a tela está aberta, `keys = false` no `Update`: nenhuma tecla de corrida é lida, nem Enter. Os botões de tela e o gamepad continuam valendo.
+- Os cartões de cada jogador, o texto "COMO PILOTAR" (`helpLabel`) e os botões ACELERAR/Recolocar são redesenhados na hora (`KeysChanged`).
+
+**Online** (`RaceController.OnlineRace.cs`): cada jogador no online pilota o seu carrinho e aceita as teclas de **qualquer** conjunto (`AnySetPressed` / `AnySetWasPressed`), como já era antes com A, L e Espaço. Os textos da sala e da bateria mostram as teclas do jogador 1.
+
+**Campeonato:** os cartões das baterias (`RaceController.Champ.cs`) mostram as teclas de cada humano na ordem dos trilhos. A tela de teclas só abre pela aba Corrida, mas vale para o campeonato também.
+
+**Código principal:**
+```csharp
+// Quem pilota com quais teclas (KeySet = ordem dos humanos na pista)
+static Key GasKeyAt(int ks)     => Controles.Get(ks, Controles.Acao.Acelerar);
+static Key HalfKeyAt(int ks)    => Controles.Get(ks, Controles.Acao.Meia);
+static Key ReslotKeyAt(int ks)  => Controles.Get(ks, Controles.Acao.Recolocar);
+
+// Captura: a próxima tecla apertada vira a da ação
+for (int i = 0; i < kb.allKeys.Count; i++)
+{
+    var kc = kb.allKeys[i];
+    if (!kc.wasPressedThisFrame || kc.keyCode == Key.None) continue;
+    if (Controles.Reservada(kc.keyCode)) { /* avisa e espera outra */ return; }
+    Controles.Set(capJ, (Controles.Acao)capA, kc.keyCode);
+    capJ = -1; KeysChanged(); return;
+}
+```
+
+**Testes feitos:**
+- Compila: `unity command script recompile` terminou sem erro, e `typeof(RaceController).GetMethod("BuildKeysUI")` existe.
+- Lógica (`script eval`): `Set(jogador 2, Meia, A)` com A sendo de P1 Acelerar: P2 meia = A e P1 acelerar = K (a tecla antiga de P2 meia, troca). Depois `Set(P1, Acelerar, S)` com S sendo de P1 meia: P1 acelerar = S e P1 meia = K. `Reservada(Enter)` = verdadeiro. Jogador 5 sem tecla (`None`). `Restaurar()` volta A (P1 acelerar) e K (P2 meia).
+- **Não testado no Play mode** (a tela, a captura por tecla real e o online com teclas de outro conjunto ainda não foram vistos rodando). Próximo passo: abrir a aba Corrida, abrir a tela, trocar uma tecla e correr.
+
+**O que falta:** o HTML continua com as teclas antigas (A·S·Q etc.), e a regra de "congelado" (memória do projeto) mantém assim. Não há tela de opções para o gamepad. Não há cor de conflito na tela (a troca é silenciosa, o outro botão mostra a tecla nova).
+
+## 37. Turbo (só Unity)
+
+Pedido: um terceiro botão de aceleração, **A · S · D**, com o **D sendo o turbo**. O turbo começa zerado e enche um pouco a cada vez que o carrinho sai da pista. A ideia é ajudar quem fica para trás, como os itens do Mario Kart. Enquanto o jogador segura, o turbo é gasto e soma velocidade.
+
+**Regras:**
+- Cada carrinho tem um **tanque** de 0 a 1 (`CarState.turbo`). Zera a cada largada (`Reset`). Na corrida por tempo ele continua de uma manche para a outra.
+- **Enche a cada saída de pista** (`Deslot`, só com a prova valendo), mais para quem está atrás: de `TurboGainMin = 0,2` (o líder) a `TurboGainMax = 0,5` (o último e longe). A conta (`RaceSim.TurboGain`) olha **a posição e a distância até o líder**, metade cada (37.2). Sozinho na pista: 0,35. Saída por batida também conta.
+- **Segurar o turbo** acelera a 100% e, enquanto há carga, o carrinho busca `(1 + TurboBoost) × vmax`, com `TurboBoost = 0,25`. O tanque cheio dura `TurboTime = 3 s`. Sem carga, o botão é só um acelerador a 100%. Fica assim: S = 60%, A = 100%, D = 100% + turbo.
+- Só gasta no trilho, com a prova valendo (`Phase.Running`) e o acelerador subindo (`T > 0`).
+- **Volta com turbo não vale como tempo**: aparece como "última", conta para a prova, mas não entra em melhor volta, `bestT`, recordes nem dispara `LapDone` (`CarState.turboLap`). Os recordes continuam sendo de voltas sem turbo.
+- **IA**: usa o turbo quando nenhuma curva nos próximos 3,5 de pista pede freio nem na velocidade com turbo (`need > vmax × 1,25`).
+- **Ajuste**: `RaceSettings.turbo` (padrão ligado), caixa "Turbo (enche a cada saída de pista)" em AJUSTES AVANÇADOS. No campeonato e no online ele é uma regra, como a colisão (37.1).
+
+**Controles:** quarta ação em `Controles` (`Acao.Turbo`, 4 por jogador). Padrão: jogador 1 **D**, jogador 2 **J**, jogador 3 **→**, jogador 4 **6 do numérico**. No controle: **X/□** ou **RB**. Na tela: a barra **TURBO** do painel do jogador é o tanque e também o botão (segurar com o mouse ou o dedo). Teclas salvas antes do turbo (12 números) são lidas e o turbo entra com o padrão; se a tecla padrão já estava em uso, o turbo fica sem tecla até o jogador escolher em Opções.
+
+**Física (`RaceSim.Step`, no trilho):**
+```csharp
+bool tb = set.turbo && c.boost && c.turbo > 0f && c.T > 0f && phase == Phase.Running;
+float top = set.vmax * (tb ? 1f + TurboBoost : 1f);
+if (tb) { c.turbo = Mathf.Max(0f, c.turbo - dt / TurboTime); c.turboLap = true; }
+float a = (c.T == 0f ? -(Brake * c.v + Brake0) : Accel * (c.T * top - c.v)) - SlopeG * here.slope;
+```
+Sem turbo apertado a conta é a de antes: a física e os recordes não mudam.
+
+**Online:** o visitante manda `tb` (turbo apertado) na mensagem `in`; o servidor Node repassa (`tb: !!m.tb`) e o da Steam já repassa o JSON inteiro. O snapshot leva `tb` (carga do tanque) e `bo` (botão) em `NetCar`; o tanque do visitante é sempre o do host. Cliente antigo não manda `tb`: vale "solto".
+
+**Testes (`script eval`, oval, sem colisão, passo de 0,02 s):**
+- Depois da largada o tanque está em 0.
+- Tanque cheio e turbo apertado, 1,2 s de reta: 14,88 cél/s contra 12,99 do carrinho sem turbo (teto de 17,5 contra 14). `turboLap` fica verdadeiro.
+- Os dois no fundo até um sair: o que saiu estava atrás e ganhou 0,50; o outro ficou com 0.
+- Com `set.turbo = false`: mesma velocidade de sempre (12,74) e o tanque não gasta.
+- Teclas: P1 turbo D, P2 turbo J; A e Espaço continuam.
+- `npm test` do servidor passou.
+- **Não testado no Play mode**: a barra TURBO na tela (inclusive se cabe no painel de 6 carros), a tecla real, o controle e uma corrida online com turbo.
+
+**O que falta:** o HTML não tem turbo (congelado). Não há efeito visual de turbo (os sons estão em 37.1). Os números (ganho, 25%, 3 s) são um primeiro chute e pedem afinação jogando.
+
+### 37.1 Turbo como regra (ligar ou desligar) e sons
+
+**Regra, como a colisão.** O turbo agora segue o mesmo caminho da opção "Colisão entre carrinhos":
+- **Corrida livre:** caixa **Turbo** em AJUSTES AVANÇADOS (`RaceSettings.turbo`, padrão ligado). Vale na hora.
+- **Campeonato:** `ChampRules.turbo`, copiado dos ajustes da aba Corrida quando o campeonato começa e fixo até o fim. A ficha de regras mostra "turbo ligado/desligado". Campeonato salvo antes (sem o campo) fica com turbo **ligado**.
+- **Online:** o host manda `turbo` no `start` (`NetOut.turbo`), o servidor põe em `rules.turbo` (`m.turbo !== false`: cliente antigo, sem o campo, vale ligado) e todos recebem em `NetRules.turbo`. A Steam (`SteamTransport`) faz o mesmo. O texto das regras da sala mostra o turbo.
+- Desligado: o tanque não enche nem gasta, a barra TURBO some do painel e a tecla de turbo não faz nada (`tb = sim.set.turbo && TurboHeld`).
+
+**Sons (`RaceController.Audio.cs`, sintetizados como os outros):**
+| Som | Quando | Como é feito |
+|---|---|---|
+| Sopro (`jet[k]`, laço por carrinho) | enquanto o tanque está sendo gasto | o chiado do motor mais forte, pulsando a 14 Hz, com 930 e 941 Hz por dentro; o tom sobe com a velocidade (0,9 a 1,25); volume 0,30 (0,22 com mais de 2 carros) |
+| Ligar (`turboOnClip`) | no quadro em que o turbo começa a soprar | 0,35 s, nota que sobe de 300 a 1500 Hz com ar no fim |
+| Tanque (`turboFillClip`) | quando a carga sobe mais de 5% de um quadro para o outro (saída de pista) | 0,3 s, três notas subindo: 700, 930, 1240 Hz |
+
+O carrinho de robô toca os três a 40% do volume. Todos seguem o volume geral (`set.volume`).
+
+**Testes:**
+- Compila. `JsonUtility`: regras de campeonato sem o campo → `turbo = true`; regras de rede com `"turbo":false` → `false`; `NetOut` novo sai com `"turbo":true`.
+- `npm test` do servidor passou.
+- **Não testado:** os sons não foram ouvidos (só gerados em código) e nada disso foi visto no Play mode. O volume e o timbre pedem ajuste de ouvido.
+
+### 37.2 Ganho do turbo pela distância até o líder
+
+Pedido: só pela posição o ganho era injusto. Numa corrida de dois, o segundo colado no líder ganhava o máximo (0,5), igual a um segundo que estivesse uma volta atrás. Agora a conta leva em conta também **a distância de quem recebe até o primeiro colocado**.
+
+**Regra (`RaceSim.TurboGain`):**
+- `pos` = carrinhos à frente ÷ (carrinhos na prova − 1): 0 para o líder, 1 para o último.
+- `gap` = (`Dist` do líder − `Dist` do carrinho) ÷ `TurboGap`, preso em 0..1. `Dist` é em **voltas**, então `TurboGap = 0,5` quer dizer: meia volta atrás já conta como "longe". Em voltas (e não em células) a regra vale igual em pista curta ou comprida.
+- fator = `Lerp(pos, gap, TurboGapWeight)`, com `TurboGapWeight = 0,5` (metade cada).
+- ganho = `Lerp(TurboGainMin, TurboGainMax, fator)`. O líder continua em 0,2 (posição 0, distância 0). Sozinho na pista: 0,35.
+
+```csharp
+public const float TurboGap = 0.5f, TurboGapWeight = 0.5f;
+
+float pos = ahead / (float)(n - 1), gap = Mathf.Clamp01((lead - d) / TurboGap);
+return Mathf.Lerp(TurboGainMin, TurboGainMax, Mathf.Lerp(pos, gap, TurboGapWeight));
+```
+
+**Testes (`script eval`, oval de 6, posições postas à mão):**
+
+| Cenário | Ganho de cada um (do líder ao último) |
+|---|---|
+| 6 colados (0,02 volta entre cada) | 0,200 · 0,236 · 0,273 · 0,309 · 0,345 · 0,382 |
+| 6, o líder uma volta à frente do bolo | 0,200 · 0,380 · 0,410 · 0,440 · 0,470 · 0,500 |
+| 2 carrinhos, o segundo 0,06 volta atrás | 0,200 · 0,365 (antes: 0,500) |
+| 2 carrinhos, o segundo 0,6 volta atrás | 0,200 · 0,500 |
+| Sozinho | 0,350 |
+
+**Não testado no Play mode.** `TurboGap` e `TurboGapWeight` são um primeiro chute: para a distância pesar mais, suba `TurboGapWeight` (1 = só distância); para exigir mais atraso antes do ganho cheio, suba `TurboGap`.

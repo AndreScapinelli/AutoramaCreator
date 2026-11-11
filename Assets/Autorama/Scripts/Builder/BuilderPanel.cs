@@ -433,7 +433,23 @@ namespace Autorama
             Opt("Correr", "Dois jogadores no mesmo teclado ou contra o robô", "▶", Mode.Race);
             Opt("Campeonato", "Pilotos, etapas, tabela e recordes", "★", Mode.Champ);
             Opt("Online", "Campeonato com amigos pela Steam", "◉", Mode.Online);
+            var extra = El("start-extra", card);
+            Btn("Opções", () => OptionsRequested?.Invoke(), "btn start-btn", extra);
+            Btn("Sair", QuitGame, "btn start-btn", extra);
             Text("O botão ⌂ no painel volta para esta tela.", "start-foot", card);
+        }
+
+        // Pedido do botão Opções da tela inicial: quem tem as opções (a RaceController, com as teclas) abre a tela.
+        public event System.Action OptionsRequested;
+
+        // Sair: fecha o jogo (no Editor, para o Play mode).
+        static void QuitGame()
+        {
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+#else
+            Application.Quit();
+#endif
         }
 
         public void ShowMenu(bool open)

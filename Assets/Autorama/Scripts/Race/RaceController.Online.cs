@@ -399,7 +399,7 @@ namespace Autorama
         void OnlineStartChamp()
         {
             if (!IsHost || LobbyBlocker() != "") return;
-            net.Send(new NetOut { t = "start", name = room.name, vmax = set.vmax, ramp = set.ramp, grip = set.grip, collide = set.collide, byTime = set.byTime });
+            net.Send(new NetOut { t = "start", name = room.name, vmax = set.vmax, ramp = set.ramp, grip = set.grip, collide = set.collide, turbo = set.turbo, byTime = set.byTime });
         }
 
         string LobbyBlocker()
@@ -795,7 +795,7 @@ namespace Autorama
             // Pronto e largada
             string blocker = LobbyBlocker();
             oRulesHint.style.display = host ? DisplayStyle.Flex : DisplayStyle.None;
-            oRulesHint.text = $"Regras: os ajustes da aba Corrida (velocidade {Num(set.vmax)} cél/s, até 100% em {Num(set.ramp, 2)} s, aderência {Mathf.RoundToInt(set.grip)}, colisão {(set.collide ? "ligada" : "desligada")}). Ficam fixos até o fim.";
+            oRulesHint.text = $"Regras: os ajustes da aba Corrida (velocidade {Num(set.vmax)} cél/s, até 100% em {Num(set.ramp, 2)} s, aderência {Mathf.RoundToInt(set.grip)}, colisão {(set.collide ? "ligada" : "desligada")}, turbo {(set.turbo ? "ligado" : "desligado")}). Ficam fixos até o fim.";
             oReadyBtn.style.display = host ? DisplayStyle.None : DisplayStyle.Flex;
             oReadyBtn.text = me != null && me.ready ? "Não estou pronto" : "Estou pronto";
             oReadyBtn.EnableInClassList("btn--primary", !(me != null && me.ready));
