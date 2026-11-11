@@ -2960,3 +2960,26 @@ Como as pistas de 2, 4 e 6 usam as **mesmas peças e a mesma forma em células**
 - Pode mudar a corrida: a pista maior tem trilhos e curvas mais longos, e o campeonato precisa de pistas do mesmo tipo (se quiser reaproveitar uma pista num campeonato de 2, adapte-a para 2).
 - A pista adaptada fecha, tem as mesmas peças sobrepostas ou não e cabe na mesma mesa (em células); só o tamanho no mundo muda.
 - Testes: pendentes na tela (a Unity ficou sem responder durante esta etapa). O código compila.
+
+## 33. Refatoração da aba Corrida (tamanho, carros e pilotos)
+
+A aba **Corrida** ficou em blocos, de cima para baixo: **PISTA** (só pistas fechadas; as abertas ficam fora com uma nota), **TAMANHO DA PISTA** (2 · 4 · 6 trilhos: adapta qualquer pista fechada), **CARROS NA PISTA** (1 a 6), **PILOTOS** (um cartão por carro), **FORMATO** (voltas ou tempo) e **CORRIDA** (Largar, Voltar ao grid, relógio e placar). Os ajustes avançados ficam dobrados em **AJUSTES AVANÇADOS**. "Fechar circuito" só aparece no Construtor.
+
+**Campos de `RaceSettings` (`RaceSim.cs`):**
+- `raceFaixas`: tamanho escolhido (0 = o da própria pista). Zera quando a pista muda.
+- `cars` (1 a 6): quantos carros entram. Os trilhos sobrando ficam vazios.
+- `slots[]` (`PilotSlot { ai, skill }`): seis pilotos. Slot 1 é o jogador; slot 2 herda o antigo `bot`; os outros são IA. `FixSlots()` completa a lista ao carregar. `bot34` e `cars4` ficaram sem uso.
+
+**Adaptar** (`RaceController.Adapted(save, faixas)`): copia a pista com `faixas` trocado. A identidade muda (`f4|`/`f6|`), então ela é outra pista para os recordes. Com `TrackMath.Faixas(f)` → 2/4/6.
+
+**Pilotos:** cada cartão tem a faixa de cor do trilho, o seletor Jogador/Robô e a qualidade (`SliderInt`, com a palavra de nível). Teclado só para os 4 primeiros humanos; o 5º e o 6º são de controle ("Só com controle"). Com um carro só, o modo é treino contra o relógio.
+
+**Campeonato (offline e online):** o tamanho é livre até começar. Escolhido o tamanho, as etapas já no rascunho são adaptadas (`FitDraftStages`; online: `OnlineKind` reenvia as etapas). Qualquer pista fechada entra, e cada etapa é adaptada ao tamanho do campeonato ao ser adicionada. Ao sortear, o host procura a pista que, adaptada, tem a identidade da etapa.
+
+**Testes (Unity, Play mode, dados reais restaurados depois):**
+- Oval adaptada para 4, 6 e 2 trilhos continua fechada com as identidades `6bcdca3d`, `265259f3` e `a34f4cb9`.
+- 6 trilhos com 5 carros: 5 presentes. Voltando a 2 trilhos: 2 presentes (o número de carros é mantido).
+- Troca de pista zera `raceFaixas`.
+- 4 trilhos com 3 carros: `aiSkill` = `[0, 85, 40, 0, 0, 0]`; 3 cartões de piloto; 3 pistas na lista (1 aberta escondida, com nota).
+- 1 carro, voltas: concluída em 21,5 s, 2 voltas. 1 carro, tempo: concluída em 60 s, distância 5,57, pista girada para a 4ª faixa.
+- Campeonato e online: a lógica foi escrita e compila, mas **não foi testada em Play mode** nesta etapa.
