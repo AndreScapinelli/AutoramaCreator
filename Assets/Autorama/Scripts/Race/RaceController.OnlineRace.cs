@@ -30,8 +30,10 @@ namespace Autorama
         float snapAcc, inAcc;
         bool lastSentHeld;
         int myRe;
+        readonly float[] seenBest = new float[RaceSim.MaxCars];   // a melhor volta de cada carro já vista (aviso de recorde)
 
         bool OnlinePresent(string id) => room != null && room.Player(id) != null;
+        string OnlineHostName() => room?.Player(room.host)?.name is string n && n != "" ? Safe(n) : "host";
 
         static int LaneOf(Pilot[] pl, string id) { for (int k = 0; k < pl.Length; k++) if (pl[k] != null && pl[k].id == id) return k; return -1; }
 
@@ -57,9 +59,12 @@ namespace Autorama
                 {
                     var p = m.pilots[i];
                     string tag = Champ.TagOf(p.name);
-                    C.pilots.Add(new Pilot { id = p.id, name = Safe(p.name), tag = tag != "" ? tag : "P" + (i + 1), color = p.color });
+                    // uid: o id fixo do jogador (melhor pessoal online). Na Steam ele sai do próprio SteamID, não do que o host diz.
+                    string uid = p.uid != null && p.uid.StartsWith("steam:") ? "steam:" + p.id : p.uid;
+                    C.pilots.Add(new Pilot { id = p.id, name = Safe(p.name), tag = tag != "" ? tag : "P" + (i + 1), color = p.color, uid = uid });
                 }
-                foreach (var s in m.stages) C.stages.Add(new Stage { name = Safe(s.name), laps = s.laps, secs = s.secs > 0 ? s.secs : 120, hash = s.hash, data = TrackSave.FromJson(s.json) });
+                // A identidade da pista (recordes) é calculada aqui, a partir do JSON, e não a que o host mandou.
+                foreach (var s in m.stages) { var d = TrackSave.FromJson(s.json); C.stages.Add(new Stage { name = Safe(s.name), laps = s.laps, secs = s.secs > 0 ? s.secs : 120, hash = Champ.TrackHash(d), data = d }); }
                 if (C.pilots.Count < 2 || C.stages.Count == 0) throw new Exception("campeonato vazio");
                 // Pista de 2 ou de 4 (a primeira etapa decide; todas iguais). Com menos jogadores que trilhos, sobra trilho vazio.
                 C.faixas = C.stages[0].data.Faixas;
@@ -83,7 +88,6 @@ namespace Autorama
             // A tela do campeonato offline muda de aba, e o chat entra logo abaixo do placar da bateria.
             oRun.Insert(0, cRun);
             cRun.Insert(Mathf.Min(1, cRun.childCount), oRunChatSec);
-            cRecs.parent.style.display = DisplayStyle.None;
             cRun.style.display = DisplayStyle.Flex;
             topBox.style.display = DisplayStyle.Flex;
             DrawOnline();
@@ -98,7 +102,6 @@ namespace Autorama
             panel.SetOnlineRacing(false);
             oRunChatSec.RemoveFromHierarchy();
             panel.ChampBox.Add(cRun);                    // devolve a tela à aba Campeonato (ela se redesenha ao abrir)
-            cRecs.parent.style.display = DisplayStyle.Flex;
             remoteHeld.Clear(); remoteRe.Clear();
             for (int k = 0; k < RaceSim.MaxCars; k++) uiHeld[k] = false;
             sim.set = set; sim.cutoff = null; System.Array.Clear(sim.aiSkill, 0, sim.aiSkill.Length);
@@ -117,6 +120,7 @@ namespace Autorama
         {
             UseChampTrack();
             sim.Reset();
+            ClearSeenBest();
             for (int k = 0; k < RaceSim.MaxCars; k++) uiHeld[k] = false;
             lastSentHeld = false; snapAcc = 1f;
             if (HeatNow(out _, out int idx, out _, out _, out var pl))
@@ -187,6 +191,7 @@ namespace Autorama
             }
 
             sim.Step(dt);
+            if (IsHost) OnlineLapFlash();
             if (sim.phase != lastPhase) { lastPhase = sim.phase; scoreDirty = champDirty = true; snapAcc = 1f; SideForPhase(); }
             if (IsHost && live) SendSnapshot(dt, idx);
 
@@ -253,8 +258,25 @@ namespace Autorama
             if (!HeatNow(out _, out int idx, out _, out _, out var pl) || s.hi != idx) return;
             int before = ScoreSig();
             NetSync.Apply(s, sim, LaneOf(pl, myId));
+            OnlineLapFlash();
             if (ScoreSig() != before) scoreDirty = true;
         }
+
+        // Online o aviso "Recorde da pista!" sai da melhor volta que muda: no host, depois do Step; no visitante, depois do
+        // snapshot (a predição do visitante não conta). Zera a cada bateria e a cada largada.
+        void OnlineLapFlash()
+        {
+            float human = float.PositiveInfinity;
+            for (int k = 0; k < sim.N; k++) if (sim.present[k] && !float.IsPositiveInfinity(seenBest[k])) human = Mathf.Min(human, seenBest[k]);
+            for (int k = 0; k < sim.N; k++)
+            {
+                float b = sim.cars[k].best ?? float.PositiveInfinity;
+                if (b < seenBest[k] && sim.phase != RaceSim.Phase.Idle) LapFlash(k, b, seenBest[k], human);
+                seenBest[k] = b;
+            }
+        }
+
+        void ClearSeenBest() { for (int k = 0; k < seenBest.Length; k++) seenBest[k] = float.PositiveInfinity; }
 
         int ScoreSig()
         {
@@ -274,11 +296,13 @@ namespace Autorama
             if (m.k == "res")
             {
                 if (m.hi != Champ.CurrentHeat(onlineChamp) || m.heatRes.Count < onlineChamp.heats[m.hi].p.Length) return;
-                onlineChamp.heats[m.hi].res = m.heatRes.GetRange(0, onlineChamp.heats[m.hi].p.Length).ToArray();
+                var res = m.heatRes.GetRange(0, onlineChamp.heats[m.hi].p.Length).ToArray();
+                HeatRecords(onlineChamp, m.hi, res, true);         // cada um grava os recordes no seu recordes.json
+                onlineChamp.heats[m.hi].res = res;
                 if (Champ.CurrentHeat(onlineChamp) < 0) onlineChamp.finished = Champ.Now;
                 OnlineHeatLoaded();
             }
-            else if (m.k == "reset") { sim.Reset(); scoreDirty = champDirty = true; }
+            else if (m.k == "reset") { sim.Reset(); ClearSeenBest(); scoreDirty = champDirty = true; }
         }
 
         // ---------- Ações do host ----------
@@ -300,6 +324,7 @@ namespace Autorama
         {
             if (!IsHost) return;
             sim.Reset();
+            ClearSeenBest();
             var ev = new NetOutEv { k = "reset" };
             net.Send(ev);
             scoreDirty = champDirty = true; snapAcc = 1f;
@@ -312,7 +337,7 @@ namespace Autorama
             {
                 var c = sim.cars[k];
                 if (!sim.present[k]) { res[k] = new HeatResult { dnf = true }; continue; }
-                res[k] = new HeatResult { laps = c.laps, time = c.finish ?? sim.t, dnf = !c.finish.HasValue && !sim.ByTime, best = c.best ?? -1f, offs = c.offs, hits = c.hits, dist = Mathf.Max(0f, sim.Dist(k)) };
+                res[k] = new HeatResult { laps = c.laps, time = c.finish ?? sim.t, dnf = !c.finish.HasValue && !sim.ByTime, best = c.best ?? -1f, fin = c.finish ?? -1f, offs = c.offs, hits = c.hits, dist = Mathf.Max(0f, sim.Dist(k)) };
             }
             return res;
         }
@@ -329,6 +354,7 @@ namespace Autorama
         void OnlineCommit(int idx, HeatResult[] res)
         {
             var C = onlineChamp;
+            HeatRecords(C, idx, res, true);
             C.heats[idx].res = res;
             if (Champ.CurrentHeat(C) < 0) C.finished = Champ.Now;
             var ev = new NetOutEv { k = "res", hi = idx };

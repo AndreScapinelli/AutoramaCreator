@@ -2143,7 +2143,9 @@ public static string TrackHash(TrackSave t)
 - se a volta for menor que o recorde salvo e que a melhor volta da bateria, o controle mostra "**Recorde da pista!**" em amarelo por 2,5 s;
 - se for só menor que o melhor pessoal (que já existia), mostra "**Melhor volta pessoal!**" em verde.
 
-**Corrida livre.** Não grava recorde, mas mostra o recorde da pista como meta: "Recorde da pista: 4,03 s CAI".
+**Corrida livre.** Não grava recorde. Na Unity, os recordes da pista aparecem no cartão antes da largada (seção 39), se ela tiver algum.
+
+**Online e cartão antes da largada:** seção 39.
 
 ### 19.7 Telas (UI Toolkit)
 
@@ -2548,9 +2550,9 @@ net.Send(new NetOutSnap { snap = NetSync.Pack(sim, heatIndex) });
 ```
 
 **Cuidados.**
-- O `RaceController` usa `ActiveChamp` (o campeonato online, se houver; senão o offline) e `ChampLike` (aba Campeonato **ou** campeonato online) no lugar de `store.Active` e `panel.ChampMode` na tela, no placar, nos controles, no status e no banner. O `OnLapDone` (avisos de recorde) continua só no offline.
+- O `RaceController` usa `ActiveChamp` (o campeonato online, se houver; senão o offline) e `ChampLike` (aba Campeonato **ou** campeonato online) no lugar de `store.Active` e `panel.ChampMode` na tela, no placar, nos controles, no status e no banner. O `OnLapDone` continua só no offline; no online o aviso de recorde sai do `OnlineLapFlash` (seção 39).
 - Com o campeonato online, o `Update` vai para `OnlineRunUpdate`; `OnlineExitRun` devolve a tela do campeonato à aba Campeonato (`cRun` troca de pai) e restaura a mesa.
-- Os recordes da pista **não** são gravados no campeonato online.
+- Os recordes da pista são gravados no campeonato online, por todos, cada um no seu `recordes.json` (seção 39).
 
 ### 23.6 Testes feitos
 
@@ -2577,7 +2579,7 @@ Depois do deploy, escreva o endereço (`wss://SEU-APP.fly.dev`) em `OnlineClient
 
 ### 23.8 Próximos passos
 
-1. Recordes da pista e histórico no campeonato online (hoje só o offline grava).
+1. Histórico no campeonato online (os recordes já são gravados: seção 39).
 2. Reduzir o snapshot (campos que quase nunca mudam, ou só o que mudou) se a banda for um problema.
 3. Expulsar jogador, passar o host adiante sem encerrar o campeonato, reconectar no meio da prova.
 
@@ -3156,6 +3158,7 @@ minimap.Refresh(sim, set, miniNames, miniColors, Order(), builder != null ? buil
 **Testes:**
 - Compila: `typeof(RaceMinimap)` acessível depois de `script recompile`.
 - Play mode, oval, corrida em andamento, aba aberta: o mapa com os dois carrinhos, a lista "1º JOGADOR 1 / 2º ROBÔ" e a volta "1/3" aparecem. Captura feita (`mini5.png`, apagada depois). Nas linhas, "última" e "melhor" ainda estavam em "—" (nenhuma volta concluída) e a distância em 0,0 m, como esperado no início da corrida.
+- **Correção (troca de pista):** `EnsureTrack` chamava `SameAs(builtFor)`, que comparava a lista com ela mesma, então o traçado da primeira pista ficava para sempre e os pontos dos carrinhos andavam fora do desenho. Agora é `if (builtFor != null && SameAs(sim.paths)) return;`. Corrida, campeonato e online usam o mesmo `sim`, o mesmo `SetTrack` (`OnTrackChanged`) e o mesmo `PlaceCars` → `UpdateMinimap`, então a correção vale para os três. Teste (`script eval`, pista de 63 peças, depois `SetTrack` com o primeiro terço dela): antes, a caixa do traçado ficava igual (64,54 × 30,69) e `builtFor[0]` não era o caminho atual; depois, a caixa muda para 41,29 × 23,92 e `builtFor[0] == sim.paths[0]`. Não foi testado em Play mode nem numa sala online de verdade.
 - **Pendente:** arrastar e redimensionar com o mouse, e a posição salva voltando depois de reiniciar o Play. Não foi testado porque o Editor parou de responder às chamadas de teste nesta sessão. Também falta conferir a distância depois de algumas voltas e a corrida online.
 
 ## 36. Teclas dos jogadores (tela de opções, só Unity)
@@ -3323,3 +3326,55 @@ O construtor em HTML (`html/index.html`, um arquivo só em SVG) foi a versão de
 - **Texturas:** `ferramentas/gen-texturas.js` continua (gera as texturas da Unity; as cores vieram do HTML).
 
 **Testes:** o que antes se testava no HTML sem navegador agora se testa com `script eval` no `RaceSim`, no `Champ` e no `TrackLayout`, que não dependem de cena.
+
+---
+
+## 39. Recordes no online e cartão antes da largada (só Unity)
+
+Até aqui os recordes eram só do campeonato offline. Agora o campeonato online também grava, **em todos os computadores da sala**, e antes de cada largada aparece um cartão com os recordes.
+
+### 39.1 Todos gravam
+
+Ninguém recebe recorde pronto do host. Cada um faz a mesma conta com o resultado da bateria e grava no seu próprio `recordes.json`:
+- **Host:** em `OnlineCommit`, antes de mandar `ev res`.
+- **Visitante:** ao receber `ev res`, com os números do host.
+- **Offline:** em `ChampSave`, igual a antes.
+
+Os três chamam `HeatRecords(C, idx, res, online)` (`RaceController.Champ.cs`). Ela recebe só o `HeatResult[]` da bateria, não o `RaceSim`. Para o recorde de corrida, o `HeatResult` ganhou `fin` (a chegada; −1 se não chegou). Um host de versão antiga não manda `fin`: aí só o recorde de volta e o de trilho valem. As marcas `rec`, `raceRec` e `pb` que vêm do host são apagadas e recalculadas por cada um, contra os recordes que ele tem.
+
+**A identidade da pista** do online é calculada por cada um a partir do JSON da etapa (`Champ.TrackHash`). O `hash` mandado pelo host não é usado.
+
+**Confiança.** O host roda a física, então um host trapaceiro poderia mandar um tempo inventado. Por isso todo recorde feito online leva `Rec.online = true` e `Rec.host` (o nome do host). Na tela ele aparece com "online": "4,03 s BET · online" no cartão e "Beto online" no quadro "RECORDES DA PISTA". Os recordes offline continuam como antes (`online` falso). O recorde online ainda substitui o offline se for melhor.
+
+**O que não mudou:** IA não bate recorde; volta com turbo não vale; recorde por trilho só com cruzamentos pares e sem ser por tempo.
+
+### 39.2 Id fixo do jogador
+
+Online, o id do piloto é o da sala (`"3"`, `"17"`…) e muda a cada vez. O melhor pessoal precisa de algo fixo:
+- **Servidor Node:** `ChampFiles.PlayerUid()` cria uma vez um id de 32 letras e números (`Guid` "N") e guarda em `jogador.json`. Ele vai no `create` e no `join` (`NetOut.uid`). O servidor aceita `[A-Za-z0-9:-]{8,64}`, repassa em `players` e em `started` (`NetPlayer.uid`), e deixa vazio se for inválido ou se já houver alguém com o mesmo na sala.
+- **Steam:** `uid = "steam:<SteamID>"`. O visitante não usa o que o host escreveu: se começa com `steam:`, refaz a partir do id do jogador.
+- O `Pilot` ganhou `uid` (vazio no offline). A chave do melhor pessoal é `BestKey`: no offline o `id` do piloto (como antes); no online `"u:" + uid`. Sem `uid` (cliente antigo), o melhor pessoal online não é guardado.
+
+### 39.3 Aviso de recorde durante a prova
+
+No visitante, a volta completa (`LapDone`) pode vir da predição, não do host. Por isso no online o aviso "Recorde da pista!" / "Melhor volta pessoal!" vem de `OnlineLapFlash`: ele guarda a melhor volta de cada carro (`seenBest`) e avisa quando ela cai. No host, ele roda depois do `Step`; no visitante, depois de cada snapshot. `seenBest` zera a cada bateria e a cada "Correr de novo". A conta do aviso é a mesma do offline (`LapFlash`).
+
+### 39.4 Cartão antes da largada
+
+Em `RaceController.Records.cs`. Aparece na faixa do meio da mesa com a corrida parada (`Idle`) e a pista fechada, e some quando acendem as luzes do 3, 2, 1.
+
+- **Campeonato (offline e online):** título "Recordes · <etapa>". Linhas:
+  - "Volta" com o recorde da pista;
+  - "N voltas" com o recorde de corrida (não aparece por tempo);
+  - uma linha por piloto da bateria, com a cor dele: "Ana · Trilho 1 | trilho 4,10 s ANA | seu melhor 4,30 s". Sem recorde no trilho: "trilho sem recorde". Sem volta guardada: "primeira vez aqui". Sem recorde por trilho (cruzamentos ímpares, por tempo), a coluna do trilho some.
+- Se a faixa já tinha algo a dizer (quem venceu a etapa anterior), o título fica o dela e o cartão entra embaixo.
+- **Corrida livre:** "Recordes da pista", só se a pista tiver recorde de volta. Mostra a volta, a corrida com as voltas escolhidas (se houver) e o recorde de cada trilho. A identidade da pista é recalculada só quando `builder.Info` muda.
+- O cartão usa as classes do resultado (`res-table`, `res-row`, `res-name`, `res-cell`) e se redesenha só quando o texto muda (`recCardSig`).
+- Os botões do resultado ("Correr de novo", "Trocar pista") começavam visíveis e só sumiam depois da primeira corrida; com o cartão eles são escondidos (`DrawResult(false)`).
+
+### 39.5 Testes feitos
+
+- **`HeatRecords` (Play mode, `script eval`, com um `RecordsFile` vazio no lugar do do jogador):** bateria online, Ana (com `uid`) 4,5 s e chegada 14 s, Beto (sem `uid`) 4,2 s e 15 s. Resultado: volta 4,2 BET com `online` e o host, 3 voltas 14 ANA, trilhos 4,5 e 4,2, melhor pessoal só de `u:uid-ana`. Segunda bateria (offline, trilhos trocados): a marca `rec` que veio ligada foi zerada; Ana 4,3 não bateu 4,2; o recorde de 3 voltas foi para 13,5 ANA com `online` falso; os trilhos não mudaram (4,6 e 4,3 piores).
+- **Tela (Play mode):** corrida livre no oval (por tempo) com recorde: cartão "Recordes da pista" só com a volta, "4,20 s BET · online". Campeonato offline no oval com 2 pilotos: as quatro linhas (volta online, 3 voltas, Ana com trilho e melhor pessoal, Beto com "primeira vez aqui"), e sem os botões do resultado.
+- **Servidor:** `node --check` nos dois arquivos. Entrou no `teste.js` a verificação do `uid` em `started` (o do host vai; repetido e inválido ficam vazios), mas o `npm test` **não rodou**: nesta máquina não havia `npm` nem `node_modules`.
+- **Não testado:** uma corrida online de verdade entre dois computadores (o `OnlineSmokeTest` precisa do servidor rodando) e a Steam.

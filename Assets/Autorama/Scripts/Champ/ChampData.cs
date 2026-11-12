@@ -20,6 +20,7 @@ namespace Autorama
         public string id, name, tag, color;      // color: "#RRGGBB"
         public bool ai;                          // o computador dirige
         public int skill = 50;                   // qualidade do piloto IA, 1–100
+        public string uid;                       // online: o id fixo do jogador (jogador.json ou "steam:…"); vazio no offline
         public Color Color => ColorUtility.TryParseHtmlString(color, out var c) ? c : Color.red;
         public Pilot Copy() => (Pilot)MemberwiseClone();
     }
@@ -33,6 +34,7 @@ namespace Autorama
         public float time, best = -1f;           // best −1: nenhuma volta completa
         public bool dnf, rec, raceRec, pb;       // não terminou; bateu recorde de volta, de corrida ou o melhor pessoal
         public float dist;                       // corrida por tempo: voltas andadas com a fração da última
+        public float fin = -1f;                  // a chegada (−1: não chegou); é com ela que se compara o recorde de corrida
     }
 
     [Serializable]
@@ -78,7 +80,8 @@ namespace Autorama
 
     // ---------- Recordes ----------
 
-    [Serializable] public class Rec { public float t = -1f; public Pilot pilot; public long date; public string champ; public int lane; public bool Has => t >= 0f; }
+    // online: feito num campeonato online (o tempo veio do host, que pode ter trapaceado) · host: o nome do host
+    [Serializable] public class Rec { public float t = -1f; public Pilot pilot; public long date; public string champ; public int lane; public bool online; public string host; public bool Has => t >= 0f; }
     [Serializable] public class RaceRec { public int laps; public Rec rec = new Rec(); }
     [Serializable] public class PilotBest { public string pilot; public float lap = -1f; public List<RaceRec> race = new List<RaceRec>(); }
 
@@ -104,6 +107,9 @@ namespace Autorama
     }
 
     [Serializable] public class RecordsFile { public List<TrackRecords> tracks = new List<TrackRecords>(); }
+
+    // jogador.json: o id fixo deste computador no online (o melhor pessoal online fica preso a ele).
+    [Serializable] public class PlayerFile { public string uid; }
 
     // ---------- Regras e contas ----------
 
@@ -335,6 +341,17 @@ namespace Autorama
         public static bool SaveStore(ChampStore s) => Write(StorePath, s);
 
         public static RecordsFile LoadRecords() => Read<RecordsFile>(RecordsPath);
+
+        // O id fixo do jogador no online: criado uma vez e guardado em jogador.json (32 letras e números).
+        static string uid;
+        public static string PlayerUid()
+        {
+            if (!string.IsNullOrEmpty(uid)) return uid;
+            string path = Path.Combine(TrackLibrary.Root, "jogador.json");
+            var f = Read<PlayerFile>(path);
+            if (string.IsNullOrEmpty(f.uid) || f.uid.Length < 16) { f.uid = Guid.NewGuid().ToString("N"); Write(path, f); }
+            return uid = f.uid;
+        }
         public static bool SaveRecords(RecordsFile r) => Write(RecordsPath, r);
 
         static void Clean(Pilot p)

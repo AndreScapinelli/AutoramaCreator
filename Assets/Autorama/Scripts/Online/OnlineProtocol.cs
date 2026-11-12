@@ -6,7 +6,8 @@ namespace Autorama
     // Mensagens trocadas com o servidor de salas (servidor/servidor.js; seção "Campeonato online" do guia).
     // São JSON de uma linha com o tipo em "t". O JsonUtility não faz herança, então cada direção tem classes enxutas.
 
-    [Serializable] public class NetPlayer { public string id, name, color; public bool ready; }
+    // uid: o id fixo do jogador (jogador.json, ou "steam:<SteamID>"); vazio: cliente antigo
+    [Serializable] public class NetPlayer { public string id, name, color, uid; public bool ready; }
     // secs: duração por tempo (0 = cliente antigo, vale 120) · tempo: o host escolheu "por tempo" · faixas: pista de 2 ou 4 carros
     [Serializable] public class NetStage { public string name, hash, json; public int laps, secs, faixas; public bool tempo; }   // json: a pista (TrackSave); o servidor só devolve o resumo
 
@@ -84,6 +85,7 @@ namespace Autorama
     public class NetOut
     {
         public string t, name, roomName, code, color, text;
+        public string uid;                                // create/join: o id fixo do jogador (jogador.json)
         public bool pub, ready, held, collide, byTime;
         public bool turbo = true;                         // start: turbo ligado (regra da sala, como a colisão)
         public int re, ver;                               // ver: versão do protocolo (hello)

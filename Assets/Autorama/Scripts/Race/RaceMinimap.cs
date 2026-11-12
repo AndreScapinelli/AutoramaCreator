@@ -213,7 +213,7 @@ namespace Autorama
         void EnsureTrack()
         {
             if (sim == null || !sim.Ready) { track.Clear(); trackLane.Clear(); builtFor = null; return; }
-            if (builtFor != null && builtFor.Length == sim.paths.Length && SameAs(builtFor)) return;
+            if (builtFor != null && SameAs(sim.paths)) return;
             builtFor = (LanePath[])sim.paths.Clone();
             track.Clear(); trackLane.Clear();
             float x0 = float.MaxValue, y0 = float.MaxValue, x1 = float.MinValue, y1 = float.MinValue;

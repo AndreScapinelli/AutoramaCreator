@@ -180,11 +180,11 @@ const trilha = (n, extra = {}) => ({ name: 'Pista ' + n, laps: 3, hash: 'a34f4cb
 
   // ---------- corrida: pronto, largar, relay ----------
   const H = await cliente(P), A = await cliente(P), B = await cliente(P);
-  H.send({ t: 'create', name: 'Hugo', pub: false }); const room2 = (await H.next('joined')).room.code;
+  H.send({ t: 'create', name: 'Hugo', pub: false, uid: 'uid-do-hugo-123' }); const room2 = (await H.next('joined')).room.code;
   H.send({ t: 'start', vmax: 14, ramp: .5, grip: 29, collide: true });
   assert.strictEqual((await H.next('error')).code, 'poucos'); ok('começar sozinho é recusado');
-  A.send({ t: 'join', name: 'Ana', code: room2 }); const idA = (await A.next('joined')).you;
-  B.send({ t: 'join', name: 'Beto', code: room2 }); const idB = (await B.next('joined')).you;
+  A.send({ t: 'join', name: 'Ana', code: room2, uid: 'uid-do-hugo-123' }); const idA = (await A.next('joined')).you;
+  B.send({ t: 'join', name: 'Beto', code: room2, uid: '<b>x</b>' }); const idB = (await B.next('joined')).you;
   H.send({ t: 'start', vmax: 14, ramp: .5, grip: 29, collide: true });
   assert.strictEqual((await H.next('error')).code, 'sem-etapas'); ok('começar sem pistas é recusado');
   H.send({ t: 'stages', stages: [trilha(1), trilha(2)] }); await H.next('room');
@@ -208,6 +208,8 @@ const trilha = (n, extra = {}) => ({ name: 'Pista ' + n, laps: 3, hash: 'a34f4cb
   assert.strictEqual(st[1].title, 'Copa Teste'); assert.deepStrictEqual(st[1].pilots.map(p => p.name), ['Hugo', 'Ana', 'Beto']);
   assert.strictEqual(st[1].stages.length, 3); assert.strictEqual(st[1].stages[0].json, '{"nome":"x"}'); assert.strictEqual(st[1].rules.vmax, 14);
   ok('todos prontos: o host começa e todos recebem pilotos, regras e o JSON das pistas');
+  assert.deepStrictEqual(st[1].pilots.map(p => p.uid), ['uid-do-hugo-123', '', '']);
+  ok('o id fixo do jogador vai em started; repetido na sala ou inválido fica vazio');
 
   const C = await cliente(P); C.send({ t: 'join', name: 'Caio', code: room2 });
   assert.strictEqual((await C.next('error')).code, 'andamento');

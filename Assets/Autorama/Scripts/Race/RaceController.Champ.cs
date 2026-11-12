@@ -587,8 +587,7 @@ namespace Autorama
             }
             cPts.text = $"Pontos por etapa: {string.Join(" · ", System.Linq.Enumerable.Take(Champ.Points, Mathf.Clamp(C.pilots.Count, 2, Champ.Points.Length)))}, mais 1 para a melhor volta. Desempate: vitórias, pódios, tempo total.";
 
-            // Recordes da pista em uso (só no campeonato offline: os recordes ficam no computador de cada um).
-            if (!OnlineRun)
+            // Recordes da pista em uso (os deste computador; no online cada um grava os seus, seção 39).
             {
             var cur = C.stages[live ? heat.s : sIdx];
             var rec = FindRecords(cur.hash);
@@ -600,7 +599,7 @@ namespace Autorama
                 var row = TableRow(cRecs);
                 Cell(row, label, "st-label");
                 var who = El("st-cell st-cell--name", row);
-                if (r != null && r.Has) { Tag(r.pilot, who); Text(r.pilot.name, "st-name", who); }
+                if (r != null && r.Has) { Tag(r.pilot, who); Text(r.pilot.name, "st-name", who); if (r.online) Text(" online", "small", who); }
                 else Text("ninguém ainda", "small", who);
                 Cell(row, r != null && r.Has ? Fmt(r.t) : "—", "st-time");
             }
@@ -610,7 +609,7 @@ namespace Autorama
             if (rec != null)
             {
                 var bests = new List<(Pilot p, float t)>();
-                foreach (var p in C.pilots) { var b = rec.Best(p.id, false); if (b != null && b.lap >= 0f) bests.Add((p, b.lap)); }
+                foreach (var p in C.pilots) { var key = BestKey(p, OnlineRun); var b = key != null ? rec.Best(key, false) : null; if (b != null && b.lap >= 0f) bests.Add((p, b.lap)); }
                 if (bests.Count > 0)
                 {
                     bests.Sort((a, b) => a.t.CompareTo(b.t));
@@ -774,13 +773,20 @@ namespace Autorama
         // Volta completa: avisa na hora se é recorde da pista ou o melhor pessoal (vale de verdade ao salvar a bateria).
         void OnLapDone(int k, float lap)
         {
-            if (!panel.ChampMode || !HeatNow(out _, out _, out _, out var stage, out var pl)) return;
+            if (!panel.ChampMode) return;
+            LapFlash(k, lap, sim.cars[k].best ?? float.PositiveInfinity, sim.HumanBest());
+        }
+
+        // carBest e humanBest: a melhor volta do carrinho e a de gente na bateria, antes desta volta.
+        void LapFlash(int k, float lap, float carBest, float humanBest)
+        {
+            if (!HeatNow(out _, out _, out _, out var stage, out var pl)) return;
             var R = FindRecords(stage.hash);
-            var c = sim.cars[k];
-            float track = Mathf.Min(R != null && R.lap.Has ? R.lap.t : float.PositiveInfinity, sim.HumanBest());
+            float track = Mathf.Min(R != null && R.lap.Has ? R.lap.t : float.PositiveInfinity, humanBest);
             if (k >= pl.Length || pl[k] == null) return;
-            var b = R?.Best(pl[k].id, false);
-            float own = Mathf.Min(b != null && b.lap >= 0f ? b.lap : float.PositiveInfinity, c.best ?? float.PositiveInfinity);
+            string key = BestKey(pl[k], OnlineRun);
+            var b = key != null ? R?.Best(key, false) : null;
+            float own = Mathf.Min(b != null && b.lap >= 0f ? b.lap : float.PositiveInfinity, carBest);
             var pad = pads[k];
             if (!pl[k].ai && lap < track) { pad.flash = $"Recorde da pista! {Fmt(lap)}"; pad.flashRec = true; pad.flashT = 2.5f; }
             else if (!float.IsPositiveInfinity(own) && lap < own) { pad.flash = $"Melhor volta pessoal! {Fmt(lap)}"; pad.flashRec = false; pad.flashT = 2.5f; }
@@ -789,55 +795,83 @@ namespace Autorama
         // Salva o resultado da bateria, atualiza os recordes e prepara a próxima.
         void ChampSave()
         {
-            if (sim.phase != RaceSim.Phase.Done || !HeatNow(out var C, out _, out var heat, out var stage, out var pl)) return;
+            if (sim.phase != RaceSim.Phase.Done || !HeatNow(out var C, out int idx, out var heat, out _, out var pl)) return;
+            var resList = new HeatResult[pl.Length];
+            for (int k = 0; k < pl.Length; k++)
+            {
+                var c = sim.cars[k];
+                resList[k] = pl[k] == null ? new HeatResult { dnf = true }      // trilho vazio
+                    : new HeatResult { laps = c.laps, time = c.finish ?? sim.t, dnf = !c.finish.HasValue && !C.byTime, best = c.best ?? -1f, fin = c.finish ?? -1f, offs = c.offs, hits = c.hits, dist = Mathf.Max(0f, sim.Dist(k)) };
+            }
+            HeatRecords(C, idx, resList, false);
+            heat.res = resList;
+            if (Champ.CurrentHeat(C) < 0) C.finished = Champ.Now;
+            SaveStore();
+            RefreshChamp();
+        }
+
+        // A chave do melhor pessoal: o id do piloto no offline; no online, o id fixo do jogador (sem ele, não guarda).
+        static string BestKey(Pilot p, bool online) => !online ? p.id : string.IsNullOrEmpty(p.uid) ? null : "u:" + p.uid;
+
+        // Grava os recordes de uma bateria a partir do resultado dela (best e fin de cada trilho) e marca rec, raceRec e pb.
+        // O offline, o host e cada visitante do online fazem a mesma conta, cada um no seu recordes.json (seção 39).
+        void HeatRecords(Championship C, int idx, HeatResult[] res, bool online)
+        {
+            var heat = C.heats[idx]; var stage = C.stages[heat.s];
+            var pl = new Pilot[heat.p.Length];
+            for (int k = 0; k < pl.Length; k++) pl[k] = heat.p[k] >= 0 && heat.p[k] < C.pilots.Count ? C.pilots[heat.p[k]] : null;
             var R = FindRecords(stage.hash, true, stage.name);
             R.name = stage.name;
             bool odd = Champ.CrossCount(stage.data) % 2 == 1;
             int L = stage.laps;
             long now = Champ.Now;
+            string host = online ? OnlineHostName() : null;
             float prevLap = R.lap.Has ? R.lap.t : float.PositiveInfinity;
             var prevRaceRec = R.Race(L);
             float prevRace = prevRaceRec != null && prevRaceRec.Has ? prevRaceRec.t : float.PositiveInfinity;
             // Recordes da pista são de gente: piloto IA só guarda o melhor pessoal dele.
-            float heatBest = sim.HumanBest(), heatFin = float.PositiveInfinity;
-            for (int k = 0; k < pl.Length; k++) if (pl[k] != null && !pl[k].ai && sim.cars[k].finish.HasValue) heatFin = Mathf.Min(heatFin, sim.cars[k].finish.Value);
-            var news = new List<string>();
-            var resList = new HeatResult[pl.Length];
-            for (int k = 0; k < pl.Length; k++)
+            float heatBest = float.PositiveInfinity, heatFin = float.PositiveInfinity;
+            for (int k = 0; k < pl.Length && k < res.Length; k++)
             {
-                var c = sim.cars[k]; var p = pl[k];
-                if (p == null) { resList[k] = new HeatResult { dnf = true }; continue; }     // trilho vazio
-                Rec Make(float t) => new Rec { t = t, pilot = p.Copy(), date = now, champ = C.name, lane = k };
-                var pb = R.Best(p.id, true);
-                var res = new HeatResult { laps = c.laps, time = c.finish ?? sim.t, dnf = !c.finish.HasValue && !C.byTime, best = c.best ?? -1f, offs = c.offs, hits = c.hits, dist = Mathf.Max(0f, sim.Dist(k)) };
-                if (c.best.HasValue)
+                if (pl[k] == null || pl[k].ai || res[k] == null) continue;
+                if (res[k].best >= 0f) heatBest = Mathf.Min(heatBest, res[k].best);
+                if (res[k].fin >= 0f) heatFin = Mathf.Min(heatFin, res[k].fin);
+            }
+            var news = new List<string>();
+            for (int k = 0; k < pl.Length && k < res.Length; k++)
+            {
+                var p = pl[k]; var r = res[k];
+                if (p == null || r == null) continue;
+                r.rec = r.raceRec = r.pb = false;                 // o online recebe as marcas do host: aqui valem as nossas
+                Rec Make(float t) => new Rec { t = t, pilot = p.Copy(), date = now, champ = C.name, lane = k, online = online, host = host };
+                string key = BestKey(p, online);
+                var pb = key != null ? R.Best(key, true) : null;
+                if (r.best >= 0f)
                 {
-                    float best = c.best.Value;
+                    float best = r.best;
                     if (!p.ai)
                     {
-                        if (best == heatBest && best < prevLap) { R.lap = Make(best); res.rec = true; news.Add($"recorde de volta de {p.name} ({Fmt(best)})"); }
+                        if (best == heatBest && best < prevLap) { R.lap = Make(best); r.rec = true; news.Add($"recorde de volta de {p.name} ({Fmt(best)})"); }
                         // Com cruzamentos em número ímpar o carrinho passa pelos dois trilhos: recorde por trilho não faz sentido.
                         // Por tempo o carrinho passa por todos os trilhos: também não há recorde por trilho.
                         if (!odd && !C.byTime && (!R.Lane(k).Has || best < R.Lane(k).t)) R.SetLane(k, Make(best));
                     }
-                    if (pb.lap < 0f || best < pb.lap) { res.pb = pb.lap >= 0f; pb.lap = best; }
+                    if (pb != null && (pb.lap < 0f || best < pb.lap)) { r.pb = pb.lap >= 0f; pb.lap = best; }
                 }
-                if (c.finish.HasValue)
+                if (r.fin >= 0f)
                 {
-                    float fin = c.finish.Value;
-                    if (!p.ai && fin == heatFin && fin < prevRace) { R.SetRace(L, Make(fin)); res.raceRec = true; news.Add($"recorde de {L} voltas de {p.name} ({Fmt(fin)})"); }
-                    var mine = pb.race.Find(x => x.laps == L);
-                    if (mine == null) pb.race.Add(new RaceRec { laps = L, rec = Make(fin) });
-                    else if (fin < mine.rec.t) mine.rec = Make(fin);
+                    float fin = r.fin;
+                    if (!p.ai && fin == heatFin && fin < prevRace) { R.SetRace(L, Make(fin)); r.raceRec = true; news.Add($"recorde de {L} voltas de {p.name} ({Fmt(fin)})"); }
+                    if (pb != null)
+                    {
+                        var mine = pb.race.Find(x => x.laps == L);
+                        if (mine == null) pb.race.Add(new RaceRec { laps = L, rec = Make(fin) });
+                        else if (fin < mine.rec.t) mine.rec = Make(fin);
+                    }
                 }
-                resList[k] = res;
             }
-            heat.res = resList;
-            if (Champ.CurrentHeat(C) < 0) C.finished = now;
             ChampFiles.SaveRecords(recs);
-            SaveStore();
             if (news.Count > 0) panel.Toast("Novo " + string.Join(" e novo ", news) + ".");
-            RefreshChamp();
         }
 
         void ChampArchive()
@@ -890,9 +924,9 @@ namespace Autorama
                 title = $"{pl[sim.winner].name} vence a bateria";
                 sub = $"{Fmt(c.finish)} · melhor volta {Fmt(c.best)}";
                 // Recorde de volta na bateria: pode ter sido de quem perdeu, então diz de quem é.
-                var R = OnlineRun ? null : FindRecords(stage.hash);     // recordes só no campeonato offline
+                var R = FindRecords(stage.hash);
                 float hb = sim.HumanBest();
-                if (!OnlineRun && !float.IsPositiveInfinity(hb) && (R == null || !R.lap.Has || hb < R.lap.t))
+                if (!float.IsPositiveInfinity(hb) && (R == null || !R.lap.Has || hb < R.lap.t))
                     for (int k = 0; k < pl.Length; k++) if (pl[k] != null && !pl[k].ai && sim.cars[k].best == hb) { sub += $" · RECORDE {pl[k].tag} {Fmt(hb)}"; break; }
                 return true;
             }

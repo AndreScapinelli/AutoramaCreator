@@ -348,7 +348,7 @@ namespace Autorama
             string name = RequireName(); if (name == null) return;
             bool pub = oPublic.value;
             string roomName = (oRoomName.value ?? "").Trim();
-            WhenConnected(() => net.Send(new NetOut { t = "create", name = name, roomName = roomName, pub = pub }));
+            WhenConnected(() => net.Send(new NetOut { t = "create", name = name, roomName = roomName, pub = pub, uid = ChampFiles.PlayerUid() }));
         }
 
         void JoinByCode()
@@ -359,7 +359,7 @@ namespace Autorama
             JoinRoom(name, code);
         }
 
-        void JoinRoom(string name, string code) => WhenConnected(() => net.Send(new NetOut { t = "join", name = name, code = code }));
+        void JoinRoom(string name, string code) => WhenConnected(() => net.Send(new NetOut { t = "join", name = name, code = code, uid = ChampFiles.PlayerUid() }));
 
         void RefreshRooms() => WhenConnected(() => net.Send(new NetOut { t = "list" }));
 

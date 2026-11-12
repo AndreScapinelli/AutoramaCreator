@@ -569,6 +569,8 @@ namespace Autorama
             banner = El("banner", topBox);
             bannerTitle = Text("", "banner-title", banner);
             bannerSub = Text("", "banner-sub", banner);
+            recCard = El("res-table", banner);              // recordes antes da largada (RaceController.Records.cs)
+            recCard.style.display = DisplayStyle.None;
             resTable = El("res-table", banner);
             resBtns = El("res-btns", banner);
             resAgain = Btn("Correr de novo  (Enter)", () => { if (ChampLike) ChampEnter(); else StartRace(); }, "btn btn--accent res-btn", resBtns);
@@ -1192,12 +1194,25 @@ namespace Autorama
                     lightDots[i].EnableInClassList("light--green", sim.phase == RaceSim.Phase.Running);
                 }
             }
+            // Antes do 3, 2, 1: os recordes da pista (e de cada piloto da bateria).
+            bool card = StartCard(out string cardTitle) && !showLights;
+            DrawRecCard(card);
+            bannerSub.style.display = DisplayStyle.Flex;
             if (ChampLike)
             {
                 bool champShow = ChampBanner(out string title, out string sub) && !showLights;
+                if (card && !champShow) { champShow = true; title = cardTitle; sub = ""; }
                 banner.style.display = champShow ? DisplayStyle.Flex : DisplayStyle.None;
-                if (champShow) { bannerTitle.text = title; bannerSub.text = sub; BannerColor(-1); }
+                if (champShow) { bannerTitle.text = title; bannerSub.text = sub; BannerColor(-1); bannerSub.style.display = sub == "" ? DisplayStyle.None : DisplayStyle.Flex; }
                 SetResult(champShow && sim.phase == RaceSim.Phase.Done && sim.winner >= 0);
+                if (card) DrawResult(false);                 // os botões do resultado começam visíveis
+                return;
+            }
+            if (card && sim.winner < 0)
+            {
+                banner.style.display = DisplayStyle.Flex;
+                SetResult(false); DrawResult(false);
+                bannerTitle.text = cardTitle; bannerSub.style.display = DisplayStyle.None; BannerColor(-1);
                 return;
             }
             bool showBanner = !showLights && (sim.winner >= 0 || !sim.closed);

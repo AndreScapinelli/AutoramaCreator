@@ -34,7 +34,7 @@ O usuário escreve em português, e o projeto inteiro também: textos da interfa
 
 O servidor de salas do campeonato online fica em `servidor/` (Node, fora do `Assets`). Campeonato online: seção 23 do guia.
 
-A cena é `Assets/Autorama/Cenas/Construtor.unity`. Os dados do jogo ficam em `Application.persistentDataPath/autorama/`: `pistas/`, `rascunho.json`, `pilotos.json`, `campeonatos.json` e `recordes.json`.
+A cena é `Assets/Autorama/Cenas/Construtor.unity`. Os dados do jogo ficam em `Application.persistentDataPath/autorama/`: `pistas/`, `rascunho.json`, `pilotos.json`, `campeonatos.json`, `recordes.json` e `jogador.json` (o id fixo do jogador no online, seção 39 do guia).
 
 ## Como testar
 
@@ -51,3 +51,12 @@ A cena é `Assets/Autorama/Cenas/Construtor.unity`. Os dados do jogo ficam em `A
 - `JsonUtility` grava `null` como objeto vazio. Por isso `ChampStore.hasActive` e `Rec.t < 0` querem dizer "não tem".
 - O `TrackBuilder` é `[ExecuteAlways]`. Fora do Play ele só mostra a pista; o rascunho só é salvo no Play e fora da corrida.
 - Os carrinhos do campeonato usam uma pintura gerada em tempo de execução (`CarTexture`), o mesmo desenho de `gen-texturas.js`.
+
+## Economia de tokens
+
+- **Arquivos:** leia antes de escrever; não releia o que não mudou. Prefira edições pontuais a reescrever arquivos. Evite ler arquivos grandes inteiros (cenas `.unity`, `.mat`, `docs/GUIA-UNITY.md`): procure com Grep e leia só a seção.
+- **Respostas:** raciocínio completo, resposta curta. Sem abertura elogiosa, sem fecho de cortesia, sem emojis. Código primeiro; explique só o que o código não deixa claro.
+- **Código:** a solução mais simples que funciona. Sem abstração para uso único, sem recurso especulativo, sem tratar erro que não acontece. Não acrescente comentários nem anotações em código que não está sendo mexido.
+- **Depuração e revisão:** leia o código antes de formar teoria. Diga o problema, onde está e a correção, de uma vez. Se a causa não estiver clara, diga isso em vez de chutar. Sem sugestões fora do escopo.
+- **Precisão:** não invente APIs, versões, flags, SHAs ou nomes de pacote; confira no código ou na documentação.
+- **Terminar:** teste antes de dizer que acabou (veja "Como testar").

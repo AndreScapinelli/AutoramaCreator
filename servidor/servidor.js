@@ -46,7 +46,7 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
   const fail = (c, code, text) => send(c, { t: 'error', code, text });
   const snapshot = r => ({
     code: r.code, name: r.name, pub: r.pub, host: r.host, max: MAX_PLAYERS, state: r.state,
-    players: r.players.map(p => ({ id: p.id, name: p.name, color: p.color, ready: p.id === r.host || !!p.ready })),   // o host está sempre pronto
+    players: r.players.map(p => ({ id: p.id, name: p.name, color: p.color, uid: p.uid, ready: p.id === r.host || !!p.ready })),   // o host está sempre pronto
     stages: r.stages.map(s => ({ name: s.name, laps: s.laps, secs: s.secs, tempo: s.tempo, faixas: s.faixas, hash: s.hash })),
   });
   const broadcast = (r, msg) => r.players.forEach(p => send(p, msg));
@@ -71,8 +71,14 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
     return n;
   }
 
-  function enter(c, r, name) {
-    c.name = name; c.color = freeColor(r); c.room = r;
+  // O id fixo do jogador (o melhor pessoal online fica preso a ele): letras, números, ":" e "-". Repetido na sala: fica vazio.
+  const validUid = (r, uid) => {
+    const u = typeof uid === 'string' && /^[A-Za-z0-9:-]{8,64}$/.test(uid) ? uid : '';
+    return u && !r.players.some(p => p.uid === u) ? u : '';
+  };
+
+  function enter(c, r, name, uid) {
+    c.name = name; c.color = freeColor(r); c.room = r; c.uid = validUid(r, uid);
     r.players.push(c);
     send(c, { t: 'joined', you: c.id, room: snapshot(r), chat: r.chat });
     say(r, `${name} entrou na sala.`);
@@ -129,7 +135,7 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
       recent.push(now); creates.set(c.ip, recent);
       const r = { code: newCode(), name: clean(m.roomName, ROOM_MAX) || `Sala de ${name}`, pub: !!m.pub, host: c.id, state: 'lobby', players: [], stages: [], chat: [] };
       rooms.set(r.code, r);
-      enter(c, r, name);
+      enter(c, r, name, m.uid);
     },
     join(c, m) {
       if (c.room) return fail(c, 'sala', 'Você já está numa sala.');
@@ -139,7 +145,7 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
       if (r.state !== 'lobby') return fail(c, 'andamento', 'O campeonato dessa sala já começou.');
       if (r.players.length >= MAX_PLAYERS) return fail(c, 'cheia', 'A sala está cheia.');
       if (r.players.some(p => p.name.toLowerCase() === name.toLowerCase())) return fail(c, 'nome-usado', 'Já tem alguém com esse nome na sala.');
-      enter(c, r, name);
+      enter(c, r, name, m.uid);
     },
     leave(c) { leave(c); send(c, { t: 'left' }); },
     // Pronto para largar. O host está sempre pronto; mexer nas pistas (ou chegar alguém) zera os outros.

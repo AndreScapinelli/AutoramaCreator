@@ -305,7 +305,7 @@ namespace Autorama
             if (!(o.vmax >= 8 && o.vmax <= 20 && o.ramp >= 0.2f && o.ramp <= 1.5f && o.grip >= 15 && o.grip <= 45)) { Err("regras", "Regras inválidas."); return; }
 
             var m = new NetMsg { t = "started", title = Clean(o.name, 40) is var t && t.Length > 0 ? t : $"Campeonato de {NameOf(b.MyId)}", rules = new NetRules { vmax = o.vmax, ramp = o.ramp, grip = o.grip, collide = o.collide, byTime = o.byTime, turbo = o.turbo } };
-            foreach (var p in room.players) m.pilots.Add(new NetPlayer { id = p.id, name = p.name, color = p.color });
+            foreach (var p in room.players) m.pilots.Add(new NetPlayer { id = p.id, name = p.name, color = p.color, uid = p.uid });
             foreach (var s in stageData) m.stages.Add(new NetStage { name = s.name, laps = s.laps, secs = s.secs, tempo = s.tempo, faixas = s.faixas, hash = s.hash, json = s.json });
             var bytes = Encoding.UTF8.GetBytes(JsonUtility.ToJson(m));
             if (bytes.Length > MaxReliable) { Err("etapas", "As pistas são grandes demais para a Steam. Tire alguma etapa."); return; }
@@ -430,7 +430,7 @@ namespace Autorama
         {
             var r = new NetRoom { code = b.Data("code"), name = b.Data("name"), pub = b.Data("pub") == "1", host = b.Owner.ToString(), max = SteamLobbyClient.MaxMembers, state = b.Data("state") };
             foreach (var m in b.Members())
-                r.players.Add(new NetPlayer { id = m.id.ToString(), name = Clean(m.name, 20), color = ColorOf(m.id), ready = IsReady(m.id) });
+                r.players.Add(new NetPlayer { id = m.id.ToString(), name = Clean(m.name, 20), color = ColorOf(m.id), ready = IsReady(m.id), uid = "steam:" + m.id });
             try { var sum = JsonUtility.FromJson<StageSummary>(b.Data("stl")); if (sum != null) r.stages = sum.s; } catch { }
             return r;
         }
