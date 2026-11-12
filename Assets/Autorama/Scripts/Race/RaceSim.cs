@@ -280,6 +280,9 @@ namespace Autorama
         // dividida por JumpHard) entra ao quadrado na derrapagem. Quem cai no vão volta JumpBack células antes da peça.
         const float LoopG = SlopeG / TrackMath.LevelHeight;
         public const float JumpG = 29f, JumpHard = 5f, JumpBack = 2f;
+        // Pouso: a derrapagem que ele dá para em JumpSlipMax (só capota quem já vinha derrapando) e cada ponto de tranco
+        // acima de JumpSoft tira JumpLoss da velocidade, até JumpLossMax.
+        public const float JumpSlipMax = 0.6f, JumpSoft = 0.8f, JumpLoss = 1.2f, JumpLossMax = 0.6f;
         // IA: velocidade que ela busca na ponta da rampa de salto e a mínima dentro do loop (células por segundo).
         const float JumpAi = 7.5f, LoopAi = 5f;
         const float RubKick = 0.15f, RubKickV = 0.03f, RubSlip = 8f, RubDrag = 1.2f, HitSlip = 0.12f, HitSlipSide = 0.14f, HitSpin = 60f;
@@ -486,7 +489,12 @@ namespace Autorama
             if (!hole && c.airY > q.y) { CountLap(k); return; }
             hole |= q.gap;
             float hit = Mathf.Max(0f, c.v * q.slope * TrackMath.LevelHeight - c.airVy) / (JumpHard * Scale);
-            c.slip += hit * hit;
+            // O pouso sozinho não capota: a derrapagem dele para em JumpSlipMax, e o tranco acima de JumpSoft tira velocidade.
+            if (!hole)
+            {
+                c.slip += Mathf.Min(hit * hit, JumpSlipMax);
+                c.v *= 1f - Mathf.Min(JumpLossMax, Mathf.Max(0f, hit - JumpSoft) * JumpLoss);
+            }
             if (hole || c.slip >= 1f)
             {
                 Deslot(k, null);

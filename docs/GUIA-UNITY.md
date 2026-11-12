@@ -3565,7 +3565,7 @@ Constantes em `PieceCatalog`: `JumpLength = 4`, `JumpUp = 1`, `JumpGap = 1`, `Ju
 
 - **Forma** (`PieceCatalog.JumpY`): rampa de 1 célula em parábola até 0,2 de altura (inclinação 0,4 na ponta), vão de 1 célula e rampa de pouso de 2 células, de 0,2 até o chão. A malha não tem triângulos no vão (`JumpGapAt`), tem tampas nas duas pontas dele e a base é maciça até a mesa.
 - **Voo** (`RaceSim.AirStep`, `CarState.air/airY/airVy`): ao passar da ponta o carrinho sai com `airVy = v · 0,4`. No ar a velocidade na planta não muda (sem motor nem freio) e a altura cai com `JumpG · Scale`. O modo continua `OnSlot`: o carrinho segue o caminho na planta.
-- **Pouso:** toca quando `airY ≤` altura da pista. O tranco `(v·inclinação − airVy) / (JumpHard·Scale)` entra **ao quadrado** na derrapagem; com 1 ou mais, capota. Tocou no chão do vão, ou chegou na ponta da rampa de pouso mais de 0,03 abaixo dela: caiu, e volta `JumpBack` (2) células antes da peça, para pegar embalo.
+- **Pouso:** toca quando `airY ≤` altura da pista. O tranco `(v·inclinação − airVy) / (JumpHard·Scale)` entra **ao quadrado** na derrapagem, mas só até `JumpSlipMax = 0,6`: o pouso sozinho não capota (só quem já vinha derrapando). Cada ponto de tranco acima de `JumpSoft = 0,8` tira `JumpLoss = 1,2` da velocidade, até `JumpLossMax = 0,6` (60%). Antes o pouso forte capotava sempre, e de pé no fundo não havia como passar. Tocou no chão do vão, ou chegou na ponta da rampa de pouso mais de 0,03 abaixo dela: caiu, e volta `JumpBack` (2) células antes da peça, para pegar embalo.
 - **IA:** busca `JumpAi × m` na ponta (m limitado a 0,9–1,1; no "erro", m ≥ 1,3 e ela capota). Com salto à vista ela não solta o botão: dosa o gatilho (`gas` 1% ou 100%). Soltar e apertar faz o acelerador recomeçar do zero e ela chegava devagar demais.
 - **Cruzar pelo vão:** na sobreposição ficam de fora os pontos do vão e os da última meia célula de cada rampa. Uma reta, ou outro salto, pode cruzar o vão em ângulo reto pelo centro; 0,25 fora do centro já acusa. Dois saltos em cruz: os carrinhos **colidem no ar** (mesma altura). Um no ar e outro no chão só colidem se a diferença de altura for de 0,18 ou menos (`CollidePair`).
 - **Online:** o snapshot ganhou a bandeira `ar` (bit 16) e, só quando ligada, `ay avy`. Em pista sem salto o formato é o mesmo, por isso `Format` continua 1.
@@ -3586,6 +3586,19 @@ Pista: largada, reta comprida, salto, reta comprida, loop, 2 retas compridas; `v
   | 80% a 100% | 11,0 a 13,8 | capota no pouso | – |
 
   A faixa boa vai de cerca de 6 a 9,7 células/s. No loop, de 50% para cima, nenhuma queda.
+- **Pouso que tira velocidade** (regra nova, pista só de retas com um salto, 40 s; a tabela acima é da regra antiga, em que o pouso forte capotava):
+
+  | Gatilho | v na ponta | v depois do pouso | Derrapagem | Saídas |
+  |---|---|---|---|---|
+  | 40% | 4,9 | cai no vão | – | 23 |
+  | 50% | 6,7 | 6,7 | 0,16 | 0 |
+  | 60% | 8,2 | 8,2 | 0,59 | 0 |
+  | 70% | 9,6 | 7,6 | 0,60 | 0 |
+  | 80% | 11,0 | 7,7 | 0,60 | 0 |
+  | 100% | 13,8 | 6,9 | 0,60 | 0 |
+  | 100% com turbo | 17,0 | 6,8 | 0,60 | 0 |
+
+  IA nas qualidades 1, 50 e 100, 120 s: 59 a 61 voltas, 0 saídas.
 - **Loop:** soltando o acelerador a 60° (gatilho 60%), caiu a 131° com v = 2,86, do nível 2,24, e voltou em `s` = 14,00, o começo da peça.
 - **IA, 120 s, pistas de 2, 4 e 6:** qualidade 100: 46 voltas, 0 saídas nas três. Qualidade 50: 44 a 46 voltas, 0 a 3 saídas. Qualidade 1: 42 a 43 voltas, 2 a 3 saídas. Velocidade na ponta entre 6,3 e 10,5.
 - **Cruzamento:** salto × salto pelo vão 0 sobreposições; reta pelo centro do vão 0; reta 0,25 fora do centro 2; reta atravessando a rampa 3; reta ao lado (distância 1,0) 0.
