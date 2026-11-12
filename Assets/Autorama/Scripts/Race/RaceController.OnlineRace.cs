@@ -27,10 +27,22 @@ namespace Autorama
         readonly Dictionary<string, float> remoteGas = new Dictionary<string, float>();   // nível do acelerador de cada visitante
         float lastSentGas = 1f;
         readonly Dictionary<string, int> remoteRe = new Dictionary<string, int>();
+        readonly Dictionary<string, float> remoteInAt = new Dictionary<string, float>();  // quando chegou o último "in" de cada visitante
+        readonly Dictionary<string, int> remoteTs = new Dictionary<string, int>();        // o relógio que veio nele (volta no snapshot)
+        const float InTimeout = 1f;                            // sem "in" por esse tempo, o botão do visitante conta como solto
         float snapAcc, inAcc;
         bool lastSentHeld;
         int myRe;
         readonly float[] seenBest = new float[RaceSim.MaxCars];   // a melhor volta de cada carro já vista (aviso de recorde)
+        int snapSeq, lastSq;                                   // host: número do último snapshot mandado · visitante: do último aplicado
+        float rtt = -1f;                                       // visitante: latência de ida e volta (s), média; −1 desconhecida
+        readonly OwnHistory ownHist = new OwnHistory();        // visitante: a predição do carro próprio
+        float hiMismatchSince = -1f, syncAskedAt = -10f;       // visitante: snapshot de outra bateria desde quando · último pedido de sync
+        NetMsg startedMsg;                                     // o campeonato como chegou (para responder ao sync se eu virar host)
+        bool takeOverStages;                                   // virei host no meio: no lobby, mando as etapas
+        float phaseSince;                                      // quando a fase atual começou (largar e salvar sozinho)
+        int autoShown = -1;
+        const float AutoStart = 20f, AutoSave = 10f;           // o host larga e salva sozinho depois desse tempo parado
 
         bool OnlinePresent(string id) => room != null && room.Player(id) != null;
         string OnlineHostName() => room?.Player(room.host)?.name is string n && n != "" ? Safe(n) : "host";
@@ -80,8 +92,10 @@ namespace Autorama
             }
 
             onlineChamp = C;
-            remoteHeld.Clear(); remoteRe.Clear(); remoteGas.Clear(); remoteBoost.Clear(); lastSentBoost = false; lastSentGas = 1f;
+            startedMsg = m;
+            ClearRemote(); lastSentBoost = false; lastSentGas = 1f;
             myRe = 0; lastSentHeld = false; snapAcc = 1f; inAcc = 0f;
+            snapSeq = 0; lastSq = 0; rtt = -1f; ownHist.lag = -1f; ownHist.Clear(); hiMismatchSince = -1f; takeOverStages = false;
             for (int k = 0; k < RaceSim.MaxCars; k++) uiHeld[k] = false;
             panel.SetOnlineRacing(true);
             ApplyCameraSettings();
@@ -102,7 +116,7 @@ namespace Autorama
             panel.SetOnlineRacing(false);
             oRunChatSec.RemoveFromHierarchy();
             panel.ChampBox.Add(cRun);                    // devolve a tela à aba Campeonato (ela se redesenha ao abrir)
-            remoteHeld.Clear(); remoteRe.Clear();
+            ClearRemote(); startedMsg = null;
             for (int k = 0; k < RaceSim.MaxCars; k++) uiHeld[k] = false;
             sim.set = set; sim.cutoff = null; System.Array.Clear(sim.aiSkill, 0, sim.aiSkill.Length);
             for (int k = 0; k < RaceSim.MaxCars; k++) sim.present[k] = true;
@@ -123,6 +137,7 @@ namespace Autorama
             ClearSeenBest();
             for (int k = 0; k < RaceSim.MaxCars; k++) uiHeld[k] = false;
             lastSentHeld = false; snapAcc = 1f;
+            ownHist.Clear(); hiMismatchSince = -1f; phaseSince = Time.realtimeSinceStartup;
             if (HeatNow(out _, out int idx, out _, out _, out var pl))
             {
                 int lane = LaneOf(pl, myId);
@@ -178,7 +193,9 @@ namespace Autorama
                     {
                         if (k == lane) { sim.cars[k].held = mine; sim.cars[k].boost = myBoost; if (mine) sim.cars[k].gas = myGas; continue; }
                         if (pl[k] == null) { sim.cars[k].held = false; continue; }     // trilho vazio
-                        sim.cars[k].held = OnlinePresent(pl[k].id) && remoteHeld.TryGetValue(pl[k].id, out var h) && h;
+                        // Sem "in" há mais de 1 s (o visitante repete a cada 0,25 s): a conexão dele travou, o botão conta como solto.
+                        bool fresh = remoteInAt.TryGetValue(pl[k].id, out var at) && Time.realtimeSinceStartup - at < InTimeout;
+                        sim.cars[k].held = fresh && OnlinePresent(pl[k].id) && remoteHeld.TryGetValue(pl[k].id, out var h) && h;
                         sim.cars[k].gas = remoteGas.TryGetValue(pl[k].id, out var g) ? g : 1f;
                         sim.cars[k].boost = sim.cars[k].held && remoteBoost.TryGetValue(pl[k].id, out var bo) && bo;
                     }
@@ -188,12 +205,18 @@ namespace Autorama
                 foreach (var gp in Gamepad.all) padReslot |= gp.buttonSouth.wasPressedThisFrame;
                 if (lane >= 0 && ((keys && AnySetWasPressed(kb, Controles.Acao.Recolocar)) || padReslot)) OnlineReslot(lane);
                 if (IsHost && ((keys && (kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame)) || AnyPadStart())) OnlineEnter();
+                // O host parado não trava a sala: larga e salva sozinho.
+                float idle = Time.realtimeSinceStartup - phaseSince;
+                if (IsHost && sim.phase == RaceSim.Phase.Idle && sim.closed && idle >= AutoStart) OnlineStart();
+                else if (IsHost && sim.phase == RaceSim.Phase.Done && idle >= AutoSave) OnlineSave();
+                if (AutoLeft() != autoShown) champDirty = true;
             }
 
             sim.Step(dt);
             if (IsHost) OnlineLapFlash();
-            if (sim.phase != lastPhase) { lastPhase = sim.phase; scoreDirty = champDirty = true; snapAcc = 1f; SideForPhase(); }
-            if (IsHost && live) SendSnapshot(dt, idx);
+            if (sim.phase != lastPhase) { lastPhase = sim.phase; scoreDirty = champDirty = true; snapAcc = 1f; SideForPhase(); phaseSince = Time.realtimeSinceStartup; }
+            if (!IsHost && lane >= 0) ownHist.Add(Time.realtimeSinceStartup, sim.cars[lane]);
+            if (IsHost && live) SendSnapshot(dt, idx, pl);
 
             PlaceCars();
             UpdatePads();
@@ -211,17 +234,33 @@ namespace Autorama
             if (held == lastSentHeld && boost == lastSentBoost && !gasMoved && inAcc < HeldRefresh) return;
             lastSentHeld = held; lastSentBoost = boost; inAcc = 0f;
             if (held) lastSentGas = gas;
-            net.Send(new NetOut { t = "in", held = held, gp = NetSync.GasPct(lastSentGas), tb = boost, re = myRe });
+            net.Send(new NetOut { t = "in", held = held, gp = NetSync.GasPct(lastSentGas), tb = boost, re = myRe, ts = NetSync.ClockMs });
         }
 
-        void SendSnapshot(float dt, int heat)
+        // Cada carro de visitante leva o eco do relógio dele (ts do último "in") e há quanto tempo chegou: ele mede a latência.
+        void SendSnapshot(float dt, int heat, Pilot[] pl)
         {
             snapAcc += dt;
             bool racing = Racing;
             if (snapAcc < (racing ? SnapFast : SnapSlow)) return;
             snapAcc = 0f;
-            net.Send(new NetOutSnap { snap = NetSync.Pack(sim, heat) });
+            var s = NetSync.Pack(sim, heat);
+            s.sq = ++snapSeq;
+            float now = Time.realtimeSinceStartup;
+            for (int k = 0; k < s.cars.Count && k < pl.Length; k++)
+                if (pl[k] != null && remoteTs.TryGetValue(pl[k].id, out int ts) && remoteInAt.TryGetValue(pl[k].id, out float at))
+                { s.cars[k].ec = ts; s.cars[k].ea = Mathf.RoundToInt((now - at) * 1000f); }
+            net.Send(new NetOutSnap { b = NetSync.Encode(s) });
         }
+
+        // Segundos até o host largar ou salvar sozinho; −1 fora dessas fases.
+        int AutoLeft()
+        {
+            float wait = sim.phase == RaceSim.Phase.Idle && sim.closed ? AutoStart : sim.phase == RaceSim.Phase.Done ? AutoSave : -1f;
+            return wait < 0f ? -1 : Mathf.Max(0, Mathf.CeilToInt(wait - (Time.realtimeSinceStartup - phaseSince)));
+        }
+
+        void ClearRemote() { remoteHeld.Clear(); remoteRe.Clear(); remoteGas.Clear(); remoteBoost.Clear(); remoteInAt.Clear(); remoteTs.Clear(); }
 
         // ---------- Entradas e snapshots recebidos ----------
 
@@ -236,7 +275,7 @@ namespace Autorama
             if (IsHost) return;
             myRe++;
             lastSentHeld = sim.cars[k].held; inAcc = 0f;
-            net.Send(new NetOut { t = "in", held = lastSentHeld, gp = NetSync.GasPct(lastSentGas), tb = lastSentBoost, re = myRe });
+            net.Send(new NetOut { t = "in", held = lastSentHeld, gp = NetSync.GasPct(lastSentGas), tb = lastSentBoost, re = myRe, ts = NetSync.ClockMs });
         }
 
         // Host: o botão (e o "recolocar") de um visitante.
@@ -246,18 +285,37 @@ namespace Autorama
             remoteHeld[m.from] = m.held;
             remoteGas[m.from] = NetSync.GasOf(m.gp);
             remoteBoost[m.from] = m.tb;
+            remoteInAt[m.from] = Time.realtimeSinceStartup;
+            remoteTs[m.from] = m.ts;
             int prev = remoteRe.TryGetValue(m.from, out int r) ? r : 0;
             if (m.re <= prev) return;
             remoteRe[m.from] = m.re;
             if (HeatNow(out _, out _, out _, out _, out var pl)) { int lane = LaneOf(pl, m.from); if (lane >= 0) sim.Reslot(lane); }
         }
 
-        // Visitante: o estado do host. Só vale para a bateria da vez.
-        void OnlineApplySnap(NetSnap s)
+        // Visitante: o estado do host. Só vale para a bateria da vez, e só se for mais novo que o último (na Steam ele pode chegar fora de ordem).
+        void OnlineApplySnap(string b)
         {
-            if (!HeatNow(out _, out int idx, out _, out _, out var pl) || s.hi != idx) return;
+            var s = NetSync.Decode(b);
+            if (s == null || !HeatNow(out _, out int idx, out _, out _, out var pl)) return;
+            if (s.hi != idx)
+            {
+                // Host noutra bateria por mais de 1,5 s: perdi um resultado. Peço o campeonato de novo.
+                if (hiMismatchSince < 0f) hiMismatchSince = Time.realtimeSinceStartup;
+                else if (Time.realtimeSinceStartup - hiMismatchSince > 1.5f) AskSync();
+                return;
+            }
+            hiMismatchSince = -1f;
+            if (s.sq <= lastSq) return;
+            lastSq = s.sq;
+            int lane = LaneOf(pl, myId);
+            if (lane >= 0 && lane < s.cars.Count)
+            {
+                float r = NetSync.Rtt(s.cars[lane], NetSync.ClockMs);
+                if (r >= 0f) { rtt = rtt < 0f ? r : Mathf.Lerp(rtt, r, 0.1f); ownHist.lag = rtt * 0.5f; }
+            }
             int before = ScoreSig();
-            NetSync.Apply(s, sim, LaneOf(pl, myId));
+            NetSync.Apply(s, sim, lane, ownHist);
             OnlineLapFlash();
             if (ScoreSig() != before) scoreDirty = true;
         }
@@ -295,14 +353,84 @@ namespace Autorama
             if (!OnlineRun || IsHost) return;
             if (m.k == "res")
             {
-                if (m.hi != Champ.CurrentHeat(onlineChamp) || m.heatRes.Count < onlineChamp.heats[m.hi].p.Length) return;
+                if (m.hi < 0 || m.hi >= onlineChamp.heats.Count || m.heatRes.Count < onlineChamp.heats[m.hi].p.Length) return;
+                if (m.hi != Champ.CurrentHeat(onlineChamp)) { AskSync(); return; }      // perdi um resultado: o host manda tudo de novo
                 var res = m.heatRes.GetRange(0, onlineChamp.heats[m.hi].p.Length).ToArray();
                 HeatRecords(onlineChamp, m.hi, res, true);         // cada um grava os recordes no seu recordes.json
                 onlineChamp.heats[m.hi].res = res;
                 if (Champ.CurrentHeat(onlineChamp) < 0) onlineChamp.finished = Champ.Now;
                 OnlineHeatLoaded();
             }
-            else if (m.k == "reset") { sim.Reset(); ClearSeenBest(); scoreDirty = champDirty = true; }
+            else if (m.k == "reset") { sim.Reset(); ClearSeenBest(); ownHist.Clear(); phaseSince = Time.realtimeSinceStartup; scoreDirty = champDirty = true; }
+        }
+
+        // ---------- Sync: entrar no meio, voltar de uma queda, host novo ----------
+
+        // Visitante: pede ao host o campeonato inteiro (no máximo a cada 3 s).
+        void AskSync()
+        {
+            if (IsHost || Time.realtimeSinceStartup - syncAskedAt < 3f) return;
+            syncAskedAt = Time.realtimeSinceStartup;
+            net.Send(new NetOut { t = "sync" });
+        }
+
+        NetOutEv SyncEv(string to)
+        {
+            var ev = new NetOutEv { k = "sync", to = to };
+            if (!string.IsNullOrEmpty(to) && startedMsg != null)
+            {
+                ev.title = startedMsg.title; ev.rules = startedMsg.rules;
+                ev.pilots.AddRange(startedMsg.pilots); ev.stages.AddRange(startedMsg.stages);
+            }
+            foreach (var h in onlineChamp.heats) { var x = new NetHeatRes(); if (h.Saved) x.r.AddRange(h.res); ev.heats.Add(x); }
+            return ev;
+        }
+
+        // Host: alguém pediu o campeonato (entrou para assistir, voltou de uma queda ou perdeu um resultado).
+        void OnlineSyncRequest(string from)
+        {
+            if (!OnlineRun || !IsHost || string.IsNullOrEmpty(from) || startedMsg == null) return;
+            net.Send(SyncEv(from));
+        }
+
+        // Visitante: o campeonato do host. Sem campeonato aberto, ele começa daqui (precisa das pistas: só vem no sync pedido).
+        // Os resultados do host substituem os meus e a bateria da vez recomeça. Recordes das baterias perdidas não são gravados.
+        void OnlineApplySync(NetMsg m)
+        {
+            if (IsHost) return;
+            if (!OnlineRun)
+            {
+                if (m.stages.Count == 0) { syncAskedAt = -10f; AskSync(); return; }
+                BeginOnlineRun(new NetMsg { t = "started", title = m.title, rules = m.rules, pilots = m.pilots, stages = m.stages });
+                if (!OnlineRun) return;
+            }
+            var C = onlineChamp;
+            if (m.heats.Count != C.heats.Count) return;
+            for (int i = 0; i < C.heats.Count; i++)
+                C.heats[i].res = m.heats[i].r.Count == C.heats[i].p.Length ? m.heats[i].r.ToArray() : null;
+            C.finished = Champ.CurrentHeat(C) < 0 ? Champ.Now : 0;
+            lastSq = 0;
+            OnlineHeatLoaded();
+        }
+
+        // O host saiu no meio e eu virei host: todos recebem a minha tabela e a bateria da vez recomeça.
+        // As etapas do lobby vêm do campeonato (o JSON das pistas eu tenho); vão para a sala quando voltarmos ao lobby.
+        void OnlineTakeOver()
+        {
+            ClearRemote();
+            snapSeq = 0;
+            onlineStages.Clear();
+            foreach (var s in onlineChamp.stages) onlineStages.Add(new Stage { name = s.name, laps = s.laps, secs = s.secs, data = s.data, hash = s.hash });
+            takeOverStages = true;
+            net.Send(SyncEv(null));
+            panel.Toast("Você agora é o host: a bateria da vez recomeça.");
+            OnlineHeatLoaded();
+        }
+
+        // Visitante: o host mudou. O número dos snapshots recomeça com ele, e a latência é outra.
+        void OnlineHostChanged()
+        {
+            lastSq = 0; rtt = -1f; ownHist.lag = -1f; ownHist.Clear(); hiMismatchSince = -1f;
         }
 
         // ---------- Ações do host ----------
@@ -398,6 +526,8 @@ namespace Autorama
                 : ph == RaceSim.Phase.Done ? (host ? "Salve para o resultado contar na tabela de todos. Se algo deu errado, corra de novo: esta bateria é descartada."
                                                    : "Bateria encerrada. O host salva o resultado e segue.")
                 : $"Vence a bateria quem completar {laps} primeiro. Quem não terminar tem {Champ.Cutoff:0} s depois da bandeirada.";
+            autoShown = live ? AutoLeft() : -1;
+            if (autoShown >= 0) cHint.text += ph == RaceSim.Phase.Idle ? $" Larga sozinho em {autoShown} s." : $" Salva e segue sozinho em {autoShown} s.";
         }
     }
 }

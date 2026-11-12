@@ -86,10 +86,22 @@ namespace Autorama
                 for (int i = 0; i < 200; i++) sim.Step(1f / 60f);
                 sim.cars[0].held = true;
                 for (int i = 0; i < 60; i++) sim.Step(1f / 60f);
-                h.c.Send(new NetOutSnap { snap = NetSync.Pack(sim, 4) });
+                var packed = NetSync.Pack(sim, 4); packed.sq = 7;
+                h.c.Send(new NetOutSnap { b = NetSync.Encode(packed) });
                 Check(WaitFor(() => g.got.Exists(m => m.t == "snap"), h, g), "corrida: o snapshot chega ao visitante");
-                var sn = g.Take("snap").snap;
-                Check(sn.hi == 4 && sn.ph == (int)sim.phase && sn.cars.Count == 2 && Mathf.Abs(sn.cars[0].s - sim.cars[0].s) < 1e-3f && sn.cars[0].held, "corrida: o snapshot traz fase, bateria e os dois carrinhos");
+                var sn = NetSync.Decode(g.Take("snap").b);
+                Check(sn != null && sn.sq == 7 && sn.hi == 4 && sn.ph == (int)sim.phase && sn.cars.Count == 2 && Mathf.Abs(sn.cars[0].s - sim.cars[0].s) < 1e-3f && sn.cars[0].held, "corrida: o snapshot traz fase, bateria e os dois carrinhos");
+
+                g.c.Send(new NetOut { t = "sync" });
+                Check(WaitFor(() => h.got.Exists(m => m.t == "sync"), h, g) && h.Take("sync").from == gid, "corrida: o pedido de sync chega ao host");
+                var sy = new NetOutEv { k = "sync", to = gid, title = "Copa", rules = st.rules };
+                sy.pilots.AddRange(st.pilots); sy.stages.AddRange(st.stages);
+                sy.heats.Add(new NetHeatRes { r = { new HeatResult { laps = 3, time = 40f }, new HeatResult { dnf = true } } }); sy.heats.Add(new NetHeatRes());
+                h.c.Send(sy);
+                Check(WaitFor(() => g.got.Exists(m => m.t == "ev" && m.k == "sync"), h, g), "corrida: a resposta do sync chega ao visitante");
+                var gy = g.Take("ev");
+                Check(gy.stages.Count == 2 && Champ.TrackHash(TrackSave.FromJson(gy.stages[1].json)) == "81546106" && gy.pilots.Count == 2 && gy.heats.Count == 2 && gy.heats[0].r.Count == 2 && gy.heats[0].r[1].dnf && gy.heats[1].r.Count == 0,
+                      "corrida: com as pistas inteiras, os pilotos e o resultado de cada bateria");
 
                 var ev = new NetOutEv { k = "res", hi = 4 };
                 ev.heatRes.Add(new HeatResult { laps = 3, time = 41.25f, best = 12.5f, offs = 1, hits = 2 });
@@ -117,63 +129,119 @@ namespace Autorama
             return sim;
         }
 
-        // O host e um visitante (que controla o carrinho 0 com 80 ms de ida e 80 ms de volta, e só vê o outro pelos snapshots a 30 Hz)
-        // rodam a mesma corrida; compara o placar e a posição dos dois no fim.
-        static void RunSync()
+        // O snapshot binário: ida e volta igual, com os blocos de "fora da pista" e "voltando", e o tamanho com 2 e 6 carros.
+        static void RunBinary()
+        {
+            var sim = MakeSim(TrackSave.Oval());
+            sim.StartRace();
+            for (int i = 0; i < 400; i++) { sim.cars[0].held = sim.cars[1].held = true; sim.Step(1f / 60f); }
+            var a = NetSync.Pack(sim, 3); a.sq = 12345;
+            a.cars[0].mode = (int)CarMode.Off; a.cars[0].fx = 1.5f; a.cars[0].fvy = -2f; a.cars[0].flyZ = 0.3f;
+            a.cars[1].mode = (int)CarMode.Returning; a.cars[1].bx = 4f; a.cars[1].backT = 0.7f;
+            a.cars[1].ec = 987654; a.cars[1].ea = 33; a.cars[0].best = 4.25f; a.cars[1].finish = -1f;
+            var b = NetSync.Decode(NetSync.Encode(a));
+            Check(b != null && b.hi == 3 && b.sq == 12345 && b.ph == a.ph && b.t == a.t && b.w == a.w && b.cars.Count == 2, "binário: cabeçalho igual");
+            bool same = true;
+            for (int k = 0; k < 2; k++)
+            {
+                NetCar x = a.cars[k], y = b.cars[k];
+                same &= x.s == y.s && x.v == y.v && x.hold == y.hold && x.T == y.T && x.slip == y.slip && x.held == y.held && x.side == y.side && x.mode == y.mode && x.gp == y.gp
+                     && Mathf.Abs(x.tb - y.tb) < 0.003f && x.laps == y.laps && x.cross == y.cross && x.offs == y.offs && x.hits == y.hits && x.best == y.best && x.lastLap == y.lastLap
+                     && x.finish == y.finish && x.lane == y.lane && x.cb == y.cb && x.ec == y.ec && x.ea == y.ea && x.lapStart == y.lapStart && x.exitS == y.exitS;
+            }
+            same &= b.cars[0].fx == 1.5f && b.cars[0].fvy == -2f && b.cars[0].flyZ == 0.3f && b.cars[1].bx == 4f && b.cars[1].backT == 0.7f;
+            Check(same, "binário: os carros voltam iguais (com fora da pista e voltando)");
+            Check(NetSync.Decode("lixo!") == null && NetSync.Decode("") == null && NetSync.Decode(Convert.ToBase64String(new byte[] { 9, 1, 2 })) == null, "binário: mensagem inválida vira null");
+            var six = new NetSnap(); for (int k = 0; k < 6; k++) six.cars.Add(NetSync.Pack(sim.cars[0]));
+            int two = JsonUtility.ToJson(new NetOutSnap { b = NetSync.Encode(NetSync.Pack(sim, 0)) }).Length, json2 = JsonUtility.ToJson(NetSync.Pack(sim, 0)).Length;
+            int sixB = JsonUtility.ToJson(new NetOutSnap { b = NetSync.Encode(six) }).Length;
+            report.AppendLine($"    snapshot: 2 carros {two} bytes (JSON antigo {json2}) · 6 carros {sixB} bytes");
+            Check(two < 400 && sixB < 1100, $"binário: cabe num pacote da Steam (< 1.200), mesmo com os carros fora da pista ({two} e {sixB} bytes)");
+        }
+
+        // O host e um visitante (que controla o carrinho 0 com "delay" quadros de ida e de volta, e só vê o outro pelos snapshots a 30 Hz)
+        // rodam a mesma corrida; compara o placar e a posição dos dois no fim. comp: com a latência medida pelo eco e a correção suave.
+        static float RunSync(int delay, float vmax, bool comp)
         {
             var host = MakeSim(TrackSave.Oval());
             var guest = MakeSim(TrackSave.Oval());
-            Check(host.Ready && host.closed && guest.closed, "sync: a pista oval está fechada nos dois");
+            host.set.vmax = guest.set.vmax = vmax;
+            string tag = $"sync {delay * 2 * 1000 / 60} ms, vmax {vmax:0}{(comp ? ", com eco" : ", sem eco")}";
+            Check(host.Ready && host.closed && guest.closed, tag + ": a pista oval está fechada nos dois");
             const float dt = 1f / 60f;
-            const int delay = 5;                            // quadros de cada sentido (~83 ms)
-            var toHost = new Queue<(bool held, bool reslot)>(); var toGuest = new Queue<string>();
-            for (int i = 0; i < delay; i++) { toHost.Enqueue((false, false)); toGuest.Enqueue(null); }
+            var toHost = new Queue<(bool held, bool reslot, int ts)>(); var toGuest = new Queue<string>();
+            for (int i = 0; i < delay; i++) { toHost.Enqueue((false, false, 0)); toGuest.Enqueue(null); }
+            var hist = new OwnHistory();
             host.StartRace(); guest.StartRace();
-            float maxOwn = 0f, maxOther = 0f; int snaps = 0, bytes = 0, reslots = 0;
+            float maxOwn = 0f, maxOther = 0f, rtt = -1f; int snaps = 0, bytes = 0, reslots = 0, seq = 0, lastTs = 0, lastTsFrame = 0, lastSq = 0;
             for (int f = 0; f < 60 * 150 && host.phase != RaceSim.Phase.Done; f++)
             {
                 float time = f * dt;
+                int guestMs = 1 + Mathf.RoundToInt(time * 1000f);
                 bool want0 = time % 5f < 3.3f;                                  // o visitante acelera e solta (carro 0)
                 bool want1 = time % 6f < 3.9f;                                  // o host acelera e solta (carro 1)
                 // Quem saiu da pista aperta Recolocar um instante depois, como um jogador faria.
                 bool reslot0 = guest.cars[0].mode == CarMode.Off && f % 30 == 0;
                 if (reslot0) { guest.Reslot(0); reslots++; }
-                toHost.Enqueue((want0, reslot0));
+                toHost.Enqueue((want0, reslot0, guestMs));
                 var arrivedIn = toHost.Dequeue();
                 host.cars[0].held = arrivedIn.held;
+                if (arrivedIn.ts > 0) { lastTs = arrivedIn.ts; lastTsFrame = f; }
                 if (arrivedIn.reslot) host.Reslot(0);
                 host.cars[1].held = want1;
                 if (host.cars[1].mode == CarMode.Off && f % 30 == 0) { host.Reslot(1); reslots++; }
                 host.Step(dt);
                 if (f % 2 == 0)
                 {
-                    string json = JsonUtility.ToJson(new NetOutSnap { snap = NetSync.Pack(host, 0) });
+                    var sn = NetSync.Pack(host, 0); sn.sq = ++seq;
+                    if (comp && lastTs > 0) { sn.cars[0].ec = lastTs; sn.cars[0].ea = Mathf.RoundToInt((f - lastTsFrame) * dt * 1000f); }
+                    string json = JsonUtility.ToJson(new NetOutSnap { b = NetSync.Encode(sn) });
                     bytes += json.Length; snaps++;
                     toGuest.Enqueue(json);
                 }
                 else toGuest.Enqueue(null);
                 guest.cars[0].held = want0;                                     // predição: o botão vale na hora
                 var arrived = toGuest.Dequeue();
-                if (arrived != null) NetSync.Apply(JsonUtility.FromJson<NetMsg>(arrived).snap, guest, 0);
+                if (arrived != null)
+                {
+                    var sn = NetSync.Decode(JsonUtility.FromJson<NetMsg>(arrived).b);
+                    if (sn.sq > lastSq)
+                    {
+                        lastSq = sn.sq;
+                        float r = NetSync.Rtt(sn.cars[0], guestMs);
+                        if (r >= 0f) { rtt = rtt < 0f ? r : Mathf.Lerp(rtt, r, 0.1f); hist.lag = rtt * 0.5f; }
+                        NetSync.Apply(sn, guest, 0, comp ? hist : null);
+                    }
+                }
                 guest.Step(dt);
+                if (comp) hist.Add(time, guest.cars[0]);
                 maxOwn = Mathf.Max(maxOwn, Mathf.Abs(guest.cars[0].s - host.cars[0].s));
                 maxOther = Mathf.Max(maxOther, Mathf.Abs(guest.cars[1].s - host.cars[1].s));
             }
-            Check(host.phase == RaceSim.Phase.Done, $"sync: a corrida acabou no host ({host.t:0.0} s, vencedor {host.winner})");
+            Check(host.phase == RaceSim.Phase.Done, $"{tag}: a corrida acabou no host ({host.t:0.0} s, vencedor {host.winner})");
             for (int i = 0; i < delay * 3; i++)
             {
                 host.cars[0].held = false; host.cars[1].held = false; host.Step(dt);
-                var j = JsonUtility.ToJson(new NetOutSnap { snap = NetSync.Pack(host, 0) });
-                NetSync.Apply(JsonUtility.FromJson<NetMsg>(j).snap, guest, 0);
+                var sn = NetSync.Pack(host, 0); sn.sq = ++seq;
+                NetSync.Apply(NetSync.Decode(NetSync.Encode(sn)), guest, 0);
             }
-            Check(guest.phase == host.phase && guest.winner == host.winner, "sync: o visitante termina na mesma fase e com o mesmo vencedor");
+            Check(guest.phase == host.phase && guest.winner == host.winner, $"{tag}: o visitante termina na mesma fase e com o mesmo vencedor");
             for (int k = 0; k < 2; k++)
             {
                 var a = host.cars[k]; var b = guest.cars[k];
-                Check(a.laps == b.laps && a.offs == b.offs && a.hits == b.hits && a.finish == b.finish && a.best == b.best && a.lastLap == b.lastLap, $"sync: carro {k}: voltas, saídas, toques, chegada e melhor volta iguais ({a.laps} voltas, melhor {a.best:0.00})");
+                Check(a.laps == b.laps && a.offs == b.offs && a.hits == b.hits && a.finish == b.finish && a.best == b.best && a.lastLap == b.lastLap, $"{tag}: carro {k}: voltas, saídas, toques, chegada e melhor volta iguais ({a.laps} voltas, melhor {a.best:0.00})");
             }
-            report.AppendLine($"    desvio máx. do carro próprio {maxOwn:0.00} cél · do outro carro {maxOther:0.00} cél · {snaps} snapshots, {bytes / Mathf.Max(1, snaps)} bytes cada, {reslots} recolocações");
-            Check(maxOwn < 1.6f && maxOther < 2.5f, $"sync: o desvio ficou pequeno (próprio {maxOwn:0.00} · outro {maxOther:0.00} células)");
+            if (comp) Check(rtt > 0f && Mathf.Abs(rtt - delay * 2 * dt) < 0.04f, $"{tag}: a latência medida pelo eco bate ({rtt * 1000f:0} ms)");
+            report.AppendLine($"    {tag}: desvio máx. do carro próprio {maxOwn:0.00} cél · do outro carro {maxOther:0.00} cél · {snaps} snapshots, {bytes / Mathf.Max(1, snaps)} bytes cada, {reslots} recolocações");
+            return maxOwn;
+        }
+
+        static void RunSyncAll()
+        {
+            float oldSlow = RunSync(5, 14f, false), newSlow = RunSync(5, 14f, true);
+            Check(newSlow < 1.6f, $"sync: 166 ms, desvio do carro próprio pequeno ({newSlow:0.00} com eco, {oldSlow:0.00} sem)");
+            float oldFast = RunSync(9, 20f, false), newFast = RunSync(9, 20f, true);
+            Check(newFast <= oldFast + 0.05f, $"sync: 300 ms e vmax 20, o eco não piora ({newFast:0.00} com eco, {oldFast:0.00} sem)");
         }
 
         public static void Run()
@@ -240,7 +308,8 @@ namespace Autorama
                 Check(WaitFor(() => old.c.state == OnlineClient.State.Open, old), "versão: conecta");
                 old.c.Send(new NetOut { t = "hello", ver = OnlineClient.Protocol + 1 });
                 Check(WaitFor(() => old.got.Exists(m => m.t == "error" && m.code == "versao"), old) && WaitFor(() => old.closed != null, old), "versão: protocolo diferente é recusado e a conexão cai");
-                RunSync();
+                RunBinary();
+                RunSyncAll();
                 Debug.Log("[OnlineSmokeTest] TUDO CERTO");
             }
             catch (Exception e) { Debug.LogError("[OnlineSmokeTest] " + e.Message); report.AppendLine(e.Message); code = 1; }

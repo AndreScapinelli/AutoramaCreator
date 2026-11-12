@@ -43,12 +43,15 @@ namespace Autorama
         public float lastLap = -1f, best = -1f, finish = -1f;
         public int lane, cb;                                // corrida por tempo: trilho atual e ajuste das bandeiradas
         public bool ld;                                     // volta que pegou a troca de trilho
+        public int ec, ea;                                  // eco do relógio do piloto (o ts do último "in") e há quantos ms o host o recebeu
     }
 
     // hi: a bateria do snapshot (ele só vale para quem está nela) · ph: RaceSim.Phase · t: relógio · w: vencedor (−1 ninguém)
-    [Serializable] public class NetSnap { public int hi, ph, w, mi; public float t, rt; public List<NetCar> cars = new List<NetCar>(); }   // mi: manche · rt: relógio guardado na troca
+    // sq: número do snapshot (sobe a cada envio do host; o atrasado é descartado). Vai pela rede em binário (NetSync.Encode).
+    [Serializable] public class NetSnap { public int hi, ph, w, mi, sq; public float t, rt; public List<NetCar> cars = new List<NetCar>(); }   // mi: manche · rt: relógio guardado na troca
+    [Serializable] public class NetHeatRes { public List<HeatResult> r = new List<HeatResult>(); }   // sync: o resultado de uma bateria (vazio: não salva)
 
-    // Tudo o que o servidor manda: hello, joined, left, room, rooms, chat, error, pong, started, lobby, in, snap, ev.
+    // Tudo o que o servidor manda: hello, joined, left, room, rooms, chat, error, pong, started, lobby, in, snap, ev, sync.
     [Serializable]
     public class NetMsg
     {
@@ -73,11 +76,13 @@ namespace Autorama
         public int re;
         public int gp;                                    // in: nível do acelerador em % (0 = cliente antigo, vale 100)
         public bool tb;                                   // in: turbo apertado
+        public int ts;                                    // in: o relógio do visitante, em ms (volta no snapshot: latência)
         // snap / ev (host → todos)
-        public NetSnap snap = new NetSnap();
-        public string k;                                  // ev: res (resultado salvo) · reset (bateria de novo)
+        public string b;                                  // snap: o snapshot em binário, base64 (NetSync.Decode)
+        public string k;                                  // ev: res (resultado salvo) · reset (bateria de novo) · sync (o campeonato inteiro)
         public int hi;                                    // ev: índice da bateria
         public List<HeatResult> heatRes = new List<HeatResult>();
+        public List<NetHeatRes> heats = new List<NetHeatRes>();   // ev sync: o resultado de cada bateria (com title, rules, pilots e stages se foi pedido)
     }
 
     // O que o cliente manda.
@@ -91,11 +96,19 @@ namespace Autorama
         public int re, ver;                               // ver: versão do protocolo (hello)
         public int gp;                                    // in: nível do acelerador em % (1–100)
         public bool tb;                                   // in: turbo apertado
+        public int ts;                                    // in: o meu relógio em ms (o host devolve no snapshot)
         public float vmax, ramp, grip;                    // start: as regras (os ajustes da aba Corrida do host)
         public string track, hash, json;                  // suggest: a pista que o visitante sugere ao host (nome, identidade e o JSON)
         public int faixas;                                // suggest: 2 ou 4 carros
     }
     [Serializable] public class NetOutStages { public string t = "stages"; public List<NetStage> stages = new List<NetStage>(); }
-    [Serializable] public class NetOutSnap { public string t = "snap"; public NetSnap snap; }
-    [Serializable] public class NetOutEv { public string t = "ev"; public string k; public int hi; public List<HeatResult> heatRes = new List<HeatResult>(); }
+    [Serializable] public class NetOutSnap { public string t = "snap"; public string b; }
+    // to: só para um jogador (resposta ao sync); vazio: todos. Os outros campos vão só no sync.
+    [Serializable]
+    public class NetOutEv
+    {
+        public string t = "ev"; public string k, to; public int hi; public List<HeatResult> heatRes = new List<HeatResult>();
+        public string title; public NetRules rules; public List<NetPlayer> pilots = new List<NetPlayer>(); public List<NetStage> stages = new List<NetStage>();
+        public List<NetHeatRes> heats = new List<NetHeatRes>();
+    }
 }

@@ -173,7 +173,20 @@ namespace Autorama
             Check(Champ.TrackHash(d) == "81546106" && sa.stages[1].json == sb.stages[1].json, "fake: a pista chega inteira (mesmo hash)");
 
             c.t.Send(new NetOut { t = "join", code = code });
-            Check(WaitFor(() => c.Has("error"), all) && c.Take("error").code == "andamento", "fake: com o campeonato andando ninguém entra");
+            Check(WaitFor(() => c.Has("joined"), all) && c.Take("joined").room.state == "racing", "fake: com o campeonato andando dá para entrar e assistir");
+            a.got.Clear(); b.got.Clear();
+            c.t.Send(new NetOut { t = "sync" });
+            Check(WaitFor(() => a.Has("sync"), all) && a.Take("sync").from == "1003", "fake: o pedido de sync chega ao host, com quem pediu");
+            c.t.Send(new NetOut { t = "sync" });
+            Check(Quiet(() => a.Has("sync"), all), "fake: no máximo um sync por segundo");
+            var sy = new NetOutEv { k = "sync", to = "1003", title = "Copa" }; sy.stages.Add(Stage("Oval", TrackSave.Oval())); sy.heats.Add(new NetHeatRes { r = { new HeatResult { laps = 3 }, new HeatResult { laps = 2 } } }); sy.heats.Add(new NetHeatRes());
+            a.t.Send(sy);
+            Check(WaitFor(() => c.Has("ev"), all), "fake: a resposta do sync chega a quem pediu");
+            var cy = c.Take("ev");
+            Check(cy.k == "sync" && cy.stages.Count == 1 && cy.heats.Count == 2 && cy.heats[0].r.Count == 2 && cy.heats[0].r[1].laps == 2 && cy.heats[1].r.Count == 0, "fake: com as pistas e o resultado de cada bateria");
+            Check(Quiet(() => b.Has("ev"), all), "fake: e não vai a mais ninguém");
+            c.t.Send(new NetOut { t = "leave" });
+            WaitFor(() => a.Has("room", m => m.room.players.Count == 2), all);
             b.got.Clear();
             b.t.Send(new NetOut { t = "color", color = Champ.Colors[6] });
             Check(WaitFor(() => b.Has("error", m => m.code == "andamento"), all), "fake: nem troca de cor");
@@ -187,9 +200,9 @@ namespace Autorama
             a.t.Send(new NetOut { t = "in", held = true });
             Check(Quiet(() => b.Has("in") || a.Has("in"), all), "fake: o host não manda botão a ninguém");
             var sim = new RaceSim(new RaceSettings());
-            a.t.Send(new NetOutSnap { snap = NetSync.Pack(sim, 1) });
-            Check(WaitFor(() => b.Has("snap"), all) && b.Take("snap").snap.hi == 1, "fake: o snapshot do host chega ao visitante");
-            b.t.Send(new NetOutSnap { snap = NetSync.Pack(sim, 9) });
+            a.t.Send(new NetOutSnap { b = NetSync.Encode(NetSync.Pack(sim, 1)) });
+            Check(WaitFor(() => b.Has("snap"), all) && NetSync.Decode(b.Take("snap").b).hi == 1, "fake: o snapshot do host chega ao visitante");
+            b.t.Send(new NetOutSnap { b = NetSync.Encode(NetSync.Pack(sim, 9)) });
             Check(Quiet(() => a.Has("snap"), all), "fake: snapshot de visitante é ignorado");
             var ev = new NetOutEv { k = "res", hi = 1 }; ev.heatRes.Add(new HeatResult { laps = 3, time = 41.25f }); ev.heatRes.Add(new HeatResult { dnf = true });
             a.t.Send(ev);
@@ -206,15 +219,17 @@ namespace Autorama
             Check(b.Take("lobby").text == "Fim de papo", "fake: com a mensagem do host");
             Check(WaitFor(() => b.Has("room", m => m.room.state == "lobby" && m.room.Player("1002").ready == false && m.room.Player("1001").ready), all), "fake: o pronto zera (o host continua pronto)");
 
-            // host sai no meio: encerra
+            // host sai no meio: o visitante assume a corrida
             b.t.Send(new NetOut { t = "ready", ready = true });
             WaitFor(() => a.Has("room", m => m.room.Player("1002")?.ready == true), all);
             a.t.Send(new NetOut { t = "start", vmax = 14, ramp = .5f, grip = 29, collide = true });
             WaitFor(() => b.Has("started"), all);
             b.got.Clear();
             a.t.Send(new NetOut { t = "leave" });
-            Check(WaitFor(() => b.Has("lobby", m => m.text.Contains("host saiu")), all), "fake: host que sai no meio da corrida encerra o campeonato");
-            Check(WaitFor(() => b.Has("room", m => m.room.host == "1002" && m.room.state == "lobby" && m.room.players.Count == 1), all), "fake: o visitante vira o host e o lobby volta");
+            Check(WaitFor(() => b.Has("room", m => m.room.host == "1002" && m.room.state == "racing" && m.room.players.Count == 1), all), "fake: host que sai no meio passa a corrida ao visitante");
+            Check(b.Has("chat", m => m.sys && m.text.Contains("recomeça")) && !b.Has("lobby"), "fake: com o aviso no chat, sem encerrar o campeonato");
+            b.t.Send(new NetOut { t = "end" });
+            Check(WaitFor(() => b.Has("lobby"), all), "fake: o novo host encerra quando quiser");
             Check(b.t.state == OnlineClient.State.Open, "fake: a conexão segue aberta");
             foreach (var p in all) p.t.Close();
             Check(hub.lobbies.Count == 0, "fake: sala vazia some do mundo");
@@ -248,7 +263,7 @@ namespace Autorama
             fb.offline = false;
             b.got.Clear();
             b.t.JoinById(fa.LobbyIdForTest);
-            Check(WaitFor(() => b.Has("error"), all) && b.Take("error").code == "sem-sala", "convite: com o campeonato andando o lobby não aceita mais ninguém");
+            Check(WaitFor(() => b.Has("joined"), all) && b.Take("joined").room.state == "racing", "convite: com o campeonato andando o convite ainda entra (para assistir)");
             foreach (var p in all) p.t.Close();
         }
 

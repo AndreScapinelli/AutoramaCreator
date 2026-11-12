@@ -2442,8 +2442,8 @@ Quarta aba, **Online**: criar ou entrar numa sala, escolher a cor, conversar, o 
 - **Host que sai**: o jogador mais antigo vira host. Ele só tem o resumo das etapas, então reencontra as pistas pela identidade (`Champ.TrackHash`) entre as que tem no computador e tira as que não achar (`AdoptStages`). Sala vazia é apagada.
 - **Cheia**: 8 jogadores (`MaxPlayers`). Máximo de 12 etapas, cada uma com até 100 KB de JSON e de 1 a 30 voltas.
 - **Pronto.** Cada visitante aperta **Estou pronto** (o host está sempre pronto). Mexer nas etapas zera o "pronto" de quem já tinha confirmado (o servidor avisa no chat). O host só larga com **pelo menos 2 pilotos, 1 etapa e todos prontos**; o servidor confere de novo (`poucos`, `sem-etapas`, `nao-prontos`).
-- **Largar.** O host manda as regras (os ajustes da aba Corrida: velocidade, rampa, aderência, colisão). O servidor entrega a **todos** os pilotos (na ordem do rodízio), as regras e as pistas com o JSON (`started`); a sala passa a `racing` e ninguém mais entra nem troca de cor. É o mesmo campeonato do offline (`Champ.MakeHeats`: N baterias por etapa, cada piloto uma vez em cada trilho).
-- **Acabou ou desistiu.** O host manda `end` e todos voltam ao lobby (`lobby`), com o "pronto" zerado. Se o **host sai** no meio, o campeonato é encerrado para todos. Se um **visitante sai**, o campeonato segue: o carrinho dele fica parado e a bateria dele vale como não terminada (e se os dois da bateria saíram, o host a grava sozinho como não terminada).
+- **Largar.** O host manda as regras (os ajustes da aba Corrida: velocidade, rampa, aderência, colisão). O servidor entrega a **todos** os pilotos (na ordem do rodízio), as regras e as pistas com o JSON (`started`); a sala passa a `racing` e ninguém mais troca de cor. É o mesmo campeonato do offline (`Champ.MakeHeats`: N baterias por etapa, cada piloto uma vez em cada trilho). Com o campeonato andando ainda dá para **entrar**: quem já era piloto volta ao mesmo lugar, e os outros assistem (seção 41).
+- **Acabou ou desistiu.** O host manda `end` e todos voltam ao lobby (`lobby`), com o "pronto" zerado. Se o **host sai** no meio, o próximo vira host e a bateria da vez recomeça (seção 41). Se um **visitante sai**, o campeonato segue: o carrinho dele fica parado e a bateria dele vale como não terminada (e se os dois da bateria saíram, o host a grava sozinho como não terminada).
 
 ### 23.2 Protocolo
 
@@ -2461,9 +2461,10 @@ JSON de uma linha por mensagem WebSocket, com o tipo em `t`. Classes em `Online/
 | `visibility` | `pub` | **só o host** |
 | `start` | `name`, `vmax`, `ramp`, `grip`, `collide` | **só o host**, com todos prontos |
 | `end` | `text` | **só o host**, no campeonato |
-| `in` | `held`, `re` (contador de "recolocar") | visitantes, no campeonato; vai **só para o host**, até 120 por segundo |
-| `snap` | `snap`: `{ hi, ph, t, w, cars[2] }` | **só o host**; repassado a todos os outros (até 16 KB) |
-| `ev` | `k` (`res` ou `reset`), `hi`, `heatRes[2]` | **só o host**; repassado a todos os outros |
+| `in` | `held`, `re` (contador de "recolocar"), `gp`, `tb`, `ts` (relógio do visitante, ms) | visitantes, no campeonato; vai **só para o host**, até 120 por segundo |
+| `snap` | `b`: o snapshot em binário, base64 (`NetSync.Encode`; seção 41) | **só o host**; repassado a todos os outros (até 16 KB) |
+| `ev` | `k` (`res`, `reset` ou `sync`), `hi`, `heatRes[2]`; no `sync`: `to`, `heats`, e `title`/`rules`/`pilots`/`stages` | **só o host**; repassado a todos os outros, ou só a `to` |
+| `sync` | | visitantes, no campeonato; vai só ao host com `from`, um por segundo |
 | `leave`, `ping` | | |
 
 | Servidor → cliente | Campos |
@@ -2475,7 +2476,8 @@ JSON de uma linha por mensagem WebSocket, com o tipo em `t`. Classes em `Online/
 | `chat` | `name`, `color`, `text`, `time`; ou `sys: true` (aviso do servidor) |
 | `started` | `title`, `rules`, `pilots[{id,name,color}]`, `stages[{name,laps,hash,json}]` |
 | `lobby` | `text`: o campeonato acabou ou foi interrompido; todos voltam ao lobby |
-| `in` | `from` (id de quem mandou), `held`, `re` (só o host recebe) |
+| `in` | `from` (id de quem mandou), `held`, `re`, `gp`, `tb`, `ts` (só o host recebe) |
+| `sync` | `from`: quem pediu o campeonato (só o host recebe) |
 | `snap`, `ev` | os do host, como foram mandados |
 | `error` | `code`, `text` (em português, para mostrar ao jogador) |
 
@@ -2490,7 +2492,7 @@ npm start          # ws://localhost:8080 (variável PORT muda a porta)
 npm test           # 36 verificações com vários clientes simulados
 ```
 
-- **Versão do protocolo.** A primeira mensagem do cliente é `hello` com `ver` (`OnlineClient.Protocol`, hoje 1; no servidor `PROTOCOL`). Versão diferente, ou qualquer outra mensagem antes do `hello`, dá o erro `versao` ("Atualize o jogo") e derruba a conexão. Mude o número nos dois lados sempre que o formato das mensagens mudar.
+- **Versão do protocolo.** A primeira mensagem do cliente é `hello` com `ver` (`OnlineClient.Protocol`, hoje 2; no servidor `PROTOCOL`). Versão diferente, ou qualquer outra mensagem antes do `hello`, dá o erro `versao` ("Atualize o jogo") e derruba a conexão. Mude o número nos dois lados sempre que o formato das mensagens mudar.
 - **Limites por endereço:** 20 conexões abertas (`muitas-conexoes`) e 6 salas criadas por minuto (`muitas-salas`). Atrás de proxy, o endereço vem de `fly-client-ip` ou `X-Forwarded-For`; isso só vale com `TRUST_PROXY=1` (o `Dockerfile` e o `fly.toml` já ligam).
 
 - Mensagem de até 2 MB; o servidor derruba quem não responde a um ping de 15 s e tira o jogador da sala.
@@ -2530,7 +2532,10 @@ net.Pump();
 | Snapshot na corrida (`SnapFast`) | 1/30 s (largada e prova) |
 | Snapshot parado ou encerrado (`SnapSlow`) | 0,25 s |
 | Tolerância do carro próprio (`NetSync.OwnTolerance`) | 1,5 células |
+| Correção suave por snapshot (`NetSync.Blend`) | 25% do erro |
 | Repetição do botão do visitante (`HeldRefresh`) | 0,25 s |
+| Botão sem notícia vira solto (`InTimeout`) | 1 s |
+| Host larga / salva sozinho (`AutoStart` / `AutoSave`) | 20 s / 10 s |
 | Entradas por segundo de cada visitante (servidor) | 120 |
 
 **Fluxo de uma bateria.**
@@ -2580,8 +2585,8 @@ Depois do deploy, escreva o endereço (`wss://SEU-APP.fly.dev`) em `OnlineClient
 ### 23.8 Próximos passos
 
 1. Histórico no campeonato online (os recordes já são gravados: seção 39).
-2. Reduzir o snapshot (campos que quase nunca mudam, ou só o que mudou) se a banda for um problema.
-3. Expulsar jogador, passar o host adiante sem encerrar o campeonato, reconectar no meio da prova.
+2. Expulsar jogador.
+3. (Feito na seção 41: snapshot binário, latência pelo eco, host que passa adiante, voltar de uma queda e assistir.)
 
 ---
 
@@ -2655,9 +2660,9 @@ A aba (`RaceController.Online*.cs`) fala com a rede só por `IOnlineTransport` (
 
 - **Sala:** `create` cria o lobby (público: aparece na lista; privado: tipo *Invisible*, só pelo código). O código de 5 letras, o nome, o estado, as etapas (resumo em JSON em `stl`) e a visibilidade são dados do lobby, que só o dono escreve. `join` busca pelo código, confere o estado (`andamento`) e a lotação (`cheia`) e entra.
 - **Cor, pronto e nome:** cor e pronto são dados do próprio membro; o nome vem de `GetPersonaName`. O "pronto" vale para uma **época**: o lobby guarda `epoch` (começa em 1; `0` é "não pronto") e o jogador grava a época em que confirmou. Mexer nas etapas sobe a época e zera todos sem precisar escrever nos dados dos outros.
-- **Largar (host):** confere 2 pilotos, 1 etapa, todos prontos e as regras; manda `started` (pilotos, regras e as pistas **com o JSON**) a cada visitante por mensagem direta confiável (até 500 KB), grava `state=racing` e fecha o lobby (`SetLobbyJoinable(false)`).
+- **Largar (host):** confere 2 pilotos, 1 etapa, todos prontos e as regras; manda `started` (pilotos, regras e as pistas **com o JSON**) a cada visitante por mensagem direta confiável (até 500 KB) e grava `state=racing`. O lobby **continua aberto** (seção 41): quem cai volta com o mesmo SteamID, e outros entram para assistir.
 - **Corrida:** `in` vai do visitante ao dono (confiável, sem *nagle*, e o id vem de quem mandou, não do texto); `snap` do dono a todos, sem confiabilidade; `ev` e `lobby` do dono a todos, confiáveis. Só se aceita `snap`/`ev`/`started`/`lobby` do dono, e conversa direta só de quem está no lobby (`AcceptSessionWithUser` confere).
-- **Fim:** `end` manda `lobby` a todos, volta `state=lobby`, sobe a época e reabre o lobby. Se o **host sai** no meio, cada um percebe que o dono da corrida sumiu, mostra "O host saiu" e quem virou dono volta o lobby. Se só um visitante sai, o campeonato segue.
+- **Fim:** `end` manda `lobby` a todos, volta `state=lobby` e sobe a época. Se o **host sai** no meio, o novo dono do lobby (a Steam escolhe) assume a corrida (`AdoptRaceHost`, seção 41). Se só um visitante sai, o campeonato segue.
 - **Host novo no lobby:** o novo dono perde o JSON das pistas (o lobby guarda só o resumo): a aba reencontra as pistas pelo hash e as reenvia (`AdoptStages` agora sempre chama `SendStages`, com os dois transportes).
 - **Chat:** `SendLobbyChatMsg`; não há histórico para quem entra depois (o servidor Node guarda as últimas 50).
 - **Botão na aba:** ligar **Jogar pela Steam** inicia a Steam (se falhar, desliga e avisa, por exemplo "O cliente da Steam não está aberto"), mostra o nome da conta e esconde o endereço do servidor. A escolha fica em `PlayerPrefs` (`autorama.online.steam`).
@@ -2718,7 +2723,7 @@ Por isso o construtor inteiro (encaixe, sobreposição, mesa que cresce, fechar 
 - O mouse vira célula com `WorldToCell` (célula sob o mouse, arrastar a largada). O enquadramento, as réguas e a barra de escala usam `CellToWorld`. `Shifted` (a mesa cresceu e a pista foi empurrada) já sai em unidades do mundo.
 - No resumo, `cm por célula = escalaCm × Scale` (a célula da pista de 4 tem o dobro da largura).
 
-A física fica **no mundo**: `LanePath(segs, offset, scale)` multiplica posições e alturas por `scale` e divide a curvatura (`k = dir / ((R − dir·off) · scale)`). A rampa continua em níveis por célula (o ângulo é igual nas duas pistas). O grid e a bandeirada também escalam (`GridPos = GridS × Scale`, marca em `LineS × Scale`), assim como a altura de quem sai da pista e o recuo ao recolocar (0,4 × Scale). As constantes (`ACCEL 3.5`, `BRAKE 1.8`, `SLIP_GAIN 6`…) **não mudam**; como a curva é maior, a pista de 4 é mais rápida nas curvas e a volta é mais longa.
+A física fica **no mundo**: `LanePath(segs, offset, scale)` multiplica posições e alturas por `scale` e divide a curvatura (`k = dir / ((R − dir·off) · scale)`). A rampa continua em níveis por célula (o ângulo é igual nas duas pistas). O grid e a bandeirada também escalam (`GridPos = GridS × Scale`, marca em `LineS × Scale`), assim como a altura de quem sai da pista e o recuo ao recolocar (0,4 × Scale). A física é a da pista de 2 esticada (seção 25.5b): a velocidade, o freio, a rampa e a aderência são multiplicados pela escala no `RaceSim`; `ACCEL`, `BRAKE`, `SLIP_GAIN` e `SLIP_DECAY` não mudam.
 
 ```csharp
 public static readonly float[] Lanes4 = { -0.375f, -0.125f, 0.125f, 0.375f };
@@ -2761,6 +2766,31 @@ Tudo gerado por `ferramentas/gen-texturas.js` (bloco "PISTA DE 4 CARROS") e liga
 - **Corrida livre na pista de 4:** "Jogador 2 é um robô" continua; aparece **"Jogadores 3 e 4 são robôs"** (`RaceSettings.bot34`, ligado por padrão), com a mesma qualidade.
 - Tela: 4 painéis de jogador mais baixos (`.pads--4`), 4 fichas no placar com a posição de cada um (`Order()`: chegada, voltas e depois a **fração da volta**, porque os trilhos têm comprimentos diferentes), resultado com as 4 posições, câmera **Atrás do carro** com Jogador 1 a 4 e a **Dinâmica** enquadrando o retângulo dos 4 (`SetRaceTargets(pos[], heading[], count, focus)`).
 - Exemplos novos na lista de pistas: **oval de 4 carros** e **8 com ponte de 4 carros** (`TrackSave.Four`).
+
+### 25.5b Física igual em 2, 4 e 6 (`RaceSim`, `S` = Scale)
+
+Antes, as constantes ficavam fixas no mundo: a curva da pista de 6 tinha raio 3× maior, então a derrapagem quase não acontecia e dava para acelerar tudo nela, enquanto na de 2 o carrinho saía da pista em 0,1 s. Agora a física é a da pista de 2 esticada por `S`:
+
+| Conta no passo (`Step`, `AiDrive`) | Antes | Agora |
+|---|---|---|
+| Velocidade máxima (`top`) | `vmax` | `vmax × S` |
+| Freio fixo (`Brake0`) | `0,5` | `0,5 × S` |
+| Rampa (`SlopeG`) | `8 × slope` | `8 × S × slope` |
+| Aderência na razão `v²·k / grip` | `grip` | `grip × S` |
+| IA: freio de olhar à frente (`AiBrake`) | `20 × d` | `20 × S × d` (a janela `AiLook` também × S) |
+| IA: limite de curva | `√(grip·q.grip/|k|)` | `√(grip·S·q.grip/|k|)` |
+| `ACCEL`, `BRAKE`, `SLIP_GAIN`, `SLIP_DECAY` | — | não mudam |
+
+Por que vale: com `v`, comprimento e raio multiplicados por `S`, a razão `v²·k/grip` só fica igual se `grip` também for × `S`. O tempo é o mesmo nas três pistas, então a derrapagem e a IA ficam como antes. A correção da IA da seção 25.5 (dividir a coragem por `S`) saiu, porque não é mais preciso.
+
+`c.v`, `c.s` e `Travel` continuam em unidades do mundo. `vmax` continua em células por segundo: a velocidade em células por segundo é `v / S`, usada nas barras (`RaceController`, `RaceController.Audio`), no limite de curva da aba Corrida (`CornerLimit` já inclui `S`) e na estimativa de tempo do campeonato (`ChampData.EstimateMin`).
+
+Testes (`script eval`, oval, `faixas` 2, 4 e 6, `vmax` 14, `grip` 29):
+
+- Acelerador sempre no fundo, sem IA: nas três pistas todos os trilhos saem da pista uma vez na primeira curva, com velocidade máxima de 12,9 a 13,1 célula por segundo. Pela conta da física antiga, a de 6 não sairia (seção 25.5b, início).
+- Robôs de qualidade 100 (todos os carros), 5 voltas, colisão e turbo ligados, `Random.InitState(7)`: 2 carros, 21,9 s · 4 carros, 22,3 s · 6 carros, 22,6 s; **nenhuma saída** em nenhuma pista.
+
+Os tempos das seções 25.7 e 31.4 são da física antiga. Os recordes das pistas de 4 e de 6 vão mudar; as identidades (`f4|`, `f6|`) não.
 
 ### 25.6 Campeonato
 
@@ -3011,7 +3041,7 @@ Terceiro tipo de pista, na mesma ideia da de 4 (seção 25): **mesmas peças e i
 
 O espaço entre trilhos é sempre **0,5 no mundo**. `TrackMath.Faixas(f)` aceita 2, 4 e 6 (qualquer outro valor vira 2). No JSON: `"faixas": 6`. A identidade da pista para os recordes começa com `f6|` (oval de 6 = `265259f3`, 8 com ponte de 6 = `27ae435c`; as de 2 e de 4 não mudaram). O cruzamento troca os trilhos em espelho: 1↔6, 2↔5, 3↔4 (`Analyze` faz a média de cada par com cruzamentos ímpares).
 
-`RaceSim.MaxCars = 6` (`present`, `aiSkill`, `paths`, `pairContact`: 15 pares de colisão). Na IA, a margem de coragem acima do limite é dividida pela escala (`m = √(1 + (m² − 1) / Scale)`), o que continua valendo com escala 3.
+`RaceSim.MaxCars = 6` (`present`, `aiSkill`, `paths`, `pairContact`: 15 pares de colisão). A física é a da seção 25.5b (escala 3).
 
 ### 31.2 Arte (`ferramentas/gen-texturas.js`, bloco "PISTA DE 6 CARROS")
 
@@ -3378,3 +3408,85 @@ Em `RaceController.Records.cs`. Aparece na faixa do meio da mesa com a corrida p
 - **Tela (Play mode):** corrida livre no oval (por tempo) com recorde: cartão "Recordes da pista" só com a volta, "4,20 s BET · online". Campeonato offline no oval com 2 pilotos: as quatro linhas (volta online, 3 voltas, Ana com trilho e melhor pessoal, Beto com "primeira vez aqui"), e sem os botões do resultado.
 - **Servidor:** `node --check` nos dois arquivos. Entrou no `teste.js` a verificação do `uid` em `started` (o do host vai; repetido e inválido ficam vazios), mas o `npm test` **não rodou**: nesta máquina não havia `npm` nem `node_modules`.
 - **Não testado:** uma corrida online de verdade entre dois computadores (o `OnlineSmokeTest` precisa do servidor rodando) e a Steam.
+
+## 40. Listas de pistas com altura máxima
+
+As listas que mostram miniaturas de pista (biblioteca do construtor, pistas e etapas do campeonato, pistas da corrida, e no online: pistas disponíveis, etapas e sugestões) estavam empilhando tudo e cresciam sem limite. Agora cada uma fica numa `ScrollView` com `max-height: 300px` (classe `.lista-pistas`, em `UI/Construtor.uss`), com rolagem vertical e sem rolagem horizontal.
+
+- **Código:** `BuilderPanel.Caixa(parent)` cria a `ScrollView` e a adiciona ao pai; o conteúdo continua sendo um `VisualElement` (`El`) dentro dela, então o `Clear()` das listas segue igual.
+- **Onde:** `BuilderPanel` (biblioteca), `RaceController.Champ` (etapas, pistas disponíveis, etapas da corrida), `RaceController` (pistas da corrida), `RaceController.Online` (etapas, pistas disponíveis e sugestões).
+- **Constante:** altura máxima de 300 px (cerca de 6 linhas de 42 px de miniatura com espaço).
+
+## 41. Online mais robusto (protocolo 2, só Unity)
+
+Cinco mudanças no campeonato online, nos dois transportes (servidor Node e Steam). O protocolo passou para **2** (`OnlineClient.Protocol` e `PROTOCOL` no servidor): cliente antigo e servidor novo não se falam.
+
+### 41.1 Botão preso, snapshot fora de ordem, resultado perdido
+
+- **Botão com prazo.** O host guarda quando chegou o último `in` de cada visitante (`remoteInAt`). Sem `in` há mais de **1 s** (`InTimeout`; o visitante repete a cada 0,25 s), o botão dele conta como solto. Antes o carrinho seguia acelerando até o servidor perceber a queda (15 a 30 s).
+- **Número do snapshot.** O host numera cada snapshot (`NetSnap.sq`, `snapSeq`). O visitante descarta o que tiver número menor ou igual ao último aplicado (`lastSq`). Na Steam o snapshot vai sem confiabilidade e pode chegar fora de ordem. O número recomeça com cada host; o visitante zera `lastSq` quando o host muda e a cada sync.
+- **Sync.** O visitante pede o campeonato ao host (`{t:"sync"}`, no máximo a cada 3 s no cliente e 1 por segundo no servidor e na Steam) quando:
+  - chega um `ev res` de outra bateria;
+  - os snapshots vêm de outra bateria há mais de 1,5 s;
+  - entra numa sala com o campeonato andando.
+
+  O host responde com `ev` `k:"sync"` só para quem pediu (`to`): o resultado de cada bateria (`heats`, uma `NetHeatRes` por bateria, vazia se não foi salva) e, por ter sido pedido, `title`, `rules`, `pilots` e `stages` com o JSON (o `started` guardado em `startedMsg`). O visitante substitui os resultados pelos do host e recarrega a bateria da vez (`OnlineApplySync`). Os recordes das baterias que ele perdeu não são gravados.
+- **Servidor:** o `ev` não tem o limite de 16 KB do snapshot (o sync leva as pistas; vale o limite de 2 MB da mensagem). O mapa de salas criadas por endereço (`creates`) é limpo a cada ping.
+
+### 41.2 Snapshot binário
+
+O snapshot vai em binário, em base64 no campo `b` (`NetSync.Encode` / `Decode`; `Decode` devolve `null` para lixo ou formato desconhecido). O formato começa com um byte de versão (`Format = 1`).
+
+| Parte | Bytes |
+|---|---|
+| Cabeçalho: formato, bateria (`ushort`), fase, vencedor (`sbyte`), manche, `t`, `rt`, `sq` (`int`), número de carros | 19 |
+| Carro no trilho: `s v hold T slip` (float), 1 byte de bandeiras (`held contact bo ld`), `side`, `mode`, `gp`, `tb` (0–255), `exitS lapStart hitFx`, `cross laps offs hits` (16 bits), `lastLap best finish`, `lane`, `cb`, eco `ec` (int) e `ea` (ushort) | 66 |
+| Fora da pista (`mode` Off): `fx fy fvx fvy flyH flyW flyZ` | +28 |
+| Voltando (`mode` Returning): `bx by backH backY backT` | +20 |
+
+O JSON antigo tinha ~600 bytes por carro. Agora o snapshot inteiro de 6 carros cabe num pacote da Steam (menos de 1.200 bytes), então não é fragmentado nem perdido por inteiro quando se perde um pedaço.
+
+### 41.3 Latência pelo eco e correção suave
+
+- O visitante manda no `in` o relógio dele (`ts`, `NetSync.ClockMs`). O host devolve, no carro de cada visitante, o último `ts` (`ec`) e há quantos ms ele chegou (`ea`). O visitante calcula a ida e volta: `agora − ec − ea` (`NetSync.Rtt`, média com peso 0,1). Não precisa de relógio sincronizado: o relógio é sempre o do próprio visitante.
+- O snapshot chega atrasado em cerca de meia ida e volta. O visitante guarda a predição do carro dele nos últimos quadros (`OwnHistory`, 128 registros) e compara o host com a predição de `lag = rtt/2` atrás, não com a de agora.
+- Diferença menor que 1,5 célula (`OwnTolerance`): corrige **25%** dela (`Blend`) na posição e na velocidade, e soma a mesma correção a toda a história (senão o mesmo erro seria corrigido de novo no snapshot seguinte). Maior, ou modo/trilho diferente: copia o estado do host inteiro e zera a história, como antes.
+- Sem eco ainda (começo da bateria, ou quem só assiste): vale a regra antiga (perto do host, fica a predição).
+
+```csharp
+// visitante, a cada snapshot
+float r = NetSync.Rtt(snap.cars[lane], NetSync.ClockMs);
+if (r >= 0f) { rtt = rtt < 0f ? r : Mathf.Lerp(rtt, r, 0.1f); ownHist.lag = rtt * 0.5f; }
+NetSync.Apply(snap, sim, lane, ownHist);
+// e depois de cada Step
+ownHist.Add(Time.realtimeSinceStartup, sim.cars[lane]);
+```
+
+### 41.4 O host não trava a sala
+
+- **Sozinho:** parado em "Largar" por **20 s** (`AutoStart`), o host larga; em "Salvar e seguir" por **10 s** (`AutoSave`), salva e segue. A dica do cartão mostra a contagem ("Larga sozinho em 12 s"), para todos.
+- **Host que sai no meio:** o campeonato não acaba mais. No servidor Node o jogador mais antigo vira host ("…agora é o host: a bateria da vez recomeça"); na Steam é o novo dono do lobby (`AdoptRaceHost`). Quem vira host (`OnlineTakeOver`) manda a sua tabela a todos (`ev sync` sem `to` e sem as pistas), recomeça a bateria da vez e copia as etapas do campeonato para a lista do lobby (`takeOverStages`): ao voltar ao lobby elas vão para a sala (`SendStages`), porque na Steam o JSON das pistas ficava só no host antigo. Os outros zeram o número do snapshot e a latência (`OnlineHostChanged`).
+
+### 41.5 Voltar de uma queda e assistir
+
+- **Servidor Node:** na largada a sala guarda o lugar de cada piloto pelo `uid` (`r.seats`: id e cor). Com o campeonato andando o `join` é aceito: quem tem o `uid` de um piloto volta com **o mesmo id** e a mesma cor ("Hugo voltou à sala."), e os outros entram para assistir ("…entrou para assistir."). Se a conexão velha do mesmo `uid` ainda está na sala (a queda ainda não foi percebida), ela sai antes. Os lugares são esquecidos ao voltar ao lobby. A lista de salas continua mostrando só as que estão no lobby: no meio do campeonato se entra pelo código.
+- **Steam:** o lobby fica aberto durante o campeonato e o id é o SteamID, então voltar é só entrar de novo (código ou convite). Quem entra com `state=racing` já aceita as mensagens do host (`Enter`).
+- **Cliente:** quem recebe `joined` com a sala em `racing` pede o sync e abre o campeonato com o que vier. Se a conexão com o servidor Node cai no meio do campeonato, a aba tenta voltar sozinha à mesma sala, com o mesmo nome e `uid`: até **5 tentativas** (`RejoinMax`), a primeira depois de 1 s e as outras a cada 3 s, com o aviso "A conexão caiu. Tentando voltar à sala (1 de 5)…". Sair da sala, ou um erro de sala (ela acabou), cancela as tentativas.
+- **Cuidado:** o `uid` dos pilotos aparece para todos da sala (`players`). Quem souber o `uid` de outro pode tomar o lugar dele no meio do campeonato. É um jogo entre amigos; se isso virar problema, o servidor precisa de um segredo separado do `uid`.
+
+### 41.6 Testes
+
+- **`SteamTransportTest`** (Editor, mundo falso com 3 jogadores e Steam de verdade com uma conta): tudo passou. Novas verificações: com o campeonato andando dá para entrar e assistir; o pedido de sync chega ao host com quem pediu, no máximo um por segundo; a resposta vai só a quem pediu, com as pistas e o resultado de cada bateria; o snapshot binário chega e o de visitante é ignorado; host que sai no meio passa a corrida ao visitante, com o aviso no chat e sem encerrar, e o novo host encerra quando quiser; convite com o campeonato andando ainda entra. A parte da Steam de verdade (criar sala, etapas, chat, cor, lista, privada, mensagem para si mesmo) continuou passando.
+- **`OnlineSmokeTest`, a parte sem servidor** (`RunBinary` e `RunSyncAll`, por `script eval` com reflexão):
+  - binário: cabeçalho e carros voltam iguais (com fora da pista e voltando); lixo, vazio e formato desconhecido viram `null`;
+  - tamanho, com os carros fora da pista (o pior caso): 2 carros **295 bytes** (o JSON antigo tinha 1.187), 6 carros **799 bytes**. Na prova, com os carros no trilho, 2 carros ficam em ~242 bytes;
+  - sincronização no oval, 3 voltas, mesmo resultado nos dois lados (fase, vencedor, voltas, saídas, toques, chegada e melhor volta) em todos os casos. A latência medida pelo eco bateu: 167 ms para 166 ms simulados, 300 ms para 300 ms.
+
+    | Ida e volta, vmax | Desvio máx. do carro próprio, sem eco | Com eco |
+    |---|---|---|
+    | 166 ms, 14 | 0,89 célula | 0,86 célula |
+    | 300 ms, 20 | 2,68 células | 2,35 células |
+
+    O desvio é medido contra o host no mesmo instante, então inclui a vantagem natural da predição (o host recebe o botão atrasado). O eco tira a parte que vinha de comparar com o estado errado.
+- **Servidor:** `node --check` nos dois arquivos (Node 22). O `teste.js` ganhou: o `ts` chega ao host; entrar com o campeonato andando para assistir; o sync vai ao host e é limitado; a resposta com `to` vai só a quem pediu e passa dos 16 KB; host que sai no meio passa a corrida ao próximo, e o novo host manda snapshots; piloto que volta recebe o id e a cor de antes; a conexão velha do mesmo `uid` sai; o fim esquece os lugares. **O `npm test` não rodou**: nesta máquina não há `npm` nem o pacote `ws`.
+- **Não testado:** o fluxo do `OnlineSmokeTest` contra o servidor (precisa do servidor rodando); a tela com dois jogadores de verdade (voltar de uma queda, host que sai no meio, largar e salvar sozinho); a Steam entre duas contas.

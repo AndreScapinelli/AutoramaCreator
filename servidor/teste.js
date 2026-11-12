@@ -180,7 +180,7 @@ const trilha = (n, extra = {}) => ({ name: 'Pista ' + n, laps: 3, hash: 'a34f4cb
 
   // ---------- corrida: pronto, largar, relay ----------
   const H = await cliente(P), A = await cliente(P), B = await cliente(P);
-  H.send({ t: 'create', name: 'Hugo', pub: false, uid: 'uid-do-hugo-123' }); const room2 = (await H.next('joined')).room.code;
+  H.send({ t: 'create', name: 'Hugo', pub: false, uid: 'uid-do-hugo-123' }); const jH = await H.next('joined'), room2 = jH.room.code, idH = jH.you;
   H.send({ t: 'start', vmax: 14, ramp: .5, grip: 29, collide: true });
   assert.strictEqual((await H.next('error')).code, 'poucos'); ok('começar sozinho é recusado');
   A.send({ t: 'join', name: 'Ana', code: room2, uid: 'uid-do-hugo-123' }); const idA = (await A.next('joined')).you;
@@ -212,9 +212,18 @@ const trilha = (n, extra = {}) => ({ name: 'Pista ' + n, laps: 3, hash: 'a34f4cb
   ok('o id fixo do jogador vai em started; repetido na sala ou inválido fica vazio');
 
   const C = await cliente(P); C.send({ t: 'join', name: 'Caio', code: room2 });
-  assert.strictEqual((await C.next('error')).code, 'andamento');
+  const jC = await C.next('joined'), idC = jC.you;
+  assert.strictEqual(jC.room.state, 'racing'); ok('com o campeonato andando dá para entrar e assistir');
   A.drain(); A.send({ t: 'color', color: COLORS[7] });
-  assert.strictEqual((await A.next('error')).code, 'andamento'); ok('com o campeonato andando ninguém entra nem troca de cor');
+  assert.strictEqual((await A.next('error')).code, 'andamento'); ok('com o campeonato andando ninguém troca de cor');
+
+  // sync: o visitante pede o campeonato; o host responde só para ele (ev com "to"), mesmo grande
+  H.drain(); A.drain(); B.drain(); C.drain();
+  C.send({ t: 'sync' }); assert.strictEqual((await H.next('sync')).from, idC);
+  C.send({ t: 'sync' }); await H.quiet('sync'); ok('o pedido de sync vai ao host, com quem pediu, no máximo um por segundo');
+  H.send({ t: 'sync' }); await H.quiet('sync');
+  H.ws.send(JSON.stringify({ t: 'ev', k: 'sync', to: idC, pad: 'x'.repeat(50000) }));
+  assert.strictEqual((await C.next('ev')).pad.length, 50000); await A.quiet('ev'); await B.quiet('ev'); ok('a resposta do sync vai só para quem pediu, sem o limite do snapshot');
 
   // entradas: visitante → só o host (com o id de quem mandou)
   H.drain(); A.drain(); B.drain();
@@ -222,6 +231,8 @@ const trilha = (n, extra = {}) => ({ name: 'Pista ' + n, laps: 3, hash: 'a34f4cb
   const inp = await H.next('in');
   assert.deepStrictEqual([inp.from, inp.held, inp.re], [idA, true, 2]); await B.quiet('in'); await A.quiet('in'); ok('entrada do visitante vai só para o host');
   assert.strictEqual(inp.gp, 100); ok('sem nível do acelerador (cliente antigo) vale 100%');
+  A.send({ t: 'in', held: true, re: 2, ts: 123456 }); assert.strictEqual((await H.next('in')).ts, 123456);
+  A.send({ t: 'in', held: true, re: 2, ts: 'x' }); assert.strictEqual((await H.next('in')).ts, 0); ok('o relógio do visitante (ts) chega ao host');
   A.send({ t: 'in', held: true, gp: 55, re: 2 });
   assert.strictEqual((await H.next('in')).gp, 55);
   A.send({ t: 'in', held: true, gp: 900, re: 2 });
@@ -251,14 +262,28 @@ const trilha = (n, extra = {}) => ({ name: 'Pista ' + n, laps: 3, hash: 'a34f4cb
   r = await A.next('room'); assert.strictEqual(r.room.state, 'lobby'); assert.deepStrictEqual(r.room.players.map(p => p.ready), [true, false, false]);
   ok('o host encerra: todos voltam ao lobby e o "pronto" zera');
 
-  // host sai no meio da corrida: encerra
+  // host sai no meio da corrida: o próximo assume e o campeonato segue
+  C.close(); await new Promise(r => setTimeout(r, 100));
   A.send({ t: 'ready', ready: true }); B.send({ t: 'ready', ready: true });
   await new Promise(r => setTimeout(r, 150));
   H.send({ t: 'start', vmax: 14, ramp: .5, grip: 29, collide: true }); await A.next('started');
   A.drain(); B.drain();
   H.send({ t: 'leave' });
-  const l2 = await A.next('lobby'); assert(/host saiu/.test(l2.text)); ok('host que sai no meio da corrida encerra o campeonato');
-  r = await A.next('room'); assert.strictEqual(r.room.host, idA);
+  r = await A.next('room'); assert.strictEqual(r.room.host, idA); assert.strictEqual(r.room.state, 'racing'); await A.quiet('lobby');
+  ok('host que sai no meio passa a corrida ao próximo, sem encerrar');
+  A.ws.send(JSON.stringify({ t: 'snap', snap: { hi: 0 } })); await B.next('snap'); ok('o novo host manda os snapshots');
+
+  // quem cai volta ao mesmo lugar (mesmo uid: mesmo id e cor)
+  const H2 = await cliente(P); H2.send({ t: 'join', name: 'Hugo', code: room2, uid: 'uid-do-hugo-123' });
+  const jH2 = await H2.next('joined'); assert.strictEqual(jH2.you, idH); assert.strictEqual(jH2.room.players.find(p => p.id === idH).color, COLORS[0]);
+  ok('piloto que volta no meio do campeonato recebe o id e a cor de antes');
+  const H3 = await cliente(P); H3.send({ t: 'join', name: 'Hugo', code: room2, uid: 'uid-do-hugo-123' });
+  assert.strictEqual((await H3.next('joined')).you, idH);
+  await new Promise(r => setTimeout(r, 100)); assert.strictEqual(H2.ws.readyState, WebSocket.CLOSED);
+  assert.strictEqual(srv.rooms.get(room2).players.filter(p => p.uid === 'uid-do-hugo-123').length, 1); ok('a conexão velha do mesmo jogador sai quando ele volta');
+  A.send({ t: 'end' }); await A.next('lobby'); H3.close();
+  await new Promise(r => setTimeout(r, 100));
+  assert.strictEqual(srv.rooms.get(room2).seats, null); ok('fim do campeonato esquece os lugares');
   // visitante sai no meio: o campeonato segue
   B.send({ t: 'ready', ready: true }); await new Promise(r => setTimeout(r, 100));
   A.send({ t: 'start', vmax: 14, ramp: .5, grip: 29, collide: true }); await B.next('started');

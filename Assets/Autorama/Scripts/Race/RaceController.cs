@@ -445,7 +445,7 @@ namespace Autorama
 
             var pick = Section(box, "PISTA");
             Text("Escolha onde correr. Qualquer pista fechada serve, em qualquer tamanho. Trocar aqui não mexe na pista do construtor.", "hint", pick);
-            pickList = El(null, pick);
+            pickList = El(null, Caixa(pick));
 
             pickNote = Text("", "small", pick);
 
@@ -515,10 +515,11 @@ namespace Autorama
                 ramp.label = $"Tempo até 100%: {Num(set.ramp, 2)} s";
                 grip.label = $"Aderência: {Mathf.RoundToInt(set.grip)}";
                 half.label = $"Meia aceleração (tecla de meia): {set.halfGas}%";
-                float Lim(float r, float m) => Mathf.Min(100f, Mathf.Round(sim.CornerLimit(r, m) / set.vmax * 100f));
+                float sc = sim.Scale;
+                float Lim(float r, float m) => Mathf.Min(100f, Mathf.Round(sim.CornerLimit(r, m) / (set.vmax * sc) * 100f));
                 // Raio do trilho de dentro e do de fora, no mundo: 2,25 e 2,75 na pista de 2; 4,25 e 5,75 na de 4.
-                var lanes = TrackMath.LanesOf(sim.N);
-                float sc = TrackMath.Scale(sim.N), rIn = (2.5f + lanes[0]) * sc, rOut = (2.5f - lanes[0]) * sc;
+                var lanes = TrackMath.LanesOf(builder.Faixas);
+                float rIn = (2.5f + lanes[0]) * sc, rOut = (2.5f - lanes[0]) * sc;
                 gripHint.text = $"Nas curvas planas, o carrinho segura até {Lim(rIn, 1f)}% da velocidade máxima no trilho de dentro e {Lim(rOut, 1f)}% no de fora. " +
                                 $"Nas inclinadas, até {Lim(rIn, PieceCatalog.BankGrip)}% e {Lim(rOut, PieceCatalog.BankGrip)}%.";
             }
@@ -1003,7 +1004,7 @@ namespace Autorama
                 var c = sim.cars[k];
                 var p = pads[k];
                 p.fill.style.width = Length.Percent(c.T * 100f);
-                p.speed.style.width = Length.Percent(Mathf.Min(100f, c.v / sim.set.vmax * 100f));
+                p.speed.style.width = Length.Percent(Mathf.Min(100f, c.v / (sim.set.vmax * sim.Scale) * 100f));
                 p.slip.style.width = Length.Percent(Mathf.Min(100f, c.slip * 100f));
                 p.slip.style.backgroundColor = c.slip < 0.45f ? new Color(0.24f, 0.75f, 0.45f) : c.slip < 0.75f ? new Color(0.96f, 0.76f, 0.1f) : new Color(0.94f, 0.48f, 0.23f);
                 bool off = c.mode == CarMode.Off, ai = sim.aiSkill[k] > 0;

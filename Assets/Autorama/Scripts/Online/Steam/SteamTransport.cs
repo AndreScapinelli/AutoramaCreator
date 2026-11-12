@@ -35,6 +35,7 @@ namespace Autorama
         readonly Dictionary<ulong, string> names = new Dictionary<ulong, string>();
         readonly List<NetStage> stageData = new List<NetStage>();     // do host: com o JSON (o lobby guarda só o resumo)
         readonly List<float> chatTimes = new List<float>();
+        readonly Dictionary<ulong, float> syncAt = new Dictionary<ulong, float>();   // host: último pedido de sync de cada um
 
         public SteamTransport(ILobbyBackend backend = null)
         {
@@ -68,7 +69,6 @@ namespace Autorama
                 if (state != OnlineClient.State.Open) { b.Leave(); return; }
                 if (!ok) { Err("sem-sala", "Não deu para entrar na sala do amigo."); return; }
                 if (b.Data(SteamLobbyClient.Tag) != "1" || b.Data("ver") != OnlineClient.Protocol.ToString()) { b.Leave(); Err("sem-sala", "Esse lobby não é de uma sala do Autorama (ou é de outra versão do jogo)."); return; }
-                if (b.Data("state") != "lobby") { b.Leave(); Err("andamento", "O campeonato dessa sala já começou."); return; }
                 b.SetMyData("ready", "0");
                 AssignColor();
                 Enter();
@@ -111,6 +111,7 @@ namespace Autorama
             {
                 lastOwner = b.Owner;
                 if (!racing) Say($"{NameOf(lastOwner)} agora é o host.");
+                AdoptRaceHost();
                 EmitRoom();
             }
             // Rede de segurança: o host voltou o lobby e a mensagem direta se perdeu.
@@ -130,7 +131,13 @@ namespace Autorama
                 case NetOut o: HandleOut(o); break;
                 case NetOutStages s: HandleStages(s); break;
                 case NetOutSnap s: if (IsHost && racing) Broadcast(JsonUtility.ToJson(s), false); break;
-                case NetOutEv e: if (IsHost && racing) Broadcast(JsonUtility.ToJson(e), true); break;
+                case NetOutEv e:
+                    if (!IsHost || !racing) break;
+                    if (string.IsNullOrEmpty(e.to)) { Broadcast(JsonUtility.ToJson(e), true); break; }
+                    // Resposta a um sync: só para quem pediu (leva as pistas, então confere o tamanho como na largada).
+                    var bytes = Encoding.UTF8.GetBytes(JsonUtility.ToJson(e));
+                    if (ulong.TryParse(e.to, out ulong to) && known.Contains(to) && bytes.Length <= MaxReliable) b.SendTo(to, bytes, true);
+                    break;
             }
         }
 
@@ -152,6 +159,7 @@ namespace Autorama
                 case "end": End(o.text); break;
                 case "in": if (joined && racing && !IsHost) b.SendTo(b.Owner, Encoding.UTF8.GetBytes(JsonUtility.ToJson(o)), true); break;
                 case "suggest": Suggest(o); break;
+                case "sync": if (joined && racing && !IsHost) b.SendTo(b.Owner, Encoding.UTF8.GetBytes(JsonUtility.ToJson(o)), true); break;
             }
         }
 
@@ -185,7 +193,6 @@ namespace Autorama
             {
                 var r = list.Count > 0 ? list[0] : null;
                 if (r == null) { Err("sem-sala", "Sala não encontrada. Confira o código."); return; }
-                if (r.state != "lobby") { Err("andamento", "O campeonato dessa sala já começou."); return; }
                 if (r.players >= r.max) { Err("cheia", "A sala está cheia."); return; }
                 b.Join(r.id, ok =>
                 {
@@ -198,9 +205,10 @@ namespace Autorama
             });
         }
 
+        // Campeonato andando: quem entra (de volta de uma queda, ou para assistir) já aceita o que vem do host e pede o sync.
         void Enter()
         {
-            joined = true; racing = false; lobbyFlipSince = -1f;
+            joined = true; racing = b.Data("state") == "racing"; raceHost = b.Owner; lobbyFlipSince = -1f;
             known = new HashSet<ulong>(); foreach (var m in b.Members()) { known.Add(m.id); names[m.id] = m.name; }
             lastOwner = b.Owner;
             Emit(new NetMsg { t = "joined", you = Me, room = BuildRoom() });
@@ -311,8 +319,7 @@ namespace Autorama
             if (bytes.Length > MaxReliable) { Err("etapas", "As pistas são grandes demais para a Steam. Tire alguma etapa."); return; }
 
             foreach (var p in room.players) if (p.id != Me) b.SendTo(ulong.Parse(p.id), bytes, true);
-            b.SetData("state", "racing");
-            b.SetJoinable(false);
+            b.SetData("state", "racing");                // o lobby continua aberto: quem cair volta (o SteamID é o mesmo) e outros entram para assistir
             racing = true; raceHost = b.MyId; lobbyFlipSince = -1f;
             Say($"{NameOf(b.MyId)} largou o campeonato \"{m.title}\".");
             Emit(m);
@@ -370,6 +377,11 @@ namespace Autorama
                     m.from = from.ToString(); m.name = Clean(NameOf(from), 20); m.color = ColorOf(from);   // quem mandou vem da Steam, não do texto
                     m.track = Clean(m.track, 60); m.faixas = TrackMath.Faixas(m.faixas);
                     Emit(m); break;
+                case "sync":                                                                  // visitante pede o campeonato (um por segundo)
+                    if (!IsHost || !racing) break;
+                    if (syncAt.TryGetValue(from, out float last) && Time.realtimeSinceStartup - last < 1f) break;
+                    syncAt[from] = Time.realtimeSinceStartup;
+                    Emit(new NetMsg { t = "sync", from = from.ToString() }); break;
                 case "started": if (fromHost && !racing) { racing = true; raceHost = from; lobbyFlipSince = -1f; Emit(m); } break;
                 case "lobby": if (fromHost && racing) { racing = false; lobbyFlipSince = -1f; Emit(m); EmitRoom(); } break;
                 case "snap": case "ev": if (fromHost && racing) Emit(m); break;
@@ -390,9 +402,16 @@ namespace Autorama
             }
             foreach (var id in known) if (!cur.Contains(id)) Say($"{NameOf(id)} saiu da sala.");
             known = cur;
-            // Quem roda a corrida era o host: sem ele não dá para continuar.
-            if (racing && !known.Contains(raceHost)) EndRace("O host saiu: o campeonato foi encerrado.", false);
-            else EmitRoom();
+            AdoptRaceHost();
+            EmitRoom();
+        }
+
+        // O host da corrida saiu: o novo dono do lobby (a Steam escolhe) assume, e a aba recomeça a bateria da vez.
+        void AdoptRaceHost()
+        {
+            if (!racing || known.Contains(raceHost) || b.Owner == 0 || !known.Contains(b.Owner)) return;
+            raceHost = b.Owner;
+            Say($"{NameOf(raceHost)} agora é o host: a bateria da vez recomeça.");
         }
 
         void OnChat(ulong from, string text)

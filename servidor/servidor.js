@@ -5,7 +5,7 @@
 const http = require('http');
 const { WebSocketServer } = require('ws');
 
-const PROTOCOL = 1;                    // muda quando as mensagens deixam de combinar com o cliente (OnlineClient.Protocol)
+const PROTOCOL = 2;                    // muda quando as mensagens deixam de combinar com o cliente (OnlineClient.Protocol)
 const MAX_PLAYERS = 8;                 // o mesmo limite do campeonato
 const MAX_STAGES = 12;
 const MAX_TRACK_JSON = 100 * 1024;     // por pista
@@ -15,7 +15,8 @@ const NAME_MAX = 20, ROOM_MAX = 30;
 const CHAT_RATE = { n: 5, ms: 3000 };  // 5 mensagens a cada 3 s
 const PING_MS = 15000;
 const MAX_SUGG_MIN = 3;               // pistas sugeridas por minuto por jogador
-const MAX_RELAY = 16 * 1024;           // snapshot ou evento da corrida
+const MAX_RELAY = 16 * 1024;           // snapshot da corrida (o evento pode ir até o limite da mensagem: o sync leva as pistas)
+const SYNC_MS = 1000;                  // um pedido de sync por segundo por jogador
 const IN_RATE = 120;                   // entradas (botão) por segundo de cada visitante
 const MAX_CONN_IP = 20;                // conexões abertas ao mesmo tempo por endereço
 const MAX_CREATES_IP = 6;              // salas criadas por minuto por endereço
@@ -79,15 +80,20 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
 
   function enter(c, r, name, uid) {
     c.name = name; c.color = freeColor(r); c.room = r; c.uid = validUid(r, uid);
+    // Campeonato andando: quem já era piloto (mesmo uid) volta com o id e a cor de antes; os outros entram para assistir.
+    const seat = r.state === 'racing' && c.uid && r.seats.get(c.uid);
+    const back = seat && !r.players.some(p => p.id === seat.id);
+    if (back) { c.id = seat.id; if (!r.players.some(p => p.color === seat.color)) c.color = seat.color; }
     r.players.push(c);
+    if (!r.players.some(p => p.id === r.host)) r.host = c.id;    // a sala tinha ficado só com a conexão velha
     send(c, { t: 'joined', you: c.id, room: snapshot(r), chat: r.chat });
-    say(r, `${name} entrou na sala.`);
+    say(r, back ? `${name} voltou à sala.` : r.state === 'racing' ? `${name} entrou para assistir.` : `${name} entrou na sala.`);
     pushRoom(r);
   }
 
   // Campeonato acabou (ou foi interrompido): todos voltam ao lobby e precisam confirmar "pronto" de novo.
   function backToLobby(r, text) {
-    r.state = 'lobby';
+    r.state = 'lobby'; r.seats = null;
     r.players.forEach(p => { p.ready = false; });
     broadcast(r, { t: 'lobby', text });
     pushRoom(r);
@@ -100,18 +106,19 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
     if (!r.players.length) { rooms.delete(r.code); return; }
     say(r, `${c.name} saiu da sala.`);
     if (r.host === c.id) {
-      r.host = r.players[0].id; say(r, `${r.players[0].name} agora é o host.`);
-      // Quem roda a corrida era o host: sem ele não dá para continuar.
-      if (r.state === 'racing') return backToLobby(r, 'O host saiu: o campeonato foi encerrado.');
+      // No campeonato o novo host assume a corrida: todos têm a tabela, e ele recomeça a bateria da vez.
+      r.host = r.players[0].id;
+      say(r, r.state === 'racing' ? `${r.players[0].name} agora é o host: a bateria da vez recomeça.` : `${r.players[0].name} agora é o host.`);
     }
     pushRoom(r);
   }
 
   // Corrida: o host manda snapshots e eventos para todos; os outros só mandam o botão, e só para o host.
-  const forward = (c, raw) => {
+  // to: só para um jogador (a resposta a um sync).
+  const forward = (c, raw, max, to) => {
     const r = c.room;
-    if (!r || r.state !== 'racing' || r.host !== c.id || raw.length > MAX_RELAY) return;
-    r.players.forEach(p => { if (p !== c) p.ws.readyState === 1 && p.ws.send(raw); });
+    if (!r || r.state !== 'racing' || r.host !== c.id || raw.length > max) return;
+    r.players.forEach(p => { if (p !== c && (!to || p.id === to)) p.ws.readyState === 1 && p.ws.send(raw); });
   };
 
   const handlers = {
@@ -142,7 +149,9 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
       const name = validName(c, m.name); if (!name) return;
       const r = rooms.get(clean(m.code, 8).toUpperCase());
       if (!r) return fail(c, 'sem-sala', 'Sala não encontrada. Confira o código.');
-      if (r.state !== 'lobby') return fail(c, 'andamento', 'O campeonato dessa sala já começou.');
+      // Voltando de uma queda que o servidor ainda não percebeu: a conexão velha do mesmo jogador sai.
+      const old = r.state === 'racing' && typeof m.uid === 'string' && m.uid && r.players.find(p => p.uid === m.uid);
+      if (old) { leave(old); old.ws.terminate(); if (!rooms.has(r.code)) rooms.set(r.code, r); }
       if (r.players.length >= MAX_PLAYERS) return fail(c, 'cheia', 'A sala está cheia.');
       if (r.players.some(p => p.name.toLowerCase() === name.toLowerCase())) return fail(c, 'nome-usado', 'Já tem alguém com esse nome na sala.');
       enter(c, r, name, m.uid);
@@ -167,6 +176,7 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
       const rules = { vmax: Number(m.vmax), ramp: Number(m.ramp), grip: Number(m.grip), collide: !!m.collide, byTime: !!m.byTime, turbo: m.turbo !== false };   // turbo: ausente (cliente antigo) = ligado
       if (!(rules.vmax >= 8 && rules.vmax <= 20 && rules.ramp >= 0.2 && rules.ramp <= 1.5 && rules.grip >= 15 && rules.grip <= 45)) return fail(c, 'regras', 'Regras inválidas.');
       r.state = 'racing';
+      r.seats = new Map(r.players.filter(p => p.uid).map(p => [p.uid, { id: p.id, color: p.color }]));   // para quem cair voltar ao mesmo lugar
       const title = clean(m.name, 40) || `Campeonato de ${c.name}`;
       const msg = { t: 'started', title, rules, pilots: snapshot(r).players, stages: r.stages.map(s => ({ name: s.name, laps: s.laps, secs: s.secs, tempo: s.tempo, faixas: s.faixas, hash: s.hash, json: s.json })) };
       broadcast(r, msg);
@@ -189,7 +199,9 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
       const host = r.players.find(p => p.id === r.host);
       // gp: nível do acelerador em % (gatilho do controle ou tecla de meia). Ausente = 100.
       const gp = Math.max(1, Math.min(100, Math.round(Number(m.gp)) || 100));
-      if (host) send(host, { t: 'in', from: c.id, held: !!m.held, gp, tb: !!m.tb, re: Math.max(0, Math.min(1e6, Math.round(Number(m.re)) || 0)) });
+      // ts: o relógio do visitante, devolvido no snapshot para ele medir a latência.
+      const ts = Math.max(0, Math.min(2147483647, Math.round(Number(m.ts)) || 0));
+      if (host) send(host, { t: 'in', from: c.id, held: !!m.held, gp, tb: !!m.tb, re: Math.max(0, Math.min(1e6, Math.round(Number(m.re)) || 0)), ts });
     },
     color(c, m) {
       const r = c.room; if (!r) return;
@@ -248,9 +260,17 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
       if (r.host !== c.id) return fail(c, 'host', 'Só o host muda a visibilidade.');
       r.pub = !!m.pub; pushRoom(r);
     },
+    // Visitante → host: "me manda o campeonato" (entrou no meio, voltou de uma queda ou perdeu um resultado).
+    sync(c) {
+      const r = c.room; if (!r || r.state !== 'racing' || r.host === c.id) return;
+      const now = Date.now(); if (now - (c.syncAt || 0) < SYNC_MS) return;
+      c.syncAt = now;
+      const host = r.players.find(p => p.id === r.host);
+      if (host) send(host, { t: 'sync', from: c.id });
+    },
     ping(c) { send(c, { t: 'pong' }); },
-    snap(c, m, raw) { forward(c, raw); },
-    ev(c, m, raw) { forward(c, raw); },
+    snap(c, m, raw) { forward(c, raw, MAX_RELAY); },
+    ev(c, m, raw) { forward(c, raw, Infinity, typeof m.to === 'string' && m.to ? m.to : null); },
   };
 
   wss.on('connection', (ws, req) => {
@@ -276,10 +296,14 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
   });
 
   // Quem não responde a um ping (nem manda nada) em um ciclo inteiro é derrubado, e sai da sala.
-  const beat = setInterval(() => wss.clients.forEach(ws => {
-    if (!ws.alive) { ws.terminate(); return; }
-    ws.alive = false; ws.ping();
-  }), PING_MS);
+  const beat = setInterval(() => {
+    wss.clients.forEach(ws => {
+      if (!ws.alive) { ws.terminate(); return; }
+      ws.alive = false; ws.ping();
+    });
+    const now = Date.now();
+    creates.forEach((ts, ip) => { if (ts.every(t => now - t >= 60000)) creates.delete(ip); });
+  }, PING_MS);
 
   return new Promise(resolve => http_.listen(port, host, () => resolve({
     port: http_.address().port, rooms,

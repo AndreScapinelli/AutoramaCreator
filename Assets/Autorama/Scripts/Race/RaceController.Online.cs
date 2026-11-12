@@ -22,6 +22,11 @@ namespace Autorama
         string myId;
         bool wasHost;
         Action pendingNet;                              // o que fazer assim que a conexão abrir
+        // A conexão caiu no meio do campeonato (servidor Node): tenta voltar à mesma sala como o mesmo piloto (uid).
+        string rejoinCode, rejoinName;
+        int rejoinTries;
+        float rejoinAt = -1f;
+        const int RejoinMax = 5;
         List<NetListed> listed = new List<NetListed>();
         readonly List<Stage> onlineStages = new List<Stage>();    // do host: com os dados completos (o servidor guarda e devolve só o resumo)
 
@@ -149,15 +154,15 @@ namespace Autorama
             oKind6.tooltip = "Pista de 6 trilhos. Com menos de 6 jogadores, sobra trilho vazio em cada bateria.";
             oKind4.tooltip = "Pista de 4 trilhos. Com menos de 4 jogadores, sobra trilho vazio em cada bateria.";
             oStageHint = Text("", "hint", st);
-            oStages = El(null, st);
+            oStages = El(null, Caixa(st));
             oHostPick = El(null, st);
             Text("PISTAS DISPONÍVEIS", "h3", oHostPick);
-            oPick = El(null, oHostPick);
+            oPick = El(null, Caixa(oHostPick));
             // Host: o que os visitantes sugeriram. Visitante: as próprias pistas, para sugerir ao host.
             oSuggestBox = El(null, st);
             Text("SUGESTÕES DOS PILOTOS", "h3", oSuggestBox);
             Text("Pistas que os outros pilotos mandaram. Você decide: inclui como etapa, salva na sua biblioteca ou ignora.", "hint", oSuggestBox);
-            oSuggest = El(null, oSuggestBox);
+            oSuggest = El(null, Caixa(oSuggestBox));
             oSendBox = El(null, st);
             Text("SUGERIR UMA PISTA AO HOST", "h3", oSendBox);
             Text("Escolha uma das suas pistas (fechada) para o host incluir. Até 3 por minuto.", "hint", oSendBox);
@@ -209,6 +214,7 @@ namespace Autorama
         void OnlineTick()
         {
             net?.Pump();
+            if (rejoinAt >= 0f && Time.realtimeSinceStartup >= rejoinAt) { rejoinAt = -1f; JoinRoom(rejoinName, rejoinCode); }
             if (launchLobby != 0) { ulong id = launchLobby; launchLobby = 0; OnSteamJoinRequested(id); }     // o jogo foi aberto pelo convite de um amigo
         }
 
@@ -365,6 +371,7 @@ namespace Autorama
 
         void LeaveRoom()
         {
+            rejoinCode = null; rejoinAt = -1f;
             net.Close();                                 // o servidor tira o jogador da sala ao ver a conexão cair
             ResetOnlineState();
             DrawOnline(); OnlineStatus();
@@ -422,7 +429,21 @@ namespace Autorama
         void OnNetClosed(string reason)
         {
             bool wasInRoom = room != null, wasConnecting = pendingNet != null;
+            if (wasInRoom && OnlineRun && !oSteam.value)
+            {
+                rejoinCode = room.code; rejoinTries = 0;
+                rejoinName = room.Player(myId)?.name is string n && n != "" ? n : PlayerPrefs.GetString(PrefName, "");
+            }
             ResetOnlineState();
+            if (rejoinCode != null && rejoinTries < RejoinMax)
+            {
+                rejoinAt = Time.realtimeSinceStartup + (rejoinTries == 0 ? 1f : 3f);
+                rejoinTries++;
+                panel.Toast($"A conexão caiu. Tentando voltar à sala ({rejoinTries} de {RejoinMax})…");
+                DrawOnline(); OnlineStatus();
+                return;
+            }
+            if (rejoinCode != null) { rejoinCode = null; reason = "Não deu para voltar à sala: " + reason; }
             if (wasConnecting && !oSteam.value) reason = reason.TrimEnd('.', ' ') + $". Confira o endereço ({oServer.value}) e se o servidor está rodando (cd servidor && npm start).";
             SetOnlineMsg(reason);
             if (wasInRoom) panel.Toast("Você saiu da sala: " + reason);
@@ -440,12 +461,17 @@ namespace Autorama
                     chatLog.Clear(); oChat.Clear(); oRunChat.Clear();
                     foreach (var c in m.chat) AddChat(c);
                     SetOnlineMsg("");
+                    if (rejoinCode != null) { rejoinCode = null; panel.Toast("Você voltou à sala."); }
+                    // Campeonato andando (voltei de uma queda, ou entrei para assistir): o host manda o campeonato.
+                    if (room.state == "racing" && !IsHost) { syncAskedAt = -10f; AskSync(); }
                     DrawOnline(); OnlineStatus();
                     break;
                 case "room":
                     if (room == null) break;
+                    string oldHost = room.host;
                     room = m.room;
-                    if (IsHost && !wasHost) AdoptStages();
+                    if (OnlineRun && oldHost != room.host) { if (IsHost) OnlineTakeOver(); else OnlineHostChanged(); }
+                    else if (IsHost && !wasHost && !OnlineRun) AdoptStages();
                     wasHost = IsHost;
                     DrawOnline(); OnlineStatus();
                     break;
@@ -457,19 +483,24 @@ namespace Autorama
                     AddChat(new NetChat { sys = m.sys, name = m.name, color = m.color, text = m.text, from = m.from, time = m.time });
                     break;
                 case "error":
+                    if (rejoinCode != null && room == null) { rejoinCode = null; rejoinAt = -1f; }    // a sala acabou: desiste de voltar
                     SetOnlineMsg(m.text);
                     if (room != null) panel.Toast(m.text);
                     break;
                 case "started": if (room != null) BeginOnlineRun(m); break;
                 case "lobby":
+                    bool sendStages = takeOverStages && IsHost;
+                    takeOverStages = false;
                     OnlineExitRun();
+                    if (sendStages) SendStages();          // virei host no meio: as etapas do campeonato voltam para a sala
                     if (!string.IsNullOrEmpty(m.text)) { panel.Toast(m.text); AddChat(new NetChat { sys = true, text = m.text }); }
                     DrawOnline(); OnlineStatus();
                     break;
                 case "in": OnlineInput(m); break;
                 case "suggested": OnSuggested(m); break;
-                case "snap": if (OnlineRun && !IsHost) OnlineApplySnap(m.snap); break;
-                case "ev": OnlineEvent(m); break;
+                case "snap": if (OnlineRun && !IsHost) OnlineApplySnap(m.b); break;
+                case "ev": if (m.k == "sync") OnlineApplySync(m); else OnlineEvent(m); break;
+                case "sync": OnlineSyncRequest(m.from); break;
             }
         }
 

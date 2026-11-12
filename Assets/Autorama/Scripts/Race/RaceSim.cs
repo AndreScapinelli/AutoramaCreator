@@ -353,16 +353,17 @@ namespace Autorama
                     var here = P.At(c.s);
                     // Turbo: só com o acelerador apertado, tanque com carga e a prova valendo. Soma velocidade e gasta o tanque.
                     bool tb = set.turbo && c.boost && c.turbo > 0f && c.T > 0f && phase == Phase.Running;
-                    float top = set.vmax * (tb ? 1f + TurboBoost : 1f);
+                    // Tudo em células × Scale: a física de uma pista de 4 ou 6 é a de 2 esticada (ver seção 25.5 do guia).
+                    float top = set.vmax * Scale * (tb ? 1f + TurboBoost : 1f);
                     if (tb) { c.turbo = Mathf.Max(0f, c.turbo - dt / TurboTime); c.turboLap = true; }
-                    float a = (c.T == 0f ? -(Brake * c.v + Brake0) : Accel * (c.T * top - c.v)) - SlopeG * here.slope;
+                    float a = (c.T == 0f ? -(Brake * c.v + Brake0 * Scale) : Accel * (c.T * top - c.v)) - SlopeG * Scale * here.slope;
                     c.v = Mathf.Max(0f, c.v + a * dt);
                     c.s += c.v * dt;
                     Travel[k] += c.v * dt;      // distância percorrida, em unidades do mundo (o painel converte para metros)
                     // Força lateral v²/r contra a aderência (maior na inclinada). O excesso enche a derrapagem.
                     var q = P.At(c.s);
                     if (q.k != 0f) c.side = q.k > 0f ? 1 : -1;
-                    float ratio = c.v * c.v * Mathf.Abs(q.k) / (set.grip * q.grip);
+                    float ratio = c.v * c.v * Mathf.Abs(q.k) / (set.grip * Scale * q.grip);
                     c.slip = ratio > 1f ? c.slip + (ratio - 1f) * SlipGain * dt : Mathf.Max(0f, c.slip - SlipDecay * dt);
                     if (c.slip >= 1f) Deslot(k, null);
                     else CountLap(k);
@@ -689,22 +690,19 @@ namespace Autorama
             if (c.mode == CarMode.Off) { c.held = false; if ((c.offT += dt) >= AiReslotDelay(sk)) { c.offT = 0f; Reslot(k); } return; }
             if (c.mode != CarMode.OnSlot || c.finish != null) { c.held = false; return; }
             var P = PathOf(k);
-            // Pista de 4 (Scale 2): as curvas são 2× mais longas e a derrapagem passa o dobro do tempo enchendo.
-            // A parte da coragem acima do limite (m² − 1, que é o que enche a barra) é dividida pela escala.
-            // Na pista de 2 (Scale 1) não muda nada.
+            // Velocidades e freio em unidades do mundo: o freio de AiBrake (em células) vira AiBrake × Scale.
             float m = c.aiM;
-            if (m > 1f && Scale > 1f && m < 1.3f) m = Mathf.Sqrt(1f + (m * m - 1f) / Scale);
             float need = float.PositiveInfinity;
-            for (float d = 0f; d <= AiLook; d += 0.1f)
+            for (float d = 0f; d <= AiLook * Scale; d += 0.1f * Scale)
             {
                 var q = P.At(c.s + d);
                 if (q.k == 0f) continue;
-                float v = Mathf.Sqrt(set.grip * q.grip / Mathf.Abs(q.k)) * m;
-                need = Mathf.Min(need, Mathf.Sqrt(v * v + 2f * AiBrake * d));
+                float v = Mathf.Sqrt(set.grip * Scale * q.grip / Mathf.Abs(q.k)) * m;
+                need = Mathf.Min(need, Mathf.Sqrt(v * v + 2f * AiBrake * Scale * d));
             }
             c.held = c.v < need;
             // Turbo da IA: só quando nenhuma curva à frente pede freio nem na velocidade com turbo (retas longas).
-            c.boost = set.turbo && c.turbo > 0f && need > set.vmax * (1f + TurboBoost);
+            c.boost = set.turbo && c.turbo > 0f && need > set.vmax * Scale * (1f + TurboBoost);
         }
 
         // Melhor volta da bateria só entre gente: piloto IA não bate recorde da pista.
@@ -716,6 +714,7 @@ namespace Autorama
         }
 
         // Velocidade limite de uma curva para o ajuste de aderência (para o texto de ajuda).
-        public float CornerLimit(float radius, float gripMultiplier) => Mathf.Sqrt(set.grip * gripMultiplier * radius);
+        // Em unidades do mundo (a mesma conta de `ratio` no passo).
+        public float CornerLimit(float radius, float gripMultiplier) => Mathf.Sqrt(set.grip * Scale * gripMultiplier * radius);
     }
 }

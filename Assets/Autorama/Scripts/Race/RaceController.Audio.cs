@@ -211,7 +211,7 @@ namespace Autorama
                 bool car = on && k < sim.N && sim.present[k];
                 var c = car ? sim.cars[k] : null;
                 bool running = car && c.mode == CarMode.OnSlot && (sim.phase == RaceSim.Phase.Running || sim.phase == RaceSim.Phase.Done);
-                float speed = running ? Mathf.Clamp01(c.v / Mathf.Max(1f, sim.set.vmax)) : 0f;
+                float speed = running ? Mathf.Clamp01(c.v / Mathf.Max(1f, sim.set.vmax * sim.Scale)) : 0f;
                 // Motor: parado fica mudo; acelerando soa mais forte que embalado. Cada carrinho tem um tom um pouco diferente.
                 float target = running ? (0.25f + 0.75f * c.T) * Mathf.Min(1f, speed * 6f + c.T) : 0f;
                 motorVol[k] = Mathf.MoveTowards(motorVol[k], target, dt * 6f);

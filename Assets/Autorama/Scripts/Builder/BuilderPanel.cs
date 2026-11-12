@@ -179,6 +179,16 @@ namespace Autorama
             root.schedule.Execute(FrameTrack).ExecuteLater(30);
         }
 
+        // Lista de pistas com altura máxima (.lista-pistas): passa disso, rola.
+        internal static ScrollView Caixa(VisualElement parent)
+        {
+            var s = new ScrollView(ScrollViewMode.Vertical);
+            s.AddToClassList("lista-pistas");
+            s.horizontalScrollerVisibility = ScrollerVisibility.Hidden;
+            parent?.Add(s);
+            return s;
+        }
+
         internal static VisualElement El(string cls, VisualElement parent = null)
         {
             var e = new VisualElement();
@@ -372,7 +382,7 @@ namespace Autorama
             }, TrickleDown.TrickleDown);
             nameRow.Add(nameField);
             Btn("Salvar", SaveTrack, "btn btn--primary", nameRow).style.marginBottom = 0;
-            libList = El(null, lib);
+            libList = El(null, Caixa(lib));
             var libRow = El("row", lib);
             Btn("Exemplo: oval", () => Open(Kind(TrackSave.Oval())), "btn", libRow);
             Btn("Exemplo: 8 com ponte", () => Open(Kind(TrackSave.Eight())), "btn", libRow);

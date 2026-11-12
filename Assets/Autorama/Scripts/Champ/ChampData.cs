@@ -286,7 +286,7 @@ namespace Autorama
                 if (byTime) { sec += HeatsPerStage(nPilots, faixas, true) * (s.secs + L * (RaceSim.Count + 1f) + (L - 1) * RaceSim.SwitchTime + 10f); continue; }
                 float len = 0f;
                 try { len = TrackLayout.Analyze(s.data.Origin, TrackLayout.Build(s.data.Origin, s.data.Pieces(), s.data.Tail), s.data.Tail).centerLength * TrackMath.Scale(s.data.Faixas); } catch { }
-                sec += HeatsPerStage(nPilots, faixas, false) * (s.laps * len / (0.6f * vmax) + 10f);
+                sec += HeatsPerStage(nPilots, faixas, false) * (s.laps * len / (0.6f * vmax * TrackMath.Scale(faixas)) + 10f);
             }
             return Mathf.Max(1, Mathf.RoundToInt(sec / 60f));
         }

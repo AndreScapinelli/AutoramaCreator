@@ -88,9 +88,9 @@ namespace Autorama
             var stg = Section(cSetup, "ETAPAS");
             cStageCount = Text("", "small", stg);
             Text("Cada etapa é uma pista com um número de voltas. Clique numa pista abaixo para incluir.", "hint", stg);
-            cStages = El(null, stg);
+            cStages = El(null, Caixa(stg));
             Text("PISTAS DISPONÍVEIS", "h3", stg);
-            cPick = El(null, stg);
+            cPick = El(null, Caixa(stg));
 
             var rules = Section(cSetup, "REGRAS");
             cRules = Text("", "small", rules);
@@ -126,7 +126,7 @@ namespace Autorama
             cRecs = El(null, Section(cRun, "RECORDES DA PISTA"));
 
             var stages = Section(cRun, "ETAPAS");
-            cStageList = El(null, stages);
+            cStageList = El(null, Caixa(stages));
             cQuit = Btn("Abandonar campeonato", null, "btn btn--danger", stages);
             cQuit.style.marginTop = 8;
             cQuit.clicked += () =>

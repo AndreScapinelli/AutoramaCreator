@@ -32,7 +32,7 @@ O usuário escreve em português, e o projeto inteiro também: textos da interfa
 | `Editor/OnlineSmokeTest.cs` | Teste do cliente online contra o servidor de verdade (`script eval`) |
 | `Editor/SteamSpacewarTest.cs`, `SteamTransportTest.cs`, `FakeLobbyBackend.cs` | Testes da camada Steam com o Spacewar (AppId 480; precisam da Steam aberta e logada) e do transporte com um mundo falso |
 
-O servidor de salas do campeonato online fica em `servidor/` (Node, fora do `Assets`). Campeonato online: seção 23 do guia.
+O servidor de salas do campeonato online fica em `servidor/` (Node, fora do `Assets`). Campeonato online: seções 23 e 41 do guia (protocolo 2: snapshot binário, sync, host que passa adiante, voltar de uma queda).
 
 A cena é `Assets/Autorama/Cenas/Construtor.unity`. Os dados do jogo ficam em `Application.persistentDataPath/autorama/`: `pistas/`, `rascunho.json`, `pilotos.json`, `campeonatos.json`, `recordes.json` e `jogador.json` (o id fixo do jogador no online, seção 39 do guia).
 

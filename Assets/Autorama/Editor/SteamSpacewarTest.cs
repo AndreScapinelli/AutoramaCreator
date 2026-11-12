@@ -112,20 +112,21 @@ namespace Autorama
                 string inJson = JsonUtility.ToJson(new NetOut { t = "in", held = true, re = 3 });
                 Check(SteamLoopback.Send(loop.A, Encoding.UTF8.GetBytes(inJson), true) == EResult.k_EResultOK, "enviar o botão (confiável)");
                 var sim = new RaceSim(new RaceSettings());
-                string snapJson = JsonUtility.ToJson(new NetOutSnap { snap = NetSync.Pack(sim, 2) });
+                string snapJson = JsonUtility.ToJson(new NetOutSnap { b = NetSync.Encode(NetSync.Pack(sim, 2)) });
                 Check(SteamLoopback.Send(loop.A, Encoding.UTF8.GetBytes(snapJson), false) == EResult.k_EResultOK, $"enviar o snapshot ({snapJson.Length} bytes, não confiável)");
                 var got = new List<byte[]>();
                 WaitFor(() => { got.AddRange(SteamLoopback.Receive(loop.B)); return got.Count >= 2; });
                 Check(got.Count == 2, $"as duas mensagens chegam ({got.Count})");
                 var m0 = JsonUtility.FromJson<NetMsg>(Encoding.UTF8.GetString(got[0])); var m1 = JsonUtility.FromJson<NetMsg>(Encoding.UTF8.GetString(got[1]));
                 Check(m0.t == "in" && m0.held && m0.re == 3, "o botão chega igual");
-                Check(m1.t == "snap" && m1.snap.hi == 2 && m1.snap.cars.Count == 2 && Mathf.Abs(m1.snap.cars[0].s - RaceSim.GridS) < 1e-3f, "o snapshot chega inteiro e igual");
+                var sn1 = NetSync.Decode(m1.b);
+                Check(m1.t == "snap" && sn1 != null && sn1.hi == 2 && sn1.cars.Count == 2 && Mathf.Abs(sn1.cars[0].s - RaceSim.GridS) < 1e-3f, "o snapshot chega inteiro e igual");
                 var back = new List<byte[]>();
                 SteamLoopback.Send(loop.B, Encoding.UTF8.GetBytes("{\"t\":\"ev\",\"k\":\"res\"}"), true);
                 WaitFor(() => { back.AddRange(SteamLoopback.Receive(loop.A)); return back.Count >= 1; });
                 Check(back.Count == 1 && Encoding.UTF8.GetString(back[0]).Contains("\"ev\""), "a mensagem volta no outro sentido");
 
-                // O snapshot da prova tem ~1,2 KB: mede o que a Steam entrega sem confiabilidade.
+                // O snapshot binário tem ~220 bytes com 2 carros e ~580 com 6; mede o que a Steam entrega sem confiabilidade.
                 foreach (int size in new[] { 1200, 1500, 4000 })
                 {
                     var payload = new byte[size]; for (int i = 0; i < size; i++) payload[i] = (byte)('a' + i % 26);
