@@ -257,6 +257,11 @@
 .pad--b .gas-fill { background-color: rgba(80, 137, 242, 0.35); }
 .pad--c .gas-fill { background-color: rgba(56, 186, 98, 0.35); }
 .pad--d .gas-fill { background-color: rgba(242, 183, 40, 0.35); }
+/* Tela dividida: cada painel no pé do quadro do seu jogador (posição em RaceController.Split). */
+.pads--split { left: 0; right: 0; top: 0; bottom: 0; }
+.pads--split .pad { margin: 0 12px 12px 12px; }
+.cam-split { margin-top: 6px; }
+.pane-cam { position: absolute; margin-right: 12px; border-top-width: 3px; }
 /* Pista de 4 carros: quatro painéis mais baixos e estreitos. */
 .pads--4 .pad { margin-right: 8px; padding: 6px 8px 8px 8px; }
 .pads--4 .pad--last { margin-right: 0; }

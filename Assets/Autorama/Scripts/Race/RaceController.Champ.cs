@@ -953,7 +953,7 @@ namespace Autorama
             for (int k = 0; k < RaceSim.MaxCars; k++)
             {
                 var p = pads[k];
-                p.root.style.display = k < sim.N && sim.present[k] && (!OnlineRun || k == lane) ? DisplayStyle.Flex : DisplayStyle.None;
+                p.root.style.display = k < sim.N && sim.present[k] && (!OnlineRun || k == lane) && (!SplitOn || sim.aiSkill[k] == 0) ? DisplayStyle.Flex : DisplayStyle.None;
                 if (k >= sim.N || !sim.present[k]) continue;
                 var pilot = live && k < pl.Length ? pl[k] : null;
                 bool ai = sim.aiSkill[k] > 0;

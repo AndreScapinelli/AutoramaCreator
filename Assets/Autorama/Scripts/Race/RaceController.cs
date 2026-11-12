@@ -110,9 +110,10 @@ namespace Autorama
         static string KeyText(Key k) => Controles.Nome(k);
         static readonly string[] LaneNames = { "Trilho 1", "Trilho 2", "Trilho 3", "Trilho 4", "Trilho 5", "Trilho 6" };
         static readonly string[] LaneCls = { "a", "b", "c", "d", "e", "f" };       // sufixo das classes de cor do USS (trilho 1 a 6)
-        // Modos de câmera da corrida, na ordem de TopDownCamera.RaceViewMode.
-        static readonly string[] CamModes = { "De cima", "3D", "Atrás do carro", "Dinâmica", "Primeira pessoa" };
-        static readonly string[] CamModeHints = { "A vista livre da mesa", "Inclinada, gira com o botão direito", "Segue um carrinho por trás", "Acompanha os carrinhos sozinha", "Dentro do carrinho; quando ele roda, vira a traseira" };
+        // Modos de câmera da corrida. RaceSettings.cameraMode guarda o valor de TopDownCamera.RaceViewMode.
+        static readonly TopDownCamera.RaceViewMode[] CamModeValues = { TopDownCamera.RaceViewMode.Tv, TopDownCamera.RaceViewMode.ThirdPerson, TopDownCamera.RaceViewMode.FirstPerson, TopDownCamera.RaceViewMode.TopFollow };
+        static readonly string[] CamModes = { "Transmissão de TV", "Perseguição", "Primeira pessoa", "De cima" };
+        static readonly string[] CamModeHints = { "Câmeras em volta da mesa seguem o líder", "Atrás e acima do carrinho, olhando a curva", "Dentro do carrinho; quando ele roda, vira a traseira", "Segue os jogadores; botão direito gira, roda aproxima" };
         static readonly string[] CamTargets = { "Jogador 1", "Jogador 2", "Jogador 3", "Jogador 4", "Jogador 5", "Jogador 6" };
 
         RaceSettings set;
@@ -133,7 +134,8 @@ namespace Autorama
         // Menu da câmera: botão no canto superior direito da mesa que abre a lista de modos.
         VisualElement camMenu, camPop, camTargetBox;
         Button camBtn;
-        readonly Button[] camModeBtns = new Button[5], camTargetBtns = new Button[RaceSim.MaxCars];
+        Button splitBtn;
+        readonly Button[] camModeBtns = new Button[4], camTargetBtns = new Button[RaceSim.MaxCars];
         Label camTargetNote;
         SliderInt cameraDistanceSlider;
         readonly List<VisualElement> lightDots = new List<VisualElement>();
@@ -166,10 +168,12 @@ namespace Autorama
             panel.ModeChanged += OnMode;
             panel.OptionsRequested += ShowKeys;
             OnTrackChanged();
+            SplitStart();
         }
 
         void OnDestroy()
         {
+            SplitDestroy();
             if (builder) builder.Changed -= OnTrackChanged;
             if (panel) { panel.ModeChanged -= OnMode; panel.OptionsRequested -= ShowKeys; }
             OnlineDestroy();
@@ -393,7 +397,7 @@ namespace Autorama
                 if (cars[k].gameObject.activeSelf != on) cars[k].gameObject.SetActive(on);
                 if (!on) continue;
                 var st0 = sim.cars[k];
-                cam.SetCarTrack(k, st0.mode == CarMode.OnSlot, st0.slip);
+                for (int i = 0; i < CamCount; i++) PaneCam(i).SetCarTrack(k, st0.mode == CarMode.OnSlot, st0.slip);
                 var p = sim.CarPose(k, out float y, out float pitch);
                 var pos = new Vector3(p.pos.x, y, p.pos.y);
                 cars[k].position = pos;
@@ -403,14 +407,25 @@ namespace Autorama
                 carViews[k].SetCockpit(cam.InFirstPersonOf(k));
                 carViews[k].Tick(st.mode == CarMode.OnSlot ? st.v : 0f, st.mode == CarMode.Off, Time.deltaTime);
                 carPos[k] = pos; carHeading[k] = p.heading;
+                // Ponto do trilho à frente, para a Perseguição olhar a curva antes de chegar.
+                var ahead = sim.PathOf(k).At(st.s + CamAhead * sim.Scale);
+                for (int i = 0; i < CamCount; i++) PaneCam(i).SetCarAhead(k, new Vector3(ahead.pos.x, ahead.y, ahead.pos.y));
             }
             if (panel != null && panel.RaceMode)
             {
+                if (framedPath != sim.PathOf(0)) FrameTrackForCamera();
                 // No online o seu trilho muda de uma bateria para outra: a câmera acompanha o seu carrinho.
                 int focus = CamFocusCar();
                 if (OnlineRun && focus >= 0) cam.SetThirdPersonCar(focus);
-                cam.SetRaceTargets(carPos, carHeading, sim.N, focus);
+                cam.SetRaceTargets(carPos, carHeading, sim.N, focus >= 0 ? focus : LeaderCar());
+                // A "De cima" mantém na tela os carrinhos de gente (no online, só o seu).
+                for (int k = 0; k < RaceSim.MaxCars; k++)
+                    followMask[k] = k < sim.N && sim.present[k] && (OnlineRun ? k == focus : sim.aiSkill[k] == 0);
+                if (System.Array.IndexOf(followMask, true) < 0)          // só robôs: todos os presentes
+                    for (int k = 0; k < RaceSim.MaxCars; k++) followMask[k] = k < sim.N && sim.present[k];
+                cam.SetFollowCars(followMask);
             }
+            UpdateSplit(LeaderCar());
             if (camMenu != null)
             {
                 bool show = panel != null && panel.RaceMode;
@@ -743,6 +758,7 @@ namespace Autorama
                 pads[k].root.EnableInClassList("pad--last", k == last);
             }
             refreshAdjLabels?.Invoke();
+            SplitDirty();
             ApplyCameraSettings();
             DrawRaceSetup();
         }
@@ -800,6 +816,36 @@ namespace Autorama
             SetBot(); DrawRaceSetup();
         }
 
+        const float CamAhead = 2.2f;      // células à frente do carrinho que a Perseguição olha
+        LanePath framedPath;
+        Rect trackFrameRect; float trackFrameTop;
+        readonly bool[] followMask = new bool[RaceSim.MaxCars];
+
+        // Contorno da pista (amostras do trilho 1) e altura máxima, para as câmeras da Transmissão de TV.
+        void FrameTrackForCamera()
+        {
+            var P = sim.PathOf(0);
+            framedPath = P;
+            Vector2 lo = new Vector2(float.MaxValue, float.MaxValue), hi = -lo;
+            float top = 0f;
+            for (float d = 0f; d < P.Total; d += 0.25f)
+            {
+                var q = P.At(d);
+                lo = Vector2.Min(lo, q.pos); hi = Vector2.Max(hi, q.pos); top = Mathf.Max(top, q.y);
+            }
+            trackFrameRect = Rect.MinMaxRect(lo.x, lo.y, hi.x, hi.y); trackFrameTop = top;
+            for (int i = 0; i < CamCount; i++) PaneCam(i).SetTrackFrame(trackFrameRect, top, sim.Scale);
+        }
+
+        // Quem está na frente (mais distância andada), para a TV seguir.
+        int LeaderCar()
+        {
+            int best = -1;
+            for (int k = 0; k < sim.N; k++)
+                if (sim.present[k] && (best < 0 || sim.cars[k].s > sim.cars[best].s)) best = k;
+            return best;
+        }
+
         void BuildCamMenu(VisualElement root)
         {
             camMenu = El("cam-menu", root);
@@ -809,10 +855,11 @@ namespace Autorama
             for (int i = 0; i < CamModes.Length; i++)
             {
                 int m = i;
-                var b = Btn("", () => { set.cameraMode = m; set.Save(); ApplyCameraSettings(); }, "btn cam-opt", camPop);
+                var b = Btn("", () => { set.cameraMode = (int)CamModeValues[m]; set.Save(); ApplyCameraSettings(); }, "btn cam-opt", camPop);
                 b.text = $"<b>{CamModes[i]}</b>\n<size=10>{CamModeHints[i]}</size>";
                 camModeBtns[i] = b;
             }
+            splitBtn = Btn("", () => { set.splitScreen = !set.splitScreen; set.Save(); ApplyCameraSettings(); }, "btn cam-opt cam-split", camPop);
             camTargetBox = El("cam-sub", camPop);
             Text("SEGUIR", "cam-title", camTargetBox);
             var seg = El("segmented", camTargetBox);
@@ -854,24 +901,34 @@ namespace Autorama
 
         void ApplyCameraSettings()
         {
-            int mode = Mathf.Clamp(set.cameraMode, 0, CamModes.Length - 1);
+            // Valores antigos (0 de cima, 1 3D, 3 Dinâmica) viram Transmissão de TV.
+            if (set.cameraMode == 0) set.cameraMode = (int)TopDownCamera.RaceViewMode.TopFollow;     // a "De cima" antiga
+            int mode = System.Array.IndexOf(CamModeValues, (TopDownCamera.RaceViewMode)set.cameraMode);
+            if (mode < 0) mode = 0;
             int target = Mathf.Clamp(set.cameraTarget, 0, (sim != null ? sim.N : 2) - 1);
             set.cameraDistance = Mathf.Clamp(set.cameraDistance, 70, 160);
-            set.cameraMode = mode;
+            set.cameraMode = (int)CamModeValues[mode];
             set.cameraTarget = target;
 
-            int appliedMode = mode;
-            if (panel != null && !panel.RaceMode) appliedMode = (int)TopDownCamera.RaceViewMode.Atual;
-
-            cam.SetRaceViewMode((TopDownCamera.RaceViewMode)appliedMode);
+            var applied = panel != null && !panel.RaceMode ? TopDownCamera.RaceViewMode.Atual : CamModeValues[mode];
+            cam.SetRaceViewMode(applied);
             int focus = CamFocusCar();
             cam.SetThirdPersonCar(OnlineRun && focus >= 0 ? focus : target);
             cam.SetDistanceScale(set.cameraDistance / 100f);
 
             if (camBtn == null) return;
             camBtn.text = $"Câmera: <b>{CamModes[mode]}</b>  ▾";
-            for (int i = 0; i < camModeBtns.Length; i++) camModeBtns[i].EnableInClassList("cam-opt--on", i == mode);
-            camTargetBox.style.display = mode == (int)TopDownCamera.RaceViewMode.ThirdPerson || mode == (int)TopDownCamera.RaceViewMode.FirstPerson ? DisplayStyle.Flex : DisplayStyle.None;
+            // Na tela dividida, cada jogador escolhe a câmera no canto do seu quadro: o menu geral só mostra a divisão e a distância.
+            for (int i = 0; i < camModeBtns.Length; i++)
+            {
+                camModeBtns[i].EnableInClassList("cam-opt--on", i == mode);
+                camModeBtns[i].style.display = SplitOn ? DisplayStyle.None : DisplayStyle.Flex;
+            }
+            camBtn.text = SplitOn ? "Câmera  ▾" : camBtn.text;
+            camTargetBox.style.display = !SplitOn && CamModeValues[mode] != TopDownCamera.RaceViewMode.Tv && CamModeValues[mode] != TopDownCamera.RaceViewMode.TopFollow ? DisplayStyle.Flex : DisplayStyle.None;
+            splitBtn.text = $"Tela dividida: <b>{(set.splitScreen ? "sim" : "não")}</b>\n<size=10>Offline, 2 a 4 jogadores: um quadro para cada</size>";
+            splitBtn.EnableInClassList("cam-opt--on", set.splitScreen);
+            splitBtn.style.display = OnlineRun ? DisplayStyle.None : DisplayStyle.Flex;
             for (int k = 0; k < RaceSim.MaxCars; k++)
             {
                 camTargetBtns[k].EnableInClassList("btn--on", k == target);
@@ -998,7 +1055,7 @@ namespace Autorama
 
         void UpdatePads()
         {
-            padsBox.style.left = panel.SideWidth + 12f;
+            padsBox.style.left = SplitOn ? 0f : panel.SideWidth + 12f;
             for (int k = 0; k < sim.N; k++)
             {
                 var c = sim.cars[k];

@@ -1403,15 +1403,39 @@ Teste (Play mode, `script eval`): `StartRace()` + 200 quadros → painel fechado
 
 ### 15.7.1 Modos de câmera na corrida
 
-A câmera fica num **menu no canto superior direito da mesa** (só nas abas Corrida e Campeonato e na corrida online). O botão mostra o modo atual (`Câmera: Dinâmica ▾`); clicar abre a lista embaixo, com os 4 modos, o alvo e a distância. O painel lateral não tem mais os seletores de câmera.
+A câmera fica num **menu no canto superior direito da mesa** (só nas abas Corrida e Campeonato e na corrida online). O botão mostra o modo atual (`Câmera: Transmissão de TV ▾`); clicar abre a lista com os 4 modos, a tela dividida (seção 15.7.2), o alvo (*Seguir*, na Perseguição e na Primeira pessoa) e a distância.
 
 | Modo (menu) | `RaceViewMode` | O que faz |
 |---|---|---|
-| **De cima** | `Atual` (0) | Comportamento original da `TopDownCamera`: de cima, `V` alterna para inclinada; pan com botão direito/meio, zoom na roda. |
-| **3D** | `ThreeD` (1) | Força a vista inclinada em perspectiva; pan/órbita/zoom manuais continuam. |
-| **Atrás do carro** | `ThirdPerson` (2) | Persegue um carrinho. Na corrida local, o menu mostra **Seguir: Jogador 1 · Jogador 2**. A roda ajusta só a distância. A câmera segue a direção *suavizada* do carro (ver abaixo). |
-| **Dinâmica** | `AutoDoisCarros` (3) | Ortográfica. Enquadra os dois carrinhos (centro no ponto médio, zoom automático) ou acompanha só um, conforme abaixo. |
-| **Primeira pessoa** | `FirstPerson` (4) | Dentro do carrinho que a seção *Seguir* escolhe. Quando ele roda ou sai da pista, corta para a *Atrás do carro* e volta à primeira pessoa ao retomar o trilho. |
+| **Transmissão de TV** | `Tv` (5) | Padrão. Câmeras fixas em volta da mesa, em perspectiva, que giram e dão zoom acompanhando o carrinho seguido. |
+| **Perseguição** | `ThirdPerson` (2) | Atrás e acima do carrinho (~28°), olhando para o trilho à frente. |
+| **Primeira pessoa** | `FirstPerson` (4) | Dentro do carrinho; quando ele roda ou sai da pista, corta para a Perseguição. |
+| **De cima** | `TopFollow` (6) | A 3D do construtor centrada nos carrinhos dos jogadores; botão direito gira, a roda aproxima. |
+
+Os modos antigos *3D* (1) e *Dinâmica* (3) saíram da corrida (eram ruins de assistir: parados, ou ortográficos com o zoom aberto demais). Um `cameraMode` salvo com esses valores vira Transmissão de TV em `ApplyCameraSettings`. O valor 0 (a *De cima* antiga, livre) vira `TopFollow`. Uma tentativa de vista centrada no meio da pista foi descartada: o centro tem de ser o jogador.
+
+**De cima** (`TopDownCamera.ApplyTopFollow`, `TopFollowInput`):
+
+- **Quem fica na tela** (`SetFollowCars`, a cada quadro em `PlaceCars`): offline, todos os carrinhos de gente (`sim.aiSkill[k] == 0` e presentes); online, só o seu (`MyLane()`). Sem nenhum (só robôs), todos.
+- **Centro:** o meio do retângulo desses carrinhos, com lerp `FollowCenterRate 10` (sem tranco).
+- **Faixa livre:** o centro aparece no meio da faixa entre os HUDs, não no meio da tela: a câmera mira pelo raio da altura `(SafeY0 + SafeY1)/2` do viewport. Faixa livre: x `0,06–0,94`, y `0,24–0,90` (y de baixo para cima; o placar fica em cima e os painéis dos jogadores embaixo).
+- **Distância:** a da roda (`followDist`, em células × escala da pista, de `3` a `120`; começa em 14), aumentada em passos de ×1,12 até todos os carrinhos seguidos caberem na faixa livre (`WorldToViewportPoint`). Afasta rápido (`FollowOut 8`) e aproxima devagar (`FollowIn 1,5`).
+- **Mouse:** botão direito gira (yaw livre, pitch `18°–89°`, começa em 52° como a 3D do construtor); a roda muda `followDist`. Lente `fieldOfView 32°`. Não há pan: o centro é sempre o jogador.
+
+**Transmissão de TV** (`TopDownCamera.BuildTvSpots`, `ApplyTv`):
+
+- **Contorno:** `RaceController.FrameTrackForCamera` amostra o trilho 1 a cada 0,25 e manda o retângulo (x, z), a altura máxima e `sim.Scale` para `SetTrackFrame`. Recalcula quando o caminho muda (`framedPath`).
+- **Postos:** 8 câmeras (4 cantos e o meio de cada lado), afastadas do contorno `TvMargin 2 × escala + 8%` do maior lado, na altura `topo + clamp(0,22 × maior lado, 3 × escala, 14 × escala)`.
+- **Quem segue:** o carrinho de `CamFocusCar()` (o seu no online, o humano sozinho contra robôs); sem foco, o **líder** (`LeaderCar()`, maior `s`).
+- **Corte:** fica no posto atual e só corta (sem transição) para o mais perto quando ele está `TvSwitch 1,35×` mais perto e o atual já durou `TvHold 2,5 s`.
+- **Enquadramento:** olha para o carrinho com lerp `TvLookRate 8`; o campo de visão mostra `TvFrame 2,2 × escala × distância` de meia altura (entre 8° e 60°), suavizado com taxa 4.
+
+**Perseguição** (`TopDownCamera.ApplyThirdPerson`):
+
+- **Posição:** `carro − chaseFwd × 3,2u + cima × 1,7u`, com `u = escala × distância` (fica igual em pistas de 2, 4 e 6). Lerp `ChasePosRate 6`. Campo de visão 55°.
+- **Ponto olhado:** `RaceController` manda a cada quadro o ponto do trilho `CamAhead 2,2 × escala` à frente (`SetCarAhead`); a câmera olha `ChaseLookAhead 0,55` do caminho entre o carrinho e esse ponto, com lerp `ThirdLookRate 12`. Assim a curva aparece antes de o carrinho chegar nela. Rodando, olha só o carrinho.
+- **Direção:** `chaseFwd` segue o rumo com lerp `ChaseTurnRate 6`; rodando, gira no máximo `ThirdTurnRate 110°/s`.
+- **Reinício:** trocar de modo ou de carrinho zera a direção (corte direto para a posição).
 
 **Primeira pessoa** (`TopDownCamera.ApplyFirstPerson`, `SetCarTrack`, `InFirstPersonOf`):
 
@@ -1436,69 +1460,30 @@ else if (slip < SpinOut)       spun[k] = false;
 
 **Qual carrinho a câmera acompanha** (`RaceController.CamFocusCar()`, recalculado a cada quadro em `PlaceCars`):
 
-**Suavização da *Atrás do carro*** (`TopDownCamera.ApplyThirdPerson`). Antes, a câmera ficava presa ao rumo bruto do carrinho: qualquer curva ou rodopio virava um tranco. Agora:
+- **Corrida online:** sempre o **seu** carrinho, `MyLane()`. O alvo escolhido no menu é ignorado ("No online, segue o seu carrinho").
+- **Corrida livre com um humano só:** esse humano.
+- **Senão:** `-1`; a TV segue o líder, a Perseguição e a Primeira pessoa seguem o alvo do menu.
 
-- **Direção na pista:** `chaseFwd` segue o rumo do carrinho com um lerp exponencial de `ThirdTrackTurnRate = 12` (antes havia um limite de 110°/s, que deixava a câmera atrasada nas curvas).
-- **Direção rodando:** quando `spun[k]`, `chaseFwd` gira no máximo `ThirdTurnRate = 110` graus por segundo (`Vector3.RotateTowards`). Um rodopio vira uma panorâmica lenta.
-- **Posição:** `ThirdPosRate = 9` (antes 4.5), bem mais colada no carrinho.
-- **Ponto olhado:** `chaseLook` vai até `carro + chaseFwd × 1.4`, suavizado com `ThirdLookRate = 12` (antes 6).
-- **Rotação:** aponta direto para `chaseLook`, sem o `Slerp` extra que atrasava a câmera.
-- **Reinício:** trocar de modo ou de carrinho (`SetRaceViewMode`, `SetThirdPersonCar`) zera a direção, para a câmera não dar a volta toda até o novo alvo.
-- Distância (`thirdDistance = 7`), altura (`thirdHeight = 2.2`) e o ajuste da roda não mudaram.
+O slider **Distância** vale para a TV (zoom) e a Perseguição: `100%` é o padrão, a faixa é `70%–160%`.
 
-Código principal:
+Implementação: `RaceController.BuildCamMenu(root)` monta `.cam-menu`, `.cam-btn`, `.cam-pop` com um `.cam-opt` por modo (`CamModeValues`, `CamModes`, `CamModeHints`), o `.cam-sub` do alvo e o `SliderInt`. `RaceSettings` salva `cameraMode` (valor de `RaceViewMode`: 5, 2 ou 4; padrão 5), `cameraTarget` e `cameraDistance`.
 
-```csharp
-if (spun[k]) chaseFwd = Vector3.RotateTowards(chaseFwd, carFwd, ThirdTurnRate * Mathf.Deg2Rad * dt, 0f).normalized;
-else         chaseFwd = Vector3.Slerp(chaseFwd, carFwd, 1f - Mathf.Exp(-ThirdTrackTurnRate * dt)).normalized;
-Vector3 target  = raceCarPos[k] + chaseFwd * 1.4f + Vector3.up * 0.25f;
-chaseLook = Vector3.Lerp(chaseLook, target, 1f - Mathf.Exp(-ThirdLookRate * dt));
-Vector3 desired = raceCarPos[k] - chaseFwd * thirdDistance * distanceScale + Vector3.up * thirdHeight * distanceScale;
-transform.position = Vector3.Lerp(transform.position, desired, 1f - Mathf.Exp(-ThirdPosRate * dt));
-transform.rotation = Quaternion.LookRotation((chaseLook - transform.position).normalized, Vector3.up);
-```
+Teste (Play mode, 2 robôs no oval com curvas, `sim.Step` avançado por `script eval` e `EditorApplication.Step()` para desenhar): compila sem erros; a TV escolhe o posto de canto e segue o líder (trocou do carrinho vermelho para o azul quando este assumiu a ponta); a Perseguição mostra o carrinho no terço de baixo e a curva seguinte à frente; o menu mostra os modos.
 
-**Qual carrinho a câmera acompanha** (`RaceController.CamFocusCar()`, recalculado a cada quadro em `PlaceCars`):
+### 15.7.2 Tela dividida
 
-- **Corrida online:** sempre o **seu** carrinho, `MyLane()`, seja trilho 1 ou 2. Vale para *Atrás do carro* (o alvo escolhido no menu é ignorado e o menu avisa "No online, segue o seu carrinho") e para a *Dinâmica*, que centra em você com o enquadramento-base de `5.5` células. Como o seu trilho muda de uma bateria para outra, o foco é atualizado a cada quadro.
-- **Corrida livre contra o robô:** o jogador 1 (trilho 0).
-- **Dois humanos no mesmo teclado / campeonato local:** nenhum (`-1`); a Dinâmica enquadra os dois.
+Corrida offline (Corrida e Campeonato) com **2 a 4 humanos** (`sim.aiSkill[k] == 0` e presentes): uma câmera por jogador, cada uma no seu quadro (`Camera.rect`). Fica em `RaceController.Split.cs`. Liga e desliga no menu de câmera (**Tela dividida: sim/não**, `RaceSettings.splitScreen`, padrão sim). Não aparece no online. Com 1 humano ou com 5 e 6, a tela não se divide.
 
-`TopDownCamera.SetRaceTargets(p0, h0, p1, h1, int focus = -1)`: `focus` 0 ou 1 centra a Dinâmica naquele carrinho; `-1` enquadra os dois. (Antes era `bool prioritizeFirst`, que só sabia focar o carrinho 0; por isso, no online, quem era o jogador 2 via a câmera seguindo o adversário.)
+- **Quadros:** 2 humanos, um em cima (jogador 1) e outro embaixo (`Split2`). 3 ou 4 humanos, grade 2×2 (`Split4`). Com 3 humanos, o 4º quadro é a Transmissão de TV seguindo o líder.
+- **Câmeras:** a principal é o quadro 0. As outras são cópias dela (`Instantiate`, sem `AudioListener`, sem a tag MainCamera), criadas uma vez e desligadas sem divisão. Todas recebem o estado dos carrinhos (`SetCarTrack`, `SetCarAhead`, `SetTrackFrame`) pelos laços `PaneCam(i)`/`CamCount` em `PlaceCars`.
+- **Câmera de cada jogador:** cada quadro tem um botão no canto de cima à direita (`.pane-cam`, com a cor do trilho do jogador; nos quadros de cima, 54 px abaixo para não cobrir o menu geral). Clicar troca entre **Perseguição → Primeira pessoa → De cima** (`PaneModes`; a TV não entra, ela não é de um jogador só). A escolha fica em `RaceSettings.paneCam[4]` (valor de `RaceViewMode`, padrão 2), por quadro: o jogador do 1º quadro, o do 2º… Na tela dividida, o menu geral esconde os modos e o "Seguir" e fica só com a divisão e a distância. Cada quadro segue o seu carrinho (`SetThirdPersonCar`, `SetFollowCars` com só ele).
+- **Painéis:** `.pads--split` ocupa a tela toda com `pickingMode = Ignore` (sem isso, ela engolia os cliques do minimapa e do menu de câmera). O painel de cada jogador fica absoluto no canto de baixo à esquerda do quadro (`left` e `bottom` em %), com largura fixa `PadWidth2 520` / `PadWidth4 420` (esticado pelo quadro ficava desproporcional) e, nos quadros da esquerda, `margin-left = SideWidth + 12` para não ficar embaixo do painel lateral. Os painéis dos robôs somem (também em `DrawPadHeads`). Sem divisão, os estilos inline voltam a `null`.
+- **Faixa livre por quadro** (`TopDownCamera.SetSafeArea`, para a De cima): embaixo, a altura do painel + 24 px; em cima, 60 px de placar nos quadros que tocam o topo da tela (senão 0,95); laterais de 0,04 a 0,96. Sem divisão, volta a `0,06–0,94 × 0,24–0,90`.
+- **Cabine:** `RenderPipelineManager.beginCameraRendering` chama `SetCockpit` antes de cada câmera desenhar, então o teto some só no quadro de quem está dentro daquele carrinho.
+- **Mouse:** na De cima, girar e dar zoom só valem na câmera do quadro sob o mouse (`cam.pixelRect.Contains`).
+- **Relayout:** `LayoutForCars` chama `SplitDirty()`; `UpdateSplit` refaz os quadros quando muda o número de humanos ou de quadros, e desfaz a divisão fora da corrida.
 
-O slider **Distância** (dentro do menu) vale para todos os modos: `100%` é o padrão, a faixa é `70%–160%`.
-
-Implementação Unity:
-
-- `RaceController.BuildCamMenu(root)` monta o menu sobre a mesa: `.cam-menu` (absoluto, `top 10px`, `right 12px`), o botão `.cam-btn`, e a lista `.cam-pop` (240 px) com um `.cam-opt` por modo (nome + uma linha de dica; o ativo ganha `.cam-opt--on`), o bloco `.cam-sub` do alvo e o `SliderInt` da distância. Estilos no fim de `UI/Construtor.uss`. O selo "Vista 3D" (`.view-badge`) desceu para `top 54px` para não ficar embaixo do botão.
-- `ApplyCameraSettings()` aplica modo, alvo e distância e redesenha o menu.
-- `RaceSettings` salva `cameraMode` (0..3), `cameraTarget` (0..1) e `cameraDistance` (70..160, padrão 100).
-
-Teste da correção (Play mode, `script eval` chamando `ApplyAutoDoisCarros` com os carrinhos em (−8, 0) e (8, 3)): `focus -1` → câmera em x 0,0 / z 1,5 (meio); `focus 0` → (−8, 0); `focus 1` → (8, 3).
-
-**Folga da Dinâmica** (os carrinhos chegavam no limite da tela, principalmente na pista de 4): a folga em volta do retângulo dos carrinhos passou de fixa (1,3 de lado, 1,1 em cima) para **max(2,5; 30% da maior distância entre eles)**. O placar em cima e os painéis dos jogadores embaixo cobrem ~30% da altura: a altura pedida é dividida por `UiFree = 0,7` e o centro sobe `UiLift = 0,12 × tamanho` para ficar no meio da faixa livre. A câmera **afasta rápido** (taxa 10) e **aproxima devagar** (2,5). Com um carrinho em foco (online), o enquadramento-base subiu de 5,5 para 7. Tamanho entre 4 e `max(maxSize, 60)`. Ainda não conferido na tela.
-
-Parâmetros usados no first pass (podem ser refinados com playtest):
-
-- Third person:
-    - distância inicial `7.0`
-    - altura `2.2`
-    - `fieldOfView = 50`
-    - suavização exponencial de posição/rotação.
-- Auto (2 carros):
-    - margem horizontal `+1.3` célula
-    - margem vertical `+1.1` célula
-    - single player: centra no jogador 1, usa enquadramento-base de `5.5` células e ignora a posição do robô
-    - zoom limitado por `minSize/maxSize` da câmera
-    - suavização exponencial para centro e zoom.
-- Distância global da câmera:
-    - escala aplicada a enquadramento ortográfico, distância em perspectiva, third person e zoom automático
-    - faixa `0.70×–1.60×`, padrão `1.00×`
-
-Teste rápido realizado:
-
-- Compilação C# sem erros nos arquivos alterados (`TopDownCamera`, `RaceController`, `RaceSim`).
-- Troca de modo em runtime não altera física, trilhos, voltas nem regras da IA; afeta só a visualização.
+Teste: compila. Ainda não foi visto rodando (o Editor estava num Play do usuário).
 
 ### 15.8 Colisão entre os carrinhos
 

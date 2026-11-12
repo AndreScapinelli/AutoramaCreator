@@ -16,7 +16,9 @@ namespace Autorama
         public string track = "builder";
         public bool bot;                // corrida livre: o jogador 2 é um piloto IA
         public int botSkill = 60;       // qualidade dele, 1–100
-        public int cameraMode = 0;      // 0 atual, 1 3D, 2 third person, 3 auto dois carros
+        public int cameraMode = 5;      // TopDownCamera.RaceViewMode: 5 TV, 2 perseguição, 4 primeira pessoa, 6 de cima
+        public bool splitScreen = true; // tela dividida offline com 2 a 4 humanos
+        public int[] paneCam = { 2, 2, 2, 2 };   // câmera de cada quadro da tela dividida (RaceViewMode: 2, 4 ou 6)
         public int cameraTarget = 0;    // alvo do third person: 0 jogador 1, 1 jogador 2
         public int cameraDistance = 100; // escala do enquadramento: 70% mais perto, 160% mais longe
         public int halfGas = 60;        // tecla de meia aceleração (S no jogador 1; ver Controles): até onde o acelerador vai, em %
