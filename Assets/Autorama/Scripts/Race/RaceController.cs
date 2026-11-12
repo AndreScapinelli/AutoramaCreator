@@ -114,7 +114,7 @@ namespace Autorama
         static readonly TopDownCamera.RaceViewMode[] CamModeValues = { TopDownCamera.RaceViewMode.Tv, TopDownCamera.RaceViewMode.ThirdPerson, TopDownCamera.RaceViewMode.FirstPerson, TopDownCamera.RaceViewMode.TopFollow };
         static readonly string[] CamModes = { "Transmissão de TV", "Perseguição", "Primeira pessoa", "De cima" };
         static readonly string[] CamModeHints = { "Câmeras em volta da mesa seguem o líder", "Atrás e acima do carrinho, olhando a curva", "Dentro do carrinho; quando ele roda, vira a traseira", "Segue os jogadores; botão direito gira, roda aproxima" };
-        static readonly string[] CamTargets = { "Jogador 1", "Jogador 2", "Jogador 3", "Jogador 4", "Jogador 5", "Jogador 6" };
+        static readonly string[] CamTargets = { "Jogador 1", "Jogador 2", "Jogador 3", "Jogador 4", "Jogador 5", "Jogador 6", "Jogador 7", "Jogador 8" };
 
         RaceSettings set;
         RaceSim sim;
