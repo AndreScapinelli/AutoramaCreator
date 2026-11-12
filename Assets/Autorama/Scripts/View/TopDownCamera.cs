@@ -23,10 +23,10 @@ namespace Autorama
         // e volta à primeira pessoa quando está no trilho com derrapagem abaixo de SpinOut (histerese, sem piscar).
         // Derrapagem 0,75 ≈ 25° de guinada visível (YawMax 38° × slip^1,4); 0,3 cortava com só ~9°.
         const float SpinIn = 0.75f, SpinOut = 0.25f;
-        readonly bool[] spun = new bool[6];
+        readonly bool[] spun = new bool[RaceSim.MaxCars];
         float nearDefault = 0.3f;
 
-        public float minSize = 2f, maxSize = 80f;      // a pista de 6 carros é 3× maior no mundo
+        public float minSize = 2f, maxSize = 110f;     // a pista de 8 carros é 4× maior no mundo
         public float tiltPitch = 52f, fieldOfView = 32f;
 
         public bool Tilted { get; private set; }
@@ -43,15 +43,15 @@ namespace Autorama
         Vector3 dragOrigin;
         bool panning, orbiting;
         Vector2 lastMouse;
-        readonly Vector3[] raceCarPos = new Vector3[6];
-        readonly float[] raceCarHeading = new float[6];
+        readonly Vector3[] raceCarPos = new Vector3[RaceSim.MaxCars];
+        readonly float[] raceCarHeading = new float[RaceSim.MaxCars];
         int raceCars = 2;            // carrinhos na pista (2 ou 4)
         bool hasRaceTargets;
         int focusCar = -1;           // carrinho que a vista dinâmica acompanha de perto; -1 enquadra todos
 
         float distanceScale = 1f;
         float trackScale = 1f;                                // TrackMath.Scale da pista (1, 2 ou 3)
-        readonly Vector3[] raceAhead = new Vector3[6];        // ponto do trilho à frente de cada carrinho
+        readonly Vector3[] raceAhead = new Vector3[RaceSim.MaxCars];        // ponto do trilho à frente de cada carrinho
         Rect trackRect; float trackTop;                       // contorno da pista (x, z) e a altura máxima
         Vector3[] tvSpots; int tvSpot = -1; float tvTime; Vector3 tvLook;
 
@@ -75,7 +75,7 @@ namespace Autorama
             focus = new Vector3(transform.position.x, 0f, transform.position.z);
             size = cam.orthographicSize;
             pitch = tiltPitch;
-            maxSize = Mathf.Max(maxSize, 80f);           // a cena guarda o valor antigo (40): a pista de 6 não cabe nele
+            maxSize = Mathf.Max(maxSize, 110f);           // a cena guarda o valor antigo (40): a pista de 6 não cabe nele
         }
 
         public void ToggleTilt() => Tilted = !Tilted;
@@ -125,7 +125,7 @@ namespace Autorama
         }
 
         // Carrinhos que a "De cima" mantém na tela (os dos jogadores humanos; no online, só o seu).
-        readonly bool[] followCar = new bool[6];
+        readonly bool[] followCar = new bool[RaceSim.MaxCars];
         public void SetFollowCars(bool[] mask) { for (int k = 0; k < followCar.Length; k++) followCar[k] = k < mask.Length && mask[k]; }
 
         public void SetCarAhead(int k, Vector3 p) { if (k >= 0 && k < raceAhead.Length) raceAhead[k] = p; }

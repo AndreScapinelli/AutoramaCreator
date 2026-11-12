@@ -233,7 +233,7 @@ namespace Autorama
             if (builder.Faixas >= 4 && name.StartsWith("icone-"))
             {
                 // Pista de 6: "icone6-…", e se faltar, o de 4.
-                Texture2D t = builder.Faixas == 6 ? builder.theme.Icon("icone6-" + name.Substring(6)) : null;
+                Texture2D t = builder.Faixas >= 6 ? builder.theme.Icon($"icone{builder.Faixas}-" + name.Substring(6)) : null;
                 t = t != null ? t : builder.theme.Icon("icone4-" + name.Substring(6));
                 if (t != null) return t;
             }
@@ -241,7 +241,7 @@ namespace Autorama
         }
 
         readonly List<(Image img, string name)> paletteIcons = new List<(Image, string)>();
-        Button kind2Btn, kind4Btn, kind6Btn;
+        Button kind2Btn, kind4Btn, kind6Btn, kind8Btn;
         Label subtitle;
         int iconsFor;
 
@@ -252,6 +252,7 @@ namespace Autorama
             kind2Btn.EnableInClassList("btn--on", f == 2);
             kind4Btn.EnableInClassList("btn--on", f == 4);
             kind6Btn.EnableInClassList("btn--on", f == 6);
+            kind8Btn.EnableInClassList("btn--on", f == 8);
             subtitle.text = $"AUTORAMA · {f} TRILHOS";
             if (iconsFor == f) return;
             iconsFor = f;
@@ -318,13 +319,15 @@ namespace Autorama
             onlineBox = El(null, content);
             onlineBox.style.display = DisplayStyle.None;
 
-            // Tipo da pista: 2, 4 ou 6 carros. Trocar adapta a pista aberta, sem perder peças.
+            // Tipo da pista: 2, 4, 6 ou 8 carros. Trocar adapta a pista aberta, sem perder peças.
             var kind = Section("TAMANHO DA PISTA");
             var kindRow = El("segmented", kind);
             kind2Btn = Btn("2 trilhos", () => ChooseKind(2), "btn", kindRow);
             kind4Btn = Btn("4 trilhos", () => ChooseKind(4), "btn", kindRow);
             kind6Btn = Btn("6 trilhos", () => ChooseKind(6), "btn", kindRow);
             kind6Btn.tooltip = "Pista muito larga, de 6 trilhos (1 célula = o triplo da largura). Campeonatos não misturam os tipos.";
+            kind8Btn = Btn("8 trilhos", () => ChooseKind(8), "btn", kindRow);
+            kind8Btn.tooltip = "Pista enorme, de 8 trilhos (1 célula = 4× a largura). Campeonatos não misturam os tipos.";
             kind2Btn.tooltip = "Pista estreita, de 2 trilhos. Adapta a pista aberta (Ctrl+Z desfaz).";
             kind4Btn.tooltip = "Pista larga, de 4 trilhos (1 célula = o dobro da largura). Campeonatos não misturam os dois tipos.";
 

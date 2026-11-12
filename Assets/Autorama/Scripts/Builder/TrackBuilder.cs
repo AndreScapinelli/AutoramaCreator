@@ -247,7 +247,7 @@ namespace Autorama
         public static string RenameForKind(string name, int faixas)
         {
             if (string.IsNullOrWhiteSpace(name)) return name ?? "";
-            name = System.Text.RegularExpressions.Regex.Replace(name.Trim(), @"\s*\((2|4|6) carros\)$", "");
+            name = System.Text.RegularExpressions.Regex.Replace(name.Trim(), @"\s*\((2|4|6|8) carros\)$", "");
             return $"{name} ({faixas} carros)";
         }
 

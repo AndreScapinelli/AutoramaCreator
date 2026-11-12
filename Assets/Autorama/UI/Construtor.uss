@@ -15,6 +15,8 @@
     --trilho-d: rgb(242, 183, 40);
     --trilho-e: rgb(139, 63, 217);
     --trilho-f: rgb(25, 181, 201);
+    --trilho-g: rgb(240, 120, 30);
+    --trilho-h: rgb(224, 72, 150);
     --fundo: rgb(22, 28, 25);
     --fundo-vidro: rgba(22, 28, 25, 0.94);
     --fundo-painel: rgba(22, 28, 25, 0.97);
@@ -114,6 +116,8 @@
 .swatch--d { background-color: var(--trilho-d); }
 .swatch--e { background-color: var(--trilho-e); }
 .swatch--f { background-color: var(--trilho-f); }
+.swatch--g { background-color: var(--trilho-g); }
+.swatch--h { background-color: var(--trilho-h); }
 
 /* ---------- Sequência ---------- */
 .seq { flex-direction: row; flex-wrap: wrap; }
@@ -207,6 +211,8 @@
 .score-d .score-cell--name { color: var(--trilho-d); -unity-font-style: bold; }
 .score-e .score-cell--name { color: var(--trilho-e); -unity-font-style: bold; }
 .score-f .score-cell--name { color: var(--trilho-f); -unity-font-style: bold; }
+.score-g .score-cell--name { color: var(--trilho-g); -unity-font-style: bold; }
+.score-h .score-cell--name { color: var(--trilho-h); -unity-font-style: bold; }
 .score-win .score-cell { -unity-font-style: bold; }
 .setting { margin: 0 0 8px 0; }
 .setting .unity-label { color: var(--texto); font-size: 12px; min-width: 150px; }
@@ -226,6 +232,8 @@
 .banner-title--d { color: var(--trilho-d); }
 .banner-title--e { color: var(--trilho-e); }
 .banner-title--f { color: var(--trilho-f); }
+.banner-title--g { color: var(--trilho-g); }
+.banner-title--h { color: var(--trilho-h); }
 .banner-sub { font-size: 13px; color: var(--texto-fraco); margin: 4px 0 0 0; padding: 0; }
 
 .pads { position: absolute; bottom: 12px; right: 12px; flex-direction: row; }
@@ -238,6 +246,8 @@
 .pad--d { border-color: var(--trilho-d); }
 .pad--e { border-color: var(--trilho-e); }
 .pad--f { border-color: var(--trilho-f); }
+.pad--g { border-color: var(--trilho-g); }
+.pad--h { border-color: var(--trilho-h); }
 .pad--last { margin-right: 0; }
 .pad-head { flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 6px; }
 .pad-name { font-size: 14px; -unity-font-style: bold; letter-spacing: 1px; color: var(--texto); margin: 0; padding: 0; }
@@ -253,6 +263,8 @@
 .pad--d .gas { border-color: var(--trilho-d); }
 .pad--e .gas { border-color: var(--trilho-e); }
 .pad--f .gas { border-color: var(--trilho-f); }
+.pad--g .gas { border-color: var(--trilho-g); }
+.pad--h .gas { border-color: var(--trilho-h); }
 .gas-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background-color: rgba(240, 74, 63, 0.35); }
 .pad--b .gas-fill { background-color: rgba(80, 137, 242, 0.35); }
 .pad--c .gas-fill { background-color: rgba(56, 186, 98, 0.35); }
@@ -287,6 +299,13 @@
 .hud--6 .hud-name { font-size: 10px; letter-spacing: 0; }
 .hud--6 .hud-lap { font-size: 10px; margin-right: 6px; }
 .hud--6 .hud-best { display: none; }
+/* Pista de 8 carros: oito painéis e oito fichas, mais apertados ainda. */
+.pads--8 .pad { margin-right: 3px; padding: 3px 4px 5px 4px; }
+.pads--8 .gas { height: 34px; }
+.pads--8 .gas-text { font-size: 9px; }
+.hud--8 .hud-card { margin: 0 1px; padding: 3px 5px 3px 3px; }
+.hud--8 .hud-pos { width: 18px; font-size: 12px; }
+.hud--8 .hud-lap { margin-right: 3px; }
 .pad--held .gas { background-color: rgb(30, 36, 33); }
 .gas-text { font-size: 18px; -unity-font-style: bold; letter-spacing: 2px; color: var(--texto); margin: 0; padding: 0; }
 .pad-side { width: 150px; }
@@ -351,6 +370,7 @@
 .vs--4 { flex-wrap: wrap; }
 .vs--6 { flex-wrap: wrap; }
 .vs--6 .hp { flex-basis: 30%; margin: 0 4px 4px 0; }
+.vs--8 .hp { flex-basis: 22%; }
 .hp--empty { opacity: 0.45; border-left-color: var(--borda-media); }
 .vs--4 .hp { flex-basis: 45%; margin: 0 4px 4px 0; }
 .vs-x { font-size: 14px; color: var(--texto-fraco); margin: 0 6px; padding: 0; }

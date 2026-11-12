@@ -38,7 +38,7 @@ namespace Autorama
         VisualElement oSuggestBox, oSuggest, oSendBox, oSend;
 
         VisualElement oEntry, oLobby, oRooms, oPlayers, oColors, oStages, oPick, oHostPick, oRun, oRunChatSec, oFormat;
-        Button oByLaps, oByTime, oKind2, oKind4, oKind6;
+        Button oByLaps, oByTime, oKind2, oKind4, oKind6, oKind8;
         Label oFormatText;
         int onlineFaixas = 2;          // tipo de pista que o host está escolhendo (vale enquanto não há etapas)
         Label oMsg, oRoomTitle, oRoomCode, oStageHint, oLobbyMsg, oRulesHint, oStartHint;
@@ -152,6 +152,8 @@ namespace Autorama
             oKind4 = Btn("4 trilhos", () => OnlineKind(4), "btn", kind);
             oKind6 = Btn("6 trilhos", () => OnlineKind(6), "btn", kind);
             oKind6.tooltip = "Pista de 6 trilhos. Com menos de 6 jogadores, sobra trilho vazio em cada bateria.";
+            oKind8 = Btn("8 trilhos", () => OnlineKind(8), "btn", kind);
+            oKind8.tooltip = "Pista de 8 trilhos. Com menos de 8 jogadores, sobra trilho vazio em cada bateria.";
             oKind4.tooltip = "Pista de 4 trilhos. Com menos de 4 jogadores, sobra trilho vazio em cada bateria.";
             oStageHint = Text("", "hint", st);
             oStages = El(null, Caixa(st));
@@ -758,7 +760,7 @@ namespace Autorama
             int faixasNow = host ? onlineFaixas : room.stages.Count > 0 ? TrackMath.Faixas(room.stages[0].faixas) : 2;
             oFormat.style.display = host ? DisplayStyle.Flex : DisplayStyle.None;
             oByLaps.EnableInClassList("btn--on", !byTimeNow); oByTime.EnableInClassList("btn--on", byTimeNow);
-            oKind2.EnableInClassList("btn--on", faixasNow == 2); oKind4.EnableInClassList("btn--on", faixasNow == 4); oKind6.EnableInClassList("btn--on", faixasNow == 6);
+            oKind2.EnableInClassList("btn--on", faixasNow == 2); oKind4.EnableInClassList("btn--on", faixasNow == 4); oKind6.EnableInClassList("btn--on", faixasNow == 6); oKind8.EnableInClassList("btn--on", faixasNow == 8);
             int n = room.players.Count, gaps = faixasNow - Mathf.Min(n, faixasNow);
             oFormatText.text = (host || room.stages.Count > 0)
                 ? $"<b>{(byTimeNow ? "Por tempo" : "Por voltas")}</b> · <b>pistas de {faixasNow} trilhos</b>" + (faixasNow >= 4 && gaps > 0 ? $" · com {n} {(n == 1 ? "jogador" : "jogadores")}, {gaps} {(gaps == 1 ? "trilho fica vazio" : "trilhos ficam vazios")} em cada bateria" : "")

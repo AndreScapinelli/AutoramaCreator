@@ -62,7 +62,7 @@ namespace Autorama
             {
                 // Zebra em relevo no lado de fora das curvas planas (onde a textura pinta a zebra): sobe em chanfro,
                 // fica plana e desce na borda. Nas peças no alto o muro ocupa o lugar.
-                float kIn = faixas == 6 ? 0.4533f : wide ? 0.43f : 0.40f, kOut = faixas == 6 ? 0.4833f : wide ? 0.475f : 0.48f, kH = 0.022f / k, kB = 0.012f;
+                float kIn = faixas >= 6 ? 0.5f - 0.28f / faixas : wide ? 0.43f : 0.40f, kOut = faixas >= 6 ? 0.5f - 0.1f / faixas : wide ? 0.475f : 0.48f, kH = 0.022f / k, kB = 0.012f;
                 bool kerbL = only == null && d.IsCurve && !d.Banked && !s.High && dir > 0;
                 bool kerbR = only == null && d.IsCurve && !d.Banked && !s.High && dir < 0;
                 float from = -0.5f;
@@ -93,7 +93,7 @@ namespace Autorama
             }
 
             // Muro com corpo: nas peças no alto (dos dois lados) e no lado de fora das curvas inclinadas.
-            float wallIn = faixas == 6 ? 0.4867f : wide ? 0.48f : 0.45f;
+            float wallIn = faixas >= 6 ? 0.5f - 0.08f / faixas : wide ? 0.48f : 0.45f;
             float wallH = (s.High ? (wide ? 0.12f : 0.1f) : 0.14f) / k;
             bool wallL = only == null && (s.High || (d.Banked && dir > 0)), wallR = only == null && (s.High || (d.Banked && dir < 0));
             float gv = wide ? 2f : 1f;

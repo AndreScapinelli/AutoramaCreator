@@ -46,7 +46,7 @@ namespace Autorama.EditorTools
                 var path = AssetDatabase.GUIDToAssetPath(guid);
                 var imp = (TextureImporter)AssetImporter.GetAtPath(path);
                 string name = Path.GetFileNameWithoutExtension(path);
-                bool repeat = name.StartsWith("pista-") || name.StartsWith("pista4-") || name.StartsWith("pista6-") || name.StartsWith("grade-mesa") || name == "mureta4"
+                bool repeat = name.StartsWith("pista-") || name.StartsWith("pista4-") || name.StartsWith("pista6-") || name.StartsWith("pista8-") || name.StartsWith("grade-mesa") || name == "mureta4"
                               || name == "asfalto" || name == "zebra" || name == "sobreposicao";
                 imp.textureType = TextureImporterType.Default;
                 imp.wrapMode = repeat ? TextureWrapMode.Repeat : TextureWrapMode.Clamp;
@@ -54,7 +54,7 @@ namespace Autorama.EditorTools
                 imp.mipmapEnabled = true;
                 imp.filterMode = FilterMode.Trilinear;
                 imp.anisoLevel = 8;
-                imp.maxTextureSize = name.StartsWith("pista4-") || name.StartsWith("pista6-") ? 2048 : 1024;     // a pista de 4 tem o dobro de detalhe por célula
+                imp.maxTextureSize = name.StartsWith("pista4-") || name.StartsWith("pista6-") || name.StartsWith("pista8-") ? 2048 : 1024;     // a pista de 4 tem o dobro de detalhe por célula
                 imp.textureCompression = TextureImporterCompression.CompressedHQ;
                 imp.SaveAndReimport();
             }
@@ -184,8 +184,24 @@ namespace Autorama.EditorTools
             theme.art6 = a6;
             theme.cars56   = new[] { CarMaterial("Carrinho Roxo", T("carrinho-roxo")), CarMaterial("Carrinho Ciano", T("carrinho-ciano")) };
 
+            // Pista de 8 carros (seção 43 do guia): a mesma receita da de 6.
+            var a8 = theme.art8 ?? new TrackTheme.WideArt();
+            a8.straight    = Lit("Pista8 Reta", T("pista8-reta"), Color.white);
+            a8.curveRight  = Lit("Pista8 Curva Direita", T("pista8-curva-direita"), Color.white);
+            a8.curveLeft   = Lit("Pista8 Curva Esquerda", T("pista8-curva-esquerda"), Color.white);
+            a8.bankRight   = Lit("Pista8 Inclinada Direita", T("pista8-curva-inclinada-direita"), Color.white);
+            a8.bankLeft    = Lit("Pista8 Inclinada Esquerda", T("pista8-curva-inclinada-esquerda"), Color.white);
+            a8.cross       = Lit("Pista8 Cruzamento", T("pista8-cruzamento"), Color.white);
+            a8.crossShort  = Lit("Pista8 Cruzamento Curto", T("pista8-cruzamento-curto"), Color.white);
+            a8.start       = Lit("Pista8 Largada", T("pista8-largada"), Color.white);
+            a8.guard       = Lit("Mureta8", T("mureta4"), Color.white);
+            a8.support     = Lit("Pilar8", null, new Color32(0x3A, 0x44, 0x4E, 0xFF));
+            a8.board       = Lit("Mesa8", T("grade-mesa4"), Color.white);
+            theme.art8 = a8;
+            theme.cars78   = new[] { CarMaterial("Carrinho Laranja", T("carrinho-laranja")), CarMaterial("Carrinho Rosa", T("carrinho-rosa")) };
+
             theme.icons.Clear();
-            foreach (var prefix in new[] { "icone-", "icone4-", "icone6-" })
+            foreach (var prefix in new[] { "icone-", "icone4-", "icone6-", "icone8-" })
                 foreach (var guid in AssetDatabase.FindAssets(prefix + " t:Texture2D", new[] { Tex }))
                 {
                     var t = AssetDatabase.LoadAssetAtPath<Texture2D>(AssetDatabase.GUIDToAssetPath(guid));

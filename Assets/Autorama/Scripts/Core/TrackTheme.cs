@@ -36,6 +36,10 @@ namespace Autorama
         public WideArt art6 = new WideArt();
         public Material[] cars56 = new Material[0]; // carrinhos 5 (roxo) e 6 (ciano)
 
+        [Header("Pista de 8 carros (arte própria, seção 43)")]
+        public WideArt art8 = new WideArt();
+        public Material[] cars78 = new Material[0]; // carrinhos 7 (laranja) e 8 (rosa)
+
         [Header("Destaques")]
         public Material selected;
         public Material overlap;
@@ -53,17 +57,19 @@ namespace Autorama
         public bool Has4 => straight4 != null;
         public bool Has6 => art6 != null && art6.straight != null;
         // Existe arte própria para esse tipo de pista? (2 sempre; 4 e 6 se o menu Atualizar materiais já rodou.)
-        public bool HasWide(int faixas) => faixas == 6 ? Has6 : faixas == 4 && Has4;
+        public bool Has8 => art8 != null && art8.straight != null;
+        public bool HasWide(int faixas) => faixas == 8 ? Has8 : faixas == 6 ? Has6 : faixas == 4 && Has4;
+        WideArt Art(int faixas) => faixas == 8 ? art8 : faixas == 6 ? art6 : null;
 
-        public Material Guard(int faixas) => faixas == 6 && art6.guard != null ? art6.guard : faixas == 4 && guard4 != null ? guard4 : guard;
-        public Material Support(int faixas) => faixas == 6 && art6.support != null ? art6.support : faixas == 4 && support4 != null ? support4 : support;
-        public Material Board(int faixas) => faixas == 6 ? art6.board : faixas == 4 ? board4 : null;
+        public Material Guard(int faixas) => Art(faixas)?.guard != null ? Art(faixas).guard : faixas >= 4 && guard4 != null ? guard4 : guard;
+        public Material Support(int faixas) => Art(faixas)?.support != null ? Art(faixas).support : faixas >= 4 && support4 != null ? support4 : support;
+        public Material Board(int faixas) => Art(faixas) != null ? Art(faixas).board : faixas == 4 ? board4 : null;
 
         public Material Surface(PieceDef d, int dir, int faixas)
         {
-            if (faixas == 6 && Has6)
+            if (faixas >= 6 && HasWide(faixas))
             {
-                var a = art6;
+                var a = Art(faixas);
                 if (d.IsStart && a.start != null) return a.start;
                 if (d.IsCross && d.Length < 3f && a.crossShort != null) return a.crossShort;
                 if (d.IsCross && a.cross != null) return a.cross;

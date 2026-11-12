@@ -108,8 +108,8 @@ namespace Autorama
 
         // Nome curto da tecla para os botões e dicas.
         static string KeyText(Key k) => Controles.Nome(k);
-        static readonly string[] LaneNames = { "Trilho 1", "Trilho 2", "Trilho 3", "Trilho 4", "Trilho 5", "Trilho 6" };
-        static readonly string[] LaneCls = { "a", "b", "c", "d", "e", "f" };       // sufixo das classes de cor do USS (trilho 1 a 6)
+        static readonly string[] LaneNames = { "Trilho 1", "Trilho 2", "Trilho 3", "Trilho 4", "Trilho 5", "Trilho 6", "Trilho 7", "Trilho 8" };
+        static readonly string[] LaneCls = { "a", "b", "c", "d", "e", "f", "g", "h" };       // sufixo das classes de cor do USS (trilho 1 a 8)
         // Modos de câmera da corrida. RaceSettings.cameraMode guarda o valor de TopDownCamera.RaceViewMode.
         static readonly TopDownCamera.RaceViewMode[] CamModeValues = { TopDownCamera.RaceViewMode.Tv, TopDownCamera.RaceViewMode.ThirdPerson, TopDownCamera.RaceViewMode.FirstPerson, TopDownCamera.RaceViewMode.TopFollow };
         static readonly string[] CamModes = { "Transmissão de TV", "Perseguição", "Primeira pessoa", "De cima" };
@@ -179,12 +179,18 @@ namespace Autorama
             OnlineDestroy();
         }
 
-        static readonly string[] CarNames = { "Carrinho vermelho", "Carrinho azul", "Carrinho verde", "Carrinho amarelo", "Carrinho roxo", "Carrinho ciano" };
+        static readonly string[] CarNames = { "Carrinho vermelho", "Carrinho azul", "Carrinho verde", "Carrinho amarelo", "Carrinho roxo", "Carrinho ciano", "Carrinho laranja", "Carrinho rosa" };
 
         // Material de cada trilho: vermelho e azul na cena; verde e amarelo no tema (Autorama > Atualizar materiais e ícones).
         Material BaseCarMaterial(int k)
         {
             if (k < carMaterials.Length && carMaterials[k] != null) return carMaterials[k];
+            if (k >= 6)
+            {
+                var more8 = builder.theme != null ? builder.theme.cars78 : null;
+                if (more8 != null && k - 6 < more8.Length && more8[k - 6] != null) return more8[k - 6];
+                return carMaterials[k % 2];
+            }
             if (k >= 4)
             {
                 var more = builder.theme != null ? builder.theme.cars56 : null;
@@ -464,10 +470,10 @@ namespace Autorama
 
             pickNote = Text("", "small", pick);
 
-            // Tamanho: qualquer pista corre em 2, 4 ou 6 trilhos (adaptada na hora; a pista salva não muda).
+            // Tamanho: qualquer pista corre em 2, 4, 6 ou 8 trilhos (adaptada na hora; a pista salva não muda).
             var size = Section(box, "TAMANHO DA PISTA");
             var sizeRow = El("segmented", size);
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < 4; i++)
             {
                 int f = 2 + 2 * i;
                 sizeBtns[i] = Btn($"{f} trilhos", () => { if (Racing || sim.N == f) return; set.raceFaixas = f; set.Save(); UseTrack(set.track); sim.Reset(); scoreDirty = true; }, "btn", sizeRow);
@@ -613,7 +619,7 @@ namespace Autorama
         System.Action refreshAdjLabels;
         Label pickNote;
         VisualElement pilotBox;
-        readonly Button[] sizeBtns = new Button[3], carBtns = new Button[RaceSim.MaxCars];
+        readonly Button[] sizeBtns = new Button[4], carBtns = new Button[RaceSim.MaxCars];
 
         // ---------- Teclas dos jogadores (tela de opções, seção 34 do guia) ----------
 
@@ -750,6 +756,8 @@ namespace Autorama
             padsBox.EnableInClassList("pads--4", shown > 2);
             padsBox.EnableInClassList("pads--6", shown > 4);
             hudBox.EnableInClassList("hud--6", shown > 4);
+            padsBox.EnableInClassList("pads--8", shown > 6);
+            hudBox.EnableInClassList("hud--8", shown > 6);
             for (int k = 0; k < RaceSim.MaxCars; k++)
             {
                 var on = k < n && sim.present[k] ? DisplayStyle.Flex : DisplayStyle.None;

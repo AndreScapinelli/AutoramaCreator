@@ -111,9 +111,9 @@ const trilha = (n, extra = {}) => ({ name: 'Pista ' + n, laps: 3, hash: 'a34f4cb
   host.send({ t: 'stages', stages: [trilha(1, { secs: 90, tempo: true, faixas: 4 }), trilha(2, { laps: 5 })] });
   r = await g1.next('room');
   assert.deepStrictEqual(r.room.stages.map(s => [s.secs, s.tempo, s.faixas]), [[90, true, 4], [120, false, 2]]);
-  host.send({ t: 'stages', stages: [trilha(1, { faixas: 6 }), trilha(2, { faixas: 5 })] });
+  host.send({ t: 'stages', stages: [trilha(1, { faixas: 6 }), trilha(2, { faixas: 5 }), trilha(3, { faixas: 8 })] });
   r = await g1.next('room');
-  assert.deepStrictEqual(r.room.stages.map(s => s.faixas), [6, 2]); ok('tipo 6 chega aos visitantes; tipo desconhecido (5) vira 2');
+  assert.deepStrictEqual(r.room.stages.map(s => s.faixas), [6, 2, 8]); ok('tipos 6 e 8 chegam aos visitantes; tipo desconhecido (5) vira 2');
   host.send({ t: 'stages', stages: [trilha(1, { secs: 90, tempo: true, faixas: 4 }), trilha(2, { laps: 5 })] }); await g1.next('room');
   ok('duração, formato e tipo de pista chegam aos visitantes (sem o campo: 120 s, por voltas, 2 carros)');
   host.send({ t: 'stages', stages: [trilha(1, { secs: 30 })] });

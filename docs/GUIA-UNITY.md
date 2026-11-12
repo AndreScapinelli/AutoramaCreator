@@ -3593,3 +3593,48 @@ Pista: largada, reta comprida, salto, reta comprida, loop, 2 retas compridas; `v
 - **Snapshot:** carro no ar codificado e lido de volta (`ar`, `ay 0,31`, `avy −2,5`); o carro seguinte, no trilho, continua lido certo.
 - **Malha:** conferida numa imagem renderizada no Editor (loop em hélice e salto com o vão).
 - **Não testado:** corrida no Play com as câmeras (Perseguição e primeira pessoa dentro do loop), colisão no ar entre dois carrinhos, o snapshot `ar` entre host e visitante, e o loop atrás da largada.
+
+## 43. Pista de 8 carros
+
+Quarto tipo de pista, na mesma ideia das de 4 e 6 (seções 25 e 31): **mesmas peças e ids**, geometria em células igual e a célula valendo **4 no mundo**. Numa pista de 8 correm de 1 a 8 carros (trilho vazio, seção 27). Branch `pista-8-carros`.
+
+### 43.1 Medidas
+
+| | 6 | **8** |
+|---|---|---|
+| 1 célula no mundo (`TrackMath.Scale`) | 3 | **4** |
+| Trilhos, em células (`TrackMath.Lanes8`) | ±1/12 · ±1/4 · ±5/12 | **±1/16 · ±3/16 · ±5/16 · ±7/16** |
+| Trilhos, no mundo | ±0,25 · ±0,75 · ±1,25 | **±0,25 · ±0,75 · ±1,25 · ±1,75** |
+| Raio no centro, no mundo | 7,5 | **10** |
+
+O espaço entre trilhos continua **0,5 no mundo**. `TrackMath.Faixas(f)` aceita 2, 4, 6 e 8 (qualquer outro valor vira 2). No JSON: `"faixas": 8`. Identidade dos recordes com prefixo `f8|` (`Champ.TrackHash` agora monta `f{faixas}|` para 4, 6 e 8, o que dá os mesmos textos de antes para 4 e 6): oval de 8 = `910b09a1`, 8 com ponte de 8 = `2885aa6e`. As de 2, 4 e 6 não mudaram (oval 2 = `a34f4cb9`, oval 6 = `265259f3`, 8 com ponte 6 = `27ae435c`).
+
+`RaceSim.MaxCars = 8` (`present` com 8 posições, `aiSkill`, `paths`, `pairContact`). `RaceSettings.FixSlots` aproveita os 6 lugares salvos antes e acrescenta 2 robôs. Recordes por trilho `lane7` e `lane8` em `TrackRecords`. `Champ.MaxPilots` já era 8.
+
+### 43.2 Arte
+
+`ferramentas/gen-texturas.js`: o bloco da pista de 6 virou `widePack(n, carros)`, chamado com 6 e com 8. Trilhos a cada `1/n` célula e as medidas da de 4 vezes `R = 4/n` (2/3 na de 6, 1/2 na de 8). Saem `pista8-*`, `icone8-*` e os carrinhos **laranja** (`#F0781E`, trilho 7) e **rosa** (`#E04896`, trilho 8); dígitos 7 e 8 na largada. A de 6 sai igual (só o losango do cruzamento curto mudou um pixel de raio: `.3·R` em vez de `.2`). `TrackTheme.art8` / `cars78` / `Has8`; `Guard`, `Support`, `Board` e `Surface` escolhem por `Art(faixas)`. O menu **Atualizar materiais e ícones** cria os materiais `Pista8 *`, `Mureta8`, `Pilar8`, `Mesa8`, `Carrinho Laranja` e `Carrinho Rosa`. Malha (`TrackPieceView`): zebra e muro das largas em `0,5 − 0,28/n`, `0,5 − 0,1/n` e `0,5 − 0,08/n` (os mesmos números da de 6 quando n = 6).
+
+### 43.3 Interface
+
+- Botão **8 trilhos** no construtor (TAMANHO DA PISTA), na corrida livre, no campeonato e no lobby online. Adaptar (seção 32) aceita "(8 carros)" no nome.
+- Corrida: até 8 carros; os humanos do 5º ao 8º jogam só de controle. Painéis e fichas `.pads--8` / `.hud--8` (mais apertados que os de 6), bateria do campeonato `.vs--8`. Cores USS `--trilho-g` e `--trilho-h`.
+- Câmera: `maxSize` 110 (a pista é 4× maior). Arrays da câmera agora usam `RaceSim.MaxCars`.
+- Online: servidor aceita `faixas` 8 nas etapas e nas sugestões; a Steam já passava por `TrackMath.Faixas`.
+
+### 43.4 Testes
+
+`script eval`, robôs de qualidade 100, 4 voltas, sem turbo, `Random.InitState(7)`, JSON ida e volta:
+
+| Pista | Trilhos (células) | Resultado |
+|---|---|---|
+| Oval, 8 | 38,31 · 37,53 · 36,74 · 35,95 · 35,17 · 34,38 · 33,60 · 32,81 | 8 carros terminam, 17,9 a 16,7 s, 0 saídas |
+| 8 com ponte, 8 | — | 8 carros terminam, 21,2 a 22,8 s, 0 saídas |
+| Oval, 6 (conferência) | — | 18,1 a 16,8 s, igual à física de antes |
+
+- Rodízio: 5 pilotos em 8 trilhos = 8 baterias; por tempo, 8 em 8 = 1 grupo. `Faixas(7)` = 2.
+- Servidor: `npm test` (etapas com 6, 5 e 8 → 6, 2, 8).
+
+### 43.5 O que falta
+
+Ver na tela a pista de 8 (construtor e corrida com 8 carros, os 8 painéis e fichas) e jogar com mais de 4 humanos em controles.

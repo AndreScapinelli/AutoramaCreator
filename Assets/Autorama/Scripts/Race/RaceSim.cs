@@ -53,14 +53,17 @@ namespace Autorama
             return s;
         }
 
-        // Garante os 6 lugares. Ajustes antigos (sem "slots") viram: carro 1 gente, carro 2 conforme "Jogador 2 é um
-        // robô", os outros robôs, todos com a qualidade única de antes.
+        // Garante os 8 lugares. Ajustes antigos (sem "slots") viram: carro 1 gente, carro 2 conforme "Jogador 2 é um
+        // robô", os outros robôs, todos com a qualidade única de antes. Os de 6 lugares ganham 2 robôs no fim.
         public void FixSlots()
         {
             if (slots != null && slots.Length == RaceSim.MaxCars) { foreach (var x in slots) x.skill = Mathf.Clamp(x.skill, 1, 100); return; }
             int q = Mathf.Clamp(botSkill, 1, 100);
+            var old = slots;
             slots = new PilotSlot[RaceSim.MaxCars];
-            for (int k = 0; k < slots.Length; k++) slots[k] = new PilotSlot { ai = k == 1 ? bot : k > 1, skill = q };
+            for (int k = 0; k < slots.Length; k++)
+                slots[k] = old != null && k < old.Length && old[k] != null ? old[k] : new PilotSlot { ai = k == 1 ? bot : k > 1, skill = q };
+            foreach (var x in slots) x.skill = Mathf.Clamp(x.skill, 1, 100);
             cars = Mathf.Clamp(cars, 1, RaceSim.MaxCars);
             raceFaixas = raceFaixas == 0 ? 0 : TrackMath.Faixas(raceFaixas);
         }
@@ -289,11 +292,11 @@ namespace Autorama
         public RaceSettings set;                // na corrida livre, os ajustes salvos; no campeonato, as regras dele
         public float? cutoff;                   // campeonato: a bateria acaba esse tanto depois da bandeirada do primeiro
         public float? bestT;                    // melhor volta da bateria até agora
-        public const int MaxCars = 6;
+        public const int MaxCars = 8;
         public readonly int[] aiSkill = new int[MaxCars];   // 0: gente; 1–100: piloto IA com essa qualidade
         public readonly LanePath[] paths = new LanePath[MaxCars];
         public CarState[] cars { get; private set; } = { new CarState(), new CarState() };
-        public readonly bool[] present = { true, true, true, true, true, true };   // trilho vazio na bateria (campeonato por tempo com menos pilotos que trilhos)
+        public readonly bool[] present = { true, true, true, true, true, true, true, true };   // trilho vazio na bateria (campeonato por tempo com menos pilotos que trilhos)
 
         // ---------- Corrida por tempo (seção 26) ----------
         // A prova dura set.secs e tem uma manche por trilho (N). No fim de cada manche os carrinhos param, cada um passa

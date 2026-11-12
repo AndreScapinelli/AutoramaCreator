@@ -20,11 +20,11 @@ namespace Autorama
         TextField cName, pName, pTag;
         Toggle pAi;
         SliderInt pSkill;
-        Button pSave, pCancel, cStart, cQuit, cKind2, cKind4, cKind6, cByLaps, cByTime;
+        Button pSave, pCancel, cStart, cQuit, cKind2, cKind4, cKind6, cKind8, cByLaps, cByTime;
         string editPilot, pColor;
         bool tagTouched;
         readonly Dictionary<string, Texture2D> carTex = new Dictionary<string, Texture2D>();
-        static readonly Color[] LaneColors = { new Color32(240, 74, 63, 255), new Color32(80, 137, 242, 255), new Color32(56, 186, 98, 255), new Color32(242, 183, 40, 255), new Color32(139, 63, 217, 255), new Color32(25, 181, 201, 255) };
+        static readonly Color[] LaneColors = { new Color32(240, 74, 63, 255), new Color32(80, 137, 242, 255), new Color32(56, 186, 98, 255), new Color32(242, 183, 40, 255), new Color32(139, 63, 217, 255), new Color32(25, 181, 201, 255), new Color32(240, 120, 30, 255), new Color32(224, 72, 150, 255) };
 
         // ---------- Montagem ----------
 
@@ -47,7 +47,8 @@ namespace Autorama
             cKind2 = Btn("2 trilhos", () => ChampKind(2), "btn", kind);
             cKind4 = Btn("4 trilhos", () => ChampKind(4), "btn", kind);
             cKind6 = Btn("6 trilhos", () => ChampKind(6), "btn", kind);
-            cKind2.tooltip = cKind4.tooltip = cKind6.tooltip = "Todas as etapas correm nesse tamanho (qualquer pista é adaptada). Depois de começar, o tamanho não muda. Com menos pilotos que trilhos, sobra trilho vazio.";
+            cKind8 = Btn("8 trilhos", () => ChampKind(8), "btn", kind);
+            cKind2.tooltip = cKind4.tooltip = cKind6.tooltip = cKind8.tooltip = "Todas as etapas correm nesse tamanho (qualquer pista é adaptada). Depois de começar, o tamanho não muda. Com menos pilotos que trilhos, sobra trilho vazio.";
             // Formato: por voltas (rodízio de baterias) ou por tempo (cada bateria passa por todos os trilhos em manches).
             Text("FORMATO", "h3", head);
             var fmt = El("segmented", head);
@@ -299,6 +300,7 @@ namespace Autorama
             cKind2.EnableInClassList("btn--on", D.faixas < 4);
             cKind4.EnableInClassList("btn--on", D.faixas == 4);
             cKind6.EnableInClassList("btn--on", D.faixas == 6);
+            cKind8.EnableInClassList("btn--on", D.faixas == 8);
             cByLaps.EnableInClassList("btn--on", !D.byTime);
             cByTime.EnableInClassList("btn--on", D.byTime);
 
@@ -512,6 +514,7 @@ namespace Autorama
                 var vs = El("vs", card);
                 vs.EnableInClassList("vs--4", pl.Length == 3 || pl.Length == 4);
                 vs.EnableInClassList("vs--6", pl.Length > 4);
+                vs.EnableInClassList("vs--8", pl.Length > 6);
                 for (int k = 0; k < pl.Length; k++)
                 {
                     if (k > 0 && pl.Length == 2) Text("×", "vs-x", vs);

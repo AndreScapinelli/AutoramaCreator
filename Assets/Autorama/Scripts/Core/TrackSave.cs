@@ -22,7 +22,7 @@ namespace Autorama
         public OriginSave largada = new OriginSave();
         public List<PieceSave> pecas = new List<PieceSave>();
         public int atras;                 // quantas das últimas peças de "pecas" ficam atrás da largada
-        public int faixas = 2;            // 2 ou 4 carros (sem o campo: 2). Pista de 4 só existe na Unity (seção 25).
+        public int faixas = 2;            // 2, 4, 6 ou 8 carros (sem o campo: 2). Pista de 4 só existe na Unity (seção 25).
 
         public int Faixas => TrackMath.Faixas(faixas);
 
