@@ -207,6 +207,9 @@ const PIECES = {
   'rampa-desce':         { kind:'s', len:4, rise:-1 },
   'cruzamento':          { kind:'s', len:4, cross:true },
   'cruzamento-curto':    { kind:'s', len:2, cross:true },
+  'loop-esquerda':       { kind:'l', dir:-1 },
+  'loop-direita':        { kind:'l', dir:1 },
+  'salto':               { kind:'s', len:4, jump:true },
 };
 // Distância de um ponto até um segmento, em coordenadas locais da peça (s ao longo, o de lado).
 function segDistLocal(s, o, s1, o1, s2, o2){
@@ -225,6 +228,15 @@ const R = 2.5, rad = d => d * Math.PI / 180;
 // Coordenadas locais da imagem (y para baixo). A peça começa em (0,0) subindo.
 // Devolve { s: distância ao longo, o: deslocamento à direita } ou null.
 function localOf(p, X, Y){
+  // Loop (símbolo): um anel no meio, a entrada embaixo e a saída em cima, deslocada 1 célula para o lado.
+  if (p.kind === 'l'){
+    const rho = Math.hypot(X - p.dir * .5, Y + 1);
+    if (Math.abs(rho - .9) <= .3) return { s:1, o:(rho - .9) / .6 };      // anel mais fino que a pista, para o furo aparecer
+    if (rho < .9) return null;
+    if (Y <= 1.2 && Y >= -1 && Math.abs(X) <= .5) return { s:1.2 - Y, o:X };
+    if (Y <= -1 && Y >= -3.2 && Math.abs(X - p.dir) <= .5) return { s:1.2 - Y, o:X - p.dir };
+    return null;
+  }
   if (p.kind === 's'){ const s = -Y; return s >= 0 && s <= p.len ? { s, o:X } : null; }
   const cx = p.dir * R, rho = Math.hypot(X - cx, Y);
   let phi = Math.atan2(Y, X - cx) * 180 / Math.PI;           // ângulo a partir do centro
@@ -235,6 +247,7 @@ function localOf(p, X, Y){
   return { s:t * rad(p.angle) * R, o:p.dir * (R - rho) };
 }
 function bbox(p){
+  if (p.kind === 'l') return [p.dir * .5, -1];
   const pts = [];
   if (p.kind === 's') pts.push([-.5, 0], [.5, 0], [-.5, -p.len], [.5, -p.len]);
   else for (let k = 0; k <= 32; k++){
@@ -250,6 +263,7 @@ for (const [name, p] of Object.entries(PIECES)){
     const X = mx + (x / N - .5) * BOX, Y = my + (y / N - .5) * BOX;
     const L = localOf(p, X, Y);
     if (!L || Math.abs(L.o) > .5) return [0, 0, 0, 0];
+    if (p.jump && L.s > 1 && L.s < 2) return [0, 0, 0, 0];                              // o vão do salto
     let c = C.asphalt;
     if (p.bank) c = mix(c, C.edge, Math.floor((.5 - p.dir * L.o) * 4) / 4 * .28);   // clareia rumo ao lado de fora
     if (p.bank && Math.abs(L.o) < .46 && L.s % .3 < .11) c = C.accent;                // listras amarelas transversais
@@ -259,6 +273,7 @@ for (const [name, p] of Object.entries(PIECES)){
     if (Math.abs(L.o - la) < .045) c = C.laneA;
     if (p.start && Math.abs(L.s - 1) < .11) c = (Math.floor((L.o + .5) / .125) + Math.floor((L.s - .89) / .11)) % 2 ? C.slot : C.edge;
     if (p.rise && onChevron(L, p.rise, p.len)) c = C.accent;
+    if (p.jump && (Math.abs(L.s - .93) < .07 || Math.abs(L.s - 2.07) < .07)) c = C.accent;   // as duas pontas do vão
     return [...c, 1];
   }));
 }

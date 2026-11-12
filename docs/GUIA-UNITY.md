@@ -1788,9 +1788,11 @@ public const float OppositeSpillLength = 2f;    // células: curva que vira para
 public static float Spill(Segment s, float t, int dirSide)
 {
     if (s.def.Banked) return 0f;          // qualquer peça plana, inclusive as no alto (rampa e ponte)
+    float len = s.def.CenterLength;
     float LenIn = s.def.IsCurve && s.piece.dir == -dirSide ? OppositeSpillLength : SpillLength;
-    float wi = s.bankDirIn == dirSide ? Ease(t * s.def.CenterLength, LenIn) : 0f;
-    float wo = s.bankDirOut == dirSide ? Ease((1f - t) * s.def.CenterLength, LenIn) : 0f;
+    LenIn = Mathf.Min(LenIn, s.bankDirIn == -s.bankDirOut ? len / 2f : len);   // acaba dentro da peça (16.5c)
+    float wi = s.bankDirIn == dirSide ? Ease(t * len, LenIn) : 0f;
+    float wo = s.bankDirOut == dirSide ? Ease((1f - t) * len, LenIn) : 0f;
     return Mathf.Max(wi, wo);
 }
 static float Ease(float dist, float length) { float p = Mathf.Clamp01(dist / length); return 1f - p * p * (3f - 2f * p); }
@@ -1815,7 +1817,51 @@ public static float SurfaceY(Segment s, float t, float lateral)
 
 **Muro da vizinha plana** (`TrackPieceView.Build`): para cada lado com `bankDirIn`/`bankDirOut` igual ao sentido, o muro é uma faixa sobre toda a peça com a altura `wallH × Spill(s, t, dirSide) − 0,003`.
 
-**Teste (sem Play mode, `script eval`):** pista `largada, reta-comprida, curva-longa-inclinada (dir +1), reta-comprida, reta-curta`. Na emenda, a altura do lado de fora é **0,2679** dos dois lados (curva no fim e reta no início, iguais). Na reta, o lado de fora vai a 0,0695 em t = 0,1 (0,4 célula) e a 0 em t = 0,2 (0,8 célula, já fora dos 0,6).
+### 16.5c A malha segue a suavização (encaixes das pistas de 4 e de 6)
+
+Dois defeitos apareciam nos encaixes, pequenos na pista de 2 e grandes na de 6 (tudo é 3× maior no mundo, e o carrinho não):
+
+- **Reta com um passo só.** A malha da reta tinha 2 pontos (começo e fim), então a inclinação que vem da vizinha virava uma rampa reta de ponta a ponta, com vinco no encaixe, enquanto o carrinho seguia a curva suave de `SurfaceY`. Agora a peça plana vizinha de inclinada é fatiada, e o passo tem o mesmo tamanho no mundo nas três pistas:
+
+```csharp
+// TrackPieceView.Build
+float stepK = TrackMath.Scale(faixas);
+int n = d.IsCurve ? TrackMath.Steps(d, 4f / stepK)                    // 4° na pista de 2, 2° na de 4, 1,33° na de 6
+    : s.bankDirIn != 0 || s.bankDirOut != 0 ? Mathf.CeilToInt(d.Length * stepK / 0.175f) : 1;
+```
+
+- **Transição maior que a peça.** Na reta curtinha (1 célula) a transição de 1,5 célula não cabia: sobrava 26% da inclinação na outra ponta, um degrau de 0,07 célula contra a vizinha plana. E numa reta entre duas inclinadas de sentidos opostos a altura pulava no ponto em que uma passava a outra. Agora a transição é limitada ao comprimento da peça, ou à metade dele quando as duas pontas têm inclinadas opostas (a pista passa plana no meio).
+
+**Teste (`script eval`):** pista `largada, curva-longa-inclinada (+1), reta-curtinha, reta-curta, curva-curta-inclinada (−1), reta-curta, curva-curta-inclinada (+1), reta-comprida, meia-curva (−1)`. Degrau máximo nos encaixes (bordas e centro): **0,0000**. Maior distância entre a malha e a superfície em que o carrinho anda, no mundo:
+
+| Pista | Antes | Depois |
+|---|---|---|
+| 2 trilhos | 0,1675 | 0,0047 |
+| 4 trilhos | 0,3349 | 0,0028 |
+| 6 trilhos | 0,5024 | 0,0019 |
+
+### 16.5d Rampa arredondada
+
+A rampa subia em linha reta, com quina onde encontrava a peça plana. Agora a superfície usa `Segment.ZSmooth(t)`: a rampa arredonda nas pontas que encontram peça plana (inclinação zero no encaixe) e segue reta na ponta em que a vizinha continua a mesma subida ou descida (`rampIn`/`rampOut`, marcados no `ComputeBanking`).
+
+```csharp
+// Segment. Hermite: inclinação a na entrada e b na saída (0 = arredonda, 1 = continua reta).
+public float ZSmooth(float t)
+{
+    if (zIn == zOut) return zIn;
+    float a = rampIn ? 1f : 0f, b = rampOut ? 1f : 0f, t2 = t * t, t3 = t2 * t;
+    return zIn + (zOut - zIn) * ((t3 - 2f * t2 + t) * a + 3f * t2 - 2f * t3 + (t3 - t2) * b);
+}
+```
+
+- **Quem usa `ZSmooth`:** `SurfaceY` (malha e altura do carrinho) e a altura dos pilares. A malha da rampa reta passa a ser fatiada como a vizinha de inclinada (16.5c).
+- **Quem continua com `ZAt` (linha reta):** a sobreposição (`Analyze`), o nível do carrinho para colisão (`zs`) e o corte dos pilares em 0,25. As regras de montar pista não mudam.
+- **Física não muda:** a rampa continua com a inclinação constante da peça em `SLOPE_G` (`gs`). Só o visual e a altura do carrinho mudam.
+- **Vão da ponte:** a curva fica abaixo da linha reta na metade de baixo e acima na de cima, então onde a regra já deixava passar por cima ou por baixo, o vão real é igual ou maior.
+
+**Teste (`script eval`):** pista `largada, reta-comprida (sobe), reta-curta, reta-comprida (sobe), reta-comprida (desce), curva-longa (desce), reta-curta`. Degrau nos encaixes: **0,0000**. Maior quebra de inclinação num encaixe: de **0,500** para **0,005** nível por célula (o resto é a diferença de comprimento entre a reta e a curva que descem juntas). Inclinação máxima da superfície: 0,375 nível por célula (em linha reta era 0,250). Maior distância para a linha reta: 0,148 nível.
+
+**Teste de 16.5b (sem Play mode, `script eval`):** pista `largada, reta-comprida, curva-longa-inclinada (dir +1), reta-comprida, reta-curta`. Na emenda, a altura do lado de fora é **0,2679** dos dois lados (curva no fim e reta no início, iguais). Na reta, o lado de fora vai a 0,0695 em t = 0,1 (0,4 célula) e a 0 em t = 0,2 (0,8 célula, já fora dos 0,6).
 
 **Varredura de emendas:** inclinada (dir ±1) junto de cada peça plana (largada, curva longa, meia curva, reta comprida, curta e curtinha, cruzamento, cruzamento curto), com a plana antes ou depois, em nível 0 e em rampa (nível 0 → 1), com dir ±1. Todas batem: salto 0 na emenda e o mesmo valor do lado de fora dos dois lados. Na rampa, a emenda fica em 1,0179 (0,75 do nível + 0,2679 da inclinação). Antes desta correção, a rampa e as peças no alto ficavam de fora do espalhamento: a inclinada tinha 20% de transição contra a rampa. Não foi feito teste visual de Play mode.
 
@@ -1868,6 +1914,11 @@ Já está no projeto: `Core/TrackCloser.cs`, chamado pelo botão **Fechar circui
 
 - **Conta exata.** As curvas de 45° geram coordenadas com √2. Cada coordenada é guardada como `(a + b·√2) / 8`, com `a` e `b` inteiros (struct `Q`), então "chegou na largada" é uma comparação exata, sem tolerância.
 - **Busca agressiva dos dois lados.** Expande até 15 peças a partir da ponta da pista e até 15 a partir da largada, andando de ré. De ré, cada curva vira para o lado oposto (`MIRROR`). As duas buscas se encontram num mesmo estado (posição + rumo), e o fechamento tem no máximo 30 peças.
+- **Árvore enxuta e podas** (`ExpandAt`, classes `Tree` e `Obstacles`):
+  - Cada nó guarda só estado, pai e peça; a sequência é refeita subindo pelos pais (`Tree.Seq`). Os até 8 nós de um mesmo estado formam uma lista ligada (`head`, `next`). Só o primeiro caminho até um estado é expandido; os outros ficam como variantes para a junção.
+  - **Distância:** descarta o estado a mais de `4 · profundidade` células da raiz do outro lado (nenhuma peça avança mais de 4).
+  - **Pista:** descarta a peça que passa a menos de 0,8 célula de um ponto da pista no chão (o teste final usa 0,92, então só sai o que com certeza sobrepõe). Os pontos ficam numa grade de 1 célula; cada peça tem os seus pontos a cada ~0,5 célula pré-calculados por rumo (`sampleTab`). Ficam de fora a peça da ponta e a que encosta no destino, os trechos no alto (ponte, rampa, volta do loop) e o vão do salto. Com a ponta no alto não há essa poda, porque as retas que descem podem cair em qualquer peça.
+  - **Feixe:** cada camada segue com no máximo `Beam = 20000` estados, os mais perto da raiz do outro lado. Sem isso, com √2 nas coordenadas quase todo caminho cai num estado novo e a profundidade 12 nunca terminava.
 - **Critério melhorado.** Para cada estado, guarda até 8 sequências. Ordena os candidatos por: (1) número de peças, (2) menos curvas completas (muito importante para velocidade), (3) comprimento total (mais elegante), (4) menos meias-curvas, (5) mais retas. Testa até 3000 contra sobreposição e recusa o que passa por cima da pista.
 - **Busca progressiva (sem travamento).** Para evitar travar a Unity em pistas complexas, a busca tenta profundidades crescentes:
   - Profundidade 6: até 200 verificações (< 50ms, pistas simples)
@@ -1879,6 +1930,7 @@ Já está no projeto: `Core/TrackCloser.cs`, chamado pelo botão **Fechar circui
 
 - **Altura e estilo.** Se a ponta está no alto, encaixa rampas que descem: primeiro na reta comprida, depois na curta, depois em qualquer reta. Se a pista usa mais curvas inclinadas que planas, o fechamento também usa inclinadas.
 - **Desfazer.** O fechamento entra como uma ação só: Ctrl+Z tira tudo.
+- **Loop e rampa de salto na pista.** A busca só coloca retas e curvas, mas precisa percorrer a pista que já existe para saber onde está a ponta (e, de ré, o destino atrás da largada). O loop avança 2 células e sai 1 para o lado (`LoopShift`): tem dois movimentos próprios na tabela (`Moves[7]` direita, `Moves[8]` esquerda), fora da busca (`SearchMoves = 7`). De ré ele não espelha: desliza para o mesmo lado, como no `TrackMath.EntryFor`. A rampa de salto e o cruzamento são retas na planta (4 e 2 células). Antes disso o loop contava como reta curta, a ponta saía 1 célula errada e a pista com loop nunca fechava.
 
 - **Cancelável, com indicador.** A busca não roda de uma vez: ela anda aos poucos e dá para parar a qualquer hora. Em pistas sem fechamento curto, a busca de profundidade 12/15 é pesada (nos testes, 3,4 GB de memória e 37 s no Node para uma ponta longe da largada), e rodar de uma vez travava a máquina.
   - **Fatias de ~8–10 ms por quadro.** O trabalho vira um iterador (`IEnumerator` na Unity, função geradora `function*` no HTML) que dá `yield` a cada 32 estados expandidos, a cada 64 estados juntados e a cada candidato testado. Quem chama dá `Pump(ms)`/`pump(ms)`; a tela continua respondendo entre as fatias.
@@ -1908,6 +1960,9 @@ static readonly float[] StageWeights = { 1f, 2f, 4f, 8f };   // peso de cada eta
 **Testes feitos:**
 - HTML (`ferramentas/teste-html.js`): mesmas respostas de antes nas 4 pistas de teste (5, 12, 9 e 17 peças). Com `performance.now` real, `pump(10)` nunca passou de ~50 ms por fatia na pista de 17 peças (31 s no total); `cancel()` para na hora. `autoClose` → `cancelClose` deixa a pista intacta; concluir fecha (5 → 10 peças) e Ctrl+Z volta; editar durante a busca cancela.
 - Unity (`script eval`): a pista de 12 peças dá a mesma resposta do HTML (curva longa · direita, meia curva · direita, reta comprida, reta curtinha, …). Na pista pesada, `Pump(10)` + `Cancel()` funcionam, mas o coletor de lixo do Mono faz algumas fatias passarem de 500 ms quando a busca fica grande: é a hora de cancelar.
+
+- Árvore enxuta, podas e feixe (`script eval`, `Start` + `Pump(50)` com limite de 20 s por caso; origem (10, 10) rumo 0). A versão anterior, nos 4 casos difíceis abaixo, passou de 10 minutos e de 43 GB de memória no Editor sem terminar. A nova: os 8 casos de loop/salto/rampa dão as mesmas peças, em 28–118 ms; U que fecha por dentro, 3 peças em 69 ms; ponta longe (5 retas compridas, meia curva, 2 retas), 13 peças em 760 ms (5,5 s sem o feixe); 8 aberto, 8 peças em 69 ms; espiral com a ponta presa dentro da pista, "Todo fechamento curto passa por cima da pista" em 7,6 s (sem o feixe, não terminava).
+- Loop, salto e rampas (`script eval`, `TrackCloser.Close` + `TrackLayout.Analyze`; todos `closed`, 0 sobreposições, 70–140 ms): loop à direita na reta (5 peças: o retorno ganha uma reta curtinha entre as curvas, 6 células de largura); loop à esquerda (7 peças); loop atrás da largada (5); loop na diagonal, entre meias curvas (9); salto na frente (3) e atrás da largada (5); ponta 2 níveis no alto (5, com duas retas compridas que descem); loop + ponta 1 nível no alto (5, uma reta que desce).
 
 ## 18. Cruzamento (X)
 
@@ -3428,6 +3483,7 @@ O snapshot vai em binário, em base64 no campo `b` (`NetSync.Encode` / `Decode`;
 | Carro no trilho: `s v hold T slip` (float), 1 byte de bandeiras (`held contact bo ld`), `side`, `mode`, `gp`, `tb` (0–255), `exitS lapStart hitFx`, `cross laps offs hits` (16 bits), `lastLap best finish`, `lane`, `cb`, eco `ec` (int) e `ea` (ushort) | 66 |
 | Fora da pista (`mode` Off): `fx fy fvx fvy flyH flyW flyZ` | +28 |
 | Voltando (`mode` Returning): `bx by backH backY backT` | +20 |
+| No ar depois do salto (bandeira `ar`, bit 16; seção 42): `ay avy` | +8 |
 
 O JSON antigo tinha ~600 bytes por carro. Agora o snapshot inteiro de 6 carros cabe num pacote da Steam (menos de 1.200 bytes), então não é fragmentado nem perdido por inteiro quando se perde um pedaço.
 
@@ -3473,5 +3529,67 @@ ownHist.Add(Time.realtimeSinceStartup, sim.cars[lane]);
     | 300 ms, 20 | 2,68 células | 2,35 células |
 
     O desvio é medido contra o host no mesmo instante, então inclui a vantagem natural da predição (o host recebe o botão atrasado). O eco tira a parte que vinha de comparar com o estado errado.
-- **Servidor:** `node --check` nos dois arquivos (Node 22). O `teste.js` ganhou: o `ts` chega ao host; entrar com o campeonato andando para assistir; o sync vai ao host e é limitado; a resposta com `to` vai só a quem pediu e passa dos 16 KB; host que sai no meio passa a corrida ao próximo, e o novo host manda snapshots; piloto que volta recebe o id e a cor de antes; a conexão velha do mesmo `uid` sai; o fim esquece os lugares. **O `npm test` não rodou**: nesta máquina não há `npm` nem o pacote `ws`.
-- **Não testado:** o fluxo do `OnlineSmokeTest` contra o servidor (precisa do servidor rodando); a tela com dois jogadores de verdade (voltar de uma queda, host que sai no meio, largar e salvar sozinho); a Steam entre duas contas.
+- **Servidor:** `node --check` nos dois arquivos (Node 22). O `teste.js` ganhou: o `ts` chega ao host; entrar com o campeonato andando para assistir; o sync vai ao host e é limitado; a resposta com `to` vai só a quem pediu e passa dos 16 KB; host que sai no meio passa a corrida ao próximo, e o novo host manda snapshots; piloto que volta recebe o id e a cor de antes; a conexão velha do mesmo `uid` sai; o fim esquece os lugares. `npm test` (Node 26.13.1): **61 verificações, tudo certo** (a do fim do campeonato agora conta o espectador que ficou na sala).
+- **`OnlineSmokeTest` completo** contra o servidor rodando (`node servidor.js`): **67 verificações, todas passaram**, incluindo o sync de ponta a ponta pelo `JsonUtility` (pedido chega ao host com o id; a resposta chega com as duas pistas inteiras, hash `81546106` na segunda, os pilotos e o resultado de cada bateria) e o snapshot binário pelo servidor.
+- **Não testado:** a tela com dois jogadores de verdade (voltar de uma queda, host que sai no meio, largar e salvar sozinho); a Steam entre duas contas.
+
+---
+
+## 42. Loop e rampa de salto
+
+Duas peças novas, só no chão (`PieceDef.GroundOnly`): não sobem nem descem de nível, e no alto ficam marcadas como sobreposição. O fechar sozinho (tecla Q) não as usa. Pistas e recordes antigos não mudam (oval continua `a34f4cb9`).
+
+| Peça | id | Tecla | Planta | Caminho |
+|---|---|---|---|---|
+| Loop, sai à esquerda | `loop` (`sentido: esquerda`) | K | avança 2, desloca 1 para a esquerda | 8,28 células |
+| Loop, sai à direita | `loop` (`sentido: direita`) | L | avança 2, desloca 1 para a direita | 8,28 células |
+| Rampa de salto | `salto` | J | reta de 4 | 4 células |
+
+O `sentido` do loop entra no JSON e na identidade da pista (`PieceDef.Sided` = curva ou loop): loop à esquerda e à direita são pistas diferentes. Grupo "LOOP E SALTO" na paleta; ícones `icone-loop-esquerda`, `icone-loop-direita` e `icone-salto` (e os `icone4-`/`icone6-`), de `gen-texturas.js`.
+
+### 42.1 Loop
+
+Constantes em `PieceCatalog`: `LoopRadius = 1`, `LoopShift = 1` (células).
+
+- **Forma** (`TrackMath.LoopAt(t)`): entrada reta de 1 célula, a volta em pé (raio 1, 2 células de altura) e saída reta de 1 célula. Durante a volta a pista desliza `LoopShift` para o lado, `lat = LoopShift · (φ − sen φ) / 2π` (sem quina nas pontas), para a saída passar ao lado da entrada. Na planta: `fwd = R + R·sen φ`; altura `R·(1 − cos φ)`.
+- **Planta e encaixe:** `PoseAt` devolve a pose na planta (avanço e deslocamento, rumo constante). De ré (`EntryFor`, peças atrás da largada) o loop mantém o `dir`, ao contrário da curva.
+- **Altura nas regras:** `Segment.ZAt` soma a altura da volta em níveis, então a checagem de sobreposição deixa passar pista por baixo do alto do loop (0,75 nível de folga, como numa ponte). Vizinhas da lista não são testadas entre si: uma curva logo antes ou depois do loop, para o lado do deslocamento, pode atravessar a volta sem aviso.
+- **Malha** (`TrackPieceView.Point`): o deslocamento lateral é o da planta; a "altura sobre a superfície" (fenda, base) vai na direção do centro da volta `(−sen φ, cos φ)`, não para cima. O loop tem a face de baixo (o lado de fora da volta aparece). O v da textura anda pela distância do caminho.
+- **Caminho** (`LanePath`): no loop a distância `s` é a do caminho em 3D (nas outras peças continua a da planta), o rumo é o da peça e `LanePoint.pitch` é o ângulo da volta (0–360°). O carrinho gira com `Euler(0, −rumo, 0) · Euler(0, 0, pitch)`, como já fazia na rampa.
+- **Física:** gravidade ao longo do caminho com a mesma conta da rampa, `SlopeG · Scale · sen φ / LevelHeight` (`LoopG = SlopeG / LevelHeight = 10,67` por célula). O carrinho **cai** quando `v² / (R·Scale) + LoopG·Scale·cos φ < 0`: no topo precisa de `v ≥ 3,27` células/s. Quem cai volta no começo da peça (`exitS = StartOf + 0,4`).
+- **IA:** dentro do loop não deixa a velocidade cair abaixo de `LoopAi = 5`.
+
+### 42.2 Rampa de salto
+
+Constantes em `PieceCatalog`: `JumpLength = 4`, `JumpUp = 1`, `JumpGap = 1`, `JumpLip = 0,2`. Em `RaceSim`: `JumpG = 29`, `JumpHard = 5`, `JumpBack = 2`, `JumpAi = 7,5`.
+
+- **Forma** (`PieceCatalog.JumpY`): rampa de 1 célula em parábola até 0,2 de altura (inclinação 0,4 na ponta), vão de 1 célula e rampa de pouso de 2 células, de 0,2 até o chão. A malha não tem triângulos no vão (`JumpGapAt`), tem tampas nas duas pontas dele e a base é maciça até a mesa.
+- **Voo** (`RaceSim.AirStep`, `CarState.air/airY/airVy`): ao passar da ponta o carrinho sai com `airVy = v · 0,4`. No ar a velocidade na planta não muda (sem motor nem freio) e a altura cai com `JumpG · Scale`. O modo continua `OnSlot`: o carrinho segue o caminho na planta.
+- **Pouso:** toca quando `airY ≤` altura da pista. O tranco `(v·inclinação − airVy) / (JumpHard·Scale)` entra **ao quadrado** na derrapagem; com 1 ou mais, capota. Tocou no chão do vão, ou chegou na ponta da rampa de pouso mais de 0,03 abaixo dela: caiu, e volta `JumpBack` (2) células antes da peça, para pegar embalo.
+- **IA:** busca `JumpAi × m` na ponta (m limitado a 0,9–1,1; no "erro", m ≥ 1,3 e ela capota). Com salto à vista ela não solta o botão: dosa o gatilho (`gas` 1% ou 100%). Soltar e apertar faz o acelerador recomeçar do zero e ela chegava devagar demais.
+- **Cruzar pelo vão:** na sobreposição ficam de fora os pontos do vão e os da última meia célula de cada rampa. Uma reta, ou outro salto, pode cruzar o vão em ângulo reto pelo centro; 0,25 fora do centro já acusa. Dois saltos em cruz: os carrinhos **colidem no ar** (mesma altura). Um no ar e outro no chão só colidem se a diferença de altura for de 0,18 ou menos (`CollidePair`).
+- **Online:** o snapshot ganhou a bandeira `ar` (bit 16) e, só quando ligada, `ay avy`. Em pista sem salto o formato é o mesmo, por isso `Format` continua 1.
+
+### 42.3 Testes (`script eval`, sem cena)
+
+Pista: largada, reta comprida, salto, reta comprida, loop, 2 retas compridas; `vmax 14`, 60 passos por segundo.
+
+- **Geometria:** o loop termina 2 células à frente e 1 à direita; sem sobreposições.
+- **Salto, acelerador fixo por 40 s** (velocidade na ponta → resultado):
+
+  | Gatilho | v na ponta | Resultado | Derrapagem no pouso |
+  |---|---|---|---|
+  | 30% e 40% | 3,6 e 4,9 | cai no vão sempre | – |
+  | 50% | 6,7 | passa | 0,18 |
+  | 60% | 8,1 | passa | 0,61 |
+  | 70% | 9,6 | passa | 0,95 |
+  | 80% a 100% | 11,0 a 13,8 | capota no pouso | – |
+
+  A faixa boa vai de cerca de 6 a 9,7 células/s. No loop, de 50% para cima, nenhuma queda.
+- **Loop:** soltando o acelerador a 60° (gatilho 60%), caiu a 131° com v = 2,86, do nível 2,24, e voltou em `s` = 14,00, o começo da peça.
+- **IA, 120 s, pistas de 2, 4 e 6:** qualidade 100: 46 voltas, 0 saídas nas três. Qualidade 50: 44 a 46 voltas, 0 a 3 saídas. Qualidade 1: 42 a 43 voltas, 2 a 3 saídas. Velocidade na ponta entre 6,3 e 10,5.
+- **Cruzamento:** salto × salto pelo vão 0 sobreposições; reta pelo centro do vão 0; reta 0,25 fora do centro 2; reta atravessando a rampa 3; reta ao lado (distância 1,0) 0.
+- **JSON e identidade:** loop à direita `22f50ceb`, à esquerda `34b80c0e` (pista de teste), o `sentido` volta igual do JSON; oval `a34f4cb9`.
+- **Snapshot:** carro no ar codificado e lido de volta (`ar`, `ay 0,31`, `avy −2,5`); o carro seguinte, no trilho, continua lido certo.
+- **Malha:** conferida numa imagem renderizada no Editor (loop em hélice e salto com o vão).
+- **Não testado:** corrida no Play com as câmeras (Perseguição e primeira pessoa dentro do loop), colisão no ar entre dois carrinhos, o snapshot `ar` entre host e visitante, e o loop atrás da largada.

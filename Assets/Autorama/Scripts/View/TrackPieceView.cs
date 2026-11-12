@@ -27,7 +27,15 @@ namespace Autorama
             V.Clear(); UV.Clear(); Surface.Clear(); Checker.Clear(); Guard.Clear(); Side.Clear();
             var d = s.def;
             int dir = s.piece.dir;
-            int n = TrackMath.Steps(d, 4f);
+            // Passo da malha com o mesmo tamanho no mundo nas três pistas: 4° de curva na de 2 (0,175 célula), 2° na de 4
+            // e 1,33° na de 6. A peça plana vizinha de inclinada também é fatiada, para a malha seguir a suavização
+            // (Spill) em vez de ligar as duas pontas com uma rampa reta.
+            float stepK = TrackMath.Scale(faixas);
+            // Loop e salto: fatiados no mesmo passo; no salto, em múltiplo de 4 (as pontas do vão caem em fatias exatas).
+            int n = d.IsCurve ? TrackMath.Steps(d, 4f / stepK)
+                : d.IsJump ? 4 * Mathf.CeilToInt(d.Length * stepK / 0.175f / 4f)
+                : d.IsLoop ? Mathf.CeilToInt(d.CenterLength * stepK / 0.175f)
+                : s.IsRamp || s.bankDirIn != 0 || s.bankDirOut != 0 ?Mathf.CeilToInt(d.Length * stepK / 0.175f) : 1;
             var ts = new float[n + 1];
             for (int j = 0; j <= n; j++) ts[j] = j / (float)n;
 
@@ -116,9 +124,12 @@ namespace Autorama
             // Laterais da base (do topo do muro, se houver, até embaixo) e, nas peças no alto, o fundo.
             if (only == null)
             {
-                AddBand(Side, s, ts, At(-0.5f, -thick), At(-0.5f, wallL ? wallH : 0f), 1f, Y);
-                AddBand(Side, s, ts, At(0.5f, wallR ? wallH : 0f), At(0.5f, -thick), 1f, Y);
-                if (s.High) AddBand(Side, s, ts, At(0.5f, -thick), At(-0.5f, -thick), 1f, Y);
+                // No salto a base é maciça: as laterais descem da rampa até a mesa.
+                float ground = s.zIn * TrackMath.LevelHeight;
+                Edge Foot(float o) => t => (o, d.IsJump ? ground - Y(t, o) - thick : -thick, o + 0.5f);
+                AddBand(Side, s, ts, Foot(-0.5f), At(-0.5f, wallL ? wallH : 0f), 1f, Y);
+                AddBand(Side, s, ts, At(0.5f, wallR ? wallH : 0f), Foot(0.5f), 1f, Y);
+                if (s.High || d.IsLoop) AddBand(Side, s, ts, At(0.5f, -thick), At(-0.5f, -thick), 1f, Y);     // o lado de fora da volta aparece
                 AddCaps(s, thick, Y);
             }
 
@@ -245,7 +256,7 @@ namespace Autorama
             int count = Mathf.Max(1, Mathf.RoundToInt(s.def.CenterLength / 1.25f));
             for (int j = 0; j <= count; j++)
             {
-                float t = j / (float)count, h = s.ZAt(t) * TrackMath.LevelHeight;
+                float t = j / (float)count, h = s.ZSmooth(t) * TrackMath.LevelHeight;
                 if (s.ZAt(t) < 0.25f) continue;
                 var q = TrackMath.PoseAt(s.a, s.def, s.piece.dir, t);
                 foreach (float side in new[] { -0.4f, 0.4f })
@@ -317,19 +328,20 @@ namespace Autorama
         {
             int start = V.Count;
             float dist = 0f;
-            Vector2 prev = default;
+            Vector3 prev = default;
             for (int i = 0; i < ts.Length; i++)
             {
                 var q = TrackMath.PoseAt(s.a, s.def, s.piece.dir, ts[i]);
-                if (i > 0) dist += Vector2.Distance(q.pos, prev);
-                prev = q.pos;
+                // A textura anda com a distância na planta; no loop (que volta sobre si mesmo), com a do caminho.
+                var mid = s.def.IsLoop ? Point(s, q, ts[i], 0f, 0f, y) : new Vector3(q.pos.x, 0f, q.pos.y);
+                if (i > 0) dist += Vector3.Distance(mid, prev);
+                prev = mid;
                 var ea = a(ts[i]); var eb = b(ts[i]);
-                Vector2 l = TrackMath.Offset(q, ea.o), r = TrackMath.Offset(q, eb.o);
-                V.Add(new Vector3(l.x, y(ts[i], ea.o) + ea.dy, l.y));
-                V.Add(new Vector3(r.x, y(ts[i], eb.o) + eb.dy, r.y));
+                V.Add(Point(s, q, ts[i], ea.o, ea.dy, y));
+                V.Add(Point(s, q, ts[i], eb.o, eb.dy, y));
                 UV.Add(new Vector2(ea.u, dist * vScale));
                 UV.Add(new Vector2(eb.u, dist * vScale));
-                if (i > 0)
+                if (i > 0 && !(s.def.IsJump && PieceCatalog.JumpGapAt(ts[i] * s.def.Length)))     // no vão do salto não há pista
                 {
                     int k = start + i * 2;
                     tri.Add(k - 2); tri.Add(k); tri.Add(k - 1);
@@ -338,19 +350,36 @@ namespace Autorama
             }
         }
 
+        // Ponto da malha: deslocamento lateral o e altura dy sobre a superfície. No loop, "sobre a superfície" é na
+        // direção do centro da volta (a pista fica de lado e de cabeça para baixo), não para cima.
+        static Vector3 Point(Segment s, Pose2 q, float t, float o, float dy, System.Func<float, float, float> y)
+        {
+            Vector2 p = TrackMath.Offset(q, o);
+            if (!s.def.IsLoop) return new Vector3(p.x, y(t, o) + dy, p.y);
+            TrackMath.LoopAt(t, out _, out _, out float phi);
+            p -= TrackMath.Dir(q.heading) * (Mathf.Sin(phi) * dy);
+            return new Vector3(p.x, y(t, o) + Mathf.Cos(phi) * dy, p.y);
+        }
+
         // Tampas nas duas pontas da peça (o corte da base), para a ponta aberta da pista não ficar oca.
+        // No salto, também nas duas pontas do vão, descendo até a mesa.
         static void AddCaps(Segment s, float thick, System.Func<float, float, float> y)
         {
-            foreach (float t in new[] { 0f, 1f })
+            float L = s.def.Length, ground = s.zIn * TrackMath.LevelHeight;
+            var ends = s.def.IsJump
+                ? new[] { (0f, true), (PieceCatalog.JumpUp / L, false), ((PieceCatalog.JumpUp + PieceCatalog.JumpGap) / L, true), (1f, false) }
+                : new[] { (0f, true), (1f, false) };
+            foreach (var (t, front) in ends)
             {
                 var q = TrackMath.PoseAt(s.a, s.def, s.piece.dir, t);
                 Vector2 l = TrackMath.Offset(q, -0.5f), r = TrackMath.Offset(q, 0.5f);
                 float yl = y(t, -0.5f), yr = y(t, 0.5f);
+                float bl = s.def.IsJump ? ground - thick : yl - thick, br = s.def.IsJump ? ground - thick : yr - thick;
                 int k = V.Count;
                 V.Add(new Vector3(l.x, yl, l.y)); V.Add(new Vector3(r.x, yr, r.y));
-                V.Add(new Vector3(l.x, yl - thick, l.y)); V.Add(new Vector3(r.x, yr - thick, r.y));
+                V.Add(new Vector3(l.x, bl, l.y)); V.Add(new Vector3(r.x, br, r.y));
                 for (int i = 0; i < 4; i++) UV.Add(new Vector2(i % 2, i / 2));
-                if (t == 0f) { Side.Add(k); Side.Add(k + 1); Side.Add(k + 2); Side.Add(k + 2); Side.Add(k + 1); Side.Add(k + 3); }
+                if (front) { Side.Add(k); Side.Add(k + 1); Side.Add(k + 2); Side.Add(k + 2); Side.Add(k + 1); Side.Add(k + 3); }
                 else { Side.Add(k); Side.Add(k + 2); Side.Add(k + 1); Side.Add(k + 1); Side.Add(k + 2); Side.Add(k + 3); }
             }
         }

@@ -68,20 +68,29 @@ namespace Autorama
             new Move { def = PieceCatalog.Half, dir = 1 },
             new Move { def = PieceCatalog.Half, dir = -1 },
             new Move { def = PieceCatalog.Tiny, dir = 0 },
+            // Só para percorrer a pista que já existe (o loop sai deslocado para o lado); a busca não usa.
+            new Move { def = PieceCatalog.Loop, dir = 1 },
+            new Move { def = PieceCatalog.Loop, dir = -1 },
         };
+        const int SearchMoves = 7;         // os primeiros de Moves: os que a busca pode colocar
 
         static Q[,] dxTab, dyTab;
         static int[,] dhTab;
+        static Vector2[,][] sampleTab;     // pontos da peça a cada ~0,5 célula, a partir do começo (sem ele), por rumo
 
         static void BuildTables()
         {
             if (dxTab != null) return;
             int n = Moves.Length;
-            dxTab = new Q[n, 8]; dyTab = new Q[n, 8]; dhTab = new int[n, 8];
+            dxTab = new Q[n, 8]; dyTab = new Q[n, 8]; dhTab = new int[n, 8]; sampleTab = new Vector2[n, 8][];
             for (int m = 0; m < n; m++)
             for (int h = 0; h < 8; h++)
             {
-                var b = TrackMath.PoseAt(new Pose2(Vector2.zero, h * 45f), Moves[m].def, Moves[m].dir, 1f);
+                var a = new Pose2(Vector2.zero, h * 45f);
+                var b = TrackMath.PoseAt(a, Moves[m].def, Moves[m].dir, 1f);
+                int k = Mathf.Max(2, Mathf.CeilToInt(Moves[m].def.CenterLength / 0.5f));
+                sampleTab[m, h] = new Vector2[k];
+                for (int j = 1; j <= k; j++) sampleTab[m, h][j - 1] = TrackMath.PoseAt(a, Moves[m].def, Moves[m].dir, j / (float)k).pos;
                 dxTab[m, h] = Q.From(b.pos.x);
                 dyTab[m, h] = Q.From(b.pos.y);
                 dhTab[m, h] = Mod8(Mathf.RoundToInt(b.heading / 45f));
@@ -90,15 +99,19 @@ namespace Autorama
 
         static int Mod8(int v) => ((v % 8) + 8) % 8;
 
+        static Vector2 Pos(State s) => new Vector2(s.x.Value, s.y.Value);
+
         static State Apply(State s, int m)
         {
             return new State { x = s.x + dxTab[m, s.h], y = s.y + dyTab[m, s.h], h = dhTab[m, s.h] };
         }
 
-        // Movimento com a mesma geometria de uma peça (a largada é uma reta curta; as inclinadas são iguais às planas).
+        // Movimento com a mesma geometria de uma peça (a largada é uma reta curta; as inclinadas são iguais às planas;
+        // o cruzamento e a rampa de salto são retas na planta).
         static int MoveOf(TrackPiece p)
         {
             var d = p.Def;
+            if (d.IsLoop) return p.dir > 0 ? 7 : 8;
             if (!d.IsCurve)
             {
                 if (Mathf.Approximately(d.Length, 4f)) return 0;
@@ -112,6 +125,7 @@ namespace Autorama
         // ---------- Busca ----------
 
         const int KeepPerState = 8;        // sequências guardadas por estado
+        const int Beam = 20000;            // estados por camada que seguem na expansão
 
         // Busca progressiva: tenta primeiro com valores pequenos (rápido), depois aumenta se não achar.
         // ProgressiveDepths = máximo de peças de cada lado (o fechamento tem até o dobro); ProgressiveChecks = candidatos testados.
@@ -229,34 +243,42 @@ namespace Autorama
             int endZ = segs[existing.Count - 1].zOut;
             var before = TrackLayout.Analyze(origin, segs, tail.Count);
 
+            // A pista no chão, para a busca não andar por cima dela. Com a ponta no alto as rampas que descem podem cair em
+            // qualquer peça do fechamento, então aí não há poda (só o teste final).
+            var ob = endZ == 0 ? Obstacles.Of(segs, existing.Count, tail.Count > 0 ? existing.Count : 0) : null;
+
             // Para a frente, a partir da ponta.
-            var fwd = new Dictionary<State, List<int[]>>(new StateEq());
-            var ex = ExpandAt(job, end, depth, fwd, from, from + span * 0.2f);
+            var fwd = new Tree();
+            var ex = ExpandAt(job, end, depth, fwd, Pos(goal), ob, from, from + span * 0.2f);
             while (ex.MoveNext()) yield return null;
             // Para trás, a partir da largada: anda de ré (rumo + 180°) com as curvas espelhadas.
-            var back = new Dictionary<State, List<int[]>>(new StateEq());
-            ex = ExpandAt(job, goal, depth, back, from + span * 0.2f, from + span * 0.4f);
+            var back = new Tree();
+            ex = ExpandAt(job, goal, depth, back, Pos(end), ob, from + span * 0.2f, from + span * 0.4f);
             while (ex.MoveNext()) yield return null;
 
             // Junta: estado alcançado pelos dois lados. Os candidatos ficam separados pelo número de peças,
             // e só se ordena um grupo quando chega a vez dele (quase sempre os maiores nem são tocados).
             var byLen = new List<Cand>[depth * 2 + 1];
             int total = 0, visited = 0;
-            foreach (var kv in back)
+            foreach (var kv in back.head)
             {
-                if ((++visited & 63) == 0) { job.Progress = from + span * (0.4f + 0.1f * visited / back.Count); yield return null; }
+                if ((++visited & 63) == 0) { job.Progress = from + span * (0.4f + 0.1f * visited / back.head.Count); yield return null; }
                 // kv.Key está em ré; o estado "de frente" equivalente tem rumo − 180°.
                 var real = kv.Key; real.h = Mod8(real.h + 4);
-                if (!fwd.TryGetValue(real, out var fs)) continue;
-                foreach (var f in fs)
-                foreach (var b in kv.Value)
+                if (!fwd.head.TryGetValue(real, out int fh)) continue;
+                for (int f = fh; f >= 0; f = fwd.nodes[f].next)
                 {
-                    var seq = new List<int>(f);
-                    // A sequência de ré, lida de trás para a frente e com as curvas desfeitas do espelho.
-                    for (int i = b.Length - 1; i >= 0; i--) seq.Add(Mirror(b[i]));
-                    if (seq.Count == 0) continue;
-                    (byLen[seq.Count] ??= new List<Cand>()).Add(new Cand(seq));
-                    total++;
+                    var fs = fwd.Seq(f);
+                    for (int b = kv.Value; b >= 0; b = back.nodes[b].next)
+                    {
+                        var bs = back.Seq(b);
+                        var seq = new List<int>(fs);
+                        // A sequência de ré, lida de trás para a frente e com as curvas desfeitas do espelho.
+                        for (int i = bs.Count - 1; i >= 0; i--) seq.Add(Mirror(bs[i]));
+                        if (seq.Count == 0) continue;
+                        (byLen[seq.Count] ??= new List<Cand>()).Add(new Cand(seq));
+                        total++;
+                    }
                 }
             }
             if (total == 0)
@@ -323,16 +345,86 @@ namespace Autorama
             }
         }
 
-        // Todas as sequências de até maxDepth peças a partir de s, em map; para cada estado, guarda as mais curtas.
-        // Anda aos poucos (yield) e leva o progresso de `from` até `to`.
-        static IEnumerator ExpandAt(Job job, State s, int maxDepth, Dictionary<State, List<int[]>> map, float from, float to)
+        // Árvore da busca: cada nó guarda só o estado, o pai e a peça; a sequência é refeita subindo pelos pais.
+        // Os nós do mesmo estado (até KeepPerState) formam uma lista ligada que começa em head[estado].
+        struct Node { public State s; public int parent, next, move; }
+
+        sealed class Tree
         {
-            map[s] = new List<int[]> { new int[0] };
-            var frontier = new List<(State st, int[] seq)> { (s, new int[0]) };
+            public readonly List<Node> nodes = new List<Node>();
+            public readonly Dictionary<State, int> head = new Dictionary<State, int>(new StateEq());
+            public List<int> Seq(int n)
+            {
+                var seq = new List<int>();
+                for (; nodes[n].parent >= 0; n = nodes[n].parent) seq.Add(nodes[n].move);
+                seq.Reverse();
+                return seq;
+            }
+        }
+
+        // Pontos da linha central da pista que já existe, no chão, numa grade de 1 célula. Uma peça nova que passa a
+        // menos de Radius de um deles com certeza sobrepõe (o teste final usa 0,92), então a busca nem segue por ali.
+        // As duas peças que encostam no fechamento ficam de fora: elas podem tocar a primeira e a última peça nova.
+        sealed class Obstacles
+        {
+            const float Radius = 0.8f;
+            readonly Dictionary<long, List<Vector2>> cells = new Dictionary<long, List<Vector2>>();
+            static long Key(int x, int y) => ((long)x << 32) ^ (uint)y;
+
+            public static Obstacles Of(List<Segment> segs, int skipA, int skipB)
+            {
+                var o = new Obstacles();
+                for (int i = 0; i < segs.Count; i++)
+                {
+                    if (i == skipA - 1 || i == skipB) continue;
+                    var s = segs[i];
+                    int k = Mathf.Max(2, Mathf.CeilToInt(s.def.CenterLength / 0.25f));
+                    for (int j = 0; j <= k; j++)
+                    {
+                        float t = j / (float)k, u = t * s.def.Length;
+                        if (s.ZAt(t) > 0.01f) continue;                     // no alto (ponte, rampa, volta do loop): passa por baixo
+                        if (s.def.IsJump && u > PieceCatalog.JumpUp - 0.49f && u < PieceCatalog.JumpUp + PieceCatalog.JumpGap + 0.49f) continue;
+                        var p = TrackMath.PoseAt(s.a, s.def, s.piece.dir, t).pos;
+                        long key = Key(Mathf.FloorToInt(p.x), Mathf.FloorToInt(p.y));
+                        if (!o.cells.TryGetValue(key, out var l)) o.cells[key] = l = new List<Vector2>();
+                        l.Add(p);
+                    }
+                }
+                return o;
+            }
+
+            public bool Hit(Vector2 p)
+            {
+                int cx = Mathf.FloorToInt(p.x), cy = Mathf.FloorToInt(p.y);
+                for (int dx = -1; dx <= 1; dx++)
+                for (int dy = -1; dy <= 1; dy++)
+                    if (cells.TryGetValue(Key(cx + dx, cy + dy), out var l))
+                        foreach (var q in l) if ((q - p).sqrMagnitude < Radius * Radius) return true;
+                return false;
+            }
+
+            // A peça m, saindo de s, passa por cima da pista? (De ré o traçado no chão é o mesmo.)
+            public bool Blocks(State s, int m)
+            {
+                var b = Pos(s);
+                foreach (var off in sampleTab[m, s.h]) if (Hit(b + off)) return true;
+                return false;
+            }
+        }
+
+        // Expande até maxDepth peças a partir de s. Poda: (1) estado a mais de 4·maxDepth células de `other` (a raiz do
+        // outro lado), porque o outro lado tem no máximo maxDepth peças e nenhuma avança mais de 4; (2) peça que passa
+        // por cima da pista (ob). Anda aos poucos (yield) e leva o progresso de `from` até `to`.
+        static IEnumerator ExpandAt(Job job, State s, int maxDepth, Tree tree, Vector2 other, Obstacles ob, float from, float to)
+        {
+            tree.nodes.Add(new Node { s = s, parent = -1, next = -1, move = -1 });
+            tree.head[s] = 0;
+            var frontier = new List<int> { 0 };
+            float reach = 4f * maxDepth + 1e-3f;
             int work = 0;
             for (int depth = 1; depth <= maxDepth; depth++)
             {
-                var next = new List<(State, int[])>();
+                var next = new List<int>();
                 for (int i = 0; i < frontier.Count; i++)
                 {
                     if ((++work & 31) == 0)
@@ -340,25 +432,39 @@ namespace Autorama
                         job.Progress = from + (to - from) * ((depth - 1) + (float)i / frontier.Count) / maxDepth;
                         yield return null;
                     }
-                    var (st, seq) = frontier[i];
-                    for (int m = 0; m < Moves.Length; m++)
+                    int pi = frontier[i];
+                    var st = tree.nodes[pi].s;
+                    for (int m = 0; m < SearchMoves; m++)
                     {
                         var ns = Apply(st, m);
-                        if (!map.TryGetValue(ns, out var list)) { list = new List<int[]>(); map[ns] = list; }
-                        if (list.Count >= KeepPerState) continue;
-                        var nseq = new int[seq.Length + 1];
-                        seq.CopyTo(nseq, 0);
-                        nseq[seq.Length] = m;
-                        list.Add(nseq);
-                        next.Add((ns, nseq));
+                        if ((Pos(ns) - other).sqrMagnitude > reach * reach) continue;
+                        int h = tree.head.TryGetValue(ns, out int hh) ? hh : -1, count = 0;
+                        for (int c = h; c >= 0 && count < KeepPerState; c = tree.nodes[c].next) count++;
+                        if (count >= KeepPerState) continue;
+                        if (ob != null && ob.Blocks(st, m)) continue;
+                        int idx = tree.nodes.Count;
+                        tree.nodes.Add(new Node { s = ns, parent = pi, next = h, move = m });
+                        tree.head[ns] = idx;
+                        if (count == 0) next.Add(idx);      // só o primeiro caminho até o estado segue; os outros são variantes para a junção
                     }
                 }
+                // Feixe: só os Beam estados mais perto do outro lado seguem para a próxima camada.
+                if (next.Count > Beam)
+                {
+                    var key = new float[next.Count];
+                    for (int i = 0; i < next.Count; i++) key[i] = (Pos(tree.nodes[next[i]].s) - other).sqrMagnitude;
+                    var arr = next.ToArray();
+                    System.Array.Sort(key, arr);
+                    next = new List<int>(arr);
+                    next.RemoveRange(Beam, next.Count - Beam);
+                }
                 frontier = next;
-                if (frontier.Count == 0) break;  // nenhuma exploração a fazer
+                if (frontier.Count == 0) break;
             }
         }
 
-        // Curva à direita percorrida de ré vira curva à esquerda (e vice-versa); retas não mudam.
+        // Curva à direita percorrida de ré vira curva à esquerda (e vice-versa); retas não mudam, nem o loop
+        // (de ré ele desliza para o mesmo lado: é o TrackMath.EntryFor).
         static int Mirror(int m) => m switch { 2 => 3, 3 => 2, 4 => 5, 5 => 4, _ => m };
 
         static float Length(List<int> seq) { float s = 0; foreach (int m in seq) s += Moves[m].def.CenterLength; return s; }

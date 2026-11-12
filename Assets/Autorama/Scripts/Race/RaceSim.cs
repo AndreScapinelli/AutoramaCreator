@@ -82,6 +82,10 @@ namespace Autorama
         public float z;          // nível de altura
         public int piece;
         public float bank;       // inclinação lateral da pista em graus (> 0: o lado direito é mais alto), para deitar o carrinho 3D
+        // Loop e salto (seção 42). No loop: "pitch" é o ângulo da volta (0 a 360°), "heading" é o rumo da peça e
+        // "slope" é sen(pitch) / LevelHeight (a mesma conta de gravidade da rampa, agora ao longo do caminho).
+        public bool loop, jump, gap;   // gap: o trecho do salto sem pista
+        public float pitch;
     }
 
     // Um trilho como polilinha com distância acumulada. Cada ponto sabe a curvatura, a aderência, a altura e a peça.
@@ -93,6 +97,9 @@ namespace Autorama
         readonly List<float> ys = new List<float>(), ks = new List<float>(), gm = new List<float>(), zs = new List<float>(), gs = new List<float>(), cum = new List<float>();
         readonly List<int> pis = new List<int>();
         readonly List<float> bks = new List<float>();
+        // Loop e salto: tipo do ponto (0 comum, 1 loop, 2 salto, 3 vão do salto), ângulo da volta e rumo da peça.
+        readonly List<byte> kinds = new List<byte>();
+        readonly List<float> lps = new List<float>(), hds = new List<float>();
         public readonly List<float> marks = new List<float>();     // distâncias da bandeirada dentro do caminho
         public float Total => cum.Count > 0 ? cum[cum.Count - 1] : 0f;
 
@@ -113,12 +120,26 @@ namespace Autorama
                     var s = segs[si];
                     var d = s.def;
                     float len = d.CenterLength;
-                    int n = Mathf.Max(1, Mathf.CeilToInt(len / 0.08f));
+                    // No salto, pontos a cada 0,05: as pontas do vão caem em pontos exatos.
+                    int n = d.IsJump ? Mathf.RoundToInt(len * 20f) : Mathf.Max(1, Mathf.CeilToInt(len / 0.08f));
                     float kap = d.IsCurve ? s.piece.dir / ((d.Radius - s.piece.dir * off) * scale) : 0f;
-                    float slope = (s.zOut - s.zIn) / len;
+                    float flat = (s.zOut - s.zIn) / len;
                     for (int j = lap == 0 && si == 0 ? 0 : 1; j <= n; j++)
                     {
                         float t = j / (float)n;
+                        float slope = flat, lp = 0f;
+                        byte kind = 0;
+                        if (d.IsLoop)
+                        {
+                            TrackMath.LoopAt(t, out _, out _, out float phi);
+                            kind = 1; lp = phi * Mathf.Rad2Deg; slope = Mathf.Sin(phi) / TrackMath.LevelHeight;
+                        }
+                        else if (d.IsJump)
+                        {
+                            kind = (byte)(PieceCatalog.JumpGapAt(t * len) ? 3 : 2);
+                            slope = PieceCatalog.JumpSlope(t * len) / TrackMath.LevelHeight;
+                        }
+                        kinds.Add(kind); lps.Add(lp); hds.Add(s.a.heading);
                         float o = d.LaneOffsetAt(off, t);
                         var q = TrackMath.PoseAt(s.a, d, s.piece.dir, t);
                         pts.Add(TrackMath.Offset(q, o) * scale);
@@ -130,7 +151,13 @@ namespace Autorama
                 }
             }
             cum.Add(0f);
-            for (int i = 1; i < pts.Count; i++) cum.Add(cum[i - 1] + Vector2.Distance(pts[i], pts[i - 1]));
+            // A distância é a da planta (como sempre foi, inclusive nas rampas); no loop, que na planta vai e volta, é a do caminho.
+            for (int i = 1; i < pts.Count; i++)
+            {
+                float dd = Vector2.Distance(pts[i], pts[i - 1]);
+                if (kinds[i] == 1) { float dy = ys[i] - ys[i - 1]; dd = Mathf.Sqrt(dd * dd + dy * dy); }
+                cum.Add(cum[i - 1] + dd);
+            }
             // A largada é reta: a bandeirada fica LineS depois do começo de cada volta.
             foreach (int i in lapStart) marks.Add(cum[i] + RaceSim.LineS * scale);
         }
@@ -167,14 +194,28 @@ namespace Autorama
             while (hi - lo > 1) { int m = (lo + hi) / 2; if (cum[m] <= d) lo = m; else hi = m; }
             float t = (d - cum[lo]) / Mathf.Max(cum[hi] - cum[lo], 1e-5f);
             Vector2 a = pts[lo], b = pts[hi], delta = b - a;
+            bool loop = kinds[hi] == 1;
             return new LanePoint
             {
                 pos = Vector2.Lerp(a, b, t),
-                heading = Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg,
+                heading = loop ? hds[hi] : Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg,
                 y = Mathf.Lerp(ys[lo], ys[hi], t),
                 bank = Mathf.Lerp(bks[lo], bks[hi], t),
                 k = ks[hi], grip = gm[hi], slope = gs[hi], z = Mathf.Lerp(zs[lo], zs[hi], t), piece = pis[hi],
+                loop = loop, jump = kinds[hi] >= 2, gap = kinds[hi] == 3,
+                pitch = loop ? Mathf.Lerp(kinds[lo] == 1 ? lps[lo] : 0f, lps[hi], t) : 0f,
             };
+        }
+
+        // Distância (na mesma volta de d) do começo da peça em que d está.
+        public float StartOf(float d)
+        {
+            float r = Mathf.Repeat(d, Total);
+            int lo = 0, hi = cum.Count - 1;
+            while (hi - lo > 1) { int m = (lo + hi) / 2; if (cum[m] <= r) lo = m; else hi = m; }
+            int i = hi;
+            while (i > 0 && pis[i] == pis[hi]) i--;
+            return d - r + cum[i];
         }
     }
 
@@ -190,6 +231,9 @@ namespace Autorama
         public bool boost, turboLap;
         public int side = 1;
         public CarMode mode;
+        // no ar depois da rampa de salto (ainda OnSlot: o carrinho segue o caminho na planta): altura e velocidade vertical, no mundo
+        public bool air;
+        public float airY, airVy;
         // fora da pista
         public Vector2 flyPos, flyVel;
         public float flyH, flyW, flyZ;
@@ -227,6 +271,14 @@ namespace Autorama
         // O ganho olha também a distância até o líder: TurboGap voltas atrás já conta como "longe"; TurboGapWeight é o
         // peso da distância na conta (o resto é a posição).
         public const float TurboGap = 0.5f, TurboGapWeight = 0.5f;
+        // Loop e salto (seção 42). A gravidade ao longo do loop é a mesma da rampa (SlopeG por nível = SlopeG / LevelHeight
+        // por célula); o carrinho cai quando v²/raio não segura mais o peso na parte de cima. No ar, depois do salto,
+        // a gravidade é JumpG (mais forte, para o salto caber na peça); o tranco do pouso (velocidade contra a pista,
+        // dividida por JumpHard) entra ao quadrado na derrapagem. Quem cai no vão volta JumpBack células antes da peça.
+        const float LoopG = SlopeG / TrackMath.LevelHeight;
+        public const float JumpG = 29f, JumpHard = 5f, JumpBack = 2f;
+        // IA: velocidade que ela busca na ponta da rampa de salto e a mínima dentro do loop (células por segundo).
+        const float JumpAi = 7.5f, LoopAi = 5f;
         const float RubKick = 0.15f, RubKickV = 0.03f, RubSlip = 8f, RubDrag = 1.2f, HitSlip = 0.12f, HitSlipSide = 0.14f, HitSpin = 60f;
 
         public enum Phase { Idle, Countdown, Running, Done, Switch }     // Switch: troca de trilho entre manches (corrida por tempo)
@@ -351,6 +403,7 @@ namespace Autorama
                 var P = PathOf(k);
                 if (c.mode == CarMode.OnSlot)
                 {
+                    if (c.air) { AirStep(k, dt); continue; }
                     // Motor: busca T × velocidade máxima; soltou, freia. Rampa: subir freia, descer embala.
                     var here = P.At(c.s);
                     // Turbo: só com o acelerador apertado, tanque com carga e a prova valendo. Soma velocidade e gasta o tanque.
@@ -364,6 +417,24 @@ namespace Autorama
                     Travel[k] += c.v * dt;      // distância percorrida, em unidades do mundo (o painel converte para metros)
                     // Força lateral v²/r contra a aderência (maior na inclinada). O excesso enche a derrapagem.
                     var q = P.At(c.s);
+                    // Salto: passou da ponta da rampa, sai voando com a inclinação dela.
+                    if (q.gap)
+                    {
+                        c.air = true;
+                        c.airY = (q.z * TrackMath.LevelHeight + PieceCatalog.JumpLip) * Scale;
+                        c.airVy = c.v * PieceCatalog.JumpSlope(PieceCatalog.JumpUp);
+                        continue;
+                    }
+                    // Loop: na parte de cima, v²/raio tem que segurar o peso. Devagar demais, despenca e volta no começo da peça.
+                    float down = Mathf.Cos(q.pitch * Mathf.Deg2Rad);
+                    if (q.loop && c.v * c.v / (PieceCatalog.LoopRadius * Scale) + LoopG * Scale * down < 0f)
+                    {
+                        float v0 = c.v;
+                        Deslot(k, null);
+                        c.flyVel = TrackMath.Dir(q.heading) * (v0 * down);
+                        c.exitS = P.StartOf(c.s) + 0.4f * Scale;
+                        continue;
+                    }
                     if (q.k != 0f) c.side = q.k > 0f ? 1 : -1;
                     float ratio = c.v * c.v * Mathf.Abs(q.k) / (set.grip * Scale * q.grip);
                     c.slip = ratio > 1f ? c.slip + (ratio - 1f) * SlipGain * dt : Mathf.Max(0f, c.slip - SlipDecay * dt);
@@ -387,6 +458,38 @@ namespace Autorama
                 }
             }
             if (set.collide) Collide(dt);
+        }
+
+        // No ar depois do salto: a velocidade na planta não muda (sem trilho não há motor nem freio) e a altura cai com JumpG.
+        // Tocou na pista: o tranco vira derrapagem. Tocou no chão do vão, ou chegou na ponta da rampa de pouso abaixo
+        // dela: caiu, e volta JumpBack células antes da peça, para pegar embalo.
+        void AirStep(int k, float dt)
+        {
+            var c = cars[k];
+            var P = PathOf(k);
+            float s0 = c.s, y0 = c.airY;
+            c.airVy -= JumpG * Scale * dt;
+            c.airY += c.airVy * dt;
+            c.s += c.v * dt;
+            Travel[k] += c.v * dt;
+            var q = P.At(c.s);
+            bool hole = false;
+            if (q.jump && !q.gap && P.At(s0).gap)
+            {
+                float lipS = P.StartOf(c.s) + (PieceCatalog.JumpUp + PieceCatalog.JumpGap) * Scale;
+                float yLip = Mathf.Lerp(y0, c.airY, Mathf.InverseLerp(s0, c.s, lipS));
+                hole = yLip < (q.z * TrackMath.LevelHeight + PieceCatalog.JumpLip - 0.03f) * Scale;
+            }
+            if (!hole && c.airY > q.y) { CountLap(k); return; }
+            hole |= q.gap;
+            float hit = Mathf.Max(0f, c.v * q.slope * TrackMath.LevelHeight - c.airVy) / (JumpHard * Scale);
+            c.slip += hit * hit;
+            if (hole || c.slip >= 1f)
+            {
+                Deslot(k, null);
+                if (hole) { c.flyVel *= 0.3f; c.exitS = P.StartOf(c.s) - (JumpBack - 0.4f) * Scale; }
+            }
+            else { c.air = false; CountLap(k); }
         }
 
         // Fim da manche: na última, a prova acaba e vence quem andou mais; nas outras, pausa para trocar de trilho.
@@ -418,7 +521,7 @@ namespace Autorama
                 var to = PathOf(k);
                 c.s = f * to.Total;
                 c.crossBase = c.cross - (to.LineCount(c.s) - 1);
-                c.v = 0f; c.slip = 0f; c.mode = CarMode.OnSlot; c.backT = 0f;
+                c.v = 0f; c.slip = 0f; c.mode = CarMode.OnSlot; c.backT = 0f; c.air = false;
                 c.lapDirty = c.cross >= 0;
             }
             Manche++;
@@ -436,7 +539,8 @@ namespace Autorama
             Vector2 outward = TrackMath.Dir(q.heading + c.side * 90f);      // para fora da curva
             c.flyPos = body.pos;
             c.flyH = body.heading;
-            c.flyZ = q.z;
+            c.flyZ = c.air ? c.airY / (TrackMath.LevelHeight * Scale) : q.z;
+            c.air = false;
             c.flyVel = (tangent + outward * 0.35f) * c.v;
             if (push.HasValue) c.flyVel += push.Value;                       // empurrão de uma batida
             c.flyW = -c.side * (220f + c.v * 30f);                           // gira no sentido da curva
@@ -532,8 +636,17 @@ namespace Autorama
             if (c.mode == CarMode.Off) { y = c.flyZ * TrackMath.LevelHeight * Scale; return new Pose2(c.flyPos, c.flyH); }
             var to = SlotPose(k, out y);
             var P = PathOf(k);
-            float y0 = P.At(c.s - 0.15f).y, y1 = P.At(c.s + 0.15f).y;
-            pitch = Mathf.Atan2(y1 - y0, 0.3f) * Mathf.Rad2Deg;
+            var q = P.At(c.s);
+            // No ar: a altura e o ângulo do voo. No loop: o ângulo da volta. No salto: a inclinação da rampa naquele ponto
+            // (a diferença de alturas pegaria o vão).
+            if (c.air) { y = c.airY; pitch = Mathf.Atan2(c.airVy, Mathf.Max(c.v, 0.01f)) * Mathf.Rad2Deg; }
+            else if (q.loop) pitch = q.pitch;
+            else if (q.jump) pitch = Mathf.Atan(q.slope * TrackMath.LevelHeight) * Mathf.Rad2Deg;
+            else
+            {
+                float y0 = P.At(c.s - 0.15f).y, y1 = P.At(c.s + 0.15f).y;
+                pitch = Mathf.Atan2(y1 - y0, 0.3f) * Mathf.Rad2Deg;
+            }
             if (c.mode == CarMode.Returning)
             {
                 float e = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(c.backT));
@@ -547,7 +660,7 @@ namespace Autorama
         public float CarZ(int k)
         {
             var c = cars[k];
-            return c.mode == CarMode.Off ? c.flyZ : PathOf(k).At(c.s).z;
+            return c.mode == CarMode.Off ? c.flyZ : c.air ? c.airY / (TrackMath.LevelHeight * Scale) : PathOf(k).At(c.s).z;
         }
 
         // Inclinação lateral da pista embaixo do carrinho (0 fora da pista).
@@ -590,7 +703,9 @@ namespace Autorama
             if (!present[ia] || !present[ib] || A.mode == CarMode.Returning || B.mode == CarMode.Returning || Mathf.Abs(CarZ(ia) - CarZ(ib)) > 0.6f)
                 return false;                           // na mão do fiscal, ou um na ponte e outro embaixo
             var pa = CarPose(ia, out float ya, out _);
-            var pb = CarPose(ib, out _, out _);
+            var pb = CarPose(ib, out float yb, out _);
+            // Um no ar e outro no chão (pista que cruza o vão do salto): passa por cima se a altura der (0,18: o carrinho).
+            if (A.air != B.air && Mathf.Abs(ya - yb) > 0.18f) return false;
             if (!Overlap(pa, pb, out Vector2 n, out float depth)) return false;
 
             bool first = !wasTouching;
@@ -695,14 +810,28 @@ namespace Autorama
             // Velocidades e freio em unidades do mundo: o freio de AiBrake (em células) vira AiBrake × Scale.
             float m = c.aiM;
             float need = float.PositiveInfinity;
+            bool jumpNear = false;
             for (float d = 0f; d <= AiLook * Scale; d += 0.1f * Scale)
             {
                 var q = P.At(c.s + d);
+                // Rampa de salto: chega na ponta a JumpAi (um pouco mais ou menos conforme a coragem; no erro, rápido demais).
+                if (q.jump && q.slope > 0f)
+                {
+                    float vj = JumpAi * Scale * (m > 1.25f ? m : Mathf.Clamp(m, 0.9f, 1.1f));
+                    need = Mathf.Min(need, Mathf.Sqrt(vj * vj + 2f * AiBrake * Scale * d));
+                    jumpNear = true;
+                }
                 if (q.k == 0f) continue;
                 float v = Mathf.Sqrt(set.grip * Scale * q.grip / Mathf.Abs(q.k)) * m;
                 need = Mathf.Min(need, Mathf.Sqrt(v * v + 2f * AiBrake * Scale * d));
             }
+            // Dentro do loop não deixa a velocidade cair abaixo de LoopAi, mesmo com curva logo depois.
+            if (P.At(c.s).loop) need = Mathf.Max(need, LoopAi * Scale);
             c.held = c.v < need;
+            // Chegando no salto ela não solta o botão: dosa o gatilho (1% ou 100%). Soltar e apertar de novo faz o
+            // acelerador recomeçar do zero, e o carrinho chegaria na ponta da rampa devagar demais para cruzar o vão.
+            c.gas = jumpNear && !c.held ? 0.01f : 1f;
+            if (jumpNear) c.held = true;
             // Turbo da IA: só quando nenhuma curva à frente pede freio nem na velocidade com turbo (retas longas).
             c.boost = set.turbo && c.turbo > 0f && need > set.vmax * Scale * (1f + TurboBoost);
         }

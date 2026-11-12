@@ -24,6 +24,7 @@ namespace Autorama
             gp = GasPct(c.gas), tb = c.turbo, bo = c.boost,
             fx = c.flyPos.x, fy = c.flyPos.y, fvx = c.flyVel.x, fvy = c.flyVel.y, flyH = c.flyH, flyW = c.flyW, flyZ = c.flyZ,
             bx = c.backPos.x, by = c.backPos.y, backH = c.backH, backY = c.backY, backT = c.backT,
+            ar = c.air, ay = c.airY, avy = c.airVy,
             exitS = c.exitS, lapStart = c.lapStart, hitFx = c.hitFx,
             cross = c.cross, laps = c.laps, offs = c.offs, hits = c.hits,
             lastLap = Opt(c.lastLap), best = Opt(c.best), finish = Opt(c.finish),
@@ -52,10 +53,11 @@ namespace Autorama
                 foreach (var c in n.cars)
                 {
                     w.Write(c.s); w.Write(c.v); w.Write(c.hold); w.Write(c.T); w.Write(c.slip);
-                    w.Write((byte)((c.held ? 1 : 0) | (c.contact ? 2 : 0) | (c.bo ? 4 : 0) | (c.ld ? 8 : 0)));
+                    w.Write((byte)((c.held ? 1 : 0) | (c.contact ? 2 : 0) | (c.bo ? 4 : 0) | (c.ld ? 8 : 0) | (c.ar ? 16 : 0)));
                     w.Write((sbyte)c.side); w.Write((byte)c.mode); w.Write((byte)Mathf.Clamp(c.gp, 0, 100)); w.Write((byte)Mathf.RoundToInt(Mathf.Clamp01(c.tb) * 255f));
                     if (c.mode == (int)CarMode.Off) { w.Write(c.fx); w.Write(c.fy); w.Write(c.fvx); w.Write(c.fvy); w.Write(c.flyH); w.Write(c.flyW); w.Write(c.flyZ); }
                     if (c.mode == (int)CarMode.Returning) { w.Write(c.bx); w.Write(c.by); w.Write(c.backH); w.Write(c.backY); w.Write(c.backT); }
+                    if (c.ar) { w.Write(c.ay); w.Write(c.avy); }     // só existe em pista com salto: o formato das outras não muda
                     w.Write(c.exitS); w.Write(c.lapStart); w.Write(c.hitFx);
                     w.Write((short)c.cross); w.Write((ushort)c.laps); w.Write((ushort)c.offs); w.Write((ushort)c.hits);
                     w.Write(c.lastLap); w.Write(c.best); w.Write(c.finish);
@@ -81,10 +83,11 @@ namespace Autorama
                     {
                         var c = new NetCar { s = r.ReadSingle(), v = r.ReadSingle(), hold = r.ReadSingle(), T = r.ReadSingle(), slip = r.ReadSingle() };
                         int f = r.ReadByte();
-                        c.held = (f & 1) != 0; c.contact = (f & 2) != 0; c.bo = (f & 4) != 0; c.ld = (f & 8) != 0;
+                        c.held = (f & 1) != 0; c.contact = (f & 2) != 0; c.bo = (f & 4) != 0; c.ld = (f & 8) != 0; c.ar = (f & 16) != 0;
                         c.side = r.ReadSByte(); c.mode = r.ReadByte(); c.gp = r.ReadByte(); c.tb = r.ReadByte() / 255f;
                         if (c.mode == (int)CarMode.Off) { c.fx = r.ReadSingle(); c.fy = r.ReadSingle(); c.fvx = r.ReadSingle(); c.fvy = r.ReadSingle(); c.flyH = r.ReadSingle(); c.flyW = r.ReadSingle(); c.flyZ = r.ReadSingle(); }
                         if (c.mode == (int)CarMode.Returning) { c.bx = r.ReadSingle(); c.by = r.ReadSingle(); c.backH = r.ReadSingle(); c.backY = r.ReadSingle(); c.backT = r.ReadSingle(); }
+                        if (c.ar) { c.ay = r.ReadSingle(); c.avy = r.ReadSingle(); }
                         c.exitS = r.ReadSingle(); c.lapStart = r.ReadSingle(); c.hitFx = r.ReadSingle();
                         c.cross = r.ReadInt16(); c.laps = r.ReadUInt16(); c.offs = r.ReadUInt16(); c.hits = r.ReadUInt16();
                         c.lastLap = r.ReadSingle(); c.best = r.ReadSingle(); c.finish = r.ReadSingle();
@@ -132,6 +135,7 @@ namespace Autorama
                 c.s = n.s; c.v = n.v; c.hold = n.hold; c.T = n.T; c.slip = n.slip; c.side = n.side; c.mode = (CarMode)n.mode;
                 c.flyPos = new Vector2(n.fx, n.fy); c.flyVel = new Vector2(n.fvx, n.fvy); c.flyH = n.flyH; c.flyW = n.flyW; c.flyZ = n.flyZ;
                 c.backPos = new Vector2(n.bx, n.by); c.backH = n.backH; c.backY = n.backY; c.backT = n.backT;
+                c.air = n.ar; c.airY = n.ay; c.airVy = n.avy;
                 if (own) hist?.Clear();
             }
             if (!own) { c.held = n.held; c.gas = GasOf(n.gp); c.boost = n.bo; }

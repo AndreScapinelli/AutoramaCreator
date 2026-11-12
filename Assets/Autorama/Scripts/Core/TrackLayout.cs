@@ -15,7 +15,25 @@ namespace Autorama
         public bool flatIn, flatOut;     // (inclinada) vizinha plana ligada: a inclinação continua nela, sem transição de 20%
         public int bankDirIn, bankDirOut; // (plana) dir da peça inclinada vizinha, 0 se não há; a inclinação espalha por ela
 
-        public float ZAt(float t) => zIn + (zOut - zIn) * t;
+        public bool rampIn, rampOut;     // (rampa) a vizinha continua a subida ou a descida: sem arredondar naquela ponta
+
+        // Nível em linha reta: vale para as regras (sobreposição, colisão, pilares). A superfície usa ZSmooth.
+        // No loop soma a altura da volta (em níveis): o que passa por baixo do alto dela não é sobreposição.
+        public float ZAt(float t)
+        {
+            if (!def.IsLoop) return zIn + (zOut - zIn) * t;
+            TrackMath.LoopAt(t, out _, out _, out float phi);
+            return zIn + PieceCatalog.LoopRadius * (1f - Mathf.Cos(phi)) / TrackMath.LevelHeight;
+        }
+
+        // Nível da superfície: a rampa arredonda nas pontas que encontram peça plana (inclinação zero no encaixe)
+        // e segue reta na ponta em que a vizinha continua a rampa. Hermite com inclinação a na entrada e b na saída.
+        public float ZSmooth(float t)
+        {
+            if (zIn == zOut) return zIn;
+            float a = rampIn ? 1f : 0f, b = rampOut ? 1f : 0f, t2 = t * t, t3 = t2 * t;
+            return zIn + (zOut - zIn) * ((t3 - 2f * t2 + t) * a + 3f * t2 - 2f * t3 + (t3 - t2) * b);
+        }
         public bool High => zIn > 0 || zOut > 0;
         public bool IsRamp => zIn != zOut;
     }
@@ -50,7 +68,7 @@ namespace Autorama
                 var d = p.Def;
                 var b = TrackMath.PoseAt(conn, d, p.dir, 1f);
                 b.heading = TrackMath.Normalize(b.heading);
-                int zOut = Mathf.Clamp(z + (i == 0 ? 0 : p.rise), 0, TrackMath.MaxLevel);
+                int zOut = Mathf.Clamp(z + (i == 0 || d.GroundOnly ? 0 : p.rise), 0, TrackMath.MaxLevel);
                 list.Add(new Segment { index = i, piece = p, def = d, a = conn, b = b, zIn = z, zOut = zOut });
                 conn = b;
                 z = zOut;
@@ -101,6 +119,10 @@ namespace Autorama
                 {
                     float t = j / (float)k;
                     var q = TrackMath.PoseAt(s.a, s.def, s.piece.dir, t);
+                    // O vão do salto não tem pista: outra peça (reta ou outro salto) pode cruzar por ele. Ficam de fora os
+                    // pontos do vão e os da última meia célula de cada rampa: o ponto a 0,5 da ponta já cobre até ela.
+                    float u = t * s.def.Length;
+                    if (s.def.IsJump && u > PieceCatalog.JumpUp - 0.49f && u < PieceCatalog.JumpUp + PieceCatalog.JumpGap + 0.49f) continue;
                     list.Add(new Vector3(q.pos.x, q.pos.y, s.ZAt(t)));
                     bx0 = Mathf.Min(bx0, q.pos.x); by0 = Mathf.Min(by0, q.pos.y);
                     bx1 = Mathf.Max(bx1, q.pos.x); by1 = Mathf.Max(by1, q.pos.y);
@@ -124,6 +146,8 @@ namespace Autorama
                 if (a.xMax + 1 < b.xMin || b.xMax + 1 < a.xMin || a.yMax + 1 < b.yMin || b.yMax + 1 < a.yMin) continue;
                 if (Touches(pts[i], pts[j], minSqr)) { r.overlaps.Add(i); r.overlaps.Add(j); }
             }
+            // Loop e salto só no chão: no alto ficam marcados como sobreposição.
+            for (int i = 0; i < n; i++) if (segs[i].def.GroundOnly && segs[i].High) r.overlaps.Add(i);
 
             // Cada carrinho troca de lado a cada cruzamento (na pista de 4: 1↔4 e 2↔3). Com um número ímpar deles,
             // cada um alterna com o trilho do espelho a cada volta: na média das duas voltas, os dois correm a mesma distância.
@@ -163,6 +187,9 @@ namespace Autorama
                 s.flatOut = nextLinked && !next.def.Banked;
                 s.bankDirIn = prevLinked && prev.def.Banked ? prev.piece.dir : 0;
                 s.bankDirOut = nextLinked && next.def.Banked ? next.piece.dir : 0;
+                int rise = s.zOut - s.zIn;
+                s.rampIn = rise != 0 && prevLinked && prev.zOut - prev.zIn == rise;
+                s.rampOut = rise != 0 && nextLinked && next.zOut - next.zIn == rise;
             }
         }
 
@@ -177,9 +204,13 @@ namespace Autorama
         {
             if (s.def.Banked) return 0f;
             // Curva para o lado oposto da inclinada: a transição é mais longa, senão a superfície dobra num vinco.
+            float len = s.def.CenterLength;
             float LenIn = s.def.IsCurve && s.piece.dir == -dirSide ? OppositeSpillLength : SpillLength;
-            float wi = s.bankDirIn == dirSide ? Ease(t * s.def.CenterLength, LenIn) : 0f;
-            float wo = s.bankDirOut == dirSide ? Ease((1f - t) * s.def.CenterLength, LenIn) : 0f;
+            // A transição tem que acabar dentro da peça, senão sobra um degrau no outro encaixe (reta curtinha).
+            // Com inclinadas de sentidos opostos nas duas pontas, cada uma fica com metade: a pista passa plana no meio.
+            LenIn = Mathf.Min(LenIn, s.bankDirIn == -s.bankDirOut ? len / 2f : len);
+            float wi = s.bankDirIn == dirSide ? Ease(t * len, LenIn) : 0f;
+            float wo = s.bankDirOut == dirSide ? Ease((1f - t) * len, LenIn) : 0f;
             return Mathf.Max(wi, wo);
         }
 
@@ -196,7 +227,13 @@ namespace Autorama
         // de sentido oposto, entra e sai em 20% da peça.
         public static float SurfaceY(Segment s, float t, float lateral)
         {
-            float y = s.ZAt(t) * TrackMath.LevelHeight;
+            if (s.def.IsLoop)
+            {
+                TrackMath.LoopAt(t, out _, out _, out float phi);
+                return s.zIn * TrackMath.LevelHeight + PieceCatalog.LoopRadius * (1f - Mathf.Cos(phi));
+            }
+            float y = s.ZSmooth(t) * TrackMath.LevelHeight;
+            if (s.def.IsJump) y += PieceCatalog.JumpY(t * s.def.Length);
             float tan = Mathf.Tan(PieceCatalog.BankAngle * Mathf.Deg2Rad);
             if (!s.def.Banked)
             {

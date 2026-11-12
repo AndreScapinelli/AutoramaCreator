@@ -242,7 +242,7 @@ namespace Autorama
             foreach (var p in t.pecas)
             {
                 var def = PieceCatalog.ById(p.tipo);
-                int dir = def != null && def.IsCurve ? (p.sentido == "esquerda" ? -1 : 1) : 0;
+                int dir = def != null && def.Sided ? (p.sentido == "esquerda" ? -1 : 1) : 0;
                 int rise = p.altura == "sobe" ? 1 : p.altura == "desce" ? -1 : 0;
                 sb.Append('|').Append(p.tipo).Append(':').Append(dir).Append(':').Append(rise);
             }

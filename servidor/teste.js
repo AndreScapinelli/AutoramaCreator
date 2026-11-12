@@ -259,8 +259,8 @@ const trilha = (n, extra = {}) => ({ name: 'Pista ' + n, laps: 3, hash: 'a34f4cb
   H.send({ t: 'end', text: 'Fim de papo' });
   const l1 = await A.next('lobby'); await B.next('lobby'); await H.next('lobby');
   assert.strictEqual(l1.text, 'Fim de papo');
-  r = await A.next('room'); assert.strictEqual(r.room.state, 'lobby'); assert.deepStrictEqual(r.room.players.map(p => p.ready), [true, false, false]);
-  ok('o host encerra: todos voltam ao lobby e o "pronto" zera');
+  r = await A.next('room'); assert.strictEqual(r.room.state, 'lobby'); assert.deepStrictEqual(r.room.players.map(p => p.ready), [true, false, false, false]);
+  ok('o host encerra: todos voltam ao lobby (o espectador também) e o "pronto" zera');
 
   // host sai no meio da corrida: o próximo assume e o campeonato segue
   C.close(); await new Promise(r => setTimeout(r, 100));

@@ -51,7 +51,7 @@ namespace Autorama
             {
                 var def = PieceCatalog.ById(p.tipo);
                 if (def == null || def.IsStart) throw new FormatException($"Peça desconhecida: \"{p.tipo}\".");
-                int dir = def.IsCurve ? (p.sentido == "esquerda" ? -1 : 1) : 0;
+                int dir = def.Sided ? (p.sentido == "esquerda" ? -1 : 1) : 0;
                 int rise = p.altura == "sobe" ? 1 : p.altura == "desce" ? -1 : 0;
                 list.Add(new TrackPiece(def.Id, dir, rise));
             }

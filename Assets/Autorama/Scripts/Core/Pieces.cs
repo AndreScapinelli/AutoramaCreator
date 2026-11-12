@@ -11,19 +11,29 @@ namespace Autorama
         public readonly PieceKind Kind;
         public readonly float Length, Angle, Radius;
         public readonly bool Banked, IsStart, IsCross;
+        // Loop e salto (seção 42 do guia): na planta são retas (Length = quanto a peça avança), sempre no chão.
+        public readonly bool IsLoop, IsJump;
 
-        PieceDef(string id, string name, PieceKind kind, float length, float angle, bool banked, bool isStart, bool isCross = false)
+        PieceDef(string id, string name, PieceKind kind, float length, float angle, bool banked, bool isStart, bool isCross = false, bool isLoop = false, bool isJump = false)
         {
             Id = id; Name = name; Kind = kind; Length = length; Angle = angle; Radius = 2.5f; Banked = banked; IsStart = isStart; IsCross = isCross;
+            IsLoop = isLoop; IsJump = isJump;
         }
 
         public static PieceDef MakeStraight(string id, string name, float length, bool isStart = false, bool isCross = false) =>
             new PieceDef(id, name, PieceKind.Straight, length, 0f, false, isStart, isCross);
         public static PieceDef MakeCurve(string id, string name, float angle, bool banked) =>
             new PieceDef(id, name, PieceKind.Curve, 0f, angle, banked, false);
+        public static PieceDef MakeLoop(string id, string name) =>
+            new PieceDef(id, name, PieceKind.Straight, 2f * PieceCatalog.LoopRadius, 0f, false, false, isLoop: true);
+        public static PieceDef MakeJump(string id, string name) =>
+            new PieceDef(id, name, PieceKind.Straight, PieceCatalog.JumpLength, 0f, false, false, isJump: true);
 
         public bool IsCurve => Kind == PieceKind.Curve;
-        public float CenterLength => IsCurve ? Angle * Mathf.Deg2Rad * Radius : Length;
+        public bool Sided => IsCurve || IsLoop;        // tem lado (dir ±1): a curva vira, o loop sai deslocado para ele
+        public bool GroundOnly => IsLoop || IsJump;    // não sobe nem desce de nível
+        // Comprimento do caminho: no loop, a entrada, a volta inteira e a saída.
+        public float CenterLength => IsCurve ? Angle * Mathf.Deg2Rad * Radius : IsLoop ? Length + 2f * Mathf.PI * PieceCatalog.LoopRadius : Length;
 
         // Deslocamento do trilho num ponto t da peça. No cruzamento o trilho faz um S de um lado para o outro
         // (offset·cos(π·t)): quem entra pela esquerda sai pela direita. Nas outras peças, fixo.
@@ -33,6 +43,7 @@ namespace Autorama
         public float LaneLength(int dir, float offset)
         {
             if (IsCross) return CrossLaneLength(Length, Mathf.Abs(offset));
+            if (IsLoop) return CenterLength;
             return IsCurve ? Angle * Mathf.Deg2Rad * (Radius - dir * offset) : Length;
         }
 
@@ -59,6 +70,30 @@ namespace Autorama
         public const float BankGrip = 1.7f;    // curva inclinada (~15°) aguenta 1,7× a força lateral da plana
         public const float BankAngle = 15f;
 
+        // Loop: entrada reta de LoopRadius, a volta (raio LoopRadius, em pé) e saída reta de LoopRadius. Durante a
+        // volta a pista desliza LoopShift para o lado (dir), para a saída passar ao lado da entrada.
+        public const float LoopRadius = 1f, LoopShift = 1f;
+        // Salto: rampa de JumpUp células que sobe até JumpLip (parábola, plana no encaixe), vão de JumpGap e uma
+        // rampa de pouso que desce de JumpLip até o chão no resto da peça.
+        public const float JumpLength = 4f, JumpUp = 1f, JumpGap = 1f, JumpLip = 0.2f;
+
+        // Altura da superfície do salto (células) a u células do começo da peça. No vão não há pista: 0.
+        public static float JumpY(float u)
+        {
+            if (u <= JumpUp) { float p = u / JumpUp; return JumpLip * p * p; }
+            float land = JumpLength - JumpUp - JumpGap, q = (JumpLength - u) / land;
+            return q > 1f ? 0f : JumpLip * q * q;
+        }
+        // Inclinação (dy/du) da superfície do salto.
+        public static float JumpSlope(float u)
+        {
+            if (u <= JumpUp) return 2f * JumpLip * u / (JumpUp * JumpUp);
+            float land = JumpLength - JumpUp - JumpGap, q = (JumpLength - u) / land;
+            return q > 1f ? 0f : -2f * JumpLip * q / land;
+        }
+        // O trecho que termina em u está no vão? (O ponto u = JumpUp é a ponta da rampa; u = JumpUp + JumpGap, a do pouso.)
+        public static bool JumpGapAt(float u) => u > JumpUp + 1e-3f && u <= JumpUp + JumpGap + 1e-3f;
+
         public static readonly PieceDef Start  = PieceDef.MakeStraight("largada", "Base de largada", 2f, isStart: true);
         public static readonly PieceDef Short  = PieceDef.MakeStraight("reta-curta", "Reta curta", 2f);
         public static readonly PieceDef Long   = PieceDef.MakeStraight("reta-comprida", "Reta comprida", 4f);
@@ -70,7 +105,10 @@ namespace Autorama
         public static readonly PieceDef CurveB = PieceDef.MakeCurve("curva-longa-inclinada", "Curva longa inclinada", 90f, true);
         public static readonly PieceDef HalfB  = PieceDef.MakeCurve("curva-curta-inclinada", "Curva curta inclinada", 45f, true);
 
-        public static readonly PieceDef[] All = { Start, Short, Long, Tiny, Cross, CrossS, Curve, Half, CurveB, HalfB };
+        public static readonly PieceDef Loop   = PieceDef.MakeLoop("loop", "Loop");
+        public static readonly PieceDef Jump   = PieceDef.MakeJump("salto", "Rampa de salto");
+
+        public static readonly PieceDef[] All = { Start, Short, Long, Tiny, Cross, CrossS, Curve, Half, CurveB, HalfB, Loop, Jump };
 
         public static PieceDef ById(string id)
         {
@@ -96,7 +134,7 @@ namespace Autorama
         {
             var d = Def;
             string s = d.Name;
-            if (dir != 0) s += dir < 0 ? " · esquerda" : " · direita";
+            if (dir != 0 && d.Sided) s += dir < 0 ? " · esquerda" : " · direita";
             if (rise != 0) s += rise > 0 ? " · sobe" : " · desce";
             return s;
         }

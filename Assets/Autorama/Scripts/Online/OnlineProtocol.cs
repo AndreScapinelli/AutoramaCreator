@@ -38,6 +38,8 @@ namespace Autorama
         public bool bo;                                     // turbo: botão apertado
         public float fx, fy, fvx, fvy, flyH, flyW, flyZ;    // fora da pista
         public float bx, by, backH, backY, backT;           // voltando ao trilho
+        public bool ar;                                     // no ar depois do salto (seção 42)
+        public float ay, avy;                               // altura e velocidade vertical no ar
         public float exitS, lapStart, hitFx;
         public int cross, laps, offs, hits;
         public float lastLap = -1f, best = -1f, finish = -1f;

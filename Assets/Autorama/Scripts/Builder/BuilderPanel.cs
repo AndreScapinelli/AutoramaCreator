@@ -338,7 +338,7 @@ namespace Autorama
             endBackBtn.tooltip = "Encaixa atrás da largada (E alterna)";
             // Paleta em grupos: retas, curvas, inclinadas e especiais (cruzamentos e rampas).
             var groups = new Dictionary<string, VisualElement>();
-            foreach (var g in new[] { "RETAS", "CURVAS", "CURVAS INCLINADAS", "CRUZAMENTOS E RAMPAS" })
+            foreach (var g in new[] { "RETAS", "CURVAS", "CURVAS INCLINADAS", "CRUZAMENTOS E RAMPAS", "LOOP E SALTO" })
             {
                 Text(g, "pal-group", pal);
                 groups[g] = El("palette", pal);
@@ -473,6 +473,7 @@ namespace Autorama
 
         static string PaletteGroup(PaletteEntry e)
         {
+            if (e.def.GroundOnly) return "LOOP E SALTO";
             if (e.rise != 0 || e.def == PieceCatalog.Cross || e.def == PieceCatalog.CrossS) return "CRUZAMENTOS E RAMPAS";
             if (e.def == PieceCatalog.CurveB || e.def == PieceCatalog.HalfB) return "CURVAS INCLINADAS";
             if (e.def == PieceCatalog.Curve || e.def == PieceCatalog.Half) return "CURVAS";
@@ -596,9 +597,10 @@ namespace Autorama
                 Text("Arraste a largada na mesa para mover a pista inteira. Ela não pode ser removida.", "small", selectedBox);
                 return;
             }
-            if (p.Def.IsCurve) Btn("Inverter (F)", builder.FlipSelected, "btn", row);
+            if (p.Def.Sided) Btn("Inverter (F)", builder.FlipSelected, "btn", row);
             Btn("Remover (Del)", builder.RemoveSelected, "btn btn--danger", row);
             Btn("Soltar (Esc)", () => builder.Select(-1), "btn", row);
+            if (p.Def.GroundOnly) return;      // loop e salto ficam no chão: sem botões de altura
 
             var seg2 = El("segmented", selectedBox);
             Text("Altura", "seg-label", seg2);
@@ -898,12 +900,12 @@ namespace Autorama
             var d = p.Def;
             if (d.IsStart) return "icone-base-largada";
             if (p.rise != 0 && d == PieceCatalog.Long) return p.rise > 0 ? "icone-rampa-sobe" : "icone-rampa-desce";
-            if (!d.IsCurve) return "icone-" + d.Id;
+            if (!d.Sided) return "icone-" + d.Id;
             string side = p.dir < 0 ? "esquerda" : "direita";
             return d == PieceCatalog.Half ? "icone-meia-curva-" + side : $"icone-{d.Id}-{side}";
         }
 
-        static string Side(TrackPiece p) => !p.Def.IsCurve ? "Reta · " : $"Vira à {(p.dir < 0 ? "esquerda" : "direita")} · {p.Def.Angle}° · ";
+        static string Side(TrackPiece p) => p.Def.IsLoop ? $"Sai à {(p.dir < 0 ? "esquerda" : "direita")} · " : p.Def.IsJump ? "Salto · " : !p.Def.IsCurve ? "Reta · " : $"Vira à {(p.dir < 0 ? "esquerda" : "direita")} · {p.Def.Angle}° · ";
         static string KeyName(Key k) { string s = k.ToString(); return s.StartsWith("Digit") ? s.Substring(5) : s; }
         static string Level(int z) => z == 0 ? "chão" : "nível " + z;
         internal static string Num(float v, int dec = 1) => v.ToString("N" + dec, PtBr);

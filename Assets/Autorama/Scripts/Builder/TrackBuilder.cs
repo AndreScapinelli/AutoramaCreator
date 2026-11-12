@@ -40,6 +40,9 @@ namespace Autorama
             new PaletteEntry(PieceCatalog.HalfB,  1,  0, Key.Digit0, "Curva curta inclinada", "45° direita", "icone-curva-curta-inclinada-direita"),
             new PaletteEntry(PieceCatalog.Long,   0,  1, Key.U,      "Rampa", "sobe 1 nível", "icone-rampa-sobe"),
             new PaletteEntry(PieceCatalog.Long,   0, -1, Key.D,      "Rampa", "desce 1 nível", "icone-rampa-desce"),
+            new PaletteEntry(PieceCatalog.Loop,  -1,  0, Key.K,      "Loop", "sai à esquerda", "icone-loop-esquerda"),
+            new PaletteEntry(PieceCatalog.Loop,   1,  0, Key.L,      "Loop", "sai à direita", "icone-loop-direita"),
+            new PaletteEntry(PieceCatalog.Jump,   0,  0, Key.J,      "Rampa de salto", "4 células", "icone-salto"),
         };
 
         public string TrackName { get; set; } = "";
@@ -182,13 +185,14 @@ namespace Autorama
 
         public void FlipSelected()
         {
-            if (Selected <= 0 || !pieces[Selected].Def.IsCurve) return;
+            if (Selected <= 0 || !pieces[Selected].Def.Sided) return;
             Commit(() => pieces[Selected].dir *= -1);
         }
 
         public void SetRise(int rise)
         {
             if (Selected <= 0) return;
+            if (rise != 0 && pieces[Selected].Def.GroundOnly) { Notice?.Invoke("Loop e rampa de salto não sobem nem descem de nível."); return; }
             if (rise != 0 && Selected >= FrontEnd) { Notice?.Invoke(NoRampBehind); return; }
             Commit(() => pieces[Selected].rise = rise);
         }
@@ -497,7 +501,7 @@ namespace Autorama
                 ghost = go.GetComponent<TrackPieceView>();
             }
             int zIn = InsertLevel;
-            int gdir = Back ? -e.dir : e.dir, grise = Back ? 0 : e.rise;
+            int gdir = Back && !e.def.IsLoop ? -e.dir : e.dir, grise = Back ? 0 : e.rise;     // de ré a curva espelha; o loop, não
             var seg = new Segment
             {
                 index = -1, piece = new TrackPiece(e.def.Id, gdir, grise), def = e.def, a = InsertPose,
