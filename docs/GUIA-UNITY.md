@@ -3540,7 +3540,7 @@ ownHist.Add(Time.realtimeSinceStartup, sim.cars[lane]);
 
 ## 42. Loop e rampa de salto
 
-Duas peças novas que não sobem nem descem de nível (`PieceDef.GroundOnly`, sem botões de altura). O salto só fica no chão: no alto é marcado como sobreposição. O loop pode ficar no alto, num nível plano (`Analyze` só marca `IsJump && High`); na pista de 4 a 8 os pilares dele vão até a base da volta (`zIn · LevelHeight`), não até a volta. O fechar sozinho (tecla Q) não as usa. Pistas e recordes antigos não mudam (oval continua `a34f4cb9`).
+Duas peças novas que não sobem nem descem de nível (`PieceDef.GroundOnly`, sem botões de altura). Os dois podem ficar no alto, num nível plano (antes o salto no alto era marcado como sobreposição; a regra saiu de `Analyze`). Na pista de 4 a 8 os pilares do loop e do salto vão até a base da peça (`zIn · LevelHeight`), não até a volta nem até a rampa; no salto no alto o fundo da base é reto (`Foot`), na altura do nível menos a espessura. O fechar sozinho (tecla Q) não as usa. Pistas e recordes antigos não mudam (oval continua `a34f4cb9`).
 
 | Peça | id | Tecla | Planta | Caminho |
 |---|---|---|---|---|
@@ -3609,7 +3609,30 @@ Pista: largada, reta comprida, salto, reta comprida, loop, 2 retas compridas; `v
 - **JSON e identidade:** loop à direita `22f50ceb`, à esquerda `34b80c0e` (pista de teste), o `sentido` volta igual do JSON; oval `a34f4cb9`.
 - **Snapshot:** carro no ar codificado e lido de volta (`ar`, `ay 0,31`, `avy −2,5`); o carro seguinte, no trilho, continua lido certo.
 - **Malha:** conferida numa imagem renderizada no Editor (loop em hélice e salto com o vão).
+- **Salto no alto** (oval com o salto na reta da largada, `TrackLayout.Build(…, z0)` com z0 = 0, 1 e 2, gatilho fixo por 40 s): fechada e 0 sobreposições nos três; resultado igual nos três níveis: 40% cai no vão, 50% passa (derrapagem 0,18), 60% e 70% passam (0,60), 90% capota no pouso. Quem cai no vão no alto sai do trilho e cai até a mesa, como qualquer saída de pista. A malha no alto não foi conferida em imagem.
 - **Não testado:** corrida no Play com as câmeras (Perseguição e primeira pessoa dentro do loop), colisão no ar entre dois carrinhos, o snapshot `ar` entre host e visitante, e o loop atrás da largada.
+
+### 42.4 Vão do salto
+
+Com o salto selecionado, o painel da peça mostra **Vão: 1 célula · 2 células · 3 células** (`TrackBuilder.SetGap`, entra no desfazer). A rampa de subida (`JumpUp` 1) e a de pouso (`JumpLand` 2) não mudam: a peça cresce com o vão, 4, 5 ou 6 células, e continua na grade.
+
+- **Peça:** `TrackPiece.vao` (1 a `PieceCatalog.MaxGap` = 3). `TrackPiece.Def` devolve `PieceCatalog.JumpOf(vao)`: três `PieceDef` com o mesmo id `salto`, cada um com `Gap`, `Lip` e `Length`. `JumpY`, `JumpSlope`, `JumpGapAt` e `JumpOpenAt` (a folga da sobreposição) viraram métodos do `PieceDef`. Na física, `LanePoint.def` traz a peça do ponto, e a decolagem e o pouso leem `Gap` e `Lip` dela.
+- **Altura da ponta por vão** (`JumpLips`): **0,2 · 0,3 · 0,4**. Com 0,2 nos três, o vão 2 só passava com 70% do gatilho e o vão 3 não passava com nenhum (as curvas do oval seguram a velocidade abaixo de 10).
+- **IA** (`JumpAi` por vão): **7,5 · 8,5 · 9** células/s na ponta.
+- **JSON:** `vao` em cada peça (o salto grava o vão, as outras peças gravam 0). Sem o campo, o vão é 1, então as pistas antigas não mudam.
+- **Identidade:** só o salto com vão maior que 1 acrescenta `:vao` (`salto:0:0:3`). Com vão 1 o texto é o mesmo de antes: oval `a34f4cb9`, e a pista largada + salto (vão 1) dá `5776bfde` com ou sem o campo.
+
+- **Fechar sozinho (Q):** `TrackCloser.MovesOf` percorre o salto de 5 células como reta comprida + reta curtinha e o de 6 como reta comprida + reta curta. Antes, o salto que não tinha 4 ou 2 células virava uma reta curtinha só: a ponta calculada ficava 4 ou 5 células atrás da real e o Q não achava fechamento. Teste (o rascunho de quem achou o erro: salto, 2 cruzamentos, 2 curvas longas e uma reta comprida): vão 1, 2 e 3 fecham com 5, 6 e 5 peças, em 52 a 61 ms; antes, os vãos 2 e 3 desistiam depois de 20 s.
+
+**Testes** (`script eval`; oval com o salto na reta da largada e a reta de baixo esticada para fechar; gatilho fixo por 40 s, velocidade na ponta da rampa):
+
+| Vão | Ponta | Menor velocidade que passa | Cai no vão |
+|---|---|---|---|
+| 1 | 0,2 | 6,1 (46%) | 5,6 ou menos |
+| 2 | 0,3 | 7,3 (55%) | 6,7 ou menos |
+| 3 | 0,4 | 7,6 (58%) | 7,0 ou menos |
+
+Acima disso, todos passam até o limite das curvas (cerca de 10). A derrapagem no pouso chega no máximo a `JumpSlipMax` 0,6. Outros valores testados: vão 2 com 0,35 passa a 6,8; vão 3 com 0,5 passa a 7,0 e com 0,7 passa a 6,0. Com a IA (2 robôs, 120 s, `Random.InitState(7)`), nos três vãos e com as qualidades 60 e 100, ninguém saiu da pista (21 a 25 voltas). O JSON vai e volta com `vao` 3 (comprimento 6), e um JSON sem `vao` volta com 1 (comprimento 4). A malha e o painel não foram conferidos em imagem.
 
 ## 43. Pista de 8 carros
 

@@ -129,7 +129,8 @@ namespace Autorama
                 Edge Foot(float o) => t => (o, d.IsJump ? ground - Y(t, o) - thick : -thick, o + 0.5f);
                 AddBand(Side, s, ts, Foot(-0.5f), At(-0.5f, wallL ? wallH : 0f), 1f, Y);
                 AddBand(Side, s, ts, At(0.5f, wallR ? wallH : 0f), Foot(0.5f), 1f, Y);
-                if (s.High || d.IsLoop) AddBand(Side, s, ts, At(0.5f, -thick), At(-0.5f, -thick), 1f, Y);     // o lado de fora da volta aparece
+                if (d.IsJump) { if (s.High) AddBand(Side, s, ts, Foot(0.5f), Foot(-0.5f), 1f, Y); }     // salto no alto: fundo reto
+                else if (s.High || d.IsLoop) AddBand(Side, s, ts, At(0.5f, -thick), At(-0.5f, -thick), 1f, Y);     // o lado de fora da volta aparece
                 AddCaps(s, thick, Y);
             }
 
@@ -292,8 +293,8 @@ namespace Autorama
                 foreach (float side in new[] { -0.44f, 0f, 0.44f })
                 {
                     var o = TrackMath.Offset(q, side);
-                    // No loop o pilar vai até a base da volta, não até a volta.
-                    float top = (s.def.IsLoop ? s.zIn * TrackMath.LevelHeight : TrackLayout.SurfaceY(s, t, side)) - 0.06f;
+                    // No loop o pilar vai até a base da volta, não até a volta; no salto, até a base maciça.
+                    float top = (s.def.IsLoop || s.def.IsJump ? s.zIn * TrackMath.LevelHeight : TrackLayout.SurfaceY(s, t, side)) - 0.06f;
                     float foot = Thickness / k;      // a mesa fica Thickness (mundo) abaixo do nível 0
                     pillars.Add(Box("Pilar", mat, new Vector3(o.x, (top - foot) / 2f, o.y), new Vector3(thin, top + foot, thin), rot));
                 }
@@ -342,7 +343,7 @@ namespace Autorama
                 V.Add(Point(s, q, ts[i], eb.o, eb.dy, y));
                 UV.Add(new Vector2(ea.u, dist * vScale));
                 UV.Add(new Vector2(eb.u, dist * vScale));
-                if (i > 0 && !(s.def.IsJump && PieceCatalog.JumpGapAt(ts[i] * s.def.Length)))     // no vão do salto não há pista
+                if (i > 0 && !(s.def.IsJump && s.def.JumpGapAt(ts[i] * s.def.Length)))     // no vão do salto não há pista
                 {
                     int k = start + i * 2;
                     tri.Add(k - 2); tri.Add(k); tri.Add(k - 1);
@@ -368,7 +369,7 @@ namespace Autorama
         {
             float L = s.def.Length, ground = s.zIn * TrackMath.LevelHeight;
             var ends = s.def.IsJump
-                ? new[] { (0f, true), (PieceCatalog.JumpUp / L, false), ((PieceCatalog.JumpUp + PieceCatalog.JumpGap) / L, true), (1f, false) }
+                ? new[] { (0f, true), (PieceCatalog.JumpUp / L, false), ((PieceCatalog.JumpUp + s.def.Gap) / L, true), (1f, false) }
                 : new[] { (0f, true), (1f, false) };
             foreach (var (t, front) in ends)
             {

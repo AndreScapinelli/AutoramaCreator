@@ -124,7 +124,7 @@ namespace Autorama
                     // O vão do salto não tem pista: outra peça (reta ou outro salto) pode cruzar por ele. Ficam de fora os
                     // pontos do vão e os da última meia célula de cada rampa: o ponto a 0,5 da ponta já cobre até ela.
                     float u = t * s.def.Length;
-                    if (s.def.IsJump && u > PieceCatalog.JumpUp - 0.49f && u < PieceCatalog.JumpUp + PieceCatalog.JumpGap + 0.49f) continue;
+                    if (s.def.JumpOpenAt(u)) continue;
                     list.Add(new Vector3(q.pos.x, q.pos.y, s.ZAt(t)));
                     bx0 = Mathf.Min(bx0, q.pos.x); by0 = Mathf.Min(by0, q.pos.y);
                     bx1 = Mathf.Max(bx1, q.pos.x); by1 = Mathf.Max(by1, q.pos.y);
@@ -148,8 +148,6 @@ namespace Autorama
                 if (a.xMax + 1 < b.xMin || b.xMax + 1 < a.xMin || a.yMax + 1 < b.yMin || b.yMax + 1 < a.yMin) continue;
                 if (Touches(pts[i], pts[j], minSqr)) { r.overlaps.Add(i); r.overlaps.Add(j); }
             }
-            // Salto só no chão: no alto fica marcado como sobreposição. O loop pode ficar no alto (só não sobe nem desce).
-            for (int i = 0; i < n; i++) if (segs[i].def.IsJump && segs[i].High) r.overlaps.Add(i);
 
             // Cada carrinho troca de lado a cada cruzamento (na pista de 4: 1↔4 e 2↔3). Com um número ímpar deles,
             // cada um alterna com o trilho do espelho a cada volta: na média das duas voltas, os dois correm a mesma distância.
@@ -236,7 +234,7 @@ namespace Autorama
                 return s.zIn * TrackMath.LevelHeight + PieceCatalog.LoopRadius * (1f - Mathf.Cos(phi));
             }
             float y = s.ZSmooth(t) * TrackMath.LevelHeight;
-            if (s.def.IsJump) y += PieceCatalog.JumpY(t * s.def.Length);
+            if (s.def.IsJump) y += s.def.JumpY(t * s.def.Length);
             float tan = Mathf.Tan(PieceCatalog.BankAngle * Mathf.Deg2Rad);
             if (!s.def.Banked)
             {

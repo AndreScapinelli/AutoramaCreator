@@ -13,9 +13,12 @@ namespace Autorama
         public readonly bool Banked, IsStart, IsCross;
         // Loop e salto (seção 42 do guia): na planta são retas (Length = quanto a peça avança), sempre no chão.
         public readonly bool IsLoop, IsJump;
+        // Salto: vão (células) e altura da ponta da rampa (seção 42.4). Fora do salto, 0.
+        public readonly float Gap, Lip;
 
-        PieceDef(string id, string name, PieceKind kind, float length, float angle, bool banked, bool isStart, bool isCross = false, bool isLoop = false, bool isJump = false)
+        PieceDef(string id, string name, PieceKind kind, float length, float angle, bool banked, bool isStart, bool isCross = false, bool isLoop = false, bool isJump = false, float gap = 0f, float lip = 0f)
         {
+            Gap = gap; Lip = lip;
             Id = id; Name = name; Kind = kind; Length = length; Angle = angle; Radius = 2.5f; Banked = banked; IsStart = isStart; IsCross = isCross;
             IsLoop = isLoop; IsJump = isJump;
         }
@@ -26,8 +29,28 @@ namespace Autorama
             new PieceDef(id, name, PieceKind.Curve, 0f, angle, banked, false);
         public static PieceDef MakeLoop(string id, string name) =>
             new PieceDef(id, name, PieceKind.Straight, 2f * PieceCatalog.LoopRadius, 0f, false, false, isLoop: true);
-        public static PieceDef MakeJump(string id, string name) =>
-            new PieceDef(id, name, PieceKind.Straight, PieceCatalog.JumpLength, 0f, false, false, isJump: true);
+        public static PieceDef MakeJump(string id, string name, float gap, float lip) =>
+            new PieceDef(id, name, PieceKind.Straight, PieceCatalog.JumpUp + gap + PieceCatalog.JumpLand, 0f, false, false, isJump: true, gap: gap, lip: lip);
+
+        // Altura da superfície do salto (células) a u células do começo da peça. No vão não há pista: 0.
+        public float JumpY(float u)
+        {
+            if (u <= PieceCatalog.JumpUp) { float p = u / PieceCatalog.JumpUp; return Lip * p * p; }
+            float q = (Length - u) / PieceCatalog.JumpLand;
+            return q > 1f ? 0f : Lip * q * q;
+        }
+        // Inclinação (dy/du) da superfície do salto.
+        public float JumpSlope(float u)
+        {
+            const float up = PieceCatalog.JumpUp, land = PieceCatalog.JumpLand;
+            if (u <= up) return 2f * Lip * u / (up * up);
+            float q = (Length - u) / land;
+            return q > 1f ? 0f : -2f * Lip * q / land;
+        }
+        // O trecho que termina em u está no vão? (O ponto u = JumpUp é a ponta da rampa; u = JumpUp + Gap, a do pouso.)
+        public bool JumpGapAt(float u) => u > PieceCatalog.JumpUp + 1e-3f && u <= PieceCatalog.JumpUp + Gap + 1e-3f;
+        // u no vão, com meia célula de folga para cada lado (a sobreposição deixa outra peça cruzar por ali).
+        public bool JumpOpenAt(float u) => IsJump && u > PieceCatalog.JumpUp - 0.49f && u < PieceCatalog.JumpUp + Gap + 0.49f;
 
         // Reta na diagonal (rumo a 45° de um eixo): fica √2 vezes mais comprida, para avançar um número inteiro de
         // células em x e em y e a pista não sair da grade (seção 49 do guia). Loop, salto e largada não mudam.
@@ -83,26 +106,11 @@ namespace Autorama
         // Loop: entrada reta de LoopRadius, a volta (raio LoopRadius, em pé) e saída reta de LoopRadius. Durante a
         // volta a pista desliza LoopShift para o lado (dir), para a saída passar ao lado da entrada.
         public const float LoopRadius = 1f, LoopShift = 1f;
-        // Salto: rampa de JumpUp células que sobe até JumpLip (parábola, plana no encaixe), vão de JumpGap e uma
-        // rampa de pouso que desce de JumpLip até o chão no resto da peça.
-        public const float JumpLength = 4f, JumpUp = 1f, JumpGap = 1f, JumpLip = 0.2f;
-
-        // Altura da superfície do salto (células) a u células do começo da peça. No vão não há pista: 0.
-        public static float JumpY(float u)
-        {
-            if (u <= JumpUp) { float p = u / JumpUp; return JumpLip * p * p; }
-            float land = JumpLength - JumpUp - JumpGap, q = (JumpLength - u) / land;
-            return q > 1f ? 0f : JumpLip * q * q;
-        }
-        // Inclinação (dy/du) da superfície do salto.
-        public static float JumpSlope(float u)
-        {
-            if (u <= JumpUp) return 2f * JumpLip * u / (JumpUp * JumpUp);
-            float land = JumpLength - JumpUp - JumpGap, q = (JumpLength - u) / land;
-            return q > 1f ? 0f : -2f * JumpLip * q / land;
-        }
-        // O trecho que termina em u está no vão? (O ponto u = JumpUp é a ponta da rampa; u = JumpUp + JumpGap, a do pouso.)
-        public static bool JumpGapAt(float u) => u > JumpUp + 1e-3f && u <= JumpUp + JumpGap + 1e-3f;
+        // Salto: rampa de JumpUp células que sobe até Lip (parábola, plana no encaixe), vão de 1 a MaxGap células
+        // (a peça cresce junto: 4, 5 ou 6 células) e rampa de pouso de JumpLand que desce de Lip até o nível da peça.
+        public const float JumpUp = 1f, JumpLand = 2f;
+        public const int MaxGap = 3;
+        public static readonly float[] JumpLips = { 0.2f, 0.3f, 0.4f };     // altura da ponta por vão (1, 2, 3)
 
         public static readonly PieceDef Start  = PieceDef.MakeStraight("largada", "Base de largada", 2f, isStart: true);
         public static readonly PieceDef Short  = PieceDef.MakeStraight("reta-curta", "Reta curta", 2f);
@@ -116,7 +124,9 @@ namespace Autorama
         public static readonly PieceDef HalfB  = PieceDef.MakeCurve("curva-curta-inclinada", "Curva curta inclinada", 45f, true);
 
         public static readonly PieceDef Loop   = PieceDef.MakeLoop("loop", "Loop");
-        public static readonly PieceDef Jump   = PieceDef.MakeJump("salto", "Rampa de salto");
+        public static readonly PieceDef Jump   = PieceDef.MakeJump("salto", "Rampa de salto", 1f, JumpLips[0]);
+        static readonly PieceDef[] jumps = { Jump, PieceDef.MakeJump("salto", "Rampa de salto", 2f, JumpLips[1]), PieceDef.MakeJump("salto", "Rampa de salto", 3f, JumpLips[2]) };
+        public static PieceDef JumpOf(int vao) => jumps[Mathf.Clamp(vao, 1, MaxGap) - 1];
 
         public static readonly PieceDef[] All = { Start, Short, Long, Tiny, Cross, CrossS, Curve, Half, CurveB, HalfB, Loop, Jump };
 
@@ -134,11 +144,12 @@ namespace Autorama
         public string id;
         public int dir;     // 0 nas retas, -1 vira à esquerda, +1 vira à direita
         public int rise;    // -1 desce um nível, 0 plana, +1 sobe um nível
+        public int vao = 1; // só no salto: o vão em células (1 a PieceCatalog.MaxGap)
 
-        public TrackPiece(string id, int dir = 0, int rise = 0) { this.id = id; this.dir = dir; this.rise = rise; }
+        public TrackPiece(string id, int dir = 0, int rise = 0, int vao = 1) { this.id = id; this.dir = dir; this.rise = rise; this.vao = vao; }
 
-        public PieceDef Def => PieceCatalog.ById(id);
-        public TrackPiece Clone() => new TrackPiece(id, dir, rise);
+        public PieceDef Def => id == PieceCatalog.Jump.Id ? PieceCatalog.JumpOf(vao) : PieceCatalog.ById(id);
+        public TrackPiece Clone() => new TrackPiece(id, dir, rise, vao);
 
         public string Describe()
         {
@@ -146,6 +157,7 @@ namespace Autorama
             string s = d.Name;
             if (dir != 0 && d.Sided) s += dir < 0 ? " · esquerda" : " · direita";
             if (rise != 0) s += rise > 0 ? " · sobe" : " · desce";
+            if (d.IsJump) s += $" · vão {vao}";
             return s;
         }
     }

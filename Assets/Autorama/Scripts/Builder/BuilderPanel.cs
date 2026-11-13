@@ -607,7 +607,17 @@ namespace Autorama
             if (p.Def.Sided) Btn("Inverter (F)", builder.FlipSelected, "btn", row);
             Btn("Remover (Del)", builder.RemoveSelected, "btn btn--danger", row);
             Btn("Soltar (Esc)", () => builder.Select(-1), "btn", row);
-            if (p.Def.GroundOnly) return;      // loop e salto ficam no chão: sem botões de altura
+            if (p.Def.IsJump)
+            {
+                var gv = El("segmented", selectedBox);
+                Text("Vão", "seg-label", gv);
+                for (int v = 1; v <= PieceCatalog.MaxGap; v++)
+                {
+                    int vao = v;
+                    Btn($"{v} célula{(v > 1 ? "s" : "")}", () => builder.SetGap(vao), p.vao == vao ? "btn btn--on" : "btn", gv);
+                }
+            }
+            if (p.Def.GroundOnly) return;      // loop e salto não sobem nem descem: sem botões de altura
 
             var seg2 = El("segmented", selectedBox);
             Text("Altura", "seg-label", seg2);

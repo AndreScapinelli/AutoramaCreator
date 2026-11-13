@@ -270,6 +270,7 @@ namespace Autorama
                 int dir = def != null && def.Sided ? (p.sentido == "esquerda" ? -1 : 1) : 0;
                 int rise = p.altura == "sobe" ? 1 : p.altura == "desce" ? -1 : 0;
                 sb.Append('|').Append(p.tipo).Append(':').Append(dir).Append(':').Append(rise);
+                if (def != null && def.IsJump && p.vao > 1) sb.Append(':').Append(p.vao);     // vão 1 (o antigo): identidade igual
             }
             uint h = 0x811c9dc5;
             foreach (char ch in sb.ToString()) { h ^= ch; h *= 0x01000193; }

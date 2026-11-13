@@ -42,7 +42,7 @@ namespace Autorama
             new PaletteEntry(PieceCatalog.Long,   0, -1, Key.D,      "Rampa", "desce 1 nível", "icone-rampa-desce"),
             new PaletteEntry(PieceCatalog.Loop,  -1,  0, Key.K,      "Loop", "sai à esquerda", "icone-loop-esquerda"),
             new PaletteEntry(PieceCatalog.Loop,   1,  0, Key.L,      "Loop", "sai à direita", "icone-loop-direita"),
-            new PaletteEntry(PieceCatalog.Jump,   0,  0, Key.J,      "Rampa de salto", "4 células", "icone-salto"),
+            new PaletteEntry(PieceCatalog.Jump,   0,  0, Key.J,      "Rampa de salto", "4 a 6 células", "icone-salto"),
         };
 
         public string TrackName { get; set; } = "";
@@ -196,6 +196,14 @@ namespace Autorama
             if (rise != 0 && pieces[Selected].Def.GroundOnly) { Notice?.Invoke("Loop e rampa de salto não sobem nem descem de nível."); return; }
             if (rise != 0 && Selected >= FrontEnd) { Notice?.Invoke(NoRampBehind); return; }
             Commit(() => pieces[Selected].rise = rise);
+        }
+
+        // Vão do salto selecionado, de 1 a PieceCatalog.MaxGap células: a peça cresce junto (seção 42.4).
+        public void SetGap(int vao)
+        {
+            if (Selected <= 0 || !pieces[Selected].Def.IsJump) return;
+            vao = Mathf.Clamp(vao, 1, PieceCatalog.MaxGap);
+            if (vao != pieces[Selected].vao) Commit(() => pieces[Selected].vao = vao);
         }
 
         // Sobe ou desce a largada um nível; a pista inteira vai junto (as rampas sobem e descem a partir dela).

@@ -9,7 +9,7 @@ namespace Autorama
     // O HTML usa Y para baixo e ângulo no sentido horário; aqui, z = altura da mesa − y e ângulo = −h.
     [Serializable] public class BoardSave  { public int w = 32, h = 20; }
     [Serializable] public class OriginSave { public float x, y, h; public int nivel; }   // nivel: altura da largada (0 = chão)
-    [Serializable] public class PieceSave  { public string tipo; public string sentido; public string altura; }
+    [Serializable] public class PieceSave  { public string tipo; public string sentido; public string altura; public int vao; }   // vao: só no salto (sem o campo: 1)
 
     [Serializable]
     public class TrackSave
@@ -55,7 +55,7 @@ namespace Autorama
                 if (def == null || def.IsStart) throw new FormatException($"Peça desconhecida: \"{p.tipo}\".");
                 int dir = def.Sided ? (p.sentido == "esquerda" ? -1 : 1) : 0;
                 int rise = p.altura == "sobe" ? 1 : p.altura == "desce" ? -1 : 0;
-                list.Add(new TrackPiece(def.Id, dir, rise));
+                list.Add(new TrackPiece(def.Id, dir, rise, def.IsJump ? Mathf.Clamp(p.vao, 1, PieceCatalog.MaxGap) : 1));
             }
             return list;
         }
@@ -79,6 +79,7 @@ namespace Autorama
                     tipo = p.id,
                     sentido = p.dir < 0 ? "esquerda" : p.dir > 0 ? "direita" : "",
                     altura = p.rise > 0 ? "sobe" : p.rise < 0 ? "desce" : "",
+                    vao = p.Def.IsJump ? p.vao : 0,
                 });
             }
             return s;

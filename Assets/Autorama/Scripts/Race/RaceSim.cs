@@ -124,6 +124,7 @@ namespace Autorama
         // Loop e salto (seção 42). No loop: "pitch" é o ângulo da volta (0 a 360°), "heading" é o rumo da peça e
         // "slope" é sen(pitch) / LevelHeight (a mesma conta de gravidade da rampa, agora ao longo do caminho).
         public bool loop, jump, gap;   // gap: o trecho do salto sem pista
+        public PieceDef def;
         public float pitch;
     }
 
@@ -138,6 +139,7 @@ namespace Autorama
         readonly List<float> bks = new List<float>();
         // Loop e salto: tipo do ponto (0 comum, 1 loop, 2 salto, 3 vão do salto), ângulo da volta e rumo da peça.
         readonly List<byte> kinds = new List<byte>();
+        readonly List<PieceDef> dfs = new List<PieceDef>();     // a peça de cada ponto (o salto lê o vão e a altura dela)
         readonly List<float> lps = new List<float>(), hds = new List<float>();
         public readonly List<float> marks = new List<float>();     // distâncias da bandeirada dentro do caminho
         public float Total => cum.Count > 0 ? cum[cum.Count - 1] : 0f;
@@ -175,10 +177,10 @@ namespace Autorama
                         }
                         else if (d.IsJump)
                         {
-                            kind = (byte)(PieceCatalog.JumpGapAt(t * len) ? 3 : 2);
-                            slope = PieceCatalog.JumpSlope(t * len) / TrackMath.LevelHeight;
+                            kind = (byte)(d.JumpGapAt(t * len) ? 3 : 2);
+                            slope = d.JumpSlope(t * len) / TrackMath.LevelHeight;
                         }
-                        kinds.Add(kind); lps.Add(lp); hds.Add(s.a.heading);
+                        kinds.Add(kind); dfs.Add(d); lps.Add(lp); hds.Add(s.a.heading);
                         float o = d.LaneOffsetAt(off, t);
                         var q = TrackMath.PoseAt(s.a, d, s.piece.dir, t);
                         pts.Add(TrackMath.Offset(q, o) * scale);
@@ -241,7 +243,7 @@ namespace Autorama
                 y = Mathf.Lerp(ys[lo], ys[hi], t),
                 bank = Mathf.Lerp(bks[lo], bks[hi], t),
                 k = ks[hi], grip = gm[hi], slope = gs[hi], z = Mathf.Lerp(zs[lo], zs[hi], t), piece = pis[hi],
-                loop = loop, jump = kinds[hi] >= 2, gap = kinds[hi] == 3,
+                loop = loop, jump = kinds[hi] >= 2, gap = kinds[hi] == 3, def = dfs[hi],
                 pitch = loop ? Mathf.Lerp(kinds[lo] == 1 ? lps[lo] : 0f, lps[hi], t) : 0f,
             };
         }
@@ -319,8 +321,9 @@ namespace Autorama
         // Pouso: a derrapagem que ele dá para em JumpSlipMax (só capota quem já vinha derrapando) e cada ponto de tranco
         // acima de JumpSoft tira JumpLoss da velocidade, até JumpLossMax.
         public const float JumpSlipMax = 0.6f, JumpSoft = 0.8f, JumpLoss = 1.2f, JumpLossMax = 0.6f;
-        // IA: velocidade que ela busca na ponta da rampa de salto e a mínima dentro do loop (células por segundo).
-        const float JumpAi = 7.5f, LoopAi = 5f;
+        // IA: velocidade que ela busca na ponta da rampa de salto (por vão: 1, 2, 3) e a mínima dentro do loop (células por segundo).
+        static readonly float[] JumpAi = { 7.5f, 8.5f, 9f };
+        const float LoopAi = 5f;
         const float RubKick = 0.15f, RubKickV = 0.03f, RubSlip = 8f, RubDrag = 1.2f, HitSlip = 0.12f, HitSlipSide = 0.14f, HitSpin = 60f;
 
         public enum Phase { Idle, Countdown, Running, Done, Switch }     // Switch: troca de trilho entre manches (corrida por tempo)
@@ -466,8 +469,8 @@ namespace Autorama
                     if (q.gap)
                     {
                         c.air = true;
-                        c.airY = (q.z * TrackMath.LevelHeight + PieceCatalog.JumpLip) * Scale;
-                        c.airVy = c.v * PieceCatalog.JumpSlope(PieceCatalog.JumpUp);
+                        c.airY = (q.z * TrackMath.LevelHeight + q.def.Lip) * Scale;
+                        c.airVy = c.v * q.def.JumpSlope(PieceCatalog.JumpUp);
                         continue;
                     }
                     // Loop: na parte de cima, v²/raio tem que segurar o peso. Devagar demais, despenca e volta no começo da peça.
@@ -522,9 +525,9 @@ namespace Autorama
             bool hole = false;
             if (q.jump && !q.gap && P.At(s0).gap)
             {
-                float lipS = P.StartOf(c.s) + (PieceCatalog.JumpUp + PieceCatalog.JumpGap) * Scale;
+                float lipS = P.StartOf(c.s) + (PieceCatalog.JumpUp + q.def.Gap) * Scale;
                 float yLip = Mathf.Lerp(y0, c.airY, Mathf.InverseLerp(s0, c.s, lipS));
-                hole = yLip < (q.z * TrackMath.LevelHeight + PieceCatalog.JumpLip - 0.03f) * Scale;
+                hole = yLip < (q.z * TrackMath.LevelHeight + q.def.Lip - 0.03f) * Scale;
             }
             if (!hole && c.airY > q.y) { CountLap(k); return; }
             hole |= q.gap;
@@ -871,7 +874,7 @@ namespace Autorama
                 // Rampa de salto: chega na ponta a JumpAi (um pouco mais ou menos conforme a coragem; no erro, rápido demais).
                 if (q.jump && q.slope > 0f)
                 {
-                    float vj = JumpAi * Scale * (m > 1.25f ? m : Mathf.Clamp(m, 0.9f, 1.1f));
+                    float vj = JumpAi[Mathf.RoundToInt(q.def.Gap) - 1] * Scale * (m > 1.25f ? m : Mathf.Clamp(m, 0.9f, 1.1f));
                     need = Mathf.Min(need, Mathf.Sqrt(vj * vj + 2f * AiBrake * Scale * d));
                     jumpNear = true;
                 }

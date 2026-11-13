@@ -108,19 +108,20 @@ namespace Autorama
         }
 
         // Movimento com a mesma geometria de uma peça (a largada é uma reta curta; as inclinadas são iguais às planas;
-        // o cruzamento e a rampa de salto são retas na planta).
-        static int MoveOf(TrackPiece p)
+        // o cruzamento e a rampa de salto são retas na planta). O salto de vão 2 ou 3 (5 ou 6 células) vira dois movimentos.
+        static int[] MovesOf(TrackPiece p)
         {
             var d = p.Def;
-            if (d.IsLoop) return p.dir > 0 ? 7 : 8;
+            if (d.IsLoop) return new[] { p.dir > 0 ? 7 : 8 };
             if (!d.IsCurve)
             {
-                if (Mathf.Approximately(d.Length, 4f)) return 0;
-                if (Mathf.Approximately(d.Length, 2f)) return 1;
-                return 6;
+                int n = Mathf.RoundToInt(d.Length);
+                if (n == 6) return new[] { 0, 1 };
+                if (n == 5) return new[] { 0, 6 };
+                return new[] { n == 4 ? 0 : n == 2 ? 1 : 6 };
             }
             bool half = Mathf.Approximately(d.Angle, 45f);
-            return half ? (p.dir > 0 ? 4 : 5) : (p.dir > 0 ? 2 : 3);
+            return new[] { half ? (p.dir > 0 ? 4 : 5) : (p.dir > 0 ? 2 : 3) };
         }
 
         // ---------- Busca ----------
@@ -224,12 +225,12 @@ namespace Autorama
 
             // Ponta da pista, em aritmética exata.
             var end = start;
-            foreach (var p in existing) end = Apply(end, MoveOf(p));
+            foreach (var p in existing) foreach (int m in MovesOf(p)) end = Apply(end, m);
             var cmp = new StateEq();
 
             // O destino, de ré: da largada, voltando peça por peça pelas de trás (a última da lista encosta na largada).
             var goal = new State { x = start.x, y = start.y, h = Mod8(start.h + 4) };
-            for (int i = tail.Count - 1; i >= 0; i--) goal = Apply(goal, Mirror(MoveOf(tail[i])));
+            for (int i = tail.Count - 1; i >= 0; i--) foreach (int m in MovesOf(tail[i])) goal = Apply(goal, Mirror(m));
             var goalFront = goal; goalFront.h = Mod8(goal.h + 4);
             if (cmp.Equals(end, goalFront))
             {
@@ -384,7 +385,7 @@ namespace Autorama
                     {
                         float t = j / (float)k, u = t * s.def.Length;
                         if (s.ZAt(t) > 0.01f) continue;                     // no alto (ponte, rampa, volta do loop): passa por baixo
-                        if (s.def.IsJump && u > PieceCatalog.JumpUp - 0.49f && u < PieceCatalog.JumpUp + PieceCatalog.JumpGap + 0.49f) continue;
+                        if (s.def.JumpOpenAt(u)) continue;
                         var p = TrackMath.PoseAt(s.a, s.def, s.piece.dir, t).pos;
                         long key = Key(Mathf.FloorToInt(p.x), Mathf.FloorToInt(p.y));
                         if (!o.cells.TryGetValue(key, out var l)) o.cells[key] = l = new List<Vector2>();
