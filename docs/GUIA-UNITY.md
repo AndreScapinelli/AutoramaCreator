@@ -1623,7 +1623,7 @@ O `index.html` já tem as duas coisas:
 - **Ponte:** qualquer peça pode subir ou descer um nível de altura. Há também dois atalhos na paleta, as **Rampas** (teclas `U` e `D`).
 - **Curvas inclinadas:** longa (90°) e curta (45°), nas teclas `7` a `0`.
 
-O botão **Exemplo: 8 com ponte** carrega um 8 deitado de 26 peças, feito com curvas curtas inclinadas, em que uma diagonal passa por cima da outra (seção 16.8).
+O 8 deitado de 26 peças (`TrackSave.Eight`), feito com curvas curtas inclinadas, em que uma diagonal passa por cima da outra (seção 16.8), saiu do construtor: o botão **Exemplo: 8 com ponte** foi removido da Biblioteca. Ele continua como opção de pista na aba Corrida (`ex:oito`), com a mesma identidade (`81546106`).
 
 Na Unity isso fica até mais simples que no HTML. A altura vira **Y de verdade**, e a câmera e o depth buffer resolvem quem aparece por cima.
 

@@ -388,7 +388,6 @@ namespace Autorama
             libList = El(null, Caixa(lib));
             var libRow = El("row", lib);
             Btn("Exemplo: oval", () => Open(Kind(TrackSave.Oval())), "btn", libRow);
-            Btn("Exemplo: 8 com ponte", () => Open(Kind(TrackSave.Eight())), "btn", libRow);
             var newBtn = Btn("Nova pista", null, "btn btn--danger", libRow);
             newBtn.clicked += () => builder.NewTrack();     // do mesmo tipo da atual
             Text("Pasta: " + TrackLibrary.Folder, "small", lib);
