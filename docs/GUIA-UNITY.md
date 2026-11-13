@@ -1104,7 +1104,7 @@ Assim a barra de derrapagem aparece no próprio carrinho: quanto mais cheia, mai
 
 **Recolocar** (o segundo botão) faz o papel do fiscal de pista:
 - O carrinho volta para `exitS − 0,4`, um pouco antes de onde saiu, para não entrar embalado no mesmo ponto.
-- O retorno é uma animação de 0,6 s, da posição na mesa até o trilho.
+- O retorno é uma animação de 0,3 s, da posição na mesa até o trilho.
 - Ele volta parado, com `v = 0` e `slip = 0`.
 - O castigo é o tempo perdido. Não precisa de mais nada.
 
@@ -1285,7 +1285,7 @@ public class SlotCar : MonoBehaviour
 
     void Return(float dt)
     {
-        returnT += dt / 0.6f;
+        returnT += dt / 0.3f;
         Pose2 to = SlotPose();
         float e = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(returnT));
         Place(new Pose2(Vector2.Lerp(returnFrom.pos, to.pos, e), Mathf.LerpAngle(returnFrom.heading, to.heading, e)));
@@ -2400,6 +2400,7 @@ Quando a pista passa da borda da mesa quadriculada, a mesa ganha células, com *
   - a cada edição (`Commit`);
   - ao abrir uma pista (`ShowTrack`, rascunho, biblioteca, exemplos, corrida, campeonato);
   - ao **soltar** a largada arrastada (`EndEdit`). Durante o arrasto a mesa espera, senão a pista fugiria do mouse.
+- **Limite (120 × 120 células):** a pista não passa da mesa. `Commit` mede antes e depois da mudança (`Fits`: o tamanho que `Needed` pede, sem o limite, cabe em `BoardMax`); se cabia e deixou de caber, desfaz e avisa "Não cabe: a mesa vai até 120 × 120 células.". Vale para peça nova (frente e trás), inverter, rampa, girar a largada e fechar com Q. Arrastar a largada ignora a posição que levaria a pista para fora. Pista antiga que já passava continua editável. Teste: retas compridas em linha a partir do rascunho: entram 22, a 23ª é recusada (pista até y 116,5, mesa 118).
 - **Desfazer:** a mesa entra no Ctrl+Z junto com a pista (o instantâneo do desfazer já guarda `mesa`). Desfazer a peça que fez a mesa crescer devolve a mesa ao tamanho anterior.
 
 ```csharp
@@ -3652,3 +3653,46 @@ O espaço entre trilhos continua **0,5 no mundo**. `TrackMath.Faixas(f)` aceita 
 ### 43.5 O que falta
 
 Ver na tela a pista de 8 (construtor e corrida com 8 carros, os 8 painéis e fichas) e jogar com mais de 4 humanos em controles.
+
+## 44. Dois jogadores no mesmo computador no online (protocolo 3)
+
+No lobby online, o botão **+ Jogador 2 neste computador** (seção PILOTOS) põe na sala mais um piloto que joga na mesma máquina, tanto do host quanto de um visitante. Ele entra com o mesmo nome (na Steam, o nome da conta) seguido de " 2", ganha a primeira cor livre (a linha **COR DO JOGADOR 2** troca a cor dele) e fica pronto junto com o dono. **Tirar o jogador 2** o remove. Só dá para mexer nisso no lobby: no meio do campeonato o servidor responde `andamento`.
+
+### 44.1 Identidade
+
+| | Dono | Jogador 2 |
+|---|---|---|
+| id | `<id>` | `<id>#2` (`NetGuest.Id`; `NetGuest.Is` procura o sufixo) |
+| nome | `<nome>` | `<nome até 18> 2` (`NetGuest.Name`; no servidor, `slice(0, 18) + ' 2'`) |
+| uid (melhor pessoal) | `<uid>` / `steam:<SteamID>` | `<uid>:2` / `steam:<SteamID>#2` |
+
+Ele conta como piloto em tudo: limite de 8 da sala, "precisa de 2 pilotos" (host + jogador 2 já bastam para largar), rodízio, tabela e recordes. Na lista da sala ele aparece logo depois do dono.
+
+### 44.2 Protocolo (3)
+
+`OnlineClient.Protocol` e `PROTOCOL` do servidor passaram para 3 (cliente 2 é recusado).
+
+| Mensagem | Novo campo | O quê |
+|---|---|---|
+| `guest` (cliente → servidor) | `on` | liga ou tira o jogador 2 |
+| `color` | `g` | a cor é a do jogador 2 |
+| `in` | `g` | o botão é do jogador 2: o servidor (ou o `SteamTransport` do host) entrega ao host com `from = <id>#2` |
+
+- **Servidor Node:** o jogador 2 é `c.guest` da conexão (`makeGuest`), e `pilots(r)` achata conexões e jogadores 2 para a sala, as cores, os nomes e os lugares. Ele sai junto com a conexão; numa queda no meio do campeonato, o lugar dele (`seats` com `<uid>:2`) volta junto com o do dono.
+- **Steam:** os dados do membro `g2` (`"1"` = tem) e `g2c` (a cor). O `BuildRoom` acrescenta o jogador 2 depois do membro; o `started` só vai para SteamIDs de verdade (sem `#2`). Ao entrar ou criar sala, `g2` volta a `"0"`.
+
+### 44.3 Corrida
+
+`RaceController.OnlineRace.cs`: `LocalId(0|1)`, `LocalOf(id)`, `TwoLocal` (o jogador 2 está no campeonato).
+
+- **Controles:** sozinho, continua valendo qualquer conjunto de teclas e qualquer controle. Com o jogador 2, o dono usa o 1º conjunto (A · S · Espaço · D) e o 1º controle, e o jogador 2 o 2º conjunto e o 2º controle (`LocalInput`, `LocalReslotPressed`). As dicas e os painéis mostram as teclas de cada um.
+- **Visitante:** manda um `in` por jogador (`SendHeld(j, …)`, `SendIn(j)`; o estado enviado, o contador de recolocar e o `inAcc` são por jogador) e prevê os dois carrinhos: `NetSync.Apply(snap, sim, lane, ownHist, lane2, ownHist2)`. A latência sai do eco do carro do dono (ou do jogador 2, se só ele corre na bateria).
+- **Host:** aplica os dois trilhos locais direto no `RaceSim`; os outros vêm do `in` como antes.
+- **Painéis e câmera:** aparecem os painéis dos dois carrinhos daqui (`IsLocalLane`). Com os dois na bateria, a câmera enquadra os dois (`CamFocusCar` = −1); senão, segue o daqui.
+
+### 44.4 Testes
+
+- `cd servidor && npm test`: 8 casos novos (nome + " 2", id `#2`, uid `:2`, cor própria e recusa de cor usada, pronto junto com o dono e já pronto o do host, largada com 4 pilotos de 2 computadores, `in` com `g` chega como `<id>#2`, não tira no meio, volta junto depois de uma queda, tirar). Tudo certo.
+- `SteamTransportTest.Run()` (mundo falso): 5 casos novos (entra logo depois do dono com nome e cor, não pega a cor de outro nem a do dono, troca de cor, tirar, `in` com `g`). As 91 linhas passam.
+- `OnlineSmokeTest.Run()` contra o servidor (protocolo 3): passa.
+- Não testado na tela: jogar uma corrida de verdade com dois jogadores no mesmo computador.

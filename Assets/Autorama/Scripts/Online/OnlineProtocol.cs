@@ -8,6 +8,15 @@ namespace Autorama
 
     // uid: o id fixo do jogador (jogador.json, ou "steam:<SteamID>"); vazio: cliente antigo
     [Serializable] public class NetPlayer { public string id, name, color, uid; public bool ready; }
+
+    // O segundo jogador do mesmo computador anda junto com a conexão do dono: id "<id>#2", nome "<nome> 2" (seção 44 do guia).
+    public static class NetGuest
+    {
+        public const string Suffix = "#2";
+        public static string Id(string owner) => owner + Suffix;
+        public static bool Is(string id) => id != null && id.EndsWith(Suffix);
+        public static string Name(string owner) => (owner ?? "").Length > 18 ? owner.Substring(0, 18) + " 2" : owner + " 2";
+    }
     // secs: duração por tempo (0 = cliente antigo, vale 120) · tempo: o host escolheu "por tempo" · faixas: pista de 2 ou 4 carros
     [Serializable] public class NetStage { public string name, hash, json; public int laps, secs, faixas; public bool tempo; }   // json: a pista (TrackSave); o servidor só devolve o resumo
 
@@ -79,6 +88,7 @@ namespace Autorama
         public int gp;                                    // in: nível do acelerador em % (0 = cliente antigo, vale 100)
         public bool tb;                                   // in: turbo apertado
         public int ts;                                    // in: o relógio do visitante, em ms (volta no snapshot: latência)
+        public bool g;                                    // in (Steam, visitante → host): o botão é do segundo jogador do computador
         // snap / ev (host → todos)
         public string b;                                  // snap: o snapshot em binário, base64 (NetSync.Decode)
         public string k;                                  // ev: res (resultado salvo) · reset (bateria de novo) · sync (o campeonato inteiro)
@@ -99,6 +109,8 @@ namespace Autorama
         public int gp;                                    // in: nível do acelerador em % (1–100)
         public bool tb;                                   // in: turbo apertado
         public int ts;                                    // in: o meu relógio em ms (o host devolve no snapshot)
+        public bool g;                                    // in/color: é do segundo jogador deste computador
+        public bool on;                                   // guest: liga ou tira o segundo jogador
         public float vmax, ramp, grip;                    // start: as regras (os ajustes da aba Corrida do host)
         public string track, hash, json;                  // suggest: a pista que o visitante sugere ao host (nome, identidade e o JSON)
         public int faixas;                                // suggest: 2 ou 4 carros

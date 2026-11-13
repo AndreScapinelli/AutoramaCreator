@@ -69,7 +69,7 @@ namespace Autorama
                 if (state != OnlineClient.State.Open) { b.Leave(); return; }
                 if (!ok) { Err("sem-sala", "Não deu para entrar na sala do amigo."); return; }
                 if (b.Data(SteamLobbyClient.Tag) != "1" || b.Data("ver") != OnlineClient.Protocol.ToString()) { b.Leave(); Err("sem-sala", "Esse lobby não é de uma sala do Autorama (ou é de outra versão do jogo)."); return; }
-                b.SetMyData("ready", "0");
+                b.SetMyData("ready", "0"); b.SetMyData("g2", "0");
                 AssignColor();
                 Enter();
             });
@@ -151,7 +151,8 @@ namespace Autorama
                 case "create": Create(o); break;
                 case "join": Join(o); break;
                 case "leave": if (joined) { b.Leave(); joined = racing = false; stageData.Clear(); Emit(new NetMsg { t = "left" }); } break;
-                case "color": SetColor(o.color); break;
+                case "color": SetColor(o.color, o.g); break;
+                case "guest": SetGuest(o.on); break;
                 case "ready": if (joined && !IsHost) { if (racing) Err("andamento", "O campeonato já começou."); else b.SetMyData("ready", o.ready ? EpochNow() : "0"); } break;
                 case "chat": Chat(o.text); break;
                 case "visibility": if (RequireHost()) b.SetPublic(o.pub); break;
@@ -179,7 +180,7 @@ namespace Autorama
                 if (!ok) { Err("erro", "Não deu para criar a sala na Steam."); return; }
                 b.SetData("epoch", "1");                // "0" é "não pronto": a época começa em 1
                 SaveSummaries();
-                b.SetMyData("ready", "0");
+                b.SetMyData("ready", "0"); b.SetMyData("g2", "0");
                 AssignColor();
                 Enter();
             });
@@ -198,7 +199,7 @@ namespace Autorama
                 {
                     if (state != OnlineClient.State.Open) { b.Leave(); return; }
                     if (!ok) { Err("sem-sala", "Não deu para entrar na sala."); return; }
-                    b.SetMyData("ready", "0");
+                    b.SetMyData("ready", "0"); b.SetMyData("g2", "0");
                     AssignColor();
                     Enter();
                 });
@@ -219,20 +220,42 @@ namespace Autorama
             foreach (var c in Champ.Colors) if (!ColorTaken(c)) { b.SetMyData("color", c); return; }
         }
 
-        bool ColorTaken(string col)
+        // guest: a cor que está sendo trocada é a do meu segundo jogador (a dele não conta como ocupada).
+        bool ColorTaken(string col, bool guest = false)
         {
-            foreach (var m in b.Members()) if (m.id != b.MyId && string.Equals(b.MemberData(m.id, "color"), col, StringComparison.OrdinalIgnoreCase)) return true;
+            foreach (var m in b.Members())
+            {
+                bool me = m.id == b.MyId;
+                if ((!me || guest) && string.Equals(b.MemberData(m.id, "color"), col, StringComparison.OrdinalIgnoreCase)) return true;
+                if ((!me || !guest) && HasGuest(m.id) && string.Equals(b.MemberData(m.id, "g2c"), col, StringComparison.OrdinalIgnoreCase)) return true;
+            }
             return false;
         }
 
-        void SetColor(string color)
+        // O segundo jogador do mesmo computador: dados do membro "g2" (1 = tem) e "g2c" (a cor dele).
+        bool HasGuest(ulong id) => b.MemberData(id, "g2") == "1";
+
+        void SetGuest(bool on)
         {
             if (!joined) return;
             if (racing) { Err("andamento", "O campeonato já começou."); return; }
+            if (on == HasGuest(b.MyId)) return;
+            if (!on) { b.SetMyData("g2", "0"); EmitRoom(); return; }
+            if (BuildRoom().players.Count >= SteamLobbyClient.MaxMembers) { Err("cheia", "A sala está cheia."); return; }
+            foreach (var c in Champ.Colors) if (!ColorTaken(c, true) && !string.Equals(c, b.MemberData(b.MyId, "color"), StringComparison.OrdinalIgnoreCase)) { b.SetMyData("g2c", c); break; }
+            b.SetMyData("g2", "1");
+            EmitRoom();
+        }
+
+        void SetColor(string color, bool guest)
+        {
+            if (!joined) return;
+            if (racing) { Err("andamento", "O campeonato já começou."); return; }
+            if (guest && !HasGuest(b.MyId)) return;
             string col = Array.Find(Champ.Colors, c => string.Equals(c, color, StringComparison.OrdinalIgnoreCase));
             if (col == null) { Err("cor", "Cor inválida."); return; }
-            if (ColorTaken(col)) { Err("cor-usada", "Essa cor já é de outro piloto."); return; }
-            b.SetMyData("color", col);
+            if (ColorTaken(col, guest)) { Err("cor-usada", "Essa cor já é de outro piloto."); return; }
+            b.SetMyData(guest ? "g2c" : "color", col);
             EmitRoom();
         }
 
@@ -318,7 +341,7 @@ namespace Autorama
             var bytes = Encoding.UTF8.GetBytes(JsonUtility.ToJson(m));
             if (bytes.Length > MaxReliable) { Err("etapas", "As pistas são grandes demais para a Steam. Tire alguma etapa."); return; }
 
-            foreach (var p in room.players) if (p.id != Me) b.SendTo(ulong.Parse(p.id), bytes, true);
+            foreach (var p in room.players) if (p.id != Me && !NetGuest.Is(p.id)) b.SendTo(ulong.Parse(p.id), bytes, true);
             b.SetData("state", "racing");                // o lobby continua aberto: quem cair volta (o SteamID é o mesmo) e outros entram para assistir
             racing = true; raceHost = b.MyId; lobbyFlipSince = -1f;
             Say($"{NameOf(b.MyId)} largou o campeonato \"{m.title}\".");
@@ -369,7 +392,7 @@ namespace Autorama
             bool fromHost = from == b.Owner && !IsHost;
             switch (m.t)
             {
-                case "in": if (IsHost && racing) { m.from = from.ToString(); Emit(m); } break;      // o id vem de quem mandou, não do texto
+                case "in": if (IsHost && racing) { m.from = m.g ? NetGuest.Id(from.ToString()) : from.ToString(); Emit(m); } break;      // o id vem de quem mandou, não do texto
                 case "suggested":
                     if (!IsHost || racing || !SuggestionOk(m.hash, m.json)) break;
                     if (!suggFrom.TryGetValue(from, out var times)) suggFrom[from] = times = new List<float>();
@@ -449,7 +472,15 @@ namespace Autorama
         {
             var r = new NetRoom { code = b.Data("code"), name = b.Data("name"), pub = b.Data("pub") == "1", host = b.Owner.ToString(), max = SteamLobbyClient.MaxMembers, state = b.Data("state") };
             foreach (var m in b.Members())
-                r.players.Add(new NetPlayer { id = m.id.ToString(), name = Clean(m.name, 20), color = ColorOf(m.id), ready = IsReady(m.id), uid = "steam:" + m.id });
+            {
+                var p = new NetPlayer { id = m.id.ToString(), name = Clean(m.name, 20), color = ColorOf(m.id), ready = IsReady(m.id), uid = "steam:" + m.id };
+                r.players.Add(p);
+                if (HasGuest(m.id))
+                {
+                    var gc = b.MemberData(m.id, "g2c");
+                    r.players.Add(new NetPlayer { id = NetGuest.Id(p.id), name = NetGuest.Name(p.name), color = string.IsNullOrEmpty(gc) ? "#8A948C" : gc, ready = p.ready, uid = "steam:" + NetGuest.Id(p.id) });
+                }
+            }
             try { var sum = JsonUtility.FromJson<StageSummary>(b.Data("stl")); if (sum != null) r.stages = sum.s; } catch { }
             return r;
         }

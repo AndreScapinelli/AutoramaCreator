@@ -956,14 +956,14 @@ namespace Autorama
             for (int k = 0; k < RaceSim.MaxCars; k++)
             {
                 var p = pads[k];
-                p.root.style.display = k < sim.N && sim.present[k] && (!OnlineRun || k == lane) && (!SplitOn || sim.aiSkill[k] == 0) ? DisplayStyle.Flex : DisplayStyle.None;
+                p.root.style.display = k < sim.N && sim.present[k] && (!OnlineRun || IsLocalLane(k)) && (!SplitOn || sim.aiSkill[k] == 0) ? DisplayStyle.Flex : DisplayStyle.None;
                 if (k >= sim.N || !sim.present[k]) continue;
                 var pilot = live && k < pl.Length ? pl[k] : null;
                 bool ai = sim.aiSkill[k] > 0;
                 p.name.text = pilot != null ? $"{pilot.name.ToUpperInvariant()} · {LaneNames[k].ToUpperInvariant()}"
                     : ai ? $"ROBÔ · {LaneNames[k].ToUpperInvariant()}" : $"JOGADOR {k + 1}";
                 p.gasText.text = ai && !OnlineRun ? $"IA PILOTANDO · {sim.aiSkill[k]}" : GasLabel(k);
-                p.reslot.text = OnlineRun ? "Recolocar  S" : $"Recolocar  {KeyText(ReslotKey(k))}";
+                p.reslot.text = OnlineRun ? $"Recolocar  {KeyText(ReslotKeyAt(LocalKeySet(Math.Max(0, LocalOf(pilot?.id)))))}" : $"Recolocar  {KeyText(ReslotKey(k))}";
                 p.gas.EnableInClassList("gas--ai", ai);
                 if (pilot != null)
                 {

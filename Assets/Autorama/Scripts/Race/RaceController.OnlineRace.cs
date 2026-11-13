@@ -23,20 +23,20 @@ namespace Autorama
         const float HeldRefresh = 0.25f;                       // o visitante repete o estado do botão, por segurança
         readonly Dictionary<string, bool> remoteHeld = new Dictionary<string, bool>();
         readonly Dictionary<string, bool> remoteBoost = new Dictionary<string, bool>();   // turbo apertado de cada visitante
-        bool lastSentBoost;
         readonly Dictionary<string, float> remoteGas = new Dictionary<string, float>();   // nível do acelerador de cada visitante
-        float lastSentGas = 1f;
+        // O que mandei de cada jogador deste computador (0: eu, 1: o segundo jogador; seção 44 do guia).
+        readonly bool[] lastSentBoost = new bool[2], lastSentHeld = new bool[2];
+        readonly float[] lastSentGas = { 1f, 1f }, inAcc = new float[2];
+        readonly int[] myRe = new int[2];
         readonly Dictionary<string, int> remoteRe = new Dictionary<string, int>();
         readonly Dictionary<string, float> remoteInAt = new Dictionary<string, float>();  // quando chegou o último "in" de cada visitante
         readonly Dictionary<string, int> remoteTs = new Dictionary<string, int>();        // o relógio que veio nele (volta no snapshot)
         const float InTimeout = 1f;                            // sem "in" por esse tempo, o botão do visitante conta como solto
-        float snapAcc, inAcc;
-        bool lastSentHeld;
-        int myRe;
+        float snapAcc;
         readonly float[] seenBest = new float[RaceSim.MaxCars];   // a melhor volta de cada carro já vista (aviso de recorde)
         int snapSeq, lastSq;                                   // host: número do último snapshot mandado · visitante: do último aplicado
         float rtt = -1f;                                       // visitante: latência de ida e volta (s), média; −1 desconhecida
-        readonly OwnHistory ownHist = new OwnHistory();        // visitante: a predição do carro próprio
+        readonly OwnHistory ownHist = new OwnHistory(), ownHist2 = new OwnHistory();   // visitante: a predição do carro próprio (e do segundo jogador)
         float hiMismatchSince = -1f, syncAskedAt = -10f;       // visitante: snapshot de outra bateria desde quando · último pedido de sync
         NetMsg startedMsg;                                     // o campeonato como chegou (para responder ao sync se eu virar host)
         bool takeOverStages;                                   // virei host no meio: no lobby, mando as etapas
@@ -49,10 +49,53 @@ namespace Autorama
 
         static int LaneOf(Pilot[] pl, string id) { for (int k = 0; k < pl.Length; k++) if (pl[k] != null && pl[k].id == id) return k; return -1; }
 
-        // O trilho do meu carrinho na bateria da vez; −1 se estou só assistindo.
-        int MyLane() => HeatNow(out _, out _, out _, out _, out var pl) ? LaneOf(pl, myId) : -1;
+        // Os jogadores deste computador: 0 sou eu, 1 é o segundo jogador (id "<meu id>#2"), se ele está no campeonato.
+        string LocalId(int j) => j == 0 ? myId : NetGuest.Id(myId);
+        bool TwoLocal => onlineChamp != null && myId != null && onlineChamp.pilots.Exists(p => p.id == NetGuest.Id(myId));
+        int LocalOf(string id) => id == null || myId == null ? -1 : id == myId ? 0 : id == NetGuest.Id(myId) ? 1 : -1;
+        // Com dois jogadores aqui, cada um tem o seu conjunto de teclas e o seu controle (o 1º e o 2º); sozinho, vale qualquer um.
+        int LocalKeySet(int j) => TwoLocal ? j : 0;
 
-        string OnlineWho(Pilot p) => p.id == myId ? $"é você · acelera {KeyText(GasKeyAt(0))} · recoloca {KeyText(ReslotKeyAt(0))}" :OnlinePresent(p.id) ? "online" : "saiu da sala";
+        // O trilho de um carrinho meu na bateria da vez (o meu, ou o do segundo jogador se eu não corro nela); −1 se só assisto.
+        int MyLane()
+        {
+            if (!HeatNow(out _, out _, out _, out _, out var pl)) return -1;
+            int a = LaneOf(pl, myId);
+            return a >= 0 ? a : LaneOf(pl, LocalId(1));
+        }
+        bool IsLocalLane(int k) => HeatNow(out _, out _, out _, out _, out var pl) && k >= 0 && k < pl.Length && pl[k] != null && LocalOf(pl[k].id) >= 0;
+
+        string OnlineWho(Pilot p)
+        {
+            int j = LocalOf(p.id);
+            if (j >= 0) return $"{(j == 0 ? "é você" : "jogador 2 daqui")} · acelera {KeyText(GasKeyAt(LocalKeySet(j)))} · recoloca {KeyText(ReslotKeyAt(LocalKeySet(j)))}";
+            return OnlinePresent(p.id) ? "online" : "saiu da sala";
+        }
+
+        // Acelerador e turbo de um jogador deste computador no trilho lane.
+        void LocalInput(int j, int lane, Keyboard kb, bool keys, out float gas, out bool boost)
+        {
+            gas = 0f; boost = false;
+            if (lane < 0) return;
+            bool two = TwoLocal;
+            bool Pressed(Controles.Acao a) => keys && (two ? KeyPressed(kb, Controles.Get(j, a)) : AnySetPressed(kb, a));
+            if (uiHeld[lane] || Pressed(Controles.Acao.Acelerar)) gas = 1f;
+            else if (Pressed(Controles.Acao.Meia)) gas = set.halfGas / 100f;
+            if (two) gas = Mathf.Max(gas, Trigger(PadOf(j))); else foreach (var gp in Gamepad.all) gas = Mathf.Max(gas, Trigger(gp));
+            if (!sim.set.turbo) return;
+            boost = uiTurbo[lane] || Pressed(Controles.Acao.Turbo);
+            if (two) boost |= PadTurbo(PadOf(j)); else foreach (var gp in Gamepad.all) boost |= PadTurbo(gp);
+            if (boost) gas = 1f;
+        }
+
+        bool LocalReslotPressed(int j, Keyboard kb, bool keys)
+        {
+            bool two = TwoLocal;
+            bool hit = keys && (two ? KeyWasPressed(kb, ReslotKeyAt(j)) : AnySetWasPressed(kb, Controles.Acao.Recolocar));
+            if (two) { var g = PadOf(j); hit |= g != null && g.buttonSouth.wasPressedThisFrame; }
+            else foreach (var gp in Gamepad.all) hit |= gp.buttonSouth.wasPressedThisFrame;
+            return hit;
+        }
 
         // ---------- Começar e terminar ----------
 
@@ -93,9 +136,10 @@ namespace Autorama
 
             onlineChamp = C;
             startedMsg = m;
-            ClearRemote(); lastSentBoost = false; lastSentGas = 1f;
-            myRe = 0; lastSentHeld = false; snapAcc = 1f; inAcc = 0f;
-            snapSeq = 0; lastSq = 0; rtt = -1f; ownHist.lag = -1f; ownHist.Clear(); hiMismatchSince = -1f; takeOverStages = false;
+            ClearRemote();
+            for (int j = 0; j < 2; j++) { lastSentBoost[j] = lastSentHeld[j] = false; lastSentGas[j] = 1f; myRe[j] = 0; inAcc[j] = 0f; }
+            snapAcc = 1f;
+            snapSeq = 0; lastSq = 0; rtt = -1f; ClearOwnHist(true); hiMismatchSince = -1f; takeOverStages = false;
             for (int k = 0; k < RaceSim.MaxCars; k++) uiHeld[k] = false;
             panel.SetOnlineRacing(true);
             ApplyCameraSettings();
@@ -136,11 +180,11 @@ namespace Autorama
             sim.Reset();
             ClearSeenBest();
             for (int k = 0; k < RaceSim.MaxCars; k++) uiHeld[k] = false;
-            lastSentHeld = false; snapAcc = 1f;
-            ownHist.Clear(); hiMismatchSince = -1f; phaseSince = Time.realtimeSinceStartup;
+            lastSentHeld[0] = lastSentHeld[1] = false; snapAcc = 1f;
+            ClearOwnHist(false); hiMismatchSince = -1f; phaseSince = Time.realtimeSinceStartup;
             if (HeatNow(out _, out int idx, out _, out _, out var pl))
             {
-                int lane = LaneOf(pl, myId);
+                int lane = MyLane();
                 if (lane >= 0) cam.SetThirdPersonCar(lane);
                 // Ninguém da bateria está na sala: vale como não terminada, sem esperar.
                 if (IsHost && !Array.Exists(pl, p => p != null && OnlinePresent(p.id))) { OnlineCommit(idx, OnlineDnf()); return; }
@@ -167,31 +211,23 @@ namespace Autorama
             var kb = Keyboard.current;
             bool keys = kb != null && !IsTyping && !keysOpen;
             bool live = HeatNow(out _, out int idx, out _, out _, out var pl);
-            int lane = live ? LaneOf(pl, myId) : -1;
+            int lane = live ? LaneOf(pl, myId) : -1, lane2 = live ? LaneOf(pl, LocalId(1)) : -1;
             if (live)
             {
-                // Online cada um pilota o seu carrinho: as teclas de acelerar (100%) e de meia de qualquer conjunto, ou o gatilho de qualquer controle.
-                float myGas = 0f;
-                if (lane >= 0)
-                {
-                    if (uiHeld[lane] || (keys && AnySetPressed(kb, Controles.Acao.Acelerar))) myGas = 1f;
-                    else if (keys && AnySetPressed(kb, Controles.Acao.Meia)) myGas = set.halfGas / 100f;
-                    foreach (var gp in Gamepad.all) myGas = Mathf.Max(myGas, Trigger(gp));
-                }
-                // Turbo: a tecla de turbo de qualquer conjunto, X/□ ou RB de qualquer controle, ou a barra da tela. Também acelera a 100%.
-                bool myBoost = false;
-                if (lane >= 0 && sim.set.turbo)
-                {
-                    myBoost = uiTurbo[lane] || (keys && AnySetPressed(kb, Controles.Acao.Turbo));
-                    foreach (var gp in Gamepad.all) myBoost |= PadTurbo(gp);
-                    if (myBoost) myGas = 1f;
-                }
-                bool mine = myGas > 0f;
+                // Online cada um pilota o seu carrinho: sozinho, as teclas de qualquer conjunto e o gatilho de qualquer controle;
+                // com o segundo jogador aqui, cada um com o seu conjunto (1º e 2º) e o seu controle. Turbo também acelera a 100%.
+                LocalInput(0, lane, kb, keys, out float myGas, out bool myBoost);
+                LocalInput(1, lane2, kb, keys, out float gas2, out bool boost2);
                 if (IsHost)
                 {
                     for (int k = 0; k < sim.N && k < pl.Length; k++)
                     {
-                        if (k == lane) { sim.cars[k].held = mine; sim.cars[k].boost = myBoost; if (mine) sim.cars[k].gas = myGas; continue; }
+                        if (k == lane || k == lane2)
+                        {
+                            float g0 = k == lane ? myGas : gas2;
+                            sim.cars[k].held = g0 > 0f; sim.cars[k].boost = k == lane ? myBoost : boost2; if (g0 > 0f) sim.cars[k].gas = g0;
+                            continue;
+                        }
                         if (pl[k] == null) { sim.cars[k].held = false; continue; }     // trilho vazio
                         // Sem "in" há mais de 1 s (o visitante repete a cada 0,25 s): a conexão dele travou, o botão conta como solto.
                         bool fresh = remoteInAt.TryGetValue(pl[k].id, out var at) && Time.realtimeSinceStartup - at < InTimeout;
@@ -200,10 +236,13 @@ namespace Autorama
                         sim.cars[k].boost = sim.cars[k].held && remoteBoost.TryGetValue(pl[k].id, out var bo) && bo;
                     }
                 }
-                else if (lane >= 0) { sim.cars[lane].held = mine; sim.cars[lane].boost = myBoost; if (mine) sim.cars[lane].gas = myGas; SendHeld(mine, myGas, myBoost, dt); }
-                bool padReslot = false;
-                foreach (var gp in Gamepad.all) padReslot |= gp.buttonSouth.wasPressedThisFrame;
-                if (lane >= 0 && ((keys && AnySetWasPressed(kb, Controles.Acao.Recolocar)) || padReslot)) OnlineReslot(lane);
+                else
+                {
+                    if (lane >= 0) { sim.cars[lane].held = myGas > 0f; sim.cars[lane].boost = myBoost; if (myGas > 0f) sim.cars[lane].gas = myGas; SendHeld(0, myGas > 0f, myGas, myBoost, dt); }
+                    if (lane2 >= 0) { sim.cars[lane2].held = gas2 > 0f; sim.cars[lane2].boost = boost2; if (gas2 > 0f) sim.cars[lane2].gas = gas2; SendHeld(1, gas2 > 0f, gas2, boost2, dt); }
+                }
+                if (lane >= 0 && LocalReslotPressed(0, kb, keys)) OnlineReslot(lane);
+                if (lane2 >= 0 && LocalReslotPressed(1, kb, keys)) OnlineReslot(lane2);
                 if (IsHost && ((keys && (kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame)) || AnyPadStart())) OnlineEnter();
                 // O host parado não trava a sala: larga e salva sozinho.
                 float idle = Time.realtimeSinceStartup - phaseSince;
@@ -216,6 +255,7 @@ namespace Autorama
             if (IsHost) OnlineLapFlash();
             if (sim.phase != lastPhase) { lastPhase = sim.phase; scoreDirty = champDirty = true; snapAcc = 1f; SideForPhase(); phaseSince = Time.realtimeSinceStartup; }
             if (!IsHost && lane >= 0) ownHist.Add(Time.realtimeSinceStartup, sim.cars[lane]);
+            if (!IsHost && lane2 >= 0) ownHist2.Add(Time.realtimeSinceStartup, sim.cars[lane2]);
             if (IsHost && live) SendSnapshot(dt, idx, pl);
 
             PlaceCars();
@@ -227,14 +267,23 @@ namespace Autorama
         }
 
         // Manda o botão e o nível do acelerador quando mudam (o nível só conta a partir de 3 pontos) ou a cada HeldRefresh.
-        void SendHeld(bool held, float gas, bool boost, float dt)
+        // j: o jogador deste computador (1 = o segundo: a mensagem vai com g).
+        void SendHeld(int j, bool held, float gas, bool boost, float dt)
         {
-            inAcc += dt;
-            bool gasMoved = held && Mathf.Abs(gas - lastSentGas) >= 0.03f;
-            if (held == lastSentHeld && boost == lastSentBoost && !gasMoved && inAcc < HeldRefresh) return;
-            lastSentHeld = held; lastSentBoost = boost; inAcc = 0f;
-            if (held) lastSentGas = gas;
-            net.Send(new NetOut { t = "in", held = held, gp = NetSync.GasPct(lastSentGas), tb = boost, re = myRe, ts = NetSync.ClockMs });
+            inAcc[j] += dt;
+            bool gasMoved = held && Mathf.Abs(gas - lastSentGas[j]) >= 0.03f;
+            if (held == lastSentHeld[j] && boost == lastSentBoost[j] && !gasMoved && inAcc[j] < HeldRefresh) return;
+            lastSentHeld[j] = held; lastSentBoost[j] = boost; inAcc[j] = 0f;
+            if (held) lastSentGas[j] = gas;
+            SendIn(j);
+        }
+
+        void SendIn(int j) => net.Send(new NetOut { t = "in", g = j == 1, held = lastSentHeld[j], gp = NetSync.GasPct(lastSentGas[j]), tb = lastSentBoost[j], re = myRe[j], ts = NetSync.ClockMs });
+
+        void ClearOwnHist(bool lag)
+        {
+            ownHist.Clear(); ownHist2.Clear();
+            if (lag) ownHist.lag = ownHist2.lag = -1f;
         }
 
         // Cada carro de visitante leva o eco do relógio dele (ts do último "in") e há quanto tempo chegou: ele mede a latência.
@@ -272,10 +321,12 @@ namespace Autorama
         void OnlineReslot(int k)
         {
             sim.Reslot(k);                                // o visitante já vê (predição); o host é quem vale
-            if (IsHost) return;
-            myRe++;
-            lastSentHeld = sim.cars[k].held; inAcc = 0f;
-            net.Send(new NetOut { t = "in", held = lastSentHeld, gp = NetSync.GasPct(lastSentGas), tb = lastSentBoost, re = myRe, ts = NetSync.ClockMs });
+            if (IsHost || !HeatNow(out _, out _, out _, out _, out var pl) || k < 0 || k >= pl.Length || pl[k] == null) return;
+            int j = LocalOf(pl[k].id);
+            if (j < 0) return;
+            myRe[j]++;
+            lastSentHeld[j] = sim.cars[k].held; inAcc[j] = 0f;
+            SendIn(j);
         }
 
         // Host: o botão (e o "recolocar") de um visitante.
@@ -308,14 +359,14 @@ namespace Autorama
             hiMismatchSince = -1f;
             if (s.sq <= lastSq) return;
             lastSq = s.sq;
-            int lane = LaneOf(pl, myId);
-            if (lane >= 0 && lane < s.cars.Count)
+            int lane = LaneOf(pl, myId), lane2 = LaneOf(pl, LocalId(1)), eco = lane >= 0 ? lane : lane2;
+            if (eco >= 0 && eco < s.cars.Count)
             {
-                float r = NetSync.Rtt(s.cars[lane], NetSync.ClockMs);
-                if (r >= 0f) { rtt = rtt < 0f ? r : Mathf.Lerp(rtt, r, 0.1f); ownHist.lag = rtt * 0.5f; }
+                float r = NetSync.Rtt(s.cars[eco], NetSync.ClockMs);
+                if (r >= 0f) { rtt = rtt < 0f ? r : Mathf.Lerp(rtt, r, 0.1f); ownHist.lag = ownHist2.lag = rtt * 0.5f; }
             }
             int before = ScoreSig();
-            NetSync.Apply(s, sim, lane, ownHist);
+            NetSync.Apply(s, sim, lane, ownHist, lane2, ownHist2);
             OnlineLapFlash();
             if (ScoreSig() != before) scoreDirty = true;
         }
@@ -361,7 +412,7 @@ namespace Autorama
                 if (Champ.CurrentHeat(onlineChamp) < 0) onlineChamp.finished = Champ.Now;
                 OnlineHeatLoaded();
             }
-            else if (m.k == "reset") { sim.Reset(); ClearSeenBest(); ownHist.Clear(); phaseSince = Time.realtimeSinceStartup; scoreDirty = champDirty = true; }
+            else if (m.k == "reset") { sim.Reset(); ClearSeenBest(); ClearOwnHist(false); phaseSince = Time.realtimeSinceStartup; scoreDirty = champDirty = true; }
         }
 
         // ---------- Sync: entrar no meio, voltar de uma queda, host novo ----------
@@ -430,7 +481,7 @@ namespace Autorama
         // Visitante: o host mudou. O número dos snapshots recomeça com ele, e a latência é outra.
         void OnlineHostChanged()
         {
-            lastSq = 0; rtt = -1f; ownHist.lag = -1f; ownHist.Clear(); hiMismatchSince = -1f;
+            lastSq = 0; rtt = -1f; ClearOwnHist(true); hiMismatchSince = -1f;
         }
 
         // ---------- Ações do host ----------
@@ -506,6 +557,8 @@ namespace Autorama
             else LeaveRoom();
         }
 
+        string Keys2Hint() => TwoLocal ? $" (o jogador 2 daqui: {KeyText(GasKeyAt(1))} e {KeyText(ReslotKeyAt(1))}, ou o 2º controle)" : "";
+
         // Os botões e a dica do cartão da bateria (chamado por DrawRun no lugar dos botões do offline).
         void DrawOnlineActs(bool live, int idx, Stage stage)
         {
@@ -521,8 +574,8 @@ namespace Autorama
             string laps = stage != null ? $"{stage.laps} {(stage.laps == 1 ? "volta" : "voltas")}" : "";
             cHint.text = !live ? (host ? "O campeonato acabou. Voltar ao lobby leva todos de volta para montar outro."
                                        : "O campeonato acabou. O host leva todos de volta ao lobby.")
-                : ph == RaceSim.Phase.Idle ? (host ? $"Espere os pilotos da bateria se prepararem e aperte Largar. Quem corre acelera com {KeyText(GasKeyAt(0))} e recoloca com {KeyText(ReslotKeyAt(0))}."
-                                                   : $"Aguardando o host largar. Quem corre acelera com {KeyText(GasKeyAt(0))} e recoloca com {KeyText(ReslotKeyAt(0))}.")
+                : ph == RaceSim.Phase.Idle ? (host ? $"Espere os pilotos da bateria se prepararem e aperte Largar. Quem corre acelera com {KeyText(GasKeyAt(0))} e recoloca com {KeyText(ReslotKeyAt(0))}{Keys2Hint()}."
+                                                   : $"Aguardando o host largar. Quem corre acelera com {KeyText(GasKeyAt(0))} e recoloca com {KeyText(ReslotKeyAt(0))}{Keys2Hint()}.")
                 : ph == RaceSim.Phase.Done ? (host ? "Salve para o resultado contar na tabela de todos. Se algo deu errado, corra de novo: esta bateria é descartada."
                                                    : "Bateria encerrada. O host salva o resultado e segue.")
                 : $"Vence a bateria quem completar {laps} primeiro. Quem não terminar tem {Champ.Cutoff:0} s depois da bandeirada.";

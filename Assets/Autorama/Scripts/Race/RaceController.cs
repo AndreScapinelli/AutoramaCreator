@@ -896,7 +896,7 @@ namespace Autorama
         // contra o robô, o jogador 1; nos outros casos -1 (a dinâmica enquadra os dois).
         int CamFocusCar()
         {
-            if (OnlineRun) return MyLane();
+            if (OnlineRun) return TwoLocal && HeatNow(out _, out _, out _, out _, out var opl) && LaneOf(opl, myId) >= 0 && LaneOf(opl, LocalId(1)) >= 0 ? -1 : MyLane();   // dois daqui na bateria: enquadra os dois
             // Corrida livre com um humano só (os outros são robôs, ou ele corre sozinho): a câmera segue esse humano.
             if (panel != null && panel.CurrentMode == BuilderPanel.Mode.Race)
             {

@@ -5,7 +5,7 @@
 const http = require('http');
 const { WebSocketServer } = require('ws');
 
-const PROTOCOL = 2;                    // muda quando as mensagens deixam de combinar com o cliente (OnlineClient.Protocol)
+const PROTOCOL = 3;                    // muda quando as mensagens deixam de combinar com o cliente (OnlineClient.Protocol)
 const MAX_PLAYERS = 8;                 // o mesmo limite do campeonato
 const MAX_STAGES = 12;
 const MAX_TRACK_JSON = 100 * 1024;     // por pista
@@ -45,9 +45,12 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
 
   const send = (c, msg) => { if (c.ws.readyState === 1) c.ws.send(JSON.stringify(msg)); };
   const fail = (c, code, text) => send(c, { t: 'error', code, text });
+  // Os pilotos da sala: cada conexão e, logo depois dela, o segundo jogador do mesmo computador (c.guest), se tiver.
+  const pilots = r => r.players.flatMap(c => c.guest ? [c, c.guest] : [c]);
   const snapshot = r => ({
     code: r.code, name: r.name, pub: r.pub, host: r.host, max: MAX_PLAYERS, state: r.state,
-    players: r.players.map(p => ({ id: p.id, name: p.name, color: p.color, uid: p.uid, ready: p.id === r.host || !!p.ready })),   // o host está sempre pronto
+    // o host está sempre pronto; o segundo jogador fica pronto junto com o dono
+    players: pilots(r).map(p => { const o = p.owner || p; return { id: p.id, name: p.name, color: p.color, uid: p.uid, ready: o.id === r.host || !!o.ready }; }),
     stages: r.stages.map(s => ({ name: s.name, laps: s.laps, secs: s.secs, tempo: s.tempo, faixas: s.faixas, hash: s.hash })),
   });
   const broadcast = (r, msg) => r.players.forEach(p => send(p, msg));
@@ -64,7 +67,10 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
       if (!rooms.has(s)) return s;
     }
   }
-  const freeColor = r => COLORS.find(c => !r.players.some(p => p.color === c));
+  const freeColor = r => COLORS.find(c => !pilots(r).some(p => p.color === c));
+  // O segundo jogador do mesmo computador: id "<id>#2", nome "<nome> 2", uid "<uid>:2". Vai e volta junto com a conexão.
+  const GUEST = '#2';
+  const makeGuest = (c, color) => ({ owner: c, id: c.id + GUEST, name: c.name.slice(0, NAME_MAX - 2) + ' 2', uid: c.uid ? c.uid + ':2' : '', color: color || null });
 
   function validName(c, name) {
     const n = clean(name, NAME_MAX);
@@ -75,7 +81,7 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
   // O id fixo do jogador (o melhor pessoal online fica preso a ele): letras, números, ":" e "-". Repetido na sala: fica vazio.
   const validUid = (r, uid) => {
     const u = typeof uid === 'string' && /^[A-Za-z0-9:-]{8,64}$/.test(uid) ? uid : '';
-    return u && !r.players.some(p => p.uid === u) ? u : '';
+    return u && !pilots(r).some(p => p.uid === u) ? u : '';
   };
 
   function enter(c, r, name, uid) {
@@ -83,8 +89,10 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
     // Campeonato andando: quem já era piloto (mesmo uid) volta com o id e a cor de antes; os outros entram para assistir.
     const seat = r.state === 'racing' && c.uid && r.seats.get(c.uid);
     const back = seat && !r.players.some(p => p.id === seat.id);
-    if (back) { c.id = seat.id; if (!r.players.some(p => p.color === seat.color)) c.color = seat.color; }
+    if (back) { c.id = seat.id; if (!pilots(r).some(p => p.color === seat.color)) c.color = seat.color; }
     r.players.push(c);
+    const gseat = back && r.seats.get(c.uid + ':2');
+    if (gseat) { c.guest = makeGuest(c, gseat.color); if (pilots(r).some(p => p !== c.guest && p.color === gseat.color)) c.guest.color = freeColor(r); }
     if (!r.players.some(p => p.id === r.host)) r.host = c.id;    // a sala tinha ficado só com a conexão velha
     send(c, { t: 'joined', you: c.id, room: snapshot(r), chat: r.chat });
     say(r, back ? `${name} voltou à sala.` : r.state === 'racing' ? `${name} entrou para assistir.` : `${name} entrou na sala.`);
@@ -101,7 +109,7 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
 
   function leave(c) {
     const r = c.room; if (!r) return;
-    c.room = null;
+    c.room = null; c.guest = null;
     r.players = r.players.filter(p => p !== c);
     if (!r.players.length) { rooms.delete(r.code); return; }
     say(r, `${c.name} saiu da sala.`);
@@ -124,7 +132,7 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
   const handlers = {
     list(c) {
       const out = [...rooms.values()].filter(r => r.pub && r.state === 'lobby').map(r => ({
-        code: r.code, name: r.name, host: r.players.find(p => p.id === r.host).name, players: r.players.length, max: MAX_PLAYERS, stages: r.stages.length,
+        code: r.code, name: r.name, host: r.players.find(p => p.id === r.host).name, players: pilots(r).length, max: MAX_PLAYERS, stages: r.stages.length,
       }));
       send(c, { t: 'rooms', rooms: out });
     },
@@ -152,8 +160,8 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
       // Voltando de uma queda que o servidor ainda não percebeu: a conexão velha do mesmo jogador sai.
       const old = r.state === 'racing' && typeof m.uid === 'string' && m.uid && r.players.find(p => p.uid === m.uid);
       if (old) { leave(old); old.ws.terminate(); if (!rooms.has(r.code)) rooms.set(r.code, r); }
-      if (r.players.length >= MAX_PLAYERS) return fail(c, 'cheia', 'A sala está cheia.');
-      if (r.players.some(p => p.name.toLowerCase() === name.toLowerCase())) return fail(c, 'nome-usado', 'Já tem alguém com esse nome na sala.');
+      if (pilots(r).length >= MAX_PLAYERS) return fail(c, 'cheia', 'A sala está cheia.');
+      if (pilots(r).some(p => p.name.toLowerCase() === name.toLowerCase())) return fail(c, 'nome-usado', 'Já tem alguém com esse nome na sala.');
       enter(c, r, name, m.uid);
     },
     leave(c) { leave(c); send(c, { t: 'left' }); },
@@ -169,14 +177,14 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
       const r = c.room; if (!r) return;
       if (r.host !== c.id) return fail(c, 'host', 'Só o host começa o campeonato.');
       if (r.state !== 'lobby') return fail(c, 'andamento', 'O campeonato já começou.');
-      if (r.players.length < 2) return fail(c, 'poucos', 'Precisa de pelo menos 2 pilotos.');
+      if (pilots(r).length < 2) return fail(c, 'poucos', 'Precisa de pelo menos 2 pilotos.');
       if (!r.stages.length) return fail(c, 'sem-etapas', 'Escolha pelo menos uma pista.');
       const falta = r.players.filter(p => p !== c && !p.ready);
       if (falta.length) return fail(c, 'nao-prontos', `Falta ficar pronto: ${falta.map(p => p.name).join(', ')}.`);
       const rules = { vmax: Number(m.vmax), ramp: Number(m.ramp), grip: Number(m.grip), collide: !!m.collide, byTime: !!m.byTime, turbo: m.turbo !== false };   // turbo: ausente (cliente antigo) = ligado
       if (!(rules.vmax >= 8 && rules.vmax <= 20 && rules.ramp >= 0.2 && rules.ramp <= 1.5 && rules.grip >= 15 && rules.grip <= 45)) return fail(c, 'regras', 'Regras inválidas.');
       r.state = 'racing';
-      r.seats = new Map(r.players.filter(p => p.uid).map(p => [p.uid, { id: p.id, color: p.color }]));   // para quem cair voltar ao mesmo lugar
+      r.seats = new Map(pilots(r).filter(p => p.uid).map(p => [p.uid, { id: p.id, color: p.color }]));   // para quem cair voltar ao mesmo lugar
       const title = clean(m.name, 40) || `Campeonato de ${c.name}`;
       const msg = { t: 'started', title, rules, pilots: snapshot(r).players, stages: r.stages.map(s => ({ name: s.name, laps: s.laps, secs: s.secs, tempo: s.tempo, faixas: s.faixas, hash: s.hash, json: s.json })) };
       broadcast(r, msg);
@@ -201,15 +209,32 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
       const gp = Math.max(1, Math.min(100, Math.round(Number(m.gp)) || 100));
       // ts: o relógio do visitante, devolvido no snapshot para ele medir a latência.
       const ts = Math.max(0, Math.min(2147483647, Math.round(Number(m.ts)) || 0));
-      if (host) send(host, { t: 'in', from: c.id, held: !!m.held, gp, tb: !!m.tb, re: Math.max(0, Math.min(1e6, Math.round(Number(m.re)) || 0)), ts });
+      const from = m.g && c.guest ? c.guest.id : c.id;    // g: o botão é do segundo jogador
+      if (host) send(host, { t: 'in', from, held: !!m.held, gp, tb: !!m.tb, re: Math.max(0, Math.min(1e6, Math.round(Number(m.re)) || 0)), ts });
     },
     color(c, m) {
       const r = c.room; if (!r) return;
       if (r.state !== 'lobby') return fail(c, 'andamento', 'O campeonato já começou.');
       const col = String(m.color || '').toUpperCase();
       if (!COLORS.includes(col)) return fail(c, 'cor', 'Cor inválida.');
-      if (r.players.some(p => p !== c && p.color === col)) return fail(c, 'cor-usada', 'Essa cor já é de outro piloto.');
-      c.color = col; pushRoom(r);
+      const who = m.g ? c.guest : c;                     // g: a cor do segundo jogador
+      if (!who) return;
+      if (pilots(r).some(p => p !== who && p.color === col)) return fail(c, 'cor-usada', 'Essa cor já é de outro piloto.');
+      who.color = col; pushRoom(r);
+    },
+    // Liga (on) ou tira o segundo jogador do mesmo computador. Só no lobby.
+    guest(c, m) {
+      const r = c.room; if (!r) return;
+      if (r.state !== 'lobby') return fail(c, 'andamento', 'O campeonato já começou.');
+      if (!m.on) { if (c.guest) { say(r, `${c.guest.name} saiu da sala.`); c.guest = null; pushRoom(r); } return; }
+      if (c.guest) return;
+      if (pilots(r).length >= MAX_PLAYERS) return fail(c, 'cheia', 'A sala está cheia.');
+      const g = makeGuest(c);
+      if (pilots(r).some(p => p.name.toLowerCase() === g.name.toLowerCase())) return fail(c, 'nome-usado', 'Já tem alguém com esse nome na sala.');
+      g.color = freeColor(r);
+      c.guest = g;
+      say(r, `${g.name} entrou na sala (no computador de ${c.name}).`);
+      pushRoom(r);
     },
     chat(c, m) {
       const r = c.room; if (!r) return;

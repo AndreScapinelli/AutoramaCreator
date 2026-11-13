@@ -291,6 +291,43 @@ const trilha = (n, extra = {}) => ({ name: 'Pista ' + n, laps: 3, hash: 'a34f4cb
   B.send({ t: 'leave' }); r = await A.next('room'); assert.strictEqual(r.room.state, 'racing'); assert.strictEqual(r.room.players.length, 1); ok('visitante que sai no meio não derruba o campeonato');
   for (const c of [H, A, B, C]) c.close();
 
+  // ---------- segundo jogador no mesmo computador ----------
+  {
+    const H2 = await cliente(P), A2 = await cliente(P);
+    const until = async (c, f) => { for (;;) { const m = await c.next('room'); if (f(m.room)) return m; } };
+    H2.send({ t: 'create', name: 'Hugo', pub: false, uid: 'uid-hugo-0001' }); const jh = await H2.next('joined');
+    A2.send({ t: 'join', name: 'Ana', code: jh.room.code, uid: 'uid-ana-00001' }); const ja = await A2.next('joined');
+    H2.drain(); A2.drain();
+    A2.send({ t: 'guest', on: true });
+    let r = await until(H2, x => x.players.length === 3);
+    assert.deepStrictEqual(r.room.players.map(p => p.name), ['Hugo', 'Ana', 'Ana 2']);
+    const g = r.room.players[2];
+    assert.strictEqual(g.id, ja.you + '#2'); assert.strictEqual(g.uid, 'uid-ana-00001:2'); assert.strictEqual(g.ready, false);
+    assert.notStrictEqual(g.color, r.room.players[1].color); ok('segundo jogador entra com o nome + " 2", id "#2" e cor própria');
+    A2.send({ t: 'color', color: r.room.players[0].color, g: true }); assert.strictEqual((await A2.next('error')).code, 'cor-usada');
+    A2.send({ t: 'color', color: COLORS[5], g: true }); r = await until(H2, x => x.players[2].color === COLORS[5]);
+    assert.strictEqual(r.room.players[2].color, COLORS[5]); assert.notStrictEqual(r.room.players[1].color, COLORS[5]); ok('cor do segundo jogador');
+    H2.send({ t: 'guest', on: true }); r = await until(A2, x => x.players.length === 4);
+    assert.deepStrictEqual(r.room.players.map(p => p.name), ['Hugo', 'Hugo 2', 'Ana', 'Ana 2']); assert.strictEqual(r.room.players[1].ready, true); ok('o do host já fica pronto');
+    H2.send({ t: 'stages', stages: [trilha(1)] }); await H2.next('room');
+    A2.send({ t: 'ready', ready: true }); r = await until(H2, x => x.players[2].ready); assert.strictEqual(r.room.players[3].ready, true); ok('fica pronto junto com o dono');
+    H2.drain(); A2.drain();
+    H2.send({ t: 'start', vmax: 12, ramp: 0.6, grip: 30 });
+    const st = await A2.next('started'); assert.strictEqual(st.pilots.length, 4); ok('larga com 4 pilotos de 2 computadores');
+    A2.send({ t: 'in', held: true, g: true }); assert.strictEqual((await H2.next('in')).from, ja.you + '#2');
+    A2.send({ t: 'in', held: true }); assert.strictEqual((await H2.next('in')).from, ja.you); ok('o botão do segundo jogador chega com o id dele');
+    A2.send({ t: 'guest', on: false }); assert.strictEqual((await A2.next('error')).code, 'andamento'); ok('não tira o segundo jogador no meio');
+    // queda: volta com o mesmo uid, e o segundo jogador volta junto
+    A2.ws.terminate(); await H2.next('room');
+    const A3 = await cliente(P);
+    A3.send({ t: 'join', name: 'Ana', code: jh.room.code, uid: 'uid-ana-00001' }); const jb = await A3.next('joined');
+    assert.strictEqual(jb.you, ja.you); assert(jb.room.players.some(p => p.id === ja.you + '#2' && p.color === COLORS[5])); ok('voltando de uma queda, o segundo jogador volta junto');
+    H2.send({ t: 'end' }); await A3.next('lobby');
+    A3.send({ t: 'guest', on: false }); r = await until(H2, x => x.players.length === 3);
+    assert.deepStrictEqual(r.room.players.map(p => p.name), ['Hugo', 'Hugo 2', 'Ana']); ok('tirar o segundo jogador');
+    H2.close(); A3.close();
+  }
+
   // ---------- versão e limites por endereço ----------
   const v = await cliente(P, true);
   v.send({ t: 'create', name: 'Sem hello', pub: true });

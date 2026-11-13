@@ -49,7 +49,9 @@ namespace Autorama
         readonly HashSet<ulong> invited = new HashSet<ulong>();      // amigos já convidados nesta sala
         ulong launchLobby;
         ScrollView oChat, oRunChat;
-        Button oStartBtn, oReadyBtn, oRunQuit;
+        Button oStartBtn, oReadyBtn, oRunQuit, oGuestBtn;
+        VisualElement oColors2;
+        Label oColors2Title;
         readonly List<NetChat> chatLog = new List<NetChat>();
 
         // Tira "<" de nomes e mensagens dos outros: o rótulo aceita rich text e não pode deixar ninguém mudar o visual.
@@ -136,6 +138,12 @@ namespace Autorama
             oPlayers = El(null, pl);
             Text("SUA COR", "h3", pl);
             oColors = El("swatches", pl);
+            // O segundo jogador neste computador (seção 44 do guia): entra com o meu nome e um 2, e joga com o 2º conjunto de teclas ou o 2º controle.
+            oGuestBtn = Btn("", () => net.Send(new NetOut { t = "guest", on = room?.Player(NetGuest.Id(myId)) == null }), "btn", pl);
+            oGuestBtn.style.marginTop = 8;
+            oGuestBtn.tooltip = "Mais um piloto jogando neste computador, com o seu nome e um 2. Ele usa o 2º conjunto de teclas (Opções) ou o 2º controle.";
+            oColors2Title = Text("COR DO JOGADOR 2", "h3", pl);
+            oColors2 = El("swatches", pl);
 
             var st = Section(oLobby, "ETAPAS");
             // Formato e tipo de pista à vista de todos: o host escolhe, os visitantes leem.
@@ -707,6 +715,24 @@ namespace Autorama
             }
         }
 
+        void DrawSwatches(VisualElement box, string id, bool g)
+        {
+            box.Clear();
+            for (int i = 0; i < Champ.Colors.Length; i++)
+            {
+                string hex = Champ.Colors[i];
+                var owner = room.players.Find(p => string.Equals(p.color, hex, StringComparison.OrdinalIgnoreCase));
+                bool mine = owner != null && owner.id == id, taken = owner != null && !mine;
+                var sw = Btn("", () => net.Send(new NetOut { t = "color", color = hex, g = g }), "swatch", box);
+                ColorUtility.TryParseHtmlString(hex, out var col);
+                sw.style.backgroundColor = col;
+                sw.tooltip = Champ.ColorNames[i] + (taken ? $" (de {Safe(owner.name)})" : "");
+                sw.EnableInClassList("swatch--on", mine);
+                sw.EnableInClassList("swatch--used", taken);
+                sw.SetEnabled(!taken);
+            }
+        }
+
         void DrawLobby()
         {
             if (room == null) return;
@@ -731,28 +757,21 @@ namespace Autorama
                 dot.style.backgroundColor = col;
                 var texts = El("lib-texts", row);
                 Text(Safe(p.name), "lib-name", texts);
-                string tag = (p.id == room.host ? "host" : "") + (p.id == myId ? (p.id == room.host ? " · você" : "você") : "");
+                string tag = (p.id == room.host ? "host" : "") + (p.id == myId ? (p.id == room.host ? " · você" : "você") : p.id == NetGuest.Id(myId) ? "jogador 2 deste computador" : "");
                 if (tag != "") Text(tag, "small", texts);
                 bool ok = p.ready || p.id == room.host;
                 Text(ok ? "✓ pronto" : "aguardando", ok ? "small ok" : "small", row);
             }
 
-            // Cores
-            oColors.Clear();
+            // Cores (a minha e, se tiver, a do segundo jogador)
             var me = room.Player(myId);
-            for (int i = 0; i < Champ.Colors.Length; i++)
-            {
-                string hex = Champ.Colors[i];
-                var owner = room.players.Find(p => string.Equals(p.color, hex, StringComparison.OrdinalIgnoreCase));
-                bool mine = owner != null && owner.id == myId, taken = owner != null && !mine;
-                var sw = Btn("", () => net.Send(new NetOut { t = "color", color = hex }), "swatch", oColors);
-                ColorUtility.TryParseHtmlString(hex, out var col);
-                sw.style.backgroundColor = col;
-                sw.tooltip = Champ.ColorNames[i] + (taken ? $" (de {Safe(owner.name)})" : "");
-                sw.EnableInClassList("swatch--on", mine);
-                sw.EnableInClassList("swatch--used", taken);
-                sw.SetEnabled(!taken);
-            }
+            DrawSwatches(oColors, myId, false);
+            bool guest = room.Player(NetGuest.Id(myId)) != null, lobbyNow = room.state == "lobby";
+            oGuestBtn.text = guest ? "Tirar o jogador 2" : "+ Jogador 2 neste computador";
+            oGuestBtn.style.display = lobbyNow ? DisplayStyle.Flex : DisplayStyle.None;
+            oGuestBtn.SetEnabled(guest || room.players.Count < room.max);
+            oColors2Title.style.display = oColors2.style.display = guest ? DisplayStyle.Flex : DisplayStyle.None;
+            if (guest) DrawSwatches(oColors2, NetGuest.Id(myId), true);
 
             // Formato e tipo: o host vê os botões; todos leem a linha (os visitantes pelo que o host mandou nas etapas).
             if (host && onlineStages.Count > 0) onlineFaixas = onlineStages[0].data.Faixas;

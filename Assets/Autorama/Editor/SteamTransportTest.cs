@@ -148,6 +148,22 @@ namespace Autorama
             Check(WaitFor(() => c.Has("rooms"), all) && c.Take("rooms").rooms.Count == 0, "fake: a sala privada some da lista");
             a.t.Send(new NetOut { t = "visibility", pub = true });
 
+            // segundo jogador no mesmo computador (seção 44)
+            a.got.Clear(); b.got.Clear();
+            b.t.Send(new NetOut { t = "guest", on = true });
+            Check(WaitFor(() => a.Has("room", m => m.room.Player("1002#2") != null), all), "fake: o jogador 2 do visitante entra");
+            var gr = a.Take("room", m => m.room.Player("1002#2") != null).room;
+            var g2 = gr.Player("1002#2");
+            Check(g2.name == "Beto 2" && g2.uid == "steam:1002#2" && gr.players.IndexOf(g2) == gr.players.IndexOf(gr.Player("1002")) + 1 && System.Array.TrueForAll(gr.players.ToArray(), p => p == g2 || p.color != g2.color), "fake: com o nome da conta + \" 2\", logo depois do dono e com cor própria");
+            b.t.Send(new NetOut { t = "color", color = gr.Player("1001").color, g = true });
+            Check(WaitFor(() => b.Has("error", m => m.code == "cor-usada"), all), "fake: o jogador 2 não pega cor de outro");
+            b.t.Send(new NetOut { t = "color", color = gr.Player("1002").color, g = true });
+            Check(WaitFor(() => b.Has("error", m => m.code == "cor-usada"), all), "fake: nem a do dono");
+            b.t.Send(new NetOut { t = "color", color = Champ.Colors[7], g = true });
+            Check(WaitFor(() => a.Has("room", m => m.room.Player("1002#2")?.color == Champ.Colors[7] && m.room.Player("1002").color != Champ.Colors[7]), all), "fake: a cor do jogador 2 muda só a dele");
+            b.t.Send(new NetOut { t = "guest", on = false });
+            Check(WaitFor(() => a.Has("room", m => m.room.Player("1002#2") == null && m.room.players.Count == 2), all), "fake: tirar o jogador 2");
+
             // pronto e largada
             a.got.Clear(); b.got.Clear();
             a.t.Send(new NetOut { t = "start", vmax = 14, ramp = .5f, grip = 29, collide = true });
@@ -197,6 +213,8 @@ namespace Autorama
             Check(WaitFor(() => a.Has("in"), all), "fake: o botão do visitante chega ao host");
             var inp = a.Take("in");
             Check(inp.from == "1002" && inp.held && inp.re == 2, "fake: com o id de quem mandou, o estado e o contador");
+            b.t.Send(new NetOut { t = "in", held = true, g = true });
+            Check(WaitFor(() => a.Has("in"), all) && a.Take("in").from == "1002#2", "fake: o botão do jogador 2 chega com o id dele");
             a.t.Send(new NetOut { t = "in", held = true });
             Check(Quiet(() => b.Has("in") || a.Has("in"), all), "fake: o host não manda botão a ninguém");
             var sim = new RaceSim(new RaceSettings());

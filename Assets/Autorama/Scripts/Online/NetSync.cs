@@ -145,10 +145,14 @@ namespace Autorama
             c.lastLap = Opt(n.lastLap); c.best = Opt(n.best); c.finish = Opt(n.finish);
         }
 
-        public static void Apply(NetSnap n, RaceSim sim, int ownLane, OwnHistory hist = null)
+        public static void Apply(NetSnap n, RaceSim sim, int ownLane, OwnHistory hist = null, int ownLane2 = -1, OwnHistory hist2 = null)
         {
             sim.Mirror((RaceSim.Phase)n.ph, n.t, n.w, n.mi, n.rt);
-            for (int k = 0; k < sim.N && k < n.cars.Count; k++) Apply(n.cars[k], sim.cars[k], k == ownLane, k == ownLane ? hist : null);
+            for (int k = 0; k < sim.N && k < n.cars.Count; k++)
+            {
+                bool own2 = k == ownLane2 && k != ownLane;       // o segundo jogador do computador também é predito
+                Apply(n.cars[k], sim.cars[k], k == ownLane || own2, k == ownLane ? hist : own2 ? hist2 : null);
+            }
         }
 
         // Latência de ida e volta (s) pelo eco do relógio no carro próprio; −1 se o snapshot não traz eco.
