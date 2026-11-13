@@ -528,7 +528,7 @@ namespace Autorama
             int gdir = Back && !e.def.IsLoop ? -e.dir : e.dir, grise = Back ? 0 : e.rise;     // de ré a curva espelha; o loop, não
             var seg = new Segment
             {
-                index = -1, piece = new TrackPiece(e.def.Id, gdir, grise), def = e.def, a = InsertPose,
+                index = -1, piece = new TrackPiece(e.def.Id, gdir, grise), def = e.def.At(InsertPose.heading), a = InsertPose,
                 zIn = zIn, zOut = Mathf.Clamp(zIn + grise, 0, TrackMath.MaxLevel),
             };
             seg.b = TrackMath.PoseAt(seg.a, seg.def, gdir, 1f);

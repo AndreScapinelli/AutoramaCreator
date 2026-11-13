@@ -87,10 +87,11 @@ namespace Autorama
             for (int h = 0; h < 8; h++)
             {
                 var a = new Pose2(Vector2.zero, h * 45f);
-                var b = TrackMath.PoseAt(a, Moves[m].def, Moves[m].dir, 1f);
-                int k = Mathf.Max(2, Mathf.CeilToInt(Moves[m].def.CenterLength / 0.5f));
+                var d = Moves[m].def.At(a.heading);
+                var b = TrackMath.PoseAt(a, d, Moves[m].dir, 1f);
+                int k = Mathf.Max(2, Mathf.CeilToInt(d.CenterLength / 0.5f));
                 sampleTab[m, h] = new Vector2[k];
-                for (int j = 1; j <= k; j++) sampleTab[m, h][j - 1] = TrackMath.PoseAt(a, Moves[m].def, Moves[m].dir, j / (float)k).pos;
+                for (int j = 1; j <= k; j++) sampleTab[m, h][j - 1] = TrackMath.PoseAt(a, d, Moves[m].dir, j / (float)k).pos;
                 dxTab[m, h] = Q.From(b.pos.x);
                 dyTab[m, h] = Q.From(b.pos.y);
                 dhTab[m, h] = Mod8(Mathf.RoundToInt(b.heading / 45f));

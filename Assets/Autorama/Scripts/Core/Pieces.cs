@@ -29,6 +29,16 @@ namespace Autorama
         public static PieceDef MakeJump(string id, string name) =>
             new PieceDef(id, name, PieceKind.Straight, PieceCatalog.JumpLength, 0f, false, false, isJump: true);
 
+        // Reta na diagonal (rumo a 45° de um eixo): fica √2 vezes mais comprida, para avançar um número inteiro de
+        // células em x e em y e a pista não sair da grade (seção 49 do guia). Loop, salto e largada não mudam.
+        PieceDef diag;
+        public PieceDef At(float heading)
+        {
+            if (IsCurve || IsLoop || IsJump || IsStart) return this;
+            if (Mathf.Abs(Mathf.Repeat(heading, 90f) - 45f) > 1f) return this;
+            return diag ??= new PieceDef(Id, Name, Kind, Length * Mathf.Sqrt(2f), 0f, false, false, IsCross);
+        }
+
         public bool IsCurve => Kind == PieceKind.Curve;
         public bool Sided => IsCurve || IsLoop;        // tem lado (dir ±1): a curva vira, o loop sai deslocado para ele
         public bool GroundOnly => IsLoop || IsJump;    // não sobe nem desce de nível

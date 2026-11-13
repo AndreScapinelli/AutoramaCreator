@@ -3915,3 +3915,18 @@ O tom segue a velocidade sobre a final do próprio carro (`vmax × S × Top`).
 - `OnlineSmokeTest` contra o servidor: todos ok (nada da corrida online mudou).
 - `script eval`: `CarCode`/`CarOf` vão e voltam nos 27 ajustes × pronto/não (0 erros). `AiCar` nas 15 pistas da biblioteca: 6 de curva (curto · asa · macio) e 9 de reta (longo · lisa · macio).
 - Não testado em Play: a tela de escolha (offline e online com duas instâncias), a faixa do pneu na tela e os sons novos.
+
+## 49. Reta na diagonal (pista na grade)
+
+**Problema.** A curva de 90° (raio 2,5) anda 2,5 células em cada eixo e devolve a pista ao meio da célula. Já a meia-curva de 45° deixa a ponta na diagonal, e uma reta de 1, 2 ou 4 células ali anda L/√2 em x e em y, que não é inteiro. Na segunda meia-curva a pista sai da grade nos dois eixos.
+
+**Correção.** Na diagonal (rumo a 45° ± 1° de um eixo), a reta e o cruzamento ficam √2 vezes mais compridos (`PieceDef.At(heading)` em `Pieces.cs`, com a cópia guardada em `diag`). Assim a reta curta anda 2 × 2 células, a comprida 4 × 4 e a curtinha 1 × 1. A troca acontece onde o `Segment` é montado: `TrackLayout.Build` (para frente e de ré), a peça fantasma do `TrackBuilder` e as tabelas do `TrackCloser`. O resto (malha, `RaceSim`, comprimento dos trilhos) já lê `s.def`. Loop, salto e largada não mudam.
+
+- Ids e identidade da pista não mudam. Pistas salvas com reta na diagonal mudam de forma (a reta cresce).
+- **Limite:** um S de meias-curvas (45° para um lado e 45° para o outro) ainda desloca 3,536 × 1,464 células. Só a sequência meia-curva → retas diagonais → meia-curva para o mesmo lado volta à grade.
+
+**Teste** (`script eval`, origem (0; 0,5) rumo 0, tudo para a direita):
+- meia-curva, reta-curta, meia-curva → (4,5; −4), rumo 270;
+- meia-curva, reta-comprida, reta-curtinha, cruzamento, meia-curva → (11,5; −11), rumo 270;
+- curva-longa, reta-curta → (2,5; −4), igual a antes.
+- Não testado em Play: a malha da reta comprida na diagonal e o fechar circuito com retas diagonais.
