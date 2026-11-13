@@ -1084,7 +1084,8 @@ se slip ≥ 1:     sai da pista
 
 - Passar um pouco do limite numa curva curta enche a barra, mas não derruba. O jogador vê a traseira escorregar e solta a tempo.
 - Passar muito, ou por uma curva longa (duas curvas de 90° seguidas), derruba.
-- Com `slipGain = 6`, uma curva de 90° a **110%** do limite enche a barra até uns 55%. A **120%**, o carrinho sai.
+- Com `slipGain = 3` e `slipDecay = 3`, uma curva de 90° (trilho de dentro) a **110%** do limite enche a barra até 25%, a **120%** até 48% e a **130%** até 70%. Em 180° seguidos, 120% chega a 96% e 130% derruba.
+- Até a versão anterior era `slipGain = 6`, `slipDecay = 1,5`. Entrando a 50% e acelerando no fundo no meio de um grampo de 180°, o carrinho saía a 2°–10° do fim: o motor (`ACCEL 3.5`) passa do limite em ~0,1 s e a barra enchia rápido demais e se arrastava para a peça seguinte. Com os valores novos, o mesmo caso termina a curva com a barra em 53–65%. Acelerar faltando 135° ainda derruba (a 166°–175°).
 
 **O carrinho "roda" antes de sair.** No autorama, o carrinho gira em volta da **guia**, a lâmina na frente que fica presa na fenda. A frente fica no trilho e a traseira escorrega para fora da curva:
 

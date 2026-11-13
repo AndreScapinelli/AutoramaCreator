@@ -266,7 +266,7 @@ namespace Autorama
         public const float Pin = 0.22f;        // guia na frente: a traseira escorrega em volta dela
         public const float Count = 2.4f;       // três luzes vermelhas
         const float Accel = 3.5f, Brake = 1.8f, Brake0 = 0.5f, SlopeG = 8f, Fall = 3f;
-        const float SlipGain = 6f, SlipDecay = 1.5f, YawMax = 38f;
+        const float SlipGain = 3f, SlipDecay = 3f, YawMax = 38f;
         const float CarHL = 0.3f, CarHW = 0.16f, Restitution = 0.35f;
         // Turbo: cada saída de pista enche o tanque, de TurboGainMin (quem lidera) a TurboGainMax (o último). Apertado, o
         // carrinho busca (1 + TurboBoost) × a velocidade máxima e o tanque cheio dura TurboTime segundos.

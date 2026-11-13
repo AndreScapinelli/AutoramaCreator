@@ -234,7 +234,7 @@ Na simulação da pista de teste ("8 com ponte"), os carrinhos chegaram a **13,4
 **Constantes da física (`Assets/Autorama/Scripts/Race/RaceSim.cs`, `Accel`/`Brake` na linha 219 e `grip` na linha 14):**
 - `ACCEL = 3.5` (resposta do motor)
 - `BRAKE = 1.8`, `BRAKE0 = 0.5` (freio)
-- `SLIP_GAIN = 6`, `SLIP_DECAY = 1.5` (derrapagem)
+- `SLIP_GAIN = 3`, `SLIP_DECAY = 3` (derrapagem)
 - `GRIP = 29` (aderência padrão)
 
 **Geometria das curvas (`GUIA-UNITY.md` seção 3):**
