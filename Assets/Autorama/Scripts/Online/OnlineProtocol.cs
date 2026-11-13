@@ -33,7 +33,7 @@ namespace Autorama
 
     [Serializable] public class NetListed { public string code, name, host; public int players, max, stages; }
     [Serializable] public class NetChat { public bool sys; public string from, name, color, text; public long time; }
-    [Serializable] public class NetRules { public float vmax, ramp, grip; public bool collide, byTime; public bool turbo = true; public int sorteio; }   // sorteio: seed das baterias (seção 45)   // byTime: campeonato por tempo (seção 26)
+    [Serializable] public class NetRules { public float vmax, ramp, grip; public bool collide, byTime; public bool turbo = true; public int sorteio; public float reslot = 0.3f; }   // sorteio: seed das baterias (seção 45)   // byTime: campeonato por tempo (seção 26)
 
     // Um carrinho no snapshot: tudo o que o RaceSim guarda por carro. Os opcionais (voltas) usam −1 para "não tem".
     [Serializable]
@@ -115,7 +115,7 @@ namespace Autorama
         public bool g;                                    // in/color: é do segundo jogador deste computador
         public bool on;                                   // guest: liga ou tira o segundo jogador
         public int car, cs;                               // in: ajuste do carro escolhido (CarPick.Code; 0 = não é escolha) na etapa cs (seção 48)
-        public float vmax, ramp, grip;                    // start: as regras (os ajustes da aba Corrida do host)
+        public float vmax, ramp, grip, reslot = 0.3f;                    // start: as regras (os ajustes da aba Corrida do host)
         public string track, hash, json;                  // suggest: a pista que o visitante sugere ao host (nome, identidade e o JSON)
         public int faixas;                                // suggest: 2 ou 4 carros
     }

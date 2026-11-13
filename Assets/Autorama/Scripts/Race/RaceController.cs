@@ -363,6 +363,7 @@ namespace Autorama
             OnlineTick();
             AudioTick();
             KeysUpdate();                                        // a tela de teclas captura a próxima tecla (e some com Esc)
+            CamKeys();
             if (OnlineRun) { OnlineRunUpdate(); return; }
             if (sim == null || !sim.Ready) return;
             if (!panel.RaceMode) { PlaceCars(); return; }       // no construtor, os carrinhos ficam no grid
@@ -529,6 +530,7 @@ namespace Autorama
             var turbo = new Toggle("Turbo") { value = set.turbo };
             var vol = new SliderInt(0, 100) { value = Mathf.Clamp(set.volume, 0, 100) };
             var half = new SliderInt(20, 90) { value = Mathf.Clamp(set.halfGas, 20, 90) };
+            var reslot = new Slider(0.1f, 1.5f) { value = Mathf.Clamp(set.reslotTime, 0.1f, 1.5f) };
             void Labels()
             {
                 laps.label = $"Voltas: {set.laps}";
@@ -541,6 +543,7 @@ namespace Autorama
                 ramp.label = $"Tempo até 100%: {Num(set.ramp, 2)} s";
                 grip.label = $"Aderência: {Mathf.RoundToInt(set.grip)}";
                 half.label = $"Meia aceleração (tecla de meia): {set.halfGas}%";
+                reslot.label = $"Tempo para recolocar: {Num(set.reslotTime, 2)} s";
                 float sc = sim.Scale;
                 float Lim(float r, float m) => Mathf.Min(100f, Mathf.Round(sim.CornerLimit(r, m) / (set.vmax * sc) * 100f));
                 // Raio do trilho de dentro e do de fora, no mundo: 2,25 e 2,75 na pista de 2; 4,25 e 5,75 na de 4.
@@ -550,7 +553,7 @@ namespace Autorama
                                 $"Nas inclinadas, até {Lim(rIn, PieceCatalog.BankGrip)}% e {Lim(rOut, PieceCatalog.BankGrip)}%.";
             }
             foreach (var s in new VisualElement[] { laps, secs }) { s.AddToClassList("setting"); fmt.Add(s); }
-            foreach (var s in new VisualElement[] { vmax, ramp, grip, half, col, turbo }) { s.AddToClassList("setting"); adj.Add(s); }
+            foreach (var s in new VisualElement[] { vmax, ramp, grip, half, reslot, col, turbo }) { s.AddToClassList("setting"); adj.Add(s); }
             void Kind(bool t) { if (Racing) return; set.byTime = t; set.Save(); Labels(); sim.Reset(); scoreDirty = true; }
             byLaps.clicked += () => Kind(false);
             byTime.clicked += () => Kind(true);
@@ -572,6 +575,7 @@ namespace Autorama
             vol.label = $"Som: {set.volume}%";
             vol.RegisterValueChangedCallback(e => { set.volume = e.newValue; set.Save(); vol.label = $"Som: {set.volume}%"; });
             half.RegisterValueChangedCallback(e => { set.halfGas = e.newValue; set.Save(); Labels(); });
+            reslot.RegisterValueChangedCallback(e => { set.reslotTime = e.newValue; set.Save(); Labels(); });
             Labels();
 
             // Sobre a mesa: luzes e aviso de vitória no topo; os dois jogadores embaixo.
@@ -910,6 +914,16 @@ namespace Autorama
             return best;
         }
 
+        // Teclas 1 a 4 escolhem a câmera, na ordem do menu (sem tela dividida: lá cada jogador tem o seu botão).
+        static readonly Key[] CamKeysList = { Key.Digit1, Key.Digit2, Key.Digit3, Key.Digit4 };
+        void CamKeys()
+        {
+            var kb = Keyboard.current;
+            if (kb == null || IsTyping || keysOpen || SplitOn || panel == null || !panel.RaceMode) return;
+            for (int i = 0; i < CamKeysList.Length; i++)
+                if (kb[CamKeysList[i]].wasPressedThisFrame) { set.cameraMode = (int)CamModeValues[i]; set.Save(); ApplyCameraSettings(); }
+        }
+
         void BuildCamMenu(VisualElement root)
         {
             camMenu = El("cam-menu", root);
@@ -920,7 +934,7 @@ namespace Autorama
             {
                 int m = i;
                 var b = Btn("", () => { set.cameraMode = (int)CamModeValues[m]; set.Save(); ApplyCameraSettings(); }, "btn cam-opt", camPop);
-                b.text = $"<b>{CamModes[i]}</b>\n<size=10>{CamModeHints[i]}</size>";
+                b.text = $"<b>{i + 1}  {CamModes[i]}</b>\n<size=10>{CamModeHints[i]}</size>";
                 camModeBtns[i] = b;
             }
             splitBtn = Btn("", () => { set.splitScreen = !set.splitScreen; set.Save(); ApplyCameraSettings(); }, "btn cam-opt cam-split", camPop);

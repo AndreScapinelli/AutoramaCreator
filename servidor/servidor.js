@@ -181,7 +181,7 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
       if (!r.stages.length) return fail(c, 'sem-etapas', 'Escolha pelo menos uma pista.');
       const falta = r.players.filter(p => p !== c && !p.ready);
       if (falta.length) return fail(c, 'nao-prontos', `Falta ficar pronto: ${falta.map(p => p.name).join(', ')}.`);
-      const rules = { vmax: Number(m.vmax), ramp: Number(m.ramp), grip: Number(m.grip), collide: !!m.collide, byTime: !!m.byTime, turbo: m.turbo !== false, sorteio: Number(m.sorteio) | 0 };   // turbo: ausente (cliente antigo) = ligado; sorteio: seed das baterias (cliente antigo: 0)
+      const rules = { vmax: Number(m.vmax), ramp: Number(m.ramp), grip: Number(m.grip), collide: !!m.collide, byTime: !!m.byTime, turbo: m.turbo !== false, sorteio: Number(m.sorteio) | 0, reslot: Number(m.reslot) >= 0.1 && Number(m.reslot) <= 1.5 ? Number(m.reslot) : 0.3 };   // reslot: segundos do recolocar (cliente antigo: 0,3)   // turbo: ausente (cliente antigo) = ligado; sorteio: seed das baterias (cliente antigo: 0)
       if (!(rules.vmax >= 8 && rules.vmax <= 20 && rules.ramp >= 0.2 && rules.ramp <= 1.5 && rules.grip >= 15 && rules.grip <= 45)) return fail(c, 'regras', 'Regras inválidas.');
       r.state = 'racing';
       r.seats = new Map(pilots(r).filter(p => p.uid).map(p => [p.uid, { id: p.id, color: p.color }]));   // para quem cair voltar ao mesmo lugar

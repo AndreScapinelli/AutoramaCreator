@@ -1105,7 +1105,7 @@ Assim a barra de derrapagem aparece no próprio carrinho: quanto mais cheia, mai
 
 **Recolocar** (o segundo botão) faz o papel do fiscal de pista:
 - O carrinho volta para `exitS − 0,4`, um pouco antes de onde saiu, para não entrar embalado no mesmo ponto.
-- O retorno é uma animação de 0,3 s, da posição na mesa até o trilho.
+- O retorno é uma animação de `set.reslotTime` segundos (0,3 s por padrão), da posição na mesa até o trilho. Na corrida livre dá para mudar em **Ajustes avançados > Tempo para recolocar** (0,1 a 1,5 s); o campeonato guarda o valor nas regras (`ChampRules.reslot`) e o online manda nas regras do `start` (`reslot`, conferido entre 0,1 e 1,5 pelo servidor e pelo host Steam; cliente antigo sem o campo = 0,3 s).
 - Ele volta parado, com `v = 0` e `slip = 0`.
 - O castigo é o tempo perdido. Não precisa de mais nada.
 
@@ -1286,7 +1286,7 @@ public class SlotCar : MonoBehaviour
 
     void Return(float dt)
     {
-        returnT += dt / 0.3f;
+        returnT += dt / Mathf.Max(0.05f, set.reslotTime);
         Pose2 to = SlotPose();
         float e = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(returnT));
         Place(new Pose2(Vector2.Lerp(returnFrom.pos, to.pos, e), Mathf.LerpAngle(returnFrom.heading, to.heading, e)));
@@ -1412,6 +1412,8 @@ A câmera fica num **menu no canto superior direito da mesa** (só nas abas Corr
 | **Perseguição** | `ThirdPerson` (2) | Atrás e acima do carrinho (~28°), olhando para o trilho à frente. |
 | **Primeira pessoa** | `FirstPerson` (4) | Dentro do carrinho; quando ele roda ou sai da pista, corta para a Perseguição. |
 | **De cima** | `TopFollow` (6) | A 3D do construtor centrada nos carrinhos dos jogadores; botão direito gira, a roda aproxima. |
+
+**Teclas 1 a 4** escolhem o modo na ordem do menu (TV, Perseguição, Primeira pessoa, De cima), também no online; o menu mostra o número antes do nome (`RaceController.CamKeys`). Não valem na tela dividida (cada jogador tem o seu botão), nem digitando ou com a tela de teclas aberta. No construtor, os números continuam escolhendo peças: as teclas só agem com `panel.RaceMode`.
 
 Os modos antigos *3D* (1) e *Dinâmica* (3) saíram da corrida (eram ruins de assistir: parados, ou ortográficos com o zoom aberto demais). Um `cameraMode` salvo com esses valores vira Transmissão de TV em `ApplyCameraSettings`. O valor 0 (a *De cima* antiga, livre) vira `TopFollow`. Uma tentativa de vista centrada no meio da pista foi descartada: o centro tem de ser o jogador.
 
@@ -3998,3 +4000,13 @@ Teste: oval largada · reta comprida · C · reta comprida · reta curta · C, 6
 | qualidade 60, pista de 8 | — | 0 saídas |
 
 Não testado em Play: a malha e o ícone vistos no jogo.
+
+## 51. Fogos no fim do campeonato
+
+Quando a última bateria é salva (`Champ.CurrentHeat(C) < 0`), o `RaceController` chama `Fogos()` (`Race/RaceController.Fogos.cs`). Vale no offline (`ChampSave`), no host online (`OnlineCommit`) e no visitante (mensagem `res`).
+
+- Um `ParticleSystem` "Fogos" (criado na primeira vez, material `sparkMaterial`) solta foguetes por `Emit`: posição sorteada dentro de `builder.Info.bounds`, velocidade para cima de 7 a 9 (× escala), cor `HSVToRGB(aleatório, 0,85, 1)`, vida 0,8 a 1,1 s, gravidade 0,25.
+- Ao morrer, o foguete dispara o subemissor "Estouro" (`Death`, `InheritColor`): 90 faíscas em esfera, velocidade 2,5 a 3,2 (× escala), arrasto 1,2, gravidade 0,35, vida 1,0 a 1,6 s, apagando nos últimos 40%.
+- Constantes: `FogosTempo 6` s, `FogosIntervalo 0.35` s, 30% de chance de dois foguetes juntos, `FogosEstouro 90`. Tamanhos e velocidades vezes `builder.Scale` (pista de 4, 6 e 8).
+
+Teste (Play, `SendMessage("Fogos")` + 70 `Step`): 2 foguetes no ar e 270 faíscas (3 estouros × 90); na captura, estouros coloridos sobre a mesa.

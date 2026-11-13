@@ -107,7 +107,7 @@ namespace Autorama
                 C = new Championship
                 {
                     id = "online", name = string.IsNullOrWhiteSpace(m.title) ? "Campeonato online" : Safe(m.title), created = Champ.Now,
-                    rules = new ChampRules { vmax = m.rules.vmax, ramp = m.rules.ramp, grip = m.rules.grip, collide = m.rules.collide, turbo = m.rules.turbo },
+                    rules = new ChampRules { vmax = m.rules.vmax, ramp = m.rules.ramp, grip = m.rules.grip, collide = m.rules.collide, turbo = m.rules.turbo, reslot = m.rules.reslot },
                     byTime = m.rules.byTime,
                 };
                 for (int i = 0; i < m.pilots.Count; i++)
@@ -411,7 +411,7 @@ namespace Autorama
                 var res = m.heatRes.GetRange(0, onlineChamp.heats[m.hi].p.Length).ToArray();
                 HeatRecords(onlineChamp, m.hi, res, true);         // cada um grava os recordes no seu recordes.json
                 onlineChamp.heats[m.hi].res = res;
-                if (Champ.CurrentHeat(onlineChamp) < 0) onlineChamp.finished = Champ.Now;
+                if (Champ.CurrentHeat(onlineChamp) < 0) { onlineChamp.finished = Champ.Now; Fogos(); }
                 OnlineHeatLoaded();
             }
             else if (m.k == "cars") OnlineApplyCars(m.hi, m.cars);
@@ -542,7 +542,7 @@ namespace Autorama
             var C = onlineChamp;
             HeatRecords(C, idx, res, true);
             C.heats[idx].res = res;
-            if (Champ.CurrentHeat(C) < 0) C.finished = Champ.Now;
+            if (Champ.CurrentHeat(C) < 0) { C.finished = Champ.Now; Fogos(); }
             var ev = new NetOutEv { k = "res", hi = idx };
             ev.heatRes.AddRange(res);
             net.Send(ev);

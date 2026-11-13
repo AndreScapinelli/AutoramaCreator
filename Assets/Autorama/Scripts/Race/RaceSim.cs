@@ -22,6 +22,7 @@ namespace Autorama
         public int cameraTarget = 0;    // alvo do third person: 0 jogador 1, 1 jogador 2
         public int cameraDistance = 100; // escala do enquadramento: 70% mais perto, 160% mais longe
         public int halfGas = 60;        // tecla de meia aceleração (S no jogador 1; ver Controles): até onde o acelerador vai, em %
+        public float reslotTime = 0.3f; // recolocar: segundos da volta da mesa até o trilho
         public bool bot34 = true;       // (antigo, não usado: virou set.slots; fica para ler os ajustes salvos antes)
         public int motorSound = 3;      // qual som de motor (0 broca, 1 elétrico suave, 2 escovas, 3 turbina, 4 ronco, 5 motor.wav)
         public int volume = 70;         // volume dos sons da corrida, 0 a 100 (seção 29)
@@ -505,7 +506,7 @@ namespace Autorama
                 }
                 else
                 {
-                    c.backT += dt / 0.3f;
+                    c.backT += dt / Mathf.Max(0.05f, set.reslotTime);
                     if (c.backT >= 1f) { c.mode = CarMode.OnSlot; c.v = 0f; c.slip = 0f; }
                 }
             }

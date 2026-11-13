@@ -335,7 +335,7 @@ namespace Autorama
             if (wait.Count > 0) { Err("nao-prontos", "Falta ficar pronto: " + string.Join(", ", wait.ConvertAll(p => p.name)) + "."); return; }
             if (!(o.vmax >= 8 && o.vmax <= 20 && o.ramp >= 0.2f && o.ramp <= 1.5f && o.grip >= 15 && o.grip <= 45)) { Err("regras", "Regras inválidas."); return; }
 
-            var m = new NetMsg { t = "started", title = Clean(o.name, 40) is var t && t.Length > 0 ? t : $"Campeonato de {NameOf(b.MyId)}", rules = new NetRules { vmax = o.vmax, ramp = o.ramp, grip = o.grip, collide = o.collide, byTime = o.byTime, turbo = o.turbo, sorteio = o.sorteio } };
+            var m = new NetMsg { t = "started", title = Clean(o.name, 40) is var t && t.Length > 0 ? t : $"Campeonato de {NameOf(b.MyId)}", rules = new NetRules { vmax = o.vmax, ramp = o.ramp, grip = o.grip, collide = o.collide, byTime = o.byTime, turbo = o.turbo, sorteio = o.sorteio, reslot = o.reslot >= 0.1f && o.reslot <= 1.5f ? o.reslot : 0.3f } };
             foreach (var p in room.players) m.pilots.Add(new NetPlayer { id = p.id, name = p.name, color = p.color, uid = p.uid });
             foreach (var s in stageData) m.stages.Add(new NetStage { name = s.name, laps = s.laps, secs = s.secs, tempo = s.tempo, faixas = s.faixas, hash = s.hash, json = s.json });
             var bytes = Encoding.UTF8.GetBytes(JsonUtility.ToJson(m));

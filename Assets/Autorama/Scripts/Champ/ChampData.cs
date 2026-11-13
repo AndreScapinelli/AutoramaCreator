@@ -47,7 +47,7 @@ namespace Autorama
         public bool Saved => res != null && res.Length == p.Length && res.Length > 0;
     }
 
-    [Serializable] public class ChampRules { public float vmax, ramp, grip; public bool collide; public bool turbo = true; }   // turbo: seção 37 (campeonato antigo, sem o campo: ligado)
+    [Serializable] public class ChampRules { public float vmax, ramp, grip; public bool collide; public bool turbo = true; public float reslot = 0.3f; }   // turbo: seção 37 (campeonato antigo, sem o campo: ligado)
 
     [Serializable]
     public class Championship
