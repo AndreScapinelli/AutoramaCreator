@@ -460,7 +460,7 @@ namespace Autorama
                 }
                 else
                 {
-                    c.backT += dt / 0.6f;
+                    c.backT += dt / 0.3f;
                     if (c.backT >= 1f) { c.mode = CarMode.OnSlot; c.v = 0f; c.slip = 0f; }
                 }
             }

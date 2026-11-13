@@ -211,7 +211,7 @@ namespace Autorama
         public void MoveStart(Vector2 pos)
         {
             var o = TrackMath.SnapStart(new Pose2(pos, Origin.heading));
-            if (o.pos == Origin.pos) return;
+            if (o.pos == Origin.pos || !Fits(o)) return;      // a largada não leva a pista para fora da mesa
             Origin = o;
             Rebuild();
         }
@@ -261,7 +261,10 @@ namespace Autorama
             undo.Push(Snapshot());
             if (undo.Count > 300) TrimUndo();
             redo.Clear();
+            bool fitted = Fits();
             change();
+            // Passou do tamanho máximo da mesa: desfaz e avisa. (Pista antiga que já não cabia continua editável.)
+            if (fitted && !Fits()) { Apply(TrackSave.FromJson(undo.Pop())); Notice?.Invoke(TooBig); Rebuild(); return; }
             GrowBoard();
             SettleTail();
             Rebuild();
@@ -277,15 +280,26 @@ namespace Autorama
         // esquerda ou de baixo, a pista inteira é empurrada para dentro (células inteiras: a largada continua encaixada)
         // e avisa quem mostra (Shifted), para a câmera acompanhar. A mesa nunca encolhe sozinha.
         const int BoardMargin = 1, BoardMax = 120;
+        const string TooBig = "Não cabe: a mesa vai até 120 × 120 células.";
+
+        // Tamanho que a mesa precisa ter para a pista (sem o limite) e quanto a pista é empurrada para dentro.
+        void Needed(Pose2 origin, out int dx, out int dz, out int w, out int h)
+        {
+            var b = TrackLayout.Analyze(origin, TrackLayout.Build(origin, pieces, Tail), Tail).bounds;
+            dx = b.xMin < -0.01f ? Mathf.CeilToInt(-b.xMin) + BoardMargin : 0;
+            dz = b.yMin < -0.01f ? Mathf.CeilToInt(-b.yMin) + BoardMargin : 0;
+            w = boardSize.x + dx; h = boardSize.y + dz;
+            if (b.xMax + dx > w + 0.01f) w = Mathf.CeilToInt(b.xMax + dx) + BoardMargin;
+            if (b.yMax + dz > h + 0.01f) h = Mathf.CeilToInt(b.yMax + dz) + BoardMargin;
+        }
+
+        bool Fits(Pose2 origin) { if (pieces.Count == 0) return true; Needed(origin, out _, out _, out int w, out int h); return w <= BoardMax && h <= BoardMax; }
+        bool Fits() => Fits(Origin);
+
         bool GrowBoard()
         {
             if (pieces.Count == 0) return false;
-            var b = TrackLayout.Analyze(Origin, TrackLayout.Build(Origin, pieces, Tail), Tail).bounds;
-            int dx = b.xMin < -0.01f ? Mathf.CeilToInt(-b.xMin) + BoardMargin : 0;
-            int dz = b.yMin < -0.01f ? Mathf.CeilToInt(-b.yMin) + BoardMargin : 0;
-            int w = boardSize.x + dx, h = boardSize.y + dz;
-            if (b.xMax + dx > w + 0.01f) w = Mathf.CeilToInt(b.xMax + dx) + BoardMargin;
-            if (b.yMax + dz > h + 0.01f) h = Mathf.CeilToInt(b.yMax + dz) + BoardMargin;
+            Needed(Origin, out int dx, out int dz, out int w, out int h);
             w = Mathf.Min(w, BoardMax); h = Mathf.Min(h, BoardMax);
             if (dx == 0 && dz == 0 && w == boardSize.x && h == boardSize.y) return false;
             if (dx != 0 || dz != 0)
