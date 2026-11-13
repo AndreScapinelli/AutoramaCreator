@@ -414,6 +414,7 @@ namespace Autorama
                 cars[k].rotation = Quaternion.Euler(0f, -p.heading, 0f) * Quaternion.Euler(0f, 0f, pitch) * Quaternion.Euler(sim.CarBank(k), 0f, 0f);
                 var st = sim.cars[k];
                 carViews[k].SetBody((CarBody)sim.setup[k].bolha);
+                carViews[k].SetTire(sim.setup[k].pneu);
                 carViews[k].SetCockpit(cam.InFirstPersonOf(k));
                 carViews[k].Tick(st.mode == CarMode.OnSlot ? st.v : 0f, st.mode == CarMode.Off, Time.deltaTime);
                 carPos[k] = pos; carHeading[k] = p.heading;
@@ -597,6 +598,8 @@ namespace Autorama
             bannerSub = Text("", "banner-sub", banner);
             recCard = El("res-table", banner);              // recordes antes da largada (RaceController.Records.cs)
             recCard.style.display = DisplayStyle.None;
+            carPick = El("car-pick", banner);              // escolha do carro antes da etapa (RaceController.CarPick.cs)
+            carPick.style.display = DisplayStyle.None;
             resTable = El("res-table", banner);
             resBtns = El("res-btns", banner);
             resAgain = Btn("Correr de novo  (Enter)", () => { if (ChampLike) ChampEnter(); else StartRace(); }, "btn btn--accent res-btn", resBtns);
@@ -829,7 +832,7 @@ namespace Autorama
 
         // O cartão "Carro": as três peças (cada uma com as três opções), o que o ajuste dá e tira contra o padrão e o
         // limite da curva plana para este carro nesta pista. `change` recebe o ajuste novo a cada clique.
-        void DrawCarCard(VisualElement parent, CarSetup su, System.Action<CarSetup> change)
+        void DrawCarCard(VisualElement parent, CarSetup su, System.Action<CarSetup> change, bool full = true)
         {
             var box = El("car-card", parent);
             void Row(string title, string[] names, int cur, System.Func<int, CarSetup> with)
@@ -863,9 +866,10 @@ namespace Autorama
             Stat("Aceleração", su.Accel, 0.15f);
             Stat("Aderência", su.Grip, 0.07f);
             Stat("Tolerância", 1f / su.Slip, 0.25f);      // quanto tempo a derrapagem leva para encher
+            if (!full) return;
             float sc = sim.Scale;
             var lanes = TrackMath.LanesOf(builder.Faixas);
-            float Lim(float r) => Mathf.Round(Mathf.Sqrt(set.grip * sc * su.Grip * r) / (set.vmax * sc * su.Top) * 100f);
+            float Lim(float r) => Mathf.Round(Mathf.Sqrt(sim.set.grip * sc * su.Grip * r) / (sim.set.vmax * sc * su.Top) * 100f);
             Text($"Curva plana: segura até {Lim((2.5f + lanes[0]) * sc)}% da final deste carro no trilho de dentro e {Lim((2.5f - lanes[0]) * sc)}% no de fora. Meia aceleração: {set.halfGas}%.", "small", box);
         }
 
@@ -1347,6 +1351,8 @@ namespace Autorama
                 }
             }
             // Antes do 3, 2, 1: os recordes da pista (e de cada piloto da bateria).
+            if (ChampLike) CarPickTick();
+            if (CarPickUI(showLights)) return;
             bool card = StartCard(out string cardTitle) && !showLights;
             DrawRecCard(card);
             bannerSub.style.display = DisplayStyle.Flex;

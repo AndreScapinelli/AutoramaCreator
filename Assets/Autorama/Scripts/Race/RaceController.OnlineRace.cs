@@ -305,6 +305,7 @@ namespace Autorama
         // Segundos até o host largar ou salvar sozinho; −1 fora dessas fases.
         int AutoLeft()
         {
+            if (CarPickOpen(out _, out _)) return -1;
             float wait = sim.phase == RaceSim.Phase.Idle && sim.closed ? AutoStart : sim.phase == RaceSim.Phase.Done ? AutoSave : -1f;
             return wait < 0f ? -1 : Mathf.Max(0, Mathf.CeilToInt(wait - (Time.realtimeSinceStartup - phaseSince)));
         }
@@ -333,6 +334,7 @@ namespace Autorama
         void OnlineInput(NetMsg m)
         {
             if (!OnlineRun || !IsHost || string.IsNullOrEmpty(m.from)) return;
+            if (m.car > 0) { OnlineCarIn(m.from, m.car, m.cs); return; }      // escolha do carro (seção 48), não é botão
             remoteHeld[m.from] = m.held;
             remoteGas[m.from] = NetSync.GasOf(m.gp);
             remoteBoost[m.from] = m.tb;
@@ -412,6 +414,7 @@ namespace Autorama
                 if (Champ.CurrentHeat(onlineChamp) < 0) onlineChamp.finished = Champ.Now;
                 OnlineHeatLoaded();
             }
+            else if (m.k == "cars") OnlineApplyCars(m.hi, m.cars);
             else if (m.k == "reset") { sim.Reset(); ClearSeenBest(); ClearOwnHist(false); phaseSince = Time.realtimeSinceStartup; scoreDirty = champDirty = true; }
         }
 
@@ -434,6 +437,8 @@ namespace Autorama
                 ev.pilots.AddRange(startedMsg.pilots); ev.stages.AddRange(startedMsg.stages);
             }
             foreach (var h in onlineChamp.heats) { var x = new NetHeatRes(); if (h.Saved) x.r.AddRange(h.res); ev.heats.Add(x); }
+            ev.hi = onlineChamp.carStage;                  // o ajuste do carro de cada piloto (seção 48)
+            foreach (var p in onlineChamp.pilots) ev.cars.Add(CarCode(p.carro, carOk.Contains(p.id)));
             return ev;
         }
 
@@ -460,6 +465,7 @@ namespace Autorama
             for (int i = 0; i < C.heats.Count; i++)
                 C.heats[i].res = m.heats[i].r.Count == C.heats[i].p.Length ? m.heats[i].r.ToArray() : null;
             C.finished = Champ.CurrentHeat(C) < 0 ? Champ.Now : 0;
+            if (m.cars.Count == C.pilots.Count) OnlineApplyCars(m.hi, m.cars);
             lastSq = 0;
             OnlineHeatLoaded();
         }
@@ -473,6 +479,7 @@ namespace Autorama
             onlineStages.Clear();
             foreach (var s in onlineChamp.stages) onlineStages.Add(new Stage { name = s.name, laps = s.laps, secs = s.secs, data = s.data, hash = s.hash });
             takeOverStages = true;
+            carPickSince = Time.realtimeSinceStartup; carBcastAcc = 1f;     // a escolha do carro aberta recomeça o prazo comigo
             net.Send(SyncEv(null));
             panel.Toast("Você agora é o host: a bateria da vez recomeça.");
             OnlineHeatLoaded();
@@ -488,7 +495,7 @@ namespace Autorama
 
         void OnlineStart()
         {
-            if (!IsHost || !HeatNow(out _, out _, out _, out _, out _) || sim.phase != RaceSim.Phase.Idle || !sim.closed) return;
+            if (!IsHost || !HeatNow(out _, out _, out _, out _, out _) || sim.phase != RaceSim.Phase.Idle || !sim.closed || CarPickOpen(out _, out _)) return;
             sim.StartRace();
             scoreDirty = champDirty = true; snapAcc = 1f;
         }

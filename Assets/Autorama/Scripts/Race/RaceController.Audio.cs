@@ -33,6 +33,9 @@ namespace Autorama
         class MotorSound { public string name; public AudioClip clip; public float p0, p1, vol; }
         readonly System.Collections.Generic.List<MotorSound> motors = new System.Collections.Generic.List<MotorSound>();
         MotorSound MotorNow => motors[Mathf.Clamp(set.motorSound, 0, motors.Count - 1)];
+        // O som de cada motor do ajuste (seção 48): o padrão é o escolhido nas Opções; o curto e o longo têm o seu.
+        MotorSound motorCurto, motorLongo;
+        MotorSound MotorOf(int k) => k < sim.N && sim.setup[k].motor == 1 ? motorCurto : k < sim.N && sim.setup[k].motor == 2 ? motorLongo : MotorNow;
         public string MotorName => motors.Count > 0 ? MotorNow.name : "";
         public void NextMotor() { set.motorSound = (Mathf.Clamp(set.motorSound, 0, motors.Count - 1) + 1) % motors.Count; set.Save(); }
 
@@ -116,6 +119,11 @@ namespace Autorama
             // Gravação do jogador: autorama/sons/motor.wav (PCM 16 bits). Se existir, vira a 6ª opção.
             var own = LoadWav(System.IO.Path.Combine(TrackLibrary.Root, "sons", "motor.wav"));
             if (own != null) motors.Add(new MotorSound { name = "Seu arquivo (motor.wav)", clip = own, p0 = 0.6f, p1 = 2.0f, vol = 1f });
+            // Curto: zumbido agudo e rasgado que sobe rápido. Longo: ronco grave e cheio que sobe devagar e vai mais longe.
+            motorCurto = new MotorSound { name = "Motor curto", p0 = 0.8f, p1 = 2.9f, vol = 0.7f,
+                clip = Clip("Motor: curto", 1f, (t, i) => Saw(250f, t, 7) * (0.8f + 0.2f * Sin(500f, t)) + 0.12f * Sin(1750f, t) + 0.04f * hiss[i]) };
+            motorLongo = new MotorSound { name = "Motor longo", p0 = 0.5f, p1 = 2.2f, vol = 1.05f,
+                clip = Clip("Motor: longo", 1f, (t, i) => Saw(90f, t, 8) * 0.8f + 0.3f * Sin(45f, t) + 0.06f * Sin(181f, t)) };
             var motorClip = MotorNow.clip;
 
             // Pneu derrapando: ruído passado por um filtro estreito em volta de 2,2 kHz (ressonador de dois polos),
@@ -200,18 +208,19 @@ namespace Autorama
             bool on = panel.RaceMode && sim.Ready;
             float dt = Time.unscaledDeltaTime, master = Master;
             // Com 4 carrinhos cada motor toca mais baixo, para a soma não estourar.
-            var ms = MotorNow;
-            float each = (sim.N > 2 ? 0.16f : 0.24f) * ms.vol;
+            float each0 = sim.N > 2 ? 0.16f : 0.24f;
             for (int k = 0; k < RaceSim.MaxCars; k++)
             {
+                var ms = MotorOf(k);
+                float each = each0 * ms.vol;
                 // Os laços ficam sempre tocando (mudos quando não há o que ouvir); se a Unity parou algum, religa.
-                if (motor[k].clip != ms.clip) { motor[k].clip = ms.clip; motor[k].Play(); }     // trocou de motor nos Ajustes
+                if (motor[k].clip != ms.clip) { motor[k].clip = ms.clip; motor[k].Play(); }     // trocou de motor nos Ajustes ou no ajuste do carro
                 if (!motor[k].isPlaying) motor[k].Play();
                 if (!skid[k].isPlaying) skid[k].Play();
                 bool car = on && k < sim.N && sim.present[k];
                 var c = car ? sim.cars[k] : null;
                 bool running = car && c.mode == CarMode.OnSlot && (sim.phase == RaceSim.Phase.Running || sim.phase == RaceSim.Phase.Done);
-                float speed = running ? Mathf.Clamp01(c.v / Mathf.Max(1f, sim.set.vmax * sim.Scale)) : 0f;
+                float speed = running ? Mathf.Clamp01(c.v / Mathf.Max(1f, sim.set.vmax * sim.Scale * sim.setup[k].Top)) : 0f;
                 // Motor: parado fica mudo; acelerando soa mais forte que embalado. Cada carrinho tem um tom um pouco diferente.
                 float target = running ? (0.25f + 0.75f * c.T) * Mathf.Min(1f, speed * 6f + c.T) : 0f;
                 motorVol[k] = Mathf.MoveTowards(motorVol[k], target, dt * 6f);

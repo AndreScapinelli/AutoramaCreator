@@ -578,3 +578,17 @@
     border-width: 1px; border-color: var(--borda); background-color: var(--fundo-fundo);
 }
 .friends-scroll .lib-item { margin-bottom: 4px; }
+
+/* Escolha do carro antes da etapa do campeonato (seção 48) */
+.car-pick { margin-top: 10px; align-items: center; }
+.pick-grid { flex-direction: row; flex-wrap: wrap; justify-content: center; }
+.pick-card { width: 280px; margin: 4px; padding: 8px; border-radius: 8px; background-color: rgb(30, 37, 33); border-width: 1px; border-color: rgba(255, 255, 255, 0.06); }
+.pick-card--ok { border-color: var(--destaque); }
+.pick-head { flex-direction: row; align-items: center; margin-bottom: 2px; }
+.pick-name { -unity-font-style: bold; color: var(--texto); margin: 0 6px 0 0; }
+.pick-sum { margin: 0; }
+.pick-card .car-stat-val { width: 52px; margin-top: 0; -unity-text-align: middle-right; }
+.pick-ok { margin: 8px 0 0 0; height: 26px; }
+.pick-others { margin-top: 6px; min-width: 380px; }
+.pick-foot { flex-direction: row; align-items: center; justify-content: center; margin-top: 6px; }
+.pick-foot .btn { margin: 0 0 0 8px; height: 24px; }

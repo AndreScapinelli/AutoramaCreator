@@ -3865,4 +3865,53 @@ Play mode, pista do construtor, 2 trilhos, carro 1 curto/asa/macio e carro 2 lon
 
 ### 47.7 O que falta
 
-Ícones no lugar do texto do resumo, o ajuste no minimapa (aba Pilotos) e no resultado, regra do host "livre · todos iguais", campeonato e recordes guardando o ajuste, online (protocolo novo: o host simula todos os carros e precisa do ajuste de cada um).
+Ícones no lugar do texto do resumo, o ajuste no minimapa (aba Pilotos) e no resultado, regra do host "livre · todos iguais". Campeonato e online: seção 48.
+
+## 48. Ajuste do carro no campeonato, faixa do pneu e som do motor
+
+O campeonato (offline e online) passa a correr com o ajuste do carro (seção 47). Antes da **primeira bateria de cada etapa** cada piloto escolhe motor, bolha e pneu, e o ajuste vale a etapa inteira. O código fica em `Race/RaceController.CarPick.cs`.
+
+### 48.1 Dados
+
+- `Pilot.carro` (`CarSetup`): o ajuste do piloto. No campeonato é o da etapa em andamento e vira o ponto de partida da etapa seguinte. Pilotos do cadastro levam o seu para o campeonato na cópia.
+- `Championship.carStage` (padrão −1): a última etapa com a escolha fechada. A escolha está **aberta** quando a bateria da vez é de uma etapa `s > carStage` e a corrida está parada (`CarPickOpen`). Campeonato antigo, sem o campo, abre a escolha na etapa em que está.
+- `UseChampTrack` e `ApplyChampCars` copiam `pl[k].carro` para `sim.setup[k]` (física, bolha, pneu e som). Durante a escolha o carro no grid já mostra o que foi escolhido.
+- **Recordes:** continuam no nome do piloto e não guardam o ajuste: qualquer carro vale. A volta com turbo continua não valendo.
+
+### 48.2 A tela de escolha
+
+No banner do meio da mesa (`carPick`, dentro de `banner`), no lugar do cartão de recordes: título "Escolha do carro · etapa N: pista", um cartão por piloto que escolhe aqui (o `DrawCarCard` da seção 47.5 sem a linha da curva, com o resumo e o botão **Pronto**) e uma lista dos outros (robô / pronto / escolhendo / saiu). Mudar uma peça tira o "pronto". Largar fica bloqueado (`ChampStart`, `OnlineStart`) enquanto a escolha está aberta.
+
+- **Offline:** cartões para todos os pilotos de gente. Fecha quando todos ficam prontos; **Enter** (ou Start do controle) deixa todos prontos com o que está escolhido. Grava em `campeonatos.json` a cada clique.
+- **Robôs:** `AiCar(pista)` pela fração do comprimento em curva (curva de 90° = 2,5 × π/2 células, 45° = metade; retas 1, 2 ou 4): **≥ 45%** curto · asa · macio; menos, longo · lisa · macio. Pneu macio nos dois porque a IA não aproveita o duro (47.4).
+- **Online:** cartões só para os jogadores deste computador (eu e o jogador 2). O host fecha quando todos os pilotos na sala ficam prontos, pelo botão "Fechar a escolha" ou sozinho depois de **`CarPickWait` = 45 s** (quem não confirmou corre com o que estiver escolhido). Depois de fechar, a largada automática (`AutoStart`, 20 s) conta de novo.
+- Estilos em `Construtor.uss`: `car-pick`, `pick-grid`, `pick-card`, `pick-card--ok`, `pick-head`, `pick-name`, `pick-sum`, `pick-ok`, `pick-others`, `pick-foot`.
+
+### 48.3 Rede (sem mudar a versão do protocolo)
+
+- **Código do ajuste:** `CarCode = 1 + motor × 9 + bolha × 3 + pneu`, mais 27 se o piloto confirmou (1 a 54). 0 = não é escolha.
+- **Visitante → host:** um `in` com `car` e `cs` (a etapa). O host trata como escolha e não como botão (não mexe no acelerador). O visitante repete a cada 1 s enquanto a escolha está aberta (o host pode ter mudado). O servidor repassa `car` (preso em 0–54) e `cs` (0–`MAX_STAGES`); na Steam o `in` já vai inteiro.
+- **Host → todos:** `ev` com `k = "cars"`, `hi = carStage` e `cars` (um código por piloto, na ordem dos pilotos), a cada mudança e a cada 1 s. O `ev sync` leva os mesmos `hi` e `cars`. Com a escolha aberta, o visitante mantém a própria escolha; fechada, vale a do host.
+- **Host novo** (`OnlineTakeOver`): o prazo de 45 s recomeça; quem já estava pronto continua (os visitantes guardam o "pronto" de todos).
+
+### 48.4 Faixa do pneu (`CarView.SetTire`)
+
+Um anel na cor do tipo no flanco de fora de cada roda: disco `Faixa do pneu` (Ø 0,088) com o `Miolo do pneu` escuro (Ø 0,066) por cima, encostados no flanco (y = ±0,0285 no eixo da roda). Cores: **médio amarelo** `#F5C21B`, **macio vermelho** `#E53935`, **duro branco** `#F2F2EC`. Um material por carrinho (`tireMat`), trocado só quando o pneu muda. Modelo importado: materiais com nome começando por `Pneu` recebem essa cor.
+
+### 48.5 Som de cada motor (`RaceController.Audio.cs`)
+
+`MotorOf(k)`: motor padrão toca o som escolhido nas Opções (como antes); os outros dois têm som próprio, gerado como os demais:
+
+| Motor | Som | Tom parado → no fundo | Volume |
+|---|---|---|---|
+| Curto | dente de serra de 250 Hz (7 harmônicos), mais uma nota de 1.750 Hz e chiado | 0,8 → 2,9 | 0,7 |
+| Longo | dente de serra de 90 Hz (8 harmônicos), mais 45 Hz e 181 Hz | 0,5 → 2,2 | 1,05 |
+
+O tom segue a velocidade sobre a final do próprio carro (`vmax × S × Top`).
+
+### 48.6 Testes
+
+- Compila sem erros. `npm test` do servidor: tudo certo, com o teste novo "a escolha do carro (car, cs) chega ao host, presa nos limites" (41 passa igual; 99 vira 54; −3 vira 0; sem o campo, 0).
+- `OnlineSmokeTest` contra o servidor: todos ok (nada da corrida online mudou).
+- `script eval`: `CarCode`/`CarOf` vão e voltam nos 27 ajustes × pronto/não (0 erros). `AiCar` nas 15 pistas da biblioteca: 6 de curva (curto · asa · macio) e 9 de reta (longo · lisa · macio).
+- Não testado em Play: a tela de escolha (offline e online com duas instâncias), a faixa do pneu na tela e os sons novos.

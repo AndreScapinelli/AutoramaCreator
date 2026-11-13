@@ -89,6 +89,8 @@ namespace Autorama
         public bool tb;                                   // in: turbo apertado
         public int ts;                                    // in: o relógio do visitante, em ms (volta no snapshot: latência)
         public bool g;                                    // in (Steam, visitante → host): o botão é do segundo jogador do computador
+        public int car, cs;                               // in: ajuste do carro escolhido (CarPick.Code; 0 = não é escolha) na etapa cs (seção 48)
+        public List<int> cars = new List<int>();          // ev cars / sync: o ajuste de cada piloto (CarPick.Code), na ordem dos pilotos
         // snap / ev (host → todos)
         public string b;                                  // snap: o snapshot em binário, base64 (NetSync.Decode)
         public string k;                                  // ev: res (resultado salvo) · reset (bateria de novo) · sync (o campeonato inteiro)
@@ -112,6 +114,7 @@ namespace Autorama
         public int ts;                                    // in: o meu relógio em ms (o host devolve no snapshot)
         public bool g;                                    // in/color: é do segundo jogador deste computador
         public bool on;                                   // guest: liga ou tira o segundo jogador
+        public int car, cs;                               // in: ajuste do carro escolhido (CarPick.Code; 0 = não é escolha) na etapa cs (seção 48)
         public float vmax, ramp, grip;                    // start: as regras (os ajustes da aba Corrida do host)
         public string track, hash, json;                  // suggest: a pista que o visitante sugere ao host (nome, identidade e o JSON)
         public int faixas;                                // suggest: 2 ou 4 carros
@@ -125,5 +128,6 @@ namespace Autorama
         public string t = "ev"; public string k, to; public int hi; public List<HeatResult> heatRes = new List<HeatResult>();
         public string title; public NetRules rules; public List<NetPlayer> pilots = new List<NetPlayer>(); public List<NetStage> stages = new List<NetStage>();
         public List<NetHeatRes> heats = new List<NetHeatRes>();
+        public List<int> cars = new List<int>();          // cars / sync: o ajuste de cada piloto; hi: a última etapa com a escolha fechada
     }
 }

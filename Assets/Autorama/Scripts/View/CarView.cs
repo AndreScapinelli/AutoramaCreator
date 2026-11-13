@@ -17,11 +17,15 @@ namespace Autorama
         readonly Quaternion[] wheelRest = new Quaternion[4];
         Vector3 wheelAxis;                         // eixo em que a roda gira, no espaço dela
         readonly List<GameObject> cockpit = new List<GameObject>();   // some na câmera em primeira pessoa
-        Material bodyMat, trimMat, darkMat;
+        Material bodyMat, trimMat, darkMat, tireMat;
         GameObject[] models;                       // modelo importado de cada bolha (índice = CarBody); sem ele, por código
         float spin, tumble;
 
         public CarBody Body { get; private set; }
+        public int Tire { get; private set; } = -1;
+
+        // A faixa do pneu (seção 48): médio amarelo, macio vermelho, duro branco. Índice = CarSetup.pneu.
+        static readonly Color[] TireColors = { new Color32(0xF5, 0xC2, 0x1B, 0xFF), new Color32(0xE5, 0x39, 0x35, 0xFF), new Color32(0xF2, 0xF2, 0xEC, 0xFF) };
 
         const float WheelR = 0.05f;
         static readonly Dictionary<string, Mesh> meshes = new Dictionary<string, Mesh>();
@@ -36,6 +40,8 @@ namespace Autorama
             v.bodyMat = v.Copy(lit, Color.red, 0.45f);
             v.trimMat = v.Copy(lit, Color.white, 0.3f);
             v.darkMat = v.Copy(lit, new Color32(0x16, 0x19, 0x1B, 0xFF), 0.2f);
+            v.tireMat = v.Copy(lit, TireColors[0], 0.3f);
+            v.SetTire(0);
             v.visual = new GameObject("Visual").transform;
             v.visual.SetParent(go.transform, false);
             v.Build();
@@ -54,6 +60,14 @@ namespace Autorama
                 Destroy(old.gameObject);
             }
             Build();
+        }
+
+        public void SetTire(int pneu)
+        {
+            pneu = Mathf.Clamp(pneu, 0, TireColors.Length - 1);
+            if (pneu == Tire) return;
+            Tire = pneu;
+            tireMat.SetColor("_BaseColor", TireColors[pneu]); tireMat.color = TireColors[pneu];
         }
 
         Material Copy(Material lit, Color c, float smooth)
@@ -191,6 +205,10 @@ namespace Autorama
                     hub.localRotation = wheelRest[k] = Quaternion.Euler(90f, 0f, 0f);
                     Part(PrimitiveType.Cylinder, "Pneu", darkMat, Vector3.zero, new Vector3(WheelR * 2f, 0.028f, WheelR * 2f), hub);
                     Part(cube, "Calota", trimMat, new Vector3(0f, z > 0f ? -0.03f : 0.03f, 0f), new Vector3(0.05f, 0.004f, 0.012f), hub);
+                    // Faixa do pneu: um anel na cor do tipo no flanco de fora (disco colorido com o miolo escuro por cima).
+                    float side = z > 0f ? -1f : 1f;
+                    Part(PrimitiveType.Cylinder, "Faixa do pneu", tireMat, new Vector3(0f, 0.0285f * side, 0f), new Vector3(0.088f, 0.001f, 0.088f), hub);
+                    Part(PrimitiveType.Cylinder, "Miolo do pneu", darkMat, new Vector3(0f, 0.029f * side, 0f), new Vector3(0.066f, 0.0012f, 0.066f), hub);
                     wheels[k++] = hub;
                 }
         }
@@ -210,6 +228,7 @@ namespace Autorama
                     if (n.StartsWith("Carroceria")) ms[i] = bodyMat;
                     else if (n.StartsWith("Detalhe")) ms[i] = trimMat;
                     else if (n.StartsWith("Escuro")) ms[i] = darkMat;
+                    else if (n.StartsWith("Pneu")) ms[i] = tireMat;       // a cor do tipo de pneu
                 }
                 r.sharedMaterials = ms;
             }
@@ -252,7 +271,7 @@ namespace Autorama
 
         void OnDestroy()
         {
-            Destroy(bodyMat); Destroy(trimMat); Destroy(darkMat);
+            Destroy(bodyMat); Destroy(trimMat); Destroy(darkMat); Destroy(tireMat);
         }
     }
 }

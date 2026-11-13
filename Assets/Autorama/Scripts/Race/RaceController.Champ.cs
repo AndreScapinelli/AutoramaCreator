@@ -713,7 +713,7 @@ namespace Autorama
                 d = stage.data;
                 sim.set = new RaceSettings { laps = stage.laps, vmax = C.rules.vmax, ramp = C.rules.ramp, grip = C.rules.grip, collide = C.rules.collide, turbo = C.rules.turbo, byTime = C.byTime, secs = stage.secs };
                 sim.cutoff = C.byTime ? (float?)null : Champ.Cutoff;
-                System.Array.Clear(sim.setup, 0, sim.setup.Length);      // campeonato ainda corre com o carro padrão (seção 47.5)
+                for (int k = 0; k < RaceSim.MaxCars; k++) sim.setup[k] = k < pl.Length && pl[k] != null ? pl[k].carro.Clamped : default;   // seção 48
                 for (int k = 0; k < RaceSim.MaxCars; k++)
                 {
                     sim.present[k] = k >= pl.Length || pl[k] != null;
@@ -744,9 +744,9 @@ namespace Autorama
             DrawChampSide();
         }
 
-        void ChampStart() { if (HeatNow(out _, out _, out _, out _, out _) && sim.phase == RaceSim.Phase.Idle) StartRace(); }
+        void ChampStart() { if (HeatNow(out _, out _, out _, out _, out _) && sim.phase == RaceSim.Phase.Idle && !CarPickOpen(out _, out _)) StartRace(); }
         void ChampRestart() { sim.Reset(); scoreDirty = champDirty = true; }
-        void ChampEnter() { if (sim.phase == RaceSim.Phase.Idle) ChampStart(); else if (sim.phase == RaceSim.Phase.Done) ChampSave(); }
+        void ChampEnter() { if (CarPickOpen(out var pc, out int ps)) CarPickAll(pc, ps); else if (sim.phase == RaceSim.Phase.Idle) ChampStart(); else if (sim.phase == RaceSim.Phase.Done) ChampSave(); }
 
         void ChampBegin()
         {

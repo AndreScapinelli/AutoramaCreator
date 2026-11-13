@@ -233,6 +233,9 @@ const trilha = (n, extra = {}) => ({ name: 'Pista ' + n, laps: 3, hash: 'a34f4cb
   assert.strictEqual(inp.gp, 100); ok('sem nível do acelerador (cliente antigo) vale 100%');
   A.send({ t: 'in', held: true, re: 2, ts: 123456 }); assert.strictEqual((await H.next('in')).ts, 123456);
   A.send({ t: 'in', held: true, re: 2, ts: 'x' }); assert.strictEqual((await H.next('in')).ts, 0); ok('o relógio do visitante (ts) chega ao host');
+  A.send({ t: 'in', held: false, re: 2, car: 41, cs: 1 }); { const m = await H.next('in'); assert.strictEqual(m.car, 41); assert.strictEqual(m.cs, 1); }
+  A.send({ t: 'in', held: false, re: 2, car: 99, cs: -3 }); { const m = await H.next('in'); assert.strictEqual(m.car, 54); assert.strictEqual(m.cs, 0); }
+  A.send({ t: 'in', held: true, re: 2 }); assert.strictEqual((await H.next('in')).car, 0); ok('a escolha do carro (car, cs) chega ao host, presa nos limites');
   A.send({ t: 'in', held: true, gp: 55, re: 2 });
   assert.strictEqual((await H.next('in')).gp, 55);
   A.send({ t: 'in', held: true, gp: 900, re: 2 });

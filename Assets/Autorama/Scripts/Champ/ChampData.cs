@@ -21,6 +21,7 @@ namespace Autorama
         public bool ai;                          // o computador dirige
         public int skill = 50;                   // qualidade do piloto IA, 1–100
         public string uid;                       // online: o id fixo do jogador (jogador.json ou "steam:…"); vazio no offline
+        public CarSetup carro;                   // o ajuste do carro (seção 47); no campeonato, o da etapa em andamento (seção 48)
         public Color Color => ColorUtility.TryParseHtmlString(color, out var c) ? c : Color.red;
         public Pilot Copy() => (Pilot)MemberwiseClone();
     }
@@ -60,6 +61,7 @@ namespace Autorama
         public List<Pilot> pilots = new List<Pilot>();
         public List<Stage> stages = new List<Stage>();
         public List<Heat> heats = new List<Heat>();
+        public int carStage = -1;                // a última etapa com o ajuste do carro já escolhido (seção 48)
     }
 
     [Serializable] public class ChampDraft { public string name = ""; public int faixas = 2; public bool byTime; public List<string> pilots = new List<string>(); public List<Stage> stages = new List<Stage>(); }
