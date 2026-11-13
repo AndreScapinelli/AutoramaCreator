@@ -32,7 +32,7 @@ namespace Autorama
         public static int Faixas(int f) => f == 8 ? 8 : f == 6 ? 6 : f == 4 ? 4 : 2;
         public static float[] LanesOf(int faixas) => faixas == 8 ? Lanes8 : faixas == 6 ? Lanes6 : faixas == 4 ? Lanes4 : Lanes;
         public static float Scale(int faixas) => faixas == 8 ? 4f : faixas == 6 ? 3f : faixas == 4 ? 2f : 1f;
-        public const int MaxLevel = 2;            // 0 = chão, 1 = ponte, 2 = ponte sobre ponte
+        public const int MaxLevel = 8;            // 0 = chão, 1 = ponte, 2 = ponte sobre ponte... até 8 andares
         public const float LevelHeight = 0.75f;   // 1 nível = 3/4 de célula: vão para o carrinho e sombra visível de cima
 
         public static Vector2 Dir(float deg)

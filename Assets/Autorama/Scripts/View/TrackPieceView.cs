@@ -298,8 +298,11 @@ namespace Autorama
                     float foot = Thickness / k;      // a mesa fica Thickness (mundo) abaixo do nível 0
                     pillars.Add(Box("Pilar", mat, new Vector3(o.x, (top - foot) / 2f, o.y), new Vector3(thin, top + foot, thin), rot));
                 }
-                // Travessa logo abaixo da pista, de borda a borda.
-                pillars.Add(Box("Travessa", mat, new Vector3(q.pos.x, TrackLayout.SurfaceY(s, t, 0f) - 0.035f, q.pos.y), new Vector3(0.06f * 2f / k, 0.05f * 2f / k, 0.95f), rot));
+                // Travessa logo abaixo da pista, de borda a borda, seguindo a inclinação da curva inclinada.
+                var ea = TrackMath.Offset(q, -0.475f); var eb = TrackMath.Offset(q, 0.475f);
+                var pa = new Vector3(ea.x, TrackLayout.SurfaceY(s, t, -0.475f) - 0.035f, ea.y);
+                var pb = new Vector3(eb.x, TrackLayout.SurfaceY(s, t, 0.475f) - 0.035f, eb.y);
+                pillars.Add(Box("Travessa", mat, (pa + pb) / 2f, new Vector3(0.06f * 2f / k, 0.05f * 2f / k, Vector3.Distance(pa, pb)), Quaternion.LookRotation(pb - pa)));
             }
         }
 

@@ -2795,7 +2795,7 @@ Tudo gerado por `ferramentas/gen-texturas.js` (bloco "PISTA DE 4 CARROS") e liga
 - **Curva plana:** zebra **azul e branca**, 6 listras por célula. **Inclinada:** chevrons brancos subindo para o lado alto, o asfalto clareando em azul e um **muro azul** na borda de fora.
 - **Cruzamento:** as 4 fendas em S e um **losango branco** no meio.
 - **Largada** (`pista4-largada.png`, a peça inteira numa imagem, 1024 × 2048): um **box em U na cor de cada trilho** em volta do lugar do carrinho, o **número do trilho** (dígitos de 7 segmentos) atrás do box e a bandeirada quadriculada larga. Por isso `TrackPieceView` usa v de 0 a 1 na largada de 4 (como no cruzamento) e não desenha a faixa de bandeirada separada.
-- **Peças no alto:** muro azul listrado (`mureta4.png`) mais fino e mais alto (0,02 × 0,06 célula) e, embaixo, **três pilares quadrados de aço escuro** por fileira (bordas e meio) com uma **travessa** de borda a borda, a cada 1 célula (`BuildPillars4`).
+- **Peças no alto:** muro azul listrado (`mureta4.png`) mais fino e mais alto (0,02 × 0,06 célula) e, embaixo, **três pilares quadrados de aço escuro** por fileira (bordas e meio) com uma **travessa** de borda a borda, a cada 1 célula (`BuildPillars4`). A travessa vai de `SurfaceY(−0,475)` a `SurfaceY(+0,475)`, 0,035 abaixo da pista, inclinada junto com a curva inclinada (antes era reta na altura do meio e furava a pista do lado de dentro).
 - **Mesa** em tom frio (`grade-mesa4.png`) e **ícones** próprios (`icone4-*.png`: 4 trilhos coloridos; o painel troca os ícones da paleta pelo tipo).
 - **Carrinhos 3 e 4:** `carrinho-verde.png` e `carrinho-amarelo.png` (o mesmo molde), em `TrackTheme.cars34`. Sem o tema atualizado, a corrida repete o vermelho/azul.
 - Texturas `pista4-*` importam até 2048 px (o dobro de detalhe por célula).
@@ -3731,7 +3731,7 @@ Pedidos depois de jogar com amigos (online).
 
 ### 45.1 Largada no alto
 
-Com a largada selecionada no construtor, **Subir** e **Descer** (no painel da peça) mudam o nível dela de 0 (chão) a `TrackMath.MaxLevel` (2). A pista inteira vai junto: as rampas sobem e descem a partir do nível da largada, e as peças de trás ficam no nível dela.
+Com a largada selecionada no construtor, **Subir** e **Descer** (no painel da peça) mudam o nível dela de 0 (chão) a `TrackMath.MaxLevel` (8; era 2 até 13/11/2026, a pedido dos jogadores. As rampas também param em 8. Teste: largada no chão + 10 retas compridas subindo dão os níveis 0 1 2 3 4 5 6 7 8 8 8). A pista inteira vai junto: as rampas sobem e descem a partir do nível da largada, e as peças de trás ficam no nível dela.
 
 - **JSON:** `largada.nivel` (sem o campo: 0, as pistas antigas não mudam). `TrackSave.StartZ` lê; `TrackSave.From(…, startZ)` grava. `TrackBuilder.StartZ` / `MoveStartLevel(±1)` (entra no desfazer); pista nova volta ao chão.
 - **Montagem:** `TrackLayout.Build(origin, pieces, tail, z0)` começa em `z0`; as peças de trás têm `zIn = zOut = z0`. `Analyze` fecha quando a ponta chega no nível da largada (`endZ == segs[0].zIn`). Todos os `Build` a partir de um `TrackSave` passam `save.StartZ`.
