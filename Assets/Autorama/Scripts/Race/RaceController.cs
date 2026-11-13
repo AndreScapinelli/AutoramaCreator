@@ -211,7 +211,7 @@ namespace Autorama
             for (int k = 0; k < RaceSim.MaxCars; k++)
             {
                 // Carrinho 3D (seção 28): duas cores, a principal é a do trilho ou a do piloto.
-                carViews[k] = CarView.Create(CarNames[k], builder.theme.support, LaneColors[k], transform);
+                carViews[k] = CarView.Create(CarNames[k], builder.theme.support, LaneColors[k], transform, builder.theme.carModels);
                 cars[k] = carViews[k].transform;
             }
         }
@@ -271,7 +271,7 @@ namespace Autorama
             }
             else
             {
-                sim.set = set; sim.cutoff = null; System.Array.Clear(sim.aiSkill, 0, sim.aiSkill.Length);
+                sim.set = set; sim.cutoff = null; System.Array.Clear(sim.aiSkill, 0, sim.aiSkill.Length); System.Array.Clear(sim.setup, 0, sim.setup.Length);
                 cam.SetRaceViewMode(TopDownCamera.RaceViewMode.Atual);
                 if (builderStash != null) builder.ShowTrack(builderStash);
                 if (m == BuilderPanel.Mode.Build) builderStash = null;     // no lobby online a pista do construtor fica só de fundo
@@ -340,6 +340,7 @@ namespace Autorama
                 var sl = set.slots[k];
                 sim.present[k] = k < cars;
                 sim.aiSkill[k] = k < cars && sl.ai ? Mathf.Clamp(sl.skill, 1, 100) : 0;
+                sim.setup[k] = k < cars ? sl.carro : default;
                 if (k < sim.N && sim.aiSkill[k] == 0) sim.cars[k].held = false;     // virou gente: solta o acelerador que a IA segurava
             }
             DrawPadHeads();
@@ -412,6 +413,7 @@ namespace Autorama
                 // Frente para +X: gira para o rumo, inclina na rampa e deita na curva inclinada.
                 cars[k].rotation = Quaternion.Euler(0f, -p.heading, 0f) * Quaternion.Euler(0f, 0f, pitch) * Quaternion.Euler(sim.CarBank(k), 0f, 0f);
                 var st = sim.cars[k];
+                carViews[k].SetBody((CarBody)sim.setup[k].bolha);
                 carViews[k].SetCockpit(cam.InFirstPersonOf(k));
                 carViews[k].Tick(st.mode == CarMode.OnSlot ? st.v : 0f, st.mode == CarMode.Off, Time.deltaTime);
                 carPos[k] = pos; carHeading[k] = p.heading;
@@ -815,9 +817,56 @@ namespace Autorama
                     Text(ks < Controles.Jogadores ? $"Acelera {KeyText(GasKeyAt(ks))} · meia {KeyText(HalfKeyAt(ks))} · recoloca {KeyText(ReslotKeyAt(ks))} · turbo {KeyText(TurboKeyAt(ks))}{pad}"
                                              : PadOf(ks) != null ? $"Controle {ks + 1}" : "Só com controle: ligue mais um controle", "small", card);
                 }
+                // Ajuste do carro (seção 47): o botão abre o cartão dentro do próprio cartão do piloto.
+                Btn($"Carro: <b>{sl.carro.Resumo}</b>  {(openCar == k ? "▾" : "▸")}", () => { openCar = openCar == idx ? -1 : idx; DrawRaceSetup(); }, "btn pcard-car", card);
+                if (openCar == k) DrawCarCard(card, sl.carro, v => { if (Racing) return; sl.carro = v; set.Save(); SetBot(); DrawRaceSetup(); });
             }
             if (cars < f) Text(f - cars == 1 ? "1 trilho fica vazio." : $"{f - cars} trilhos ficam vazios.", "small", pilotBox);
             if (cars == 1) Text("Treino: um carro só, contra o relógio.", "small", pilotBox);
+        }
+
+        int openCar = -1;      // qual cartão de piloto está com o ajuste do carro aberto
+
+        // O cartão "Carro": as três peças (cada uma com as três opções), o que o ajuste dá e tira contra o padrão e o
+        // limite da curva plana para este carro nesta pista. `change` recebe o ajuste novo a cada clique.
+        void DrawCarCard(VisualElement parent, CarSetup su, System.Action<CarSetup> change)
+        {
+            var box = El("car-card", parent);
+            void Row(string title, string[] names, int cur, System.Func<int, CarSetup> with)
+            {
+                var row = El("segmented car-row", box);
+                Text(title, "seg-label", row);
+                foreach (int o in new[] { 1, 0, 2 })
+                {
+                    int oo = o;
+                    Btn(names[o], () => change(with(oo)), cur == o ? "btn btn--on" : "btn", row);
+                }
+            }
+            Row("Motor", CarSetup.MotorNames, su.motor, o => { var n = su; n.motor = o; return n; });
+            Row("Bolha", CarSetup.BolhaNames, su.bolha, o => { var n = su; n.bolha = o; return n; });
+            Row("Pneu", CarSetup.PneuNames, su.pneu, o => { var n = su; n.pneu = o; return n; });
+            // Barra a partir do meio: verde para mais, laranja para menos. "range" é a variação que enche meia barra.
+            void Stat(string name, float m, float range)
+            {
+                var row = El("car-stat", box);
+                Text(name, "seg-label car-stat-name", row);
+                var bar = El("car-bar", row);
+                var fill = El("car-fill", bar);
+                float d = Mathf.Clamp((m - 1f) / range, -1f, 1f) * 50f;
+                fill.style.left = Length.Percent(d < 0f ? 50f + d : 50f);
+                fill.style.width = Length.Percent(Mathf.Abs(d));
+                fill.EnableInClassList("car-fill--menos", d < 0f);
+                El("car-mid", bar);
+                Text(Mathf.Abs(m - 1f) < 0.0005f ? "padrão" : ((m - 1f) * 100f).ToString("+0.#;−0.#") + "%", "small car-stat-val", row);
+            }
+            Stat("Final", su.Top, 0.025f);
+            Stat("Aceleração", su.Accel, 0.15f);
+            Stat("Aderência", su.Grip, 0.07f);
+            Stat("Tolerância", 1f / su.Slip, 0.25f);      // quanto tempo a derrapagem leva para encher
+            float sc = sim.Scale;
+            var lanes = TrackMath.LanesOf(builder.Faixas);
+            float Lim(float r) => Mathf.Round(Mathf.Sqrt(set.grip * sc * su.Grip * r) / (set.vmax * sc * su.Top) * 100f);
+            Text($"Curva plana: segura até {Lim((2.5f + lanes[0]) * sc)}% da final deste carro no trilho de dentro e {Lim((2.5f - lanes[0]) * sc)}% no de fora. Meia aceleração: {set.halfGas}%.", "small", box);
         }
 
         void SetSlotAi(int k, bool ai)
@@ -1072,7 +1121,7 @@ namespace Autorama
                 var c = sim.cars[k];
                 var p = pads[k];
                 p.fill.style.width = Length.Percent(c.T * 100f);
-                p.speed.style.width = Length.Percent(Mathf.Min(100f, c.v / (sim.set.vmax * sim.Scale) * 100f));
+                p.speed.style.width = Length.Percent(Mathf.Min(100f, c.v / (sim.set.vmax * sim.Scale * sim.setup[k].Top) * 100f));
                 p.slip.style.width = Length.Percent(Mathf.Min(100f, c.slip * 100f));
                 p.slip.style.backgroundColor = c.slip < 0.45f ? new Color(0.24f, 0.75f, 0.45f) : c.slip < 0.75f ? new Color(0.96f, 0.76f, 0.1f) : new Color(0.94f, 0.48f, 0.23f);
                 bool off = c.mode == CarMode.Off, ai = sim.aiSkill[k] > 0;

@@ -162,7 +162,7 @@ namespace Autorama
             panel.ChampBox.Add(cRun);                    // devolve a tela à aba Campeonato (ela se redesenha ao abrir)
             ClearRemote(); startedMsg = null;
             for (int k = 0; k < RaceSim.MaxCars; k++) uiHeld[k] = false;
-            sim.set = set; sim.cutoff = null; System.Array.Clear(sim.aiSkill, 0, sim.aiSkill.Length);
+            sim.set = set; sim.cutoff = null; System.Array.Clear(sim.aiSkill, 0, sim.aiSkill.Length); System.Array.Clear(sim.setup, 0, sim.setup.Length);
             for (int k = 0; k < RaceSim.MaxCars; k++) sim.present[k] = true;
             sim.Reset();
             cam.SetRaceViewMode(TopDownCamera.RaceViewMode.Atual);

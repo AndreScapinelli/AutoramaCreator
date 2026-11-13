@@ -408,6 +408,17 @@
 .pcard-seg .btn { height: 24px; font-size: 11px; margin-bottom: 0; }
 .pcard-skill { margin: 6px 0 2px 0; }
 .pcard .small { margin-top: 4px; }
+/* Ajuste do carro (seção 47): botão que abre o cartão, as três peças e as barras contra o padrão. */
+.pcard-car { height: 24px; font-size: 11px; margin: 6px 0 0 0; -unity-text-align: middle-left; }
+.car-card { margin-top: 4px; }
+.car-row .btn { height: 22px; font-size: 11px; margin-bottom: 0; flex-grow: 1; flex-basis: 0; min-width: 0; }
+.car-stat { flex-direction: row; align-items: center; margin-top: 4px; }
+.car-stat-name { width: 70px; }
+.car-bar { flex-grow: 1; height: 6px; background-color: rgba(255, 255, 255, 0.08); }
+.car-fill { position: absolute; top: 0; bottom: 0; background-color: rgb(61, 191, 115); }
+.car-fill--menos { background-color: rgb(240, 122, 58); }
+.car-mid { position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background-color: var(--texto-fraco); }
+.pcard .car-stat-val { width: 52px; margin-top: 0; -unity-text-align: middle-right; }
 .car-count { flex-grow: 1; flex-basis: 0; min-width: 0; }
 .fold > .unity-foldout__toggle { margin: 0; }
 .fold .unity-foldout__text { color: var(--destaque); font-size: 12px; -unity-font-style: bold; letter-spacing: 1px; }

@@ -57,7 +57,7 @@ namespace Autorama
         // robô", os outros robôs, todos com a qualidade única de antes. Os de 6 lugares ganham 2 robôs no fim.
         public void FixSlots()
         {
-            if (slots != null && slots.Length == RaceSim.MaxCars) { foreach (var x in slots) x.skill = Mathf.Clamp(x.skill, 1, 100); return; }
+            if (slots != null && slots.Length == RaceSim.MaxCars) { foreach (var x in slots) { x.skill = Mathf.Clamp(x.skill, 1, 100); x.carro = x.carro.Clamped; } return; }
             int q = Mathf.Clamp(botSkill, 1, 100);
             var old = slots;
             slots = new PilotSlot[RaceSim.MaxCars];
@@ -71,8 +71,44 @@ namespace Autorama
         public void Save() { PlayerPrefs.SetString(Key, JsonUtility.ToJson(this)); PlayerPrefs.Save(); }
     }
 
+    // Ajuste do carro (seção 47): três peças, cada uma troca uma coisa por outra. Tudo em 0 é o carro padrão, com os
+    // quatro multiplicadores em 1: a física é exatamente a de antes do ajuste existir.
+    [Serializable]
+    public struct CarSetup
+    {
+        public int motor;   // 0 padrão, 1 curto (acelera mais, final menor), 2 longo (o contrário)
+        public int bolha;   // CarBody: 0 padrão, 1 asa (mais aderência, final menor), 2 lisa (o contrário)
+        public int pneu;    // 0 médio, 1 macio (mais aderência, a derrapagem enche mais rápido), 2 duro (o contrário)
+
+        // Quanto cada peça dá e tira (calibrado na seção 47.3; não são const para a calibração poder variar).
+        public static float MotorAccel = 0.12f, MotorTop = 0.0125f, BodyGrip = 0.015f, BodyTop = 0.01f, TireGrip = 0.05f, TireSlip = 0.2f;
+
+        static int Sign(int v, int plus) => v == plus ? 1 : v == 0 ? 0 : -1;
+        public float Top => (1f + MotorTop * Sign(motor, 2)) * (1f + BodyTop * Sign(bolha, 2));       // × velocidade final
+        public float Accel => 1f + MotorAccel * Sign(motor, 1);                                      // × Accel e ÷ tempo do acelerador ("ramp")
+        public float Grip => (1f + BodyGrip * Sign(bolha, 1)) * (1f + TireGrip * Sign(pneu, 1));    // × aderência
+        public float Slip => 1f + TireSlip * Sign(pneu, 1);                                          // × SlipGain
+
+        public static readonly string[] MotorNames = { "Padrão", "Curto", "Longo" }, BolhaNames = { "Padrão", "Asa", "Lisa" }, PneuNames = { "Médio", "Macio", "Duro" };
+        public bool Padrao => motor == 0 && bolha == 0 && pneu == 0;
+        // "curto · asa · macio": só as peças fora do padrão.
+        public string Resumo
+        {
+            get
+            {
+                if (Padrao) return "padrão";
+                var l = new List<string>();
+                if (motor != 0) l.Add(MotorNames[motor].ToLowerInvariant());
+                if (bolha != 0) l.Add(BolhaNames[bolha].ToLowerInvariant());
+                if (pneu != 0) l.Add(PneuNames[pneu].ToLowerInvariant());
+                return string.Join(" · ", l);
+            }
+        }
+        public CarSetup Clamped => new CarSetup { motor = Mathf.Clamp(motor, 0, 2), bolha = Mathf.Clamp(bolha, 0, 2), pneu = Mathf.Clamp(pneu, 0, 2) };
+    }
+
     // Um lugar no grid da corrida livre: gente ou robô (com a qualidade dele).
-    [Serializable] public class PilotSlot { public bool ai; public int skill = 60; }
+    [Serializable] public class PilotSlot { public bool ai; public int skill = 60; public CarSetup carro; }   // carro: o ajuste (seção 47)
 
     public struct LanePoint
     {
@@ -299,6 +335,7 @@ namespace Autorama
         public readonly int[] aiSkill = new int[MaxCars];   // 0: gente; 1–100: piloto IA com essa qualidade
         public readonly LanePath[] paths = new LanePath[MaxCars];
         public CarState[] cars { get; private set; } = { new CarState(), new CarState() };
+        public readonly CarSetup[] setup = new CarSetup[MaxCars];   // ajuste de cada carro (seção 47); fica com o carro na troca de trilho
         public readonly bool[] present = { true, true, true, true, true, true, true, true };   // trilho vazio na bateria (campeonato por tempo com menos pilotos que trilhos)
 
         // ---------- Corrida por tempo (seção 26) ----------
@@ -371,15 +408,16 @@ namespace Autorama
             if (Ready && phase != Phase.Idle) for (int k = 0; k < N; k++) if (aiSkill[k] > 0 && present[k]) AiDrive(k, dt);
             bool stopped = ByTime && (phase == Phase.Done || phase == Phase.Switch);     // fim da manche: ninguém acelera
             // Acelerador: sobe enquanto segura, zera ao soltar.
-            foreach (var c in cars)
+            for (int k = 0; k < cars.Length; k++)
             {
+                var c = cars[k];
                 // O acelerador sobe até o nível pedido no mesmo ritmo de sempre (100% em "ramp" segundos) e desce na hora.
                 // Com o nível em 1 (teclado, IA) é exatamente o T = hold / ramp de antes: a física e os recordes não mudam.
                 if (c.held && c.finish == null && !stopped)
                 {
                     c.hold += dt;
                     float g = Mathf.Clamp01(c.gas);
-                    c.T = c.T > g ? g : Mathf.Min(g, Mathf.Min(1f, c.hold / set.ramp));
+                    c.T = c.T > g ? g : Mathf.Min(g, Mathf.Min(1f, c.hold * setup[k].Accel / set.ramp));
                 }
                 else { c.hold = 0f; c.T = 0f; }
                 c.hitFx = Mathf.Max(0f, c.hitFx - dt);
@@ -415,9 +453,10 @@ namespace Autorama
                     // Turbo: só com o acelerador apertado, tanque com carga e a prova valendo. Soma velocidade e gasta o tanque.
                     bool tb = set.turbo && c.boost && c.turbo > 0f && c.T > 0f && phase == Phase.Running;
                     // Tudo em células × Scale: a física de uma pista de 4 ou 6 é a de 2 esticada (ver seção 25.5 do guia).
-                    float top = set.vmax * Scale * (tb ? 1f + TurboBoost : 1f);
+                    var su = setup[k];
+                    float top = set.vmax * Scale * su.Top * (tb ? 1f + TurboBoost : 1f);
                     if (tb) { c.turbo = Mathf.Max(0f, c.turbo - dt / TurboTime); c.turboLap = true; }
-                    float a = (c.T == 0f ? -(Brake * c.v + Brake0 * Scale) : Accel * (c.T * top - c.v)) - SlopeG * Scale * here.slope;
+                    float a = (c.T == 0f ? -(Brake * c.v + Brake0 * Scale) : Accel * su.Accel * (c.T * top - c.v)) - SlopeG * Scale * here.slope;
                     c.v = Mathf.Max(0f, c.v + a * dt);
                     c.s += c.v * dt;
                     Travel[k] += c.v * dt;      // distância percorrida, em unidades do mundo (o painel converte para metros)
@@ -443,8 +482,8 @@ namespace Autorama
                         continue;
                     }
                     if (q.k != 0f) c.side = q.k > 0f ? 1 : -1;
-                    float ratio = c.v * c.v * Mathf.Abs(q.k) / (set.grip * Scale * q.grip);
-                    c.slip = ratio > 1f ? c.slip + (ratio - 1f) * SlipGain * dt : Mathf.Max(0f, c.slip - SlipDecay * dt);
+                    float ratio = c.v * c.v * Mathf.Abs(q.k) / (set.grip * Scale * su.Grip * q.grip);
+                    c.slip = ratio > 1f ? c.slip + (ratio - 1f) * SlipGain * su.Slip * dt : Mathf.Max(0f, c.slip - SlipDecay * dt);
                     if (c.slip >= 1f) Deslot(k, null);
                     else CountLap(k);
                 }
@@ -837,7 +876,7 @@ namespace Autorama
                     jumpNear = true;
                 }
                 if (q.k == 0f) continue;
-                float v = Mathf.Sqrt(set.grip * Scale * q.grip / Mathf.Abs(q.k)) * m;
+                float v = Mathf.Sqrt(set.grip * Scale * setup[k].Grip * q.grip / Mathf.Abs(q.k)) * m;
                 need = Mathf.Min(need, Mathf.Sqrt(v * v + 2f * AiBrake * Scale * d));
             }
             // Dentro do loop não deixa a velocidade cair abaixo de LoopAi, mesmo com curva logo depois.
@@ -848,7 +887,7 @@ namespace Autorama
             c.gas = jumpNear && !c.held ? 0.01f : 1f;
             if (jumpNear) c.held = true;
             // Turbo da IA: só quando nenhuma curva à frente pede freio nem na velocidade com turbo (retas longas).
-            c.boost = set.turbo && c.turbo > 0f && need > set.vmax * Scale * (1f + TurboBoost);
+            c.boost = set.turbo && c.turbo > 0f && need > set.vmax * Scale * setup[k].Top * (1f + TurboBoost);
         }
 
         // Melhor volta da bateria só entre gente: piloto IA não bate recorde da pista.

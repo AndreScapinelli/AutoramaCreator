@@ -32,6 +32,9 @@ namespace Autorama
         public Material board4;                     // mesa em tom frio
         public Material[] cars34 = new Material[0]; // carrinhos 3 (verde) e 4 (amarelo), mesmo molde dos de 2
 
+        [Header("Carrinho (seção 46)")]
+        public GameObject[] carModels = new GameObject[0];   // modelo importado de cada bolha (0 padrão, 1 asa, 2 lisa); vazio = por código
+
         [Header("Pista de 6 carros (arte própria, seção 31)")]
         public WideArt art6 = new WideArt();
         public Material[] cars56 = new Material[0]; // carrinhos 5 (roxo) e 6 (ciano)

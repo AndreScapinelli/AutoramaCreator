@@ -713,6 +713,7 @@ namespace Autorama
                 d = stage.data;
                 sim.set = new RaceSettings { laps = stage.laps, vmax = C.rules.vmax, ramp = C.rules.ramp, grip = C.rules.grip, collide = C.rules.collide, turbo = C.rules.turbo, byTime = C.byTime, secs = stage.secs };
                 sim.cutoff = C.byTime ? (float?)null : Champ.Cutoff;
+                System.Array.Clear(sim.setup, 0, sim.setup.Length);      // campeonato ainda corre com o carro padrão (seção 47.5)
                 for (int k = 0; k < RaceSim.MaxCars; k++)
                 {
                     sim.present[k] = k >= pl.Length || pl[k] != null;
@@ -721,7 +722,7 @@ namespace Autorama
             }
             else
             {
-                sim.set = set; sim.cutoff = null; System.Array.Clear(sim.aiSkill, 0, sim.aiSkill.Length);
+                sim.set = set; sim.cutoff = null; System.Array.Clear(sim.aiSkill, 0, sim.aiSkill.Length); System.Array.Clear(sim.setup, 0, sim.setup.Length);
                 for (int k = 0; k < RaceSim.MaxCars; k++) sim.present[k] = true;
                 var list = C != null ? C.stages : store.draft.stages;
                 d = list.Count > 0 ? list[list.Count - 1].data : builderStash;     // prévia: a última etapa incluída
@@ -1001,6 +1002,8 @@ namespace Autorama
                 bool ai = sim.aiSkill[k] > 0;
                 p.name.text = pilot != null ? $"{pilot.name.ToUpperInvariant()} · {LaneNames[k].ToUpperInvariant()}"
                     : ai ? $"ROBÔ · {LaneNames[k].ToUpperInvariant()}" : $"JOGADOR {k + 1}";
+                // O ajuste do carro ao lado do nome (só com até 4 painéis: nos de 6 e 8 não cabe).
+                if (!sim.setup[k].Padrao && sim.N <= 4) p.name.text += $"  <size=10><color=#9AA3A8>{sim.setup[k].Resumo}</color></size>";
                 p.gasText.text = ai && !OnlineRun ? $"IA PILOTANDO · {sim.aiSkill[k]}" : GasLabel(k);
                 p.reslot.text = OnlineRun ? $"Recolocar  {KeyText(ReslotKeyAt(LocalKeySet(Math.Max(0, LocalOf(pilot?.id)))))}" : $"Recolocar  {KeyText(ReslotKey(k))}";
                 p.gas.EnableInClassList("gas--ai", ai);

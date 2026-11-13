@@ -2968,7 +2968,8 @@ Tampo de madeira com moldura (0,7 além da grade, 0,5 de espessura), quatro pés
 
 ### 28.3 Carrinho 3D (`CarView`)
 
-- **Provisório**, montado com cubos e cilindros: assoalho, capô, traseira, cabine escura, teto, faixa e bico na segunda cor, aerofólio sobre dois apoios e quatro rodas. Mesma caixa da física (0,60 × 0,32), frente em +X, chão em y = 0.
+- As três bolhas (Padrão, Asa e Lisa) e o encaixe de modelo importado estão na seção 46. O que segue é a bolha Padrão.
+- Montado com cubos e cilindros: assoalho, capô, traseira, cabine escura, teto, faixa e bico na segunda cor, aerofólio sobre dois apoios e quatro rodas. Mesma caixa da física (0,60 × 0,32), frente em +X, chão em y = 0.
 - **Duas cores:** a principal é a do trilho ou a do piloto (`SetColors`); a segunda é branca, ou escura quando a principal é clara. Substitui a pintura `CarTexture` do carrinho chapado.
 - **Movimento:** rodas giram com a velocidade; o carrinho inclina na rampa (pitch), **deita na curva inclinada** (`RaceSim.CarBank`, de `LanePoint.bank`: o ângulo lateral da superfície) e **capota** ao sair da pista. A derrapagem (traseira saindo) já vinha da pose da física.
 - Modelo escolhido para substituir o provisório: https://poly.pizza/m/EMcTJiXibv. O site é bloqueado no navegador do assistente: o arquivo (GLB ou FBX) precisa ser baixado à mão e colocado em `Assets/Autorama/Modelos/`.
@@ -3729,3 +3730,139 @@ Com a largada selecionada no construtor, **Subir** e **Descer** (no painel da pe
 
 - `dotnet build` de `Assembly-CSharp` e `Assembly-CSharp-Editor`: sem erros. `cd servidor && npm test`: tudo certo.
 - Falta ver na Unity (o Editor estava fechado): largada no nível 1 e 2 com Q, a tela da troca de trilho e a tabela no fim da bateria.
+
+## 46. Bolhas do carrinho (parte visual do ajuste do carro)
+
+Primeira parte do ajuste do carro (motor, bolha e pneu): só o **3D das três bolhas**. A física do ajuste está na seção 47. A bolha vem do ajuste do carro: o `RaceController` chama `CarView.SetBody((CarBody)sim.setup[k].bolha)` a cada quadro (não faz nada se já for a mesma).
+
+### 46.1 As três bolhas (`CarBody`, em `View/CarView.cs`)
+
+`enum CarBody { Padrao, Asa, Lisa }`: o número vai para o JSON, com 0 = padrão. Cada classe tem um traço na silhueta para dar para ler de longe:
+
+| Bolha | Silhueta | Peças |
+|---|---|---|
+| **Padrão** | o carrinho de antes, sem mudança | cubos (seção 28.3) |
+| **Asa** | cunha baixa, rodas descobertas, lâmina larga na frente, aerofólio alto (y = 0,215) com aletas na cor do carro | casco e cabine de perfil; tomada de ar, lâmina, aerofólio, aletas, apoios e eixos em cubos |
+| **Lisa** | gota fechada com as rodas embutidas (aparecem só nos cantos), sem aerofólio, barbatana na traseira e saia na segunda cor | casco, cabine e barbatana de perfil; saia em cubo |
+
+Igual nas três: caixa da física (0,60 × 0,32), frente em +X, chão em y = 0, rodas em x = ±0,185 com raio 0,05, e as duas cores (`SetColors`). As rodas ficam em z = ±0,145; na Lisa, em ±0,115, para dentro do casco.
+
+### 46.2 Peça de perfil (`Shape`)
+
+`Shape(nome, material, pontos…)`: o contorno lateral (x, y) estendido para os dois lados. O **z de cada ponto é a meia largura** da peça ali, então a carroceria afina no bico e na traseira. O meio de cada lateral fica na maior largura (lateral abaulada). Regras:
+
+- O contorno tem que ser **convexo** (as faces saem em leque).
+- `Face` vira o triângulo para o lado de fora sozinha (compara a normal com a direção pedida), então a ordem dos pontos tanto faz. Cada face tem vértices próprios: quinas vivas, como o resto do jogo.
+- As malhas ficam num cache estático por `bolha/nome`; os 8 carrinhos dividem as mesmas.
+
+### 46.3 Modelo importado no lugar
+
+`TrackTheme.carModels` (índice = `CarBody`). Com um modelo no índice da bolha, `CarView.UseModel` usa ele em vez das peças por código. O modelo tem que seguir:
+
+- frente em +X, chão em y = 0, dentro da caixa de 0,60 × 0,32;
+- materiais com nome começando por `Carroceria`, `Detalhe` e `Escuro` recebem a cor principal, a segunda cor e o escuro; os outros ficam como vieram;
+- até 4 objetos com nome começando por `Roda` giram no eixo Z deles;
+- objetos `Cabine` e `Teto` somem na câmera em primeira pessoa.
+
+### 46.4 Testes
+
+Play mode, quatro `CarView` criados por `script eval` lado a lado (Padrão, Asa, Lisa e um modelo falso de cubos em `carModels`), capturas de frente e de trás:
+
+- Renderizadores: Padrão 19, Asa 19, Lisa 12, modelo falso 5.
+- As três silhuetas aparecem diferentes (`docs/previa-bolhas.png`); as faces das peças de perfil olham para fora (sem buraco dos dois lados); as cores do carrinho entram nas três.
+- Modelo falso: o material `Carroceria teste` pegou a cor do carrinho e as quatro `Roda…` giraram com `Tick`.
+- Bolhas numa corrida: testado na seção 47.6. Não testado: a câmera em primeira pessoa com Asa e Lisa.
+
+## 47. Ajuste do carro: física por carro e calibração
+
+Cada carro tem três peças, e cada uma **troca uma coisa por outra** (não existe peça melhor). A corrida livre (aba Corrida) já escolhe o ajuste de cada carro (seção 47.5); o campeonato, os recordes e o online ainda correm com o padrão.
+
+### 47.1 As três peças (`CarSetup`, em `Race/RaceSim.cs`)
+
+`RaceSim.setup[k]` é o ajuste do carro `k` (fica com o carro na troca de trilho da corrida por tempo). `CarSetup` é uma struct de três inteiros, **0 = padrão** (bom para o `JsonUtility`: arquivo antigo sem o campo vira padrão).
+
+| Peça | 0 | 1 | 2 |
+|---|---|---|---|
+| `motor` | padrão | **curto**: aceleração +12%, final −1,25% | **longo**: aceleração −12%, final +1,25% |
+| `bolha` (`CarBody`) | padrão | **asa**: aderência +1,5%, final −1% | **lisa**: aderência −1,5%, final +1% |
+| `pneu` | médio | **macio**: aderência +5%, derrapagem enche 20% mais rápido | **duro**: aderência −5%, derrapagem enche 20% mais devagar |
+
+Constantes: `MotorAccel 0.12`, `MotorTop 0.0125`, `BodyGrip 0.015`, `BodyTop 0.01`, `TireGrip 0.05`, `TireSlip 0.2` (estáticas, não `const`, para a calibração variar).
+
+### 47.2 Onde entra no passo
+
+Quatro multiplicadores por carro, todos 1 no padrão:
+
+| Multiplicador | Conta | Onde |
+|---|---|---|
+| `Top` | (1 ± `MotorTop`) × (1 ± `BodyTop`) | `top = vmax × S × Top`; o turbo multiplica por cima; a IA liga o turbo acima de `vmax × S × Top × 1,25` |
+| `Accel` | 1 ± `MotorAccel` | `Accel × su.Accel × (T × top − v)` e o acelerador sobe em `ramp / su.Accel` segundos (`hold × su.Accel / ramp`) |
+| `Grip` | (1 ± `BodyGrip`) × (1 ± `TireGrip`) | `ratio = v² × k / (grip × S × Grip × q.grip)`; a IA calcula o limite da curva com a mesma conta |
+| `Slip` | 1 ± `TireSlip` | `(ratio − 1) × SlipGain × Slip × dt` (só o quanto enche; `SlipDecay` não muda) |
+
+Freio, rampa, loop, salto e colisão não mudam. Multiplicar por 1 não altera um `float`, então **com tudo em 0 a física é bit a bit a de antes**.
+
+### 47.3 Calibração (`Editor/SetupCalib.cs`)
+
+`script eval --timeout 270 'return Autorama.SetupCalib.Run(0, 2);'` (e `Run(3, 5)`): as 27 combinações em seis pistas de 2 trilhos. `Sens(0, 5)` liga um número de cada vez para ver quanto ele vale sozinho.
+
+- **Pistas:** Oval e 8 com ponte (os exemplos), Retas longas (3 retas compridas e 180° de cada lado), a mesma com curvas inclinadas, Quadrado (quatro curvas de 90° com reta curta entre elas) e Oval curto (dois 180° com reta de 2).
+- **Piloto de teste:** não é a IA do jogo, que freia pelo limite da curva e não usa a folga da derrapagem. A cada passo ele procura (6 bisseções) o maior acelerador de 2% a 100% com que ainda dá para frear depois sem passar da folga, testando numa segunda `RaceSim` com o estado copiado (0,8 s à frente). Freia com o gatilho no mínimo, sem soltar.
+- **Medida:** 4 voltas, vale o tempo das 3 lançadas, somando os dois trilhos; o melhor entre três tentativas (folga de derrapagem 0,85, 0,92 e 0,98). Sem isso o ruído do piloto passava de 5%.
+
+Metas: melhor ajuste a cerca de 2% do padrão, e nenhuma opção ganhando em todas as pistas.
+
+Resultado com os valores da 47.1 (média das 9 combinações com a opção contra a média geral; negativo = mais rápido):
+
+| Pista | Padrão (s) | Melhor | Pior | Motor curto / longo | Bolha asa / lisa | Pneu macio / duro |
+|---|---|---|---|---|---|---|
+| Oval | 20,300 | curto/asa/macio −1,15% | longo/lisa/médio +0,99% | −0,26 / +0,32 | −0,51 / +0,53 | −0,18 / −0,03 |
+| 8 com ponte | 24,666 | longo/lisa −2,30% | curto/asa +2,30% | +1,27 / −1,28 | +1,02 / −1,03 | 0 / 0 |
+| Retas longas | 22,200 | padrão 0,00% | longo/padrão/duro +0,90% | −0,08 / +0,14 | −0,03 / +0,07 | −0,05 / 0,00 |
+| Retas longas inclinada | 19,233 | longo/asa/duro −1,56% | curto/asa/macio +1,47% | +0,58 / −0,56 | +0,33 / −0,33 | +0,21 / −0,50 |
+| Quadrado | 13,450 | curto/asa/duro −1,98% | longo/lisa/macio +1,49% | −0,20 / +0,20 | −0,63 / +0,64 | +0,51 / −0,79 |
+| Oval curto | 11,950 | curto/asa/macio −2,09% | longo/lisa/médio +1,12% | −0,32 / +0,35 | −0,57 / +0,60 | −0,65 / +0,46 |
+
+- Motor: curto ganha nas pistas travadas, longo nas rápidas. Bolha: asa nas travadas, lisa nas rápidas. Pneu: macio nas curvas longas (Oval curto), duro nas de 90° (Quadrado) e na inclinada.
+- O 8 com ponte é o caso extremo: o carro anda no fundo a volta inteira, então só a velocidade final conta (2,3%).
+- O padrão não fica a menos de 1% do melhor: fica entre 0% e 2,3%.
+- **Como chegamos aqui.** O primeiro chute (motor 12%/4%, bolha 6%/3%, pneu 8%/20%) dava de −6% a +7% e o macio ganhava em todas as pistas. `Sens` mostrou que 1% de aderência vale cerca de 0,4% de volta nas pistas travadas, 1% de final vale de 0,1% (travadas) a 1% (8 com ponte), 1% de aceleração vale no máximo 0,07%, e 1% a mais de derrapagem custa de 0,05% a 0,13%.
+
+### 47.4 Testes
+
+`script eval`, robôs de qualidade 100, 5 voltas, colisão e turbo ligados, `Random.InitState(7)`, todos com o ajuste padrão:
+
+- Oval: 21,93317 · 20,88319 s. 8 com ponte: 27,16642 (os dois). Oval de 4 carros: 22,33316 · 21,69984 · 21,43318 · 20,86652. Nenhuma saída. São os números das seções 25.5b e 25.7: **o padrão não mudou**.
+- Robôs com ajuste no Oval (sem colisão nem turbo): curto/asa/macio 21,350 s e longo/lisa/duro 21,717 s, sem saída. A IA usa a aderência do carro dela, mas não aproveita a folga do pneu duro.
+
+### 47.5 Corrida livre: cartão "Carro" e painel
+
+- **Onde fica guardado:** `PilotSlot.carro` (um `CarSetup` por lugar do grid, junto de gente/robô e da qualidade), nos ajustes da corrida (`PlayerPrefs`, `autorama.corrida`). Ajustes antigos, sem o campo, abrem com o padrão; `FixSlots` prende cada peça em 0–2 (`CarSetup.Clamped`).
+- **Quem aplica:** `SetBot` copia `sl.carro` para `sim.setup[k]` (trilho vazio: padrão). Vale para gente e para robô. Saindo da aba Corrida (construtor, campeonato, online), `sim.setup` é zerado junto com `aiSkill`.
+- **Cartão do piloto (aba Corrida, PILOTOS):** botão `Carro: curto · asa · macio ▸` (`CarSetup.Resumo`: só as peças fora do padrão, ou "padrão"). Abre o cartão dentro do cartão do piloto (`openCar`, um por vez). Durante a prova os cliques não mudam nada.
+- **Cartão "Carro"** (`DrawCarCard(parent, ajuste, change)`, pronto para as outras telas): três linhas de três botões (Motor: Curto · Padrão · Longo; Bolha: Asa · Padrão · Lisa; Pneu: Macio · Médio · Duro), quatro barras a partir do meio (verde = mais, laranja = menos) e uma linha com o limite da curva plana para este carro nesta pista, ao lado da meia aceleração.
+
+| Barra | Conta | Meia barra cheia em |
+|---|---|---|
+| Final | `Top` | ±2,5% |
+| Aceleração | `Accel` | ±15% |
+| Aderência | `Grip` | ±7% |
+| Tolerância | `1 / Slip` (tempo que a derrapagem leva para encher) | ±25% |
+
+- **Painel do jogador:** o resumo do ajuste em letra pequena ao lado do nome, só com até 4 trilhos (nos painéis de 6 e 8 não cabe). A barra de velocidade usa a final do próprio carro (`vmax × S × Top`).
+- **Carrinho:** a bolha do ajuste troca a carroceria 3D (seção 46).
+- Estilos em `Construtor.uss`: `pcard-car`, `car-card`, `car-row`, `car-stat`, `car-bar`, `car-fill`, `car-fill--menos`, `car-mid`, `car-stat-val`.
+
+### 47.6 Teste da corrida livre
+
+Play mode, pista do construtor, 2 trilhos, carro 1 curto/asa/macio e carro 2 longo/lisa/duro (`docs/previa-ajuste-carro.png`):
+
+- O cartão mostra as três peças marcadas e as barras: Final −2,2%, Aceleração +12%, Aderência +6,6%, Tolerância −16,7%; curva plana até 61% (dentro) e 67% (fora) da final do carro.
+- `sim.setup`: `Top` 0,977625 no carro 1 e `Grip` 0,93575 no carro 2. Os painéis mostram "curto · asa · macio" e "longo · lisa · duro".
+- Os carrinhos aparecem com a asa (vermelho) e a lisa (azul).
+- Dois robôs de qualidade 90, 420 quadros de prova: na reta, 13,68 cél/s no carro 1 (final 13,69) e 14,20 no carro 2 (final 14,32); nenhuma saída.
+- Não testado: gente pilotando, pistas de 4, 6 e 8 trilhos com o cartão aberto, e o ajuste salvo entre duas aberturas do jogo.
+
+### 47.7 O que falta
+
+Ícones no lugar do texto do resumo, o ajuste no minimapa (aba Pilotos) e no resultado, regra do host "livre · todos iguais", campeonato e recordes guardando o ajuste, online (protocolo novo: o host simula todos os carros e precisa do ajuste de cada um).
