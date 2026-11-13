@@ -146,8 +146,8 @@ namespace Autorama
                 if (a.xMax + 1 < b.xMin || b.xMax + 1 < a.xMin || a.yMax + 1 < b.yMin || b.yMax + 1 < a.yMin) continue;
                 if (Touches(pts[i], pts[j], minSqr)) { r.overlaps.Add(i); r.overlaps.Add(j); }
             }
-            // Loop e salto só no chão: no alto ficam marcados como sobreposição.
-            for (int i = 0; i < n; i++) if (segs[i].def.GroundOnly && segs[i].High) r.overlaps.Add(i);
+            // Salto só no chão: no alto fica marcado como sobreposição. O loop pode ficar no alto (só não sobe nem desce).
+            for (int i = 0; i < n; i++) if (segs[i].def.IsJump && segs[i].High) r.overlaps.Add(i);
 
             // Cada carrinho troca de lado a cada cruzamento (na pista de 4: 1↔4 e 2↔3). Com um número ímpar deles,
             // cada um alterna com o trilho do espelho a cada volta: na média das duas voltas, os dois correm a mesma distância.
@@ -183,8 +183,9 @@ namespace Autorama
                 s.bankIn = prevLinked && SameBank(prev, s);
                 s.bankOut = nextLinked && SameBank(next, s);
                 // Vizinha plana: a inclinação dela continua pela peça plana (Spill), então não precisa de rampa de 20%.
-                s.flatIn = prevLinked && !prev.def.Banked;
-                s.flatOut = nextLinked && !next.def.Banked;
+                // O loop não recebe a inclinação (a volta é a volta): a inclinada faz a transição dentro dela, como contra a oposta.
+                s.flatIn = prevLinked && !prev.def.Banked && !prev.def.IsLoop;
+                s.flatOut = nextLinked && !next.def.Banked && !next.def.IsLoop;
                 s.bankDirIn = prevLinked && prev.def.Banked ? prev.piece.dir : 0;
                 s.bankDirOut = nextLinked && next.def.Banked ? next.piece.dir : 0;
                 int rise = s.zOut - s.zIn;

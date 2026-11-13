@@ -278,7 +278,7 @@ namespace Autorama
         // por célula); o carrinho cai quando v²/raio não segura mais o peso na parte de cima. No ar, depois do salto,
         // a gravidade é JumpG (mais forte, para o salto caber na peça); o tranco do pouso (velocidade contra a pista,
         // dividida por JumpHard) entra ao quadrado na derrapagem. Quem cai no vão volta JumpBack células antes da peça.
-        const float LoopG = SlopeG / TrackMath.LevelHeight;
+        const float LoopG = SlopeG / TrackMath.LevelHeight, LoopStall = 10f;
         public const float JumpG = 29f, JumpHard = 5f, JumpBack = 2f;
         // Pouso: a derrapagem que ele dá para em JumpSlipMax (só capota quem já vinha derrapando) e cada ponto de tranco
         // acima de JumpSoft tira JumpLoss da velocidade, até JumpLossMax.
@@ -433,12 +433,13 @@ namespace Autorama
                     }
                     // Loop: na parte de cima, v²/raio tem que segurar o peso. Devagar demais, despenca e volta no começo da peça.
                     float down = Mathf.Cos(q.pitch * Mathf.Deg2Rad);
-                    if (q.loop && c.v * c.v / (PieceCatalog.LoopRadius * Scale) + LoopG * Scale * down < 0f)
+                    // Parado na parede do loop (a rampa vence o motor) também despenca: senão fica preso no trilho sem poder recolocar.
+                    if (q.loop && (c.v * c.v / (PieceCatalog.LoopRadius * Scale) + LoopG * Scale * down < 0f || c.v <= 0f && q.pitch > LoopStall))
                     {
                         float v0 = c.v;
                         Deslot(k, null);
                         c.flyVel = TrackMath.Dir(q.heading) * (v0 * down);
-                        c.exitS = P.StartOf(c.s) + 0.4f * Scale;
+                        c.exitS = P.StartOf(c.s) - (JumpBack - 0.4f) * Scale;     // volta antes da peça, para pegar embalo
                         continue;
                     }
                     if (q.k != 0f) c.side = q.k > 0f ? 1 : -1;
@@ -531,6 +532,9 @@ namespace Autorama
                 c.lane = (c.lane + 1) % N;
                 var to = PathOf(k);
                 c.s = f * to.Total;
+                // Parado dentro do loop ou do salto ele cairia (e no loop cairia de novo): volta para antes da peça.
+                var qs = to.At(c.s);
+                if (qs.loop || qs.jump) c.s = Mathf.Max(0f, to.StartOf(c.s) - JumpBack * Scale);
                 c.crossBase = c.cross - (to.LineCount(c.s) - 1);
                 c.v = 0f; c.slip = 0f; c.mode = CarMode.OnSlot; c.backT = 0f; c.air = false;
                 c.lapDirty = c.cross >= 0;

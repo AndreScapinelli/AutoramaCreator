@@ -292,7 +292,8 @@ namespace Autorama
                 foreach (float side in new[] { -0.44f, 0f, 0.44f })
                 {
                     var o = TrackMath.Offset(q, side);
-                    float top = TrackLayout.SurfaceY(s, t, side) - 0.06f;
+                    // No loop o pilar vai até a base da volta, não até a volta.
+                    float top = (s.def.IsLoop ? s.zIn * TrackMath.LevelHeight : TrackLayout.SurfaceY(s, t, side)) - 0.06f;
                     float foot = Thickness / k;      // a mesa fica Thickness (mundo) abaixo do nível 0
                     pillars.Add(Box("Pilar", mat, new Vector3(o.x, (top - foot) / 2f, o.y), new Vector3(thin, top + foot, thin), rot));
                 }

@@ -1774,7 +1774,7 @@ Se o jogador abusar mesmo assim, ele derrapa e sai igual. A inclinada sobe o lim
 
 Antes, a inclinação entrava e saía em 20% da própria curva, e a peça plana ao lado ficava reta. A torção acontecia num trecho curto e o muro de fora começava de repente na emenda. Agora:
 
-- **Na curva inclinada**, a inclinação é inteira até a emenda, sem rampa, quando a vizinha é plana (`flatIn`/`flatOut`).
+- **Na curva inclinada**, a inclinação é inteira até a emenda, sem rampa, quando a vizinha é plana (`flatIn`/`flatOut`). O **loop não conta como vizinha plana** (ele não recebe a inclinação: o `SurfaceY` dele é a volta): contra um loop a inclinada faz a transição dentro dela, com `Cross` (1,5 célula), como contra uma inclinada oposta. Teste (largada, loop, curva longa inclinada, loop): borda de fora 0 na emenda, 0,045 em t = 0,1, 0,268 no meio e 0 de novo na outra emenda; antes começava em 0,268 (degrau).
 - **Inclinada contra inclinada de sentido oposto:** a inclinação sobe de zero na emenda com uma suavização de **1,5 célula** (`CrossLength`, smoothstep), em vez dos 20% de antes, que formavam vinco. Os dois lados chegam a zero na emenda, então a pista passa pela altura plana no meio. Teste: a emenda fecha em 0,0000 nos três pontos do trilho, e o degrau máximo por passo no lado de fora é 0,026.
 - **Comprimento:** a transição dura **1,5 célula** (`SpillLength`) nas retas e curvas no mesmo sentido, e **2 células** (`OppositeSpillLength`) na curva que vira para o lado oposto (S). Com 0,6, a superfície dobrava num vinco curto nas curvas longas, e a inclinada parecia encurtada. Na curva oposta, o lado de fora desce de 0,2679 a zero em 40 passos com degrau máximo de 0,020 por passo.
 - **Na peça plana vizinha** (reta, curva, meia curva, cruzamento, e também rampa ou ponte, as peças no alto), a inclinação desce junto com `Spill`. Na rampa, a inclinação segue o mesmo caminho e o nível sobe por cima: `Ease(d) = 1 − p²(3 − 2p)`, com `p = d / 0,6` célula, `d` = distância até a emenda. Ela é 1 na emenda e 0 a 0,6 célula dentro, com inclinação zero nas duas pontas (sem quina).
@@ -3537,7 +3537,7 @@ ownHist.Add(Time.realtimeSinceStartup, sim.cars[lane]);
 
 ## 42. Loop e rampa de salto
 
-Duas peças novas, só no chão (`PieceDef.GroundOnly`): não sobem nem descem de nível, e no alto ficam marcadas como sobreposição. O fechar sozinho (tecla Q) não as usa. Pistas e recordes antigos não mudam (oval continua `a34f4cb9`).
+Duas peças novas que não sobem nem descem de nível (`PieceDef.GroundOnly`, sem botões de altura). O salto só fica no chão: no alto é marcado como sobreposição. O loop pode ficar no alto, num nível plano (`Analyze` só marca `IsJump && High`); na pista de 4 a 8 os pilares dele vão até a base da volta (`zIn · LevelHeight`), não até a volta. O fechar sozinho (tecla Q) não as usa. Pistas e recordes antigos não mudam (oval continua `a34f4cb9`).
 
 | Peça | id | Tecla | Planta | Caminho |
 |---|---|---|---|---|
@@ -3556,7 +3556,8 @@ Constantes em `PieceCatalog`: `LoopRadius = 1`, `LoopShift = 1` (células).
 - **Altura nas regras:** `Segment.ZAt` soma a altura da volta em níveis, então a checagem de sobreposição deixa passar pista por baixo do alto do loop (0,75 nível de folga, como numa ponte). Vizinhas da lista não são testadas entre si: uma curva logo antes ou depois do loop, para o lado do deslocamento, pode atravessar a volta sem aviso.
 - **Malha** (`TrackPieceView.Point`): o deslocamento lateral é o da planta; a "altura sobre a superfície" (fenda, base) vai na direção do centro da volta `(−sen φ, cos φ)`, não para cima. O loop tem a face de baixo (o lado de fora da volta aparece). O v da textura anda pela distância do caminho.
 - **Caminho** (`LanePath`): no loop a distância `s` é a do caminho em 3D (nas outras peças continua a da planta), o rumo é o da peça e `LanePoint.pitch` é o ângulo da volta (0–360°). O carrinho gira com `Euler(0, −rumo, 0) · Euler(0, 0, pitch)`, como já fazia na rampa.
-- **Física:** gravidade ao longo do caminho com a mesma conta da rampa, `SlopeG · Scale · sen φ / LevelHeight` (`LoopG = SlopeG / LevelHeight = 10,67` por célula). O carrinho **cai** quando `v² / (R·Scale) + LoopG·Scale·cos φ < 0`: no topo precisa de `v ≥ 3,27` células/s. Quem cai volta no começo da peça (`exitS = StartOf + 0,4`).
+- **Física:** gravidade ao longo do caminho com a mesma conta da rampa, `SlopeG · Scale · sen φ / LevelHeight` (`LoopG = SlopeG / LevelHeight = 10,67` por célula). O carrinho **cai** quando `v² / (R·Scale) + LoopG·Scale·cos φ < 0`: no topo precisa de `v ≥ 3,27` células/s. Também cai quem **para na parede** do loop (`v ≤ 0` com `φ > LoopStall = 10°`): sem isso a rampa vencia o motor, o carrinho ficava parado no trilho e o Recolocar não funcionava. Quem cai volta antes da peça, como no salto (`exitS = StartOf − (JumpBack − 0,4) · Scale`; o Recolocar tira mais 0,4), para pegar embalo.
+- **Troca de trilho por tempo** (`RotateLanes`): se o ponto da volta no trilho novo cai dentro de um loop ou salto, o carrinho larga `JumpBack` células antes da peça. Teste (`italoop`, carrinho parado em cada ponto do loop, acelerador cheio): antes ficava preso com `v = 0` da subida até o topo; agora cai uma vez, volta 1,6 antes da peça e passa.
 - **IA:** dentro do loop não deixa a velocidade cair abaixo de `LoopAi = 5`.
 
 ### 42.2 Rampa de salto
