@@ -71,6 +71,9 @@ namespace Autorama
             // Só para percorrer a pista que já existe (o loop sai deslocado para o lado); a busca não usa.
             new Move { def = PieceCatalog.Loop, dir = 1 },
             new Move { def = PieceCatalog.Loop, dir = -1 },
+            // Curva em C: também só para percorrer (a busca não coloca).
+            new Move { def = PieceCatalog.Hairpin, dir = 1 },
+            new Move { def = PieceCatalog.Hairpin, dir = -1 },
         };
         const int SearchMoves = 7;         // os primeiros de Moves: os que a busca pode colocar
 
@@ -120,6 +123,7 @@ namespace Autorama
                 if (n == 5) return new[] { 0, 6 };
                 return new[] { n == 4 ? 0 : n == 2 ? 1 : 6 };
             }
+            if (d == PieceCatalog.Hairpin) return new[] { p.dir > 0 ? 9 : 10 };
             bool half = Mathf.Approximately(d.Angle, 45f);
             return new[] { half ? (p.dir > 0 ? 4 : 5) : (p.dir > 0 ? 2 : 3) };
         }
@@ -467,7 +471,7 @@ namespace Autorama
 
         // Curva à direita percorrida de ré vira curva à esquerda (e vice-versa); retas não mudam, nem o loop
         // (de ré ele desliza para o mesmo lado: é o TrackMath.EntryFor).
-        static int Mirror(int m) => m switch { 2 => 3, 3 => 2, 4 => 5, 5 => 4, _ => m };
+        static int Mirror(int m) => m switch { 2 => 3, 3 => 2, 4 => 5, 5 => 4, 9 => 10, 10 => 9, _ => m };
 
         static float Length(List<int> seq) { float s = 0; foreach (int m in seq) s += Moves[m].def.CenterLength; return s; }
         static int Curves(List<int> seq) { int c = 0; foreach (int m in seq) if (Moves[m].def.IsCurve) c++; return c; }

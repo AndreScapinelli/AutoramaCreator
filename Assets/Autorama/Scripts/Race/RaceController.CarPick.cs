@@ -37,7 +37,7 @@ namespace Autorama
             foreach (var p in d.pecas)
             {
                 string t = p.tipo ?? "";
-                float len = t.Contains("curva") ? 2.5f * (t.Contains("longa") ? 90f : 45f) * Mathf.Deg2Rad
+                float len = t == "curva-c" ? PieceCatalog.Hairpin.CenterLength : t.Contains("curva") ? 2.5f * (t.Contains("longa") ? 90f : 45f) * Mathf.Deg2Rad
                           : t.Contains("comprida") ? 4f : t.Contains("curtinha") ? 1f : 2f;
                 all += len;
                 if (t.Contains("curva")) curve += len;

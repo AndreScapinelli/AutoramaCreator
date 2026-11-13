@@ -39,6 +39,7 @@ MonoBehaviour:
   cars34:
   - {fileID: 2100000, guid: 6b7e8e4797c77f7428019f73b9adc450, type: 2}
   - {fileID: 2100000, guid: 633ac6bae6a938449a609c4ce1a25eaf, type: 2}
+  carModels: []
   art6:
     straight: {fileID: 2100000, guid: 2ec4bd7fbb1e29340945aa66ee9683dc, type: 2}
     curveRight: {fileID: 2100000, guid: 0d24bbfaba7d4cb4d9309aa1145e876c, type: 2}
@@ -75,6 +76,8 @@ MonoBehaviour:
   - {fileID: 2800000, guid: 884b880ef87fe4c41892cdd5126545ce, type: 3}
   - {fileID: 2800000, guid: b607cdaa7cda9aa43ae68039519de1d2, type: 3}
   - {fileID: 2800000, guid: 96dbb139703668b4b869583fff49e052, type: 3}
+  - {fileID: 2800000, guid: 4ac9f17dec9f919438047431dd219fb9, type: 3}
+  - {fileID: 2800000, guid: 95b9e1ae5774ecc4fac62b55b34af393, type: 3}
   - {fileID: 2800000, guid: f3a7b10d2a0a11042a612a612db8f540, type: 3}
   - {fileID: 2800000, guid: 4fea5b00c2801ea44a78ddff24a2137b, type: 3}
   - {fileID: 2800000, guid: 0dd938bfc9015bd4e8d2bda663b4c457, type: 3}

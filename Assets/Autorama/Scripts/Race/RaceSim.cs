@@ -421,6 +421,9 @@ namespace Autorama
                     c.hold += dt;
                     float g = Mathf.Clamp01(c.gas);
                     c.T = c.T > g ? g : Mathf.Min(g, Mathf.Min(1f, c.hold * setup[k].Accel / set.ramp));
+                    // Parado num nível abaixo de 100% (S, gatilho), o tempo segurado fica preso nele: ao passar para A
+                    // o acelerador continua subindo daí no ritmo de sempre, em vez de pular para 100%.
+                    if (g < 1f && c.T >= g) c.hold = g * set.ramp / setup[k].Accel;
                 }
                 else { c.hold = 0f; c.T = 0f; }
                 c.hitFx = Mathf.Max(0f, c.hitFx - dt);
@@ -844,7 +847,7 @@ namespace Autorama
         // A cada 1,2 s sorteia de novo, com uma variação que diminui com a qualidade. Às vezes erra: entra a 130–140%
         // do limite e sai da pista; a chance vai de 12,5% por sorteio (qualidade 1) a 0,5% (qualidade 100).
         // Fora da pista, aperta Recolocar depois de um tempo de reação, menor nos melhores.
-        const float AiLook = 3.5f, AiBrake = 20f, AiEvery = 1.2f;
+        const float AiLook = 3.5f, AiBrake = 20f, AiBrakePin = 10f, AiEvery = 1.2f;
         static float AiBase(float sk) => 0.82f + 0.33f * sk;
         static float AiSpread(float sk) => 0.02f + 0.1f * (1f - sk);
         static float AiMiss(float sk) => 0.005f + 0.12f * Mathf.Pow(1f - sk, 1.5f);
@@ -879,8 +882,11 @@ namespace Autorama
                     jumpNear = true;
                 }
                 if (q.k == 0f) continue;
-                float v = Mathf.Sqrt(set.grip * Scale * setup[k].Grip * q.grip / Mathf.Abs(q.k)) * m;
-                need = Mathf.Min(need, Mathf.Sqrt(v * v + 2f * AiBrake * Scale * d));
+                // Curva em C (seção 50.3): entra no limite (sem contar com a derrapagem) e freia mais cedo, porque o freio
+                // perde força em baixa velocidade e a C pede quase parar.
+                bool pin = q.def == PieceCatalog.Hairpin && m <= 1.25f;
+                float v = Mathf.Sqrt(set.grip * Scale * setup[k].Grip * q.grip / Mathf.Abs(q.k)) * (pin ? Mathf.Min(m, 1f) : m);
+                need = Mathf.Min(need, Mathf.Sqrt(v * v + 2f * (pin ? AiBrakePin : AiBrake) * Scale * d));
             }
             // Dentro do loop não deixa a velocidade cair abaixo de LoopAi, mesmo com curva logo depois.
             if (P.At(c.s).loop) need = Mathf.Max(need, LoopAi * Scale);

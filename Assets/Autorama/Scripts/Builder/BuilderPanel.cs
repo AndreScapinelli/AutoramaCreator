@@ -478,7 +478,7 @@ namespace Autorama
             if (e.def.GroundOnly) return "LOOP E SALTO";
             if (e.rise != 0 || e.def == PieceCatalog.Cross || e.def == PieceCatalog.CrossS) return "CRUZAMENTOS E RAMPAS";
             if (e.def == PieceCatalog.CurveB || e.def == PieceCatalog.HalfB) return "CURVAS INCLINADAS";
-            if (e.def == PieceCatalog.Curve || e.def == PieceCatalog.Half) return "CURVAS";
+            if (e.def == PieceCatalog.Curve || e.def == PieceCatalog.Half || e.def == PieceCatalog.Hairpin) return "CURVAS";
             return "RETAS";
         }
 

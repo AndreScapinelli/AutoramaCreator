@@ -16,17 +16,17 @@ namespace Autorama
         // Salto: vão (células) e altura da ponta da rampa (seção 42.4). Fora do salto, 0.
         public readonly float Gap, Lip;
 
-        PieceDef(string id, string name, PieceKind kind, float length, float angle, bool banked, bool isStart, bool isCross = false, bool isLoop = false, bool isJump = false, float gap = 0f, float lip = 0f)
+        PieceDef(string id, string name, PieceKind kind, float length, float angle, bool banked, bool isStart, bool isCross = false, bool isLoop = false, bool isJump = false, float gap = 0f, float lip = 0f, float radius = 2.5f)
         {
             Gap = gap; Lip = lip;
-            Id = id; Name = name; Kind = kind; Length = length; Angle = angle; Radius = 2.5f; Banked = banked; IsStart = isStart; IsCross = isCross;
+            Id = id; Name = name; Kind = kind; Length = length; Angle = angle; Radius = radius; Banked = banked; IsStart = isStart; IsCross = isCross;
             IsLoop = isLoop; IsJump = isJump;
         }
 
         public static PieceDef MakeStraight(string id, string name, float length, bool isStart = false, bool isCross = false) =>
             new PieceDef(id, name, PieceKind.Straight, length, 0f, false, isStart, isCross);
-        public static PieceDef MakeCurve(string id, string name, float angle, bool banked) =>
-            new PieceDef(id, name, PieceKind.Curve, 0f, angle, banked, false);
+        public static PieceDef MakeCurve(string id, string name, float angle, bool banked, float radius = 2.5f) =>
+            new PieceDef(id, name, PieceKind.Curve, 0f, angle, banked, false, radius: radius);
         public static PieceDef MakeLoop(string id, string name) =>
             new PieceDef(id, name, PieceKind.Straight, 2f * PieceCatalog.LoopRadius, 0f, false, false, isLoop: true);
         public static PieceDef MakeJump(string id, string name, float gap, float lip) =>
@@ -122,13 +122,16 @@ namespace Autorama
         public static readonly PieceDef Half   = PieceDef.MakeCurve("meia-curva", "Meia curva", 45f, false);
         public static readonly PieceDef CurveB = PieceDef.MakeCurve("curva-longa-inclinada", "Curva longa inclinada", 90f, true);
         public static readonly PieceDef HalfB  = PieceDef.MakeCurve("curva-curta-inclinada", "Curva curta inclinada", 45f, true);
+        // Curva em C (seção 50 do guia): 180° de raio 0,5 no eixo; a volta sai na fileira do lado, ocupa 1 × 2 células.
+        public const float HairpinRadius = 0.5f;
+        public static readonly PieceDef Hairpin = PieceDef.MakeCurve("curva-c", "Curva em C", 180f, false, HairpinRadius);
 
         public static readonly PieceDef Loop   = PieceDef.MakeLoop("loop", "Loop");
         public static readonly PieceDef Jump   = PieceDef.MakeJump("salto", "Rampa de salto", 1f, JumpLips[0]);
         static readonly PieceDef[] jumps = { Jump, PieceDef.MakeJump("salto", "Rampa de salto", 2f, JumpLips[1]), PieceDef.MakeJump("salto", "Rampa de salto", 3f, JumpLips[2]) };
         public static PieceDef JumpOf(int vao) => jumps[Mathf.Clamp(vao, 1, MaxGap) - 1];
 
-        public static readonly PieceDef[] All = { Start, Short, Long, Tiny, Cross, CrossS, Curve, Half, CurveB, HalfB, Loop, Jump };
+        public static readonly PieceDef[] All = { Start, Short, Long, Tiny, Cross, CrossS, Curve, Half, CurveB, HalfB, Hairpin, Loop, Jump };
 
         public static PieceDef ById(string id)
         {

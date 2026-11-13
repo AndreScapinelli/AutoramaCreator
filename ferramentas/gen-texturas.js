@@ -203,6 +203,8 @@ const PIECES = {
   'curva-longa-inclinada-direita':  { kind:'c', angle:90, dir:1, bank:true },
   'curva-curta-inclinada-esquerda': { kind:'c', angle:45, dir:-1, bank:true },
   'curva-curta-inclinada-direita':  { kind:'c', angle:45, dir:1, bank:true },
+  'curva-c-esquerda':    { kind:'c', angle:180, dir:-1, r:.5 },
+  'curva-c-direita':     { kind:'c', angle:180, dir:1, r:.5 },
   'rampa-sobe':          { kind:'s', len:4, rise:1 },
   'rampa-desce':         { kind:'s', len:4, rise:-1 },
   'cruzamento':          { kind:'s', len:4, cross:true },
@@ -224,7 +226,7 @@ function onChevron(L, rise, len){
   }
   return false;
 }
-const R = 2.5, rad = d => d * Math.PI / 180;
+const R0 = 2.5, rad = d => d * Math.PI / 180;
 // Coordenadas locais da imagem (y para baixo). A peça começa em (0,0) subindo.
 // Devolve { s: distância ao longo, o: deslocamento à direita } ou null.
 function localOf(p, X, Y){
@@ -238,6 +240,7 @@ function localOf(p, X, Y){
     return null;
   }
   if (p.kind === 's'){ const s = -Y; return s >= 0 && s <= p.len ? { s, o:X } : null; }
+  const R = p.r || R0;
   const cx = p.dir * R, rho = Math.hypot(X - cx, Y);
   let phi = Math.atan2(Y, X - cx) * 180 / Math.PI;           // ângulo a partir do centro
   let t;
@@ -249,6 +252,7 @@ function localOf(p, X, Y){
 function bbox(p){
   if (p.kind === 'l') return [p.dir * .5, -1];
   const pts = [];
+  const R = p.r || R0;
   if (p.kind === 's') pts.push([-.5, 0], [.5, 0], [-.5, -p.len], [.5, -p.len]);
   else for (let k = 0; k <= 32; k++){
     const a = rad(p.dir > 0 ? 180 + p.angle * k / 32 : -p.angle * k / 32);

@@ -38,6 +38,8 @@ namespace Autorama
             new PaletteEntry(PieceCatalog.CurveB, 1,  0, Key.Digit8, "Curva longa inclinada", "90° direita", "icone-curva-longa-inclinada-direita"),
             new PaletteEntry(PieceCatalog.HalfB, -1,  0, Key.Digit9, "Curva curta inclinada", "45° esquerda", "icone-curva-curta-inclinada-esquerda"),
             new PaletteEntry(PieceCatalog.HalfB,  1,  0, Key.Digit0, "Curva curta inclinada", "45° direita", "icone-curva-curta-inclinada-direita"),
+            new PaletteEntry(PieceCatalog.Hairpin,-1, 0, Key.G,      "Curva em C", "180° esquerda", "icone-curva-c-esquerda"),
+            new PaletteEntry(PieceCatalog.Hairpin, 1, 0, Key.H,      "Curva em C", "180° direita", "icone-curva-c-direita"),
             new PaletteEntry(PieceCatalog.Long,   0,  1, Key.U,      "Rampa", "sobe 1 nível", "icone-rampa-sobe"),
             new PaletteEntry(PieceCatalog.Long,   0, -1, Key.D,      "Rampa", "desce 1 nível", "icone-rampa-desce"),
             new PaletteEntry(PieceCatalog.Loop,  -1,  0, Key.K,      "Loop", "sai à esquerda", "icone-loop-esquerda"),

@@ -3251,6 +3251,8 @@ Os jogadores 5 e 6 (pista de 6) continuam só com controle (`Controles.Get` devo
 
 **A meia aceleração** usa o ajuste `RaceSettings.halfGas` (20–90%, padrão **60%**). Ele já existia; antes a tecla era Q/O. Mudar o ajuste muda a meia de todos os jogadores.
 
+Parado na meia (ou no gatilho abaixo de 100%), o tempo segurado (`CarState.hold`) fica preso no nível: `hold = g · ramp / Accel`. Assim, passar de S para A faz o acelerador subir dali no ritmo de sempre (de 60% a 100% em 0,2 s com `ramp 0.5`), em vez de pular para 100% porque o `hold` tinha continuado a contar. Com o nível em 1 nada muda.
+
 **Classe `Controles` (static, sem cena):**
 - `Get(jogador, Acao)`: a tecla. `Set(jogador, Acao, Key)`: se a tecla já era de outra ação, as duas **trocam** (nenhuma fica sem tecla por engano).
 - `Reservada(Key)`: Enter, Enter do numérico, Esc e "nenhuma" não podem ser de jogador (Enter larga, Esc fecha a tela).
@@ -3953,3 +3955,46 @@ O tom segue a velocidade sobre a final do próprio carro (`vmax × S × Top`).
 - meia-curva, reta-comprida, reta-curtinha, cruzamento, meia-curva → (11,5; −11), rumo 270;
 - curva-longa, reta-curta → (2,5; −4), igual a antes.
 - Não testado em Play: a malha da reta comprida na diagonal e o fechar circuito com retas diagonais.
+
+## 50. Curva em C (180°)
+
+### 50.1 A peça
+
+Id `curva-c`, com `sentido` (esquerda ou direita), como as outras curvas. Vira 180° num raio de **0,5 célula** no eixo
+(`PieceCatalog.HairpinRadius`; `PieceDef.Radius` agora vem de cada peça, e as outras curvas continuam em 2,5). A saída
+fica na fileira do lado, 1 célula para o lado e no mesmo ponto da entrada, com o rumo invertido. Ocupa 1 × 2 células.
+
+- Trilhos na pista de 2: raio 0,25 (dentro, 0,785 de comprimento) e 0,75 (fora, 2,356). Na de 4, 6 e 8, o trilho
+  de dentro fica com raio 0,125 · 0,083 · 0,0625 célula (0,25 no mundo nas três).
+- Plana, sem versão inclinada. Pode subir e descer como as outras curvas.
+- Paleta: grupo "CURVAS", teclas **G** (esquerda) e **H** (direita). Ícones `icone-curva-c-esquerda/direita`, de
+  `gen-texturas.js` (as curvas do gerador aceitam `r`). A malha e a zebra são as de curva de sempre.
+- Identidade e ids antigos não mudam: é só uma peça nova.
+
+### 50.2 Fechar sozinho (Q)
+
+`TrackCloser.Moves` ganhou os movimentos 9 e 10 (C à direita e à esquerda), **só para percorrer** a pista que já existe
+(como o loop): a busca não coloca a C. `MovesOf` e `Mirror` (9 ↔ 10) tratam a peça. O deslocamento é exato na grade
+(0 ou ±1, ou ±√2/2 na diagonal).
+
+Teste (`script eval`): largada, reta comprida, C à direita, reta comprida, reta curta; o Q fechou com 7 peças. A C sai em
+(0; −1) com rumo −180 partindo de (0; 0) rumo 0.
+
+### 50.3 Física e IA
+
+A física é a de qualquer curva (`kap = 1/raio` do trilho). Na pista de 2 o limite do trilho de dentro é 2,69 (o de fora
+4,66), contra ~11 de final: é preciso quase parar.
+
+A IA errava a C: entrava acima do limite (`AiBase` até 1,15, contando com a derrapagem) e o freio de verdade perde força
+em baixa velocidade, menos que o `AiBrake 20` que ela supõe. Na C (fora do sorteio de erro, `m > 1,25`) ela agora entra
+no limite (`m ≤ 1`) e calcula a frenagem com `AiBrakePin 10`. As outras peças não mudam.
+
+Teste: oval largada · reta comprida · C · reta comprida · reta curta · C, 60 s de IA.
+
+| | antes | depois |
+|---|---|---|
+| qualidade 100, pista de 2 | trilho de dentro: 6 saídas, sem volta limpa | 0 saídas, melhor volta 2,90 |
+| qualidade 100, pista de 4 | trilho 4: 10 saídas | 0 saídas |
+| qualidade 60, pista de 8 | — | 0 saídas |
+
+Não testado em Play: a malha e o ícone vistos no jogo.
