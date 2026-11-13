@@ -33,7 +33,7 @@ namespace Autorama
 
     [Serializable] public class NetListed { public string code, name, host; public int players, max, stages; }
     [Serializable] public class NetChat { public bool sys; public string from, name, color, text; public long time; }
-    [Serializable] public class NetRules { public float vmax, ramp, grip; public bool collide, byTime; public bool turbo = true; }   // byTime: campeonato por tempo (seção 26)
+    [Serializable] public class NetRules { public float vmax, ramp, grip; public bool collide, byTime; public bool turbo = true; public int sorteio; }   // sorteio: seed das baterias (seção 45)   // byTime: campeonato por tempo (seção 26)
 
     // Um carrinho no snapshot: tudo o que o RaceSim guarda por carro. Os opcionais (voltas) usam −1 para "não tem".
     [Serializable]
@@ -106,6 +106,7 @@ namespace Autorama
         public bool pub, ready, held, collide, byTime;
         public bool turbo = true;                         // start: turbo ligado (regra da sala, como a colisão)
         public int re, ver;                               // ver: versão do protocolo (hello)
+        public int sorteio;                               // start: seed do sorteio das baterias (todos montam igual)
         public int gp;                                    // in: nível do acelerador em % (1–100)
         public bool tb;                                   // in: turbo apertado
         public int ts;                                    // in: o meu relógio em ms (o host devolve no snapshot)

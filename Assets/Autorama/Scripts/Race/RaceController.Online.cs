@@ -416,7 +416,7 @@ namespace Autorama
         void OnlineStartChamp()
         {
             if (!IsHost || LobbyBlocker() != "") return;
-            net.Send(new NetOut { t = "start", name = room.name, vmax = set.vmax, ramp = set.ramp, grip = set.grip, collide = set.collide, turbo = set.turbo, byTime = set.byTime });
+            net.Send(new NetOut { t = "start", name = room.name, vmax = set.vmax, ramp = set.ramp, grip = set.grip, collide = set.collide, turbo = set.turbo, byTime = set.byTime, sorteio = UnityEngine.Random.Range(1, int.MaxValue) });
         }
 
         string LobbyBlocker()
@@ -580,7 +580,7 @@ namespace Autorama
             try
             {
                 save = TrackSave.FromJson(m.json);
-                var segs = TrackLayout.Build(save.Origin, save.Pieces(), save.Tail);
+                var segs = TrackLayout.Build(save.Origin, save.Pieces(), save.Tail, save.StartZ);
                 if (!TrackLayout.Analyze(save.Origin, segs, save.Tail, save.Faixas).closed) return;      // só circuito fechado
             }
             catch { return; }

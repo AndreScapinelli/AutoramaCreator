@@ -52,6 +52,12 @@ namespace Autorama
             if (set.splitScreen && !OnlineRun && panel != null && panel.RaceMode)
                 for (int k = 0; k < sim.N && n <= 4; k++)
                     if (sim.present[k] && sim.aiSkill[k] == 0) { if (n < 4) splitCar[n] = k; n++; }
+            // Online: um quadro para cada jogador deste computador (o dono em cima, o jogador 2 embaixo), se os dois estão na bateria.
+            if (set.splitScreen && OnlineRun && TwoLocal && HeatNow(out _, out _, out _, out _, out var opl))
+            {
+                int a = LaneOf(opl, myId), b2 = LaneOf(opl, LocalId(1));
+                if (a >= 0 && b2 >= 0) { splitCar[0] = a; splitCar[1] = b2; n = 2; }
+            }
             if (n < 2 || n > 4) n = 0;
             int panes = n == 0 ? 0 : n == 2 ? 2 : 4;
             if (panes != splitPanes || n != splitHumans) LayoutSplit(n, panes);

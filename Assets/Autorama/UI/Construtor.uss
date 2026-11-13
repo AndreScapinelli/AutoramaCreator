@@ -509,6 +509,10 @@
 .res-name { flex-grow: 1; font-size: 13px; -unity-font-style: bold; color: var(--texto); margin: 0 12px 0 0; padding: 0; }
 .res-cell { font-size: 12px; color: var(--texto); margin: 0 0 0 12px; padding: 0; }
 .res-cell--dim { color: var(--texto-fraco); }
+.res-row--small { padding: 3px 8px; margin-bottom: 2px; }
+.res-head { font-size: 11px; -unity-font-style: bold; color: var(--texto-fraco); letter-spacing: 1px; margin: 10px 0 4px 2px; padding: 0; }
+/* Troca de trilho: a lista das distâncias embaixo do aviso */
+.cd-list { margin-top: 12px; min-width: 420px; padding: 8px; border-radius: 10px; background-color: rgba(14, 17, 16, 0.85); }
 .res-btns { flex-direction: row; justify-content: center; margin-top: 10px; }
 .res-btn { height: 32px; margin: 0 4px; padding: 0 14px; }
 

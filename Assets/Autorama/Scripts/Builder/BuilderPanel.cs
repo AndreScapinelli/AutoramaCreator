@@ -597,6 +597,10 @@ namespace Autorama
             {
                 Btn("Girar 90° (R)", builder.RotateStart, "btn", row);
                 Btn("Soltar (Esc)", () => builder.Select(-1), "btn", row);
+                var lv = El("segmented", selectedBox);
+                Text("Altura", "seg-label", lv);
+                if (builder.StartZ > 0) Btn("Descer", () => builder.MoveStartLevel(-1), "btn", lv);
+                if (builder.StartZ < TrackMath.MaxLevel) Btn("Subir", () => builder.MoveStartLevel(1), "btn", lv);
                 Text("Arraste a largada na mesa para mover a pista inteira. Ela não pode ser removida.", "small", selectedBox);
                 return;
             }
@@ -889,7 +893,7 @@ namespace Autorama
             try
             {
                 var o = s.Origin;
-                var segs = TrackLayout.Build(o, s.Pieces(), s.Tail);
+                var segs = TrackLayout.Build(o, s.Pieces(), s.Tail, s.StartZ);
                 var a = TrackLayout.Analyze(o, segs, s.Tail, s.Faixas);
                 return $"{s.Faixas} trilhos · {segs.Count} peças · {Num(a.centerLength * s.escalaCm * TrackMath.Scale(s.Faixas) / 100f)} m · " + (a.closed ? "fechada" : "<color=#F07A3A>aberta</color>");
             }
@@ -927,7 +931,7 @@ namespace Autorama
             pickingMode = PickingMode.Ignore;
             try
             {
-                var segs = TrackLayout.Build(s.Origin, s.Pieces(), s.Tail);
+                var segs = TrackLayout.Build(s.Origin, s.Pieces(), s.Tail, s.StartZ);
                 foreach (var sg in segs)
                 {
                     int n = TrackMath.Steps(sg.def, 10f);

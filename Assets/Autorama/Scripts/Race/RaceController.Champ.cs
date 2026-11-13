@@ -757,7 +757,7 @@ namespace Autorama
                 id = Champ.NewId("c"), name = string.IsNullOrWhiteSpace(D.name) ? $"Campeonato {store.history.Count + 1}" : D.name.Trim(), created = Champ.Now,
                 rules = new ChampRules { vmax = set.vmax, ramp = set.ramp, grip = set.grip, collide = set.collide, turbo = set.turbo },
                 faixas = D.faixas, byTime = D.byTime,
-                heats = Champ.MakeHeats(ps.Count, D.stages.Count, D.faixas, D.byTime),
+                heats = Champ.MakeHeats(ps.Count, D.stages.Count, D.faixas, D.byTime, UnityEngine.Random.Range(1, int.MaxValue)),
             };
             foreach (var p in ps) C.pilots.Add(p.Copy());
             foreach (var s in D.stages) C.stages.Add(new Stage { name = s.name, laps = s.laps, secs = s.secs, hash = s.hash, data = TrackSave.FromJson(s.data.ToJson(false)) });
@@ -799,18 +799,57 @@ namespace Autorama
         void ChampSave()
         {
             if (sim.phase != RaceSim.Phase.Done || !HeatNow(out var C, out int idx, out var heat, out _, out var pl)) return;
-            var resList = new HeatResult[pl.Length];
-            for (int k = 0; k < pl.Length; k++)
-            {
-                var c = sim.cars[k];
-                resList[k] = pl[k] == null ? new HeatResult { dnf = true }      // trilho vazio
-                    : new HeatResult { laps = c.laps, time = c.finish ?? sim.t, dnf = !c.finish.HasValue && !C.byTime, best = c.best ?? -1f, fin = c.finish ?? -1f, offs = c.offs, hits = c.hits, dist = Mathf.Max(0f, sim.Dist(k)) };
-            }
+            var resList = SimResults(C, pl);
             HeatRecords(C, idx, resList, false);
             heat.res = resList;
             if (Champ.CurrentHeat(C) < 0) C.finished = Champ.Now;
             SaveStore();
             RefreshChamp();
+        }
+
+        // O resultado da bateria a partir do RaceSim (no online, o do visitante é o espelho do host: serve para mostrar).
+        HeatResult[] SimResults(Championship C, Pilot[] pl)
+        {
+            var res = new HeatResult[pl.Length];
+            for (int k = 0; k < pl.Length; k++)
+            {
+                var c = sim.cars[k];
+                res[k] = pl[k] == null ? new HeatResult { dnf = true }      // trilho vazio
+                    : new HeatResult { laps = c.laps, time = c.finish ?? sim.t, dnf = !c.finish.HasValue && !C.byTime, best = c.best ?? -1f, fin = c.finish ?? -1f, offs = c.offs, hits = c.hits, dist = Mathf.Max(0f, sim.Dist(k)) };
+            }
+            return res;
+        }
+
+        // No fim da bateria, embaixo do resultado: a tabela geral como fica com esta bateria (ainda não salva) e a posição
+        // de cada um na etapa. Os pontos da etapa só entram quando ela termina (Champ.Standings).
+        void DrawChampStandings(VisualElement into)
+        {
+            if (!HeatNow(out var C, out _, out var heat, out var stage, out var pl)) return;
+            var keep = heat.res;
+            heat.res = SimResults(C, pl);
+            var st = Champ.Standings(C);
+            var sr = Champ.StageResults(C, heat.s, out bool complete, out int saved, out int total);
+            heat.res = keep;
+            var stagePos = new Dictionary<int, int>();
+            for (int i = 0; i < sr.Count; i++) stagePos[sr[i].i] = i;
+            Text(complete ? $"TABELA GERAL · etapa {stage.name} encerrada" : $"TABELA GERAL · etapa {stage.name}: {saved} de {total} baterias", "res-head", into);
+            for (int pos = 0; pos < st.Count; pos++)
+            {
+                var r = st[pos]; var p = C.pilots[r.i];
+                var row = El("res-row res-row--small" + (pos == 0 && r.pts > 0 ? " res-row--win" : ""), into);
+                Text($"{pos + 1}º", "res-pos", row);
+                El("hud-dot", row).style.backgroundColor = p.Color;
+                Text(p.name, "res-name", row);
+                Text($"{r.pts} pts", "res-cell", row);
+                string etapa = "";
+                if (stagePos.TryGetValue(r.i, out int sp))
+                {
+                    var s = sr[sp];
+                    etapa = $"etapa {sp + 1}º · " + (C.byTime ? $"{Num(s.dist, 2)} v" : $"{s.laps} v {Fmt(s.time)}");
+                    if (complete && s.pts >= 0) etapa += $" · +{s.pts}";
+                }
+                Text(etapa, "res-cell res-cell--dim", row);
+            }
         }
 
         // A chave do melhor pessoal: o id do piloto no offline; no online, o id fixo do jogador (sem ele, não guarda).

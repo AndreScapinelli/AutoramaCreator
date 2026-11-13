@@ -124,7 +124,7 @@ namespace Autorama
                 // Pista de 2 ou de 4 (a primeira etapa decide; todas iguais). Com menos jogadores que trilhos, sobra trilho vazio.
                 C.faixas = C.stages[0].data.Faixas;
                 foreach (var s in C.stages) if (s.data.Faixas != C.faixas) throw new Exception("etapas de tipos diferentes");
-                C.heats = Champ.MakeHeats(C.pilots.Count, C.stages.Count, C.faixas, C.byTime);
+                C.heats = Champ.MakeHeats(C.pilots.Count, C.stages.Count, C.faixas, C.byTime, m.rules.sorteio);      // o host sorteia; servidor antigo manda 0
             }
             catch (Exception e)
             {

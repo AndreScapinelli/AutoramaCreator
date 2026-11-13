@@ -3690,6 +3690,7 @@ Ele conta como piloto em tudo: limite de 8 da sala, "precisa de 2 pilotos" (host
 - **Visitante:** manda um `in` por jogador (`SendHeld(j, …)`, `SendIn(j)`; o estado enviado, o contador de recolocar e o `inAcc` são por jogador) e prevê os dois carrinhos: `NetSync.Apply(snap, sim, lane, ownHist, lane2, ownHist2)`. A latência sai do eco do carro do dono (ou do jogador 2, se só ele corre na bateria).
 - **Host:** aplica os dois trilhos locais direto no `RaceSim`; os outros vêm do `in` como antes.
 - **Painéis e câmera:** aparecem os painéis dos dois carrinhos daqui (`IsLocalLane`). Com os dois na bateria, a câmera enquadra os dois (`CamFocusCar` = −1); senão, segue o daqui.
+- **Tela dividida:** com a opção ligada (menu Câmera, que no online aparece só com o jogador 2) e os dois daqui na mesma bateria, `UpdateSplit` faz 2 quadros: o dono em cima e o jogador 2 embaixo, cada um com o seu painel. Se só um dos dois corre, a tela fica inteira.
 
 ### 44.4 Testes
 
@@ -3697,3 +3698,34 @@ Ele conta como piloto em tudo: limite de 8 da sala, "precisa de 2 pilotos" (host
 - `SteamTransportTest.Run()` (mundo falso): 5 casos novos (entra logo depois do dono com nome e cor, não pega a cor de outro nem a do dono, troca de cor, tirar, `in` com `g`). As 91 linhas passam.
 - `OnlineSmokeTest.Run()` contra o servidor (protocolo 3): passa.
 - Não testado na tela: jogar uma corrida de verdade com dois jogadores no mesmo computador.
+
+## 45. Largada no alto, sorteio das baterias e o HUD do campeonato
+
+Pedidos depois de jogar com amigos (online).
+
+### 45.1 Largada no alto
+
+Com a largada selecionada no construtor, **Subir** e **Descer** (no painel da peça) mudam o nível dela de 0 (chão) a `TrackMath.MaxLevel` (2). A pista inteira vai junto: as rampas sobem e descem a partir do nível da largada, e as peças de trás ficam no nível dela.
+
+- **JSON:** `largada.nivel` (sem o campo: 0, as pistas antigas não mudam). `TrackSave.StartZ` lê; `TrackSave.From(…, startZ)` grava. `TrackBuilder.StartZ` / `MoveStartLevel(±1)` (entra no desfazer); pista nova volta ao chão.
+- **Montagem:** `TrackLayout.Build(origin, pieces, tail, z0)` começa em `z0`; as peças de trás têm `zIn = zOut = z0`. `Analyze` fecha quando a ponta chega no nível da largada (`endZ == segs[0].zIn`). Todos os `Build` a partir de um `TrackSave` passam `save.StartZ`.
+- **Fechar sozinho (Q):** `TrackCloser.Start(…, z0)`; `ToPieces` recebe `endZ − z0` e põe rampas que descem (ponta acima) ou sobem (ponta abaixo). A poda pelos obstáculos só vale com tudo no chão.
+- **Identidade:** o texto do hash começa com `largada:0:{nivel}`. No chão continua `largada:0:0`: oval = `a34f4cb9`, 8 com ponte = `81546106`.
+
+### 45.2 Posição de largada sorteada (campeonato)
+
+`Champ.MakeHeats(…, seed)`: em cada etapa, a posição no rodízio (`slot`, uma permutação de 0…H−1; ≥ pilotos = trilho vazio) e a ordem das baterias são sorteadas. A bateria k põe no trilho l o piloto `slot[(k + l) mod H]`, então cada piloto continua correndo uma vez em cada trilho. Por tempo, os pilotos são embaralhados antes de dividir os grupos e os trilhos de cada bateria também. Sem seed (null), a ordem do cadastro (o rodízio de antes).
+
+- **Offline:** `ChampBegin` passa `Random.Range(1, int.MaxValue)`.
+- **Online:** o host manda `sorteio` no `start`; o servidor (`servidor.js`) e o `SteamTransport` repassam em `rules.sorteio` do `started`, e cada um monta as mesmas baterias. O `sync` (voltar de uma queda) leva as mesmas regras. Servidor antigo: chega 0, todos sorteiam igual com seed 0 (continua igual para todos).
+
+### 45.3 HUD do campeonato
+
+- **Fim da bateria:** embaixo do resultado (`DrawResult`), `DrawChampStandings` mostra a tabela geral como fica com esta bateria (o resultado do `RaceSim` entra em `heat.res` só para a conta e volta) e, para cada piloto, a posição na etapa (voltas e tempo, ou distância por tempo; com a etapa encerrada, os pontos que ela deu). Os pontos da etapa só entram na tabela quando ela termina.
+- **Começo da bateria:** o cartão de recordes (seção 39) já aparece com a corrida parada, antes do 3, 2, 1 (no online, até o host largar ou os 20 s do `AutoStart`).
+- **Troca de trilho (por tempo):** embaixo de "TROCA DE TRILHO" e no 3, 2, 1 da manche seguinte, `DrawGaps` lista a ordem, as voltas de cada um (`Dist`) e a distância para o líder e para o da frente, em voltas. Estilos `cd-list`, `res-row--small`, `res-head` em `Construtor.uss`.
+
+### 45.4 Testes
+
+- `dotnet build` de `Assembly-CSharp` e `Assembly-CSharp-Editor`: sem erros. `cd servidor && npm test`: tudo certo.
+- Falta ver na Unity (o Editor estava fechado): largada no nível 1 e 2 com Q, a tela da troca de trilho e a tabela no fim da bateria.

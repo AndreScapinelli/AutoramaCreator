@@ -53,6 +53,7 @@ namespace Autorama
         public Vector3 CellToWorld(Vector3 cell) => transform.position + cell * Scale;
         public Vector3 WorldToCell(Vector3 world) => (world - transform.position) / Scale;
         public Pose2 Origin { get; private set; }
+        public int StartZ { get; private set; }               // nível da largada (0 = chão)
         public readonly List<TrackPiece> pieces = new List<TrackPiece>();
         public List<Segment> Segments { get; private set; } = new List<Segment>();
         public TrackAnalysis Info { get; private set; }
@@ -118,7 +119,7 @@ namespace Autorama
 
         public int InsertIndex => Selected < 0 ? FrontEnd : Selected + 1;
         public Pose2 InsertPose => Back ? BackPose : FrontPose;
-        public int InsertLevel => Back ? 0 : Selected < 0 ? Segments[FrontEnd - 1].zOut : Segments[Selected].zOut;
+        public int InsertLevel => Back ? StartZ : Selected < 0 ? Segments[FrontEnd - 1].zOut : Segments[Selected].zOut;
 
         // Ponta de trás: a entrada da peça mais afastada atrás da largada (ou da própria largada), apontando para fora.
         public Pose2 BackPose
@@ -197,6 +198,13 @@ namespace Autorama
             Commit(() => pieces[Selected].rise = rise);
         }
 
+        // Sobe ou desce a largada um nível; a pista inteira vai junto (as rampas sobem e descem a partir dela).
+        public void MoveStartLevel(int d)
+        {
+            int z = Mathf.Clamp(StartZ + d, 0, TrackMath.MaxLevel);
+            if (z != StartZ) Commit(() => StartZ = z);
+        }
+
         // Gira a largada 90° em volta do centro dela; a pista inteira vai junto.
         public void RotateStart() => Commit(() =>
         {
@@ -225,13 +233,14 @@ namespace Autorama
             pieces.Clear();
             pieces.Add(new TrackPiece(PieceCatalog.Start.Id));
             Tail = 0;
+            StartZ = 0;
             TrackName = "";
             Selected = -1;
         });
 
         public void Load(TrackSave s) => Commit(() => { Apply(s); Selected = -1; });
 
-        public TrackSave ToSave() => TrackSave.From(TrackName, boardSize, cellCm, Origin, pieces, Tail, Faixas);
+        public TrackSave ToSave() => TrackSave.From(TrackName, boardSize, cellCm, Origin, pieces, Tail, Faixas, StartZ);
 
         // Adapta a pista aberta para 2, 4 ou 6 carros (seção 32 do guia). Sem perda: as peças, a forma em células, a
         // largada e a mesa são as mesmas; só mudam a largura da pista, o número de trilhos e a escala no mundo.
@@ -273,7 +282,7 @@ namespace Autorama
         // Pista fechada é a mesma volta de qualquer jeito: já não há ponta de trás, então as peças voltam a contar a partir da largada.
         void SettleTail()
         {
-            if (Tail > 0 && TrackLayout.Analyze(Origin, TrackLayout.Build(Origin, pieces, Tail), Tail).closed) Tail = 0;
+            if (Tail > 0 && TrackLayout.Analyze(Origin, TrackLayout.Build(Origin, pieces, Tail, StartZ), Tail).closed) Tail = 0;
         }
 
         // A mesa cresce com a pista: se a pista passa da borda, a mesa ganha células (com 1 de folga). Se passou da
@@ -285,7 +294,7 @@ namespace Autorama
         // Tamanho que a mesa precisa ter para a pista (sem o limite) e quanto a pista é empurrada para dentro.
         void Needed(Pose2 origin, out int dx, out int dz, out int w, out int h)
         {
-            var b = TrackLayout.Analyze(origin, TrackLayout.Build(origin, pieces, Tail), Tail).bounds;
+            var b = TrackLayout.Analyze(origin, TrackLayout.Build(origin, pieces, Tail, StartZ), Tail).bounds;
             dx = b.xMin < -0.01f ? Mathf.CeilToInt(-b.xMin) + BoardMargin : 0;
             dz = b.yMin < -0.01f ? Mathf.CeilToInt(-b.yMin) + BoardMargin : 0;
             w = boardSize.x + dx; h = boardSize.y + dz;
@@ -327,8 +336,9 @@ namespace Autorama
             pieces.Clear();
             pieces.AddRange(list);
             Origin = s.Origin;
+            StartZ = s.StartZ;
             Tail = s.Tail;
-            if (Tail > 0 && TrackLayout.Analyze(Origin, TrackLayout.Build(Origin, pieces, Tail), Tail).closed) Tail = 0;
+            if (Tail > 0 && TrackLayout.Analyze(Origin, TrackLayout.Build(Origin, pieces, Tail, StartZ), Tail).closed) Tail = 0;
             boardSize = new Vector2Int(Mathf.Clamp(s.mesa.w, 8, 120), Mathf.Clamp(s.mesa.h, 8, 120));
             cellCm = s.escalaCm > 0 ? s.escalaCm : 15f;
             Faixas = s.Faixas;
@@ -342,7 +352,7 @@ namespace Autorama
         {
             if (theme == null || pieces.Count == 0) return;
             if (Selected >= pieces.Count) Selected = -1;
-            Segments = TrackLayout.Build(Origin, pieces, Tail);
+            Segments = TrackLayout.Build(Origin, pieces, Tail, StartZ);
             Info = TrackLayout.Analyze(Origin, Segments, Tail, Faixas);
             Root.localScale = Vector3.one * Scale;
 
@@ -400,7 +410,7 @@ namespace Autorama
             foreach (var p in pieces) { var d = p.Def; if (d.IsCurve) { if (d.Banked) banked++; else plain++; } }
             // Fecha da ponta da frente até a ponta de trás (a largada, se não há peças atrás dela).
             int fe = FrontEnd;
-            CloseJob = TrackCloser.Start(Origin, pieces.GetRange(0, fe), pieces.GetRange(fe, Tail), banked > plain);
+            CloseJob = TrackCloser.Start(Origin, pieces.GetRange(0, fe), pieces.GetRange(fe, Tail), banked > plain, StartZ);
             return null;
         }
 

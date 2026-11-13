@@ -128,22 +128,28 @@ namespace Autorama
         // byTime: uma bateria já passa por todos os trilhos (manches), então cada piloto corre uma vez por etapa.
         // Com mais pilotos que trilhos, eles se dividem em grupos equilibrados na ordem do cadastro (5 em 4 trilhos:
         // 3 + 2; 6 em 2: 2 + 2 + 2). Os trilhos que sobram ficam vazios (−1).
-        public static List<Heat> MakeHeats(int nPilots, int nStages, int faixas = 2, bool byTime = false)
+        // seed: sorteio da largada (seção 45). Com ele, em cada etapa a ordem dos pilotos no rodízio, a ordem das baterias e
+        // (por tempo) os grupos e os trilhos são sorteados; o rodízio continua pondo cada piloto uma vez em cada trilho.
+        // O mesmo seed dá as mesmas baterias: no online todos montam igual. Sem seed, a ordem do cadastro.
+        public static List<Heat> MakeHeats(int nPilots, int nStages, int faixas = 2, bool byTime = false, int? seed = null)
         {
             int L = TrackMath.Faixas(faixas);
             var list = new List<Heat>();
+            var rng = seed.HasValue ? new System.Random(seed.Value) : null;
             if (byTime)
             {
                 int g = Mathf.Max(1, Mathf.CeilToInt(nPilots / (float)L));
                 for (int s = 0; s < nStages; s++)
                 {
                     int next = 0;
+                    var order = Shuffled(nPilots, rng);
                     for (int gi = 0; gi < g; gi++)
                     {
                         int size = nPilots / g + (gi < nPilots % g ? 1 : 0);
                         var p = new int[L];
-                        for (int l = 0; l < L; l++) p[l] = l < size ? next + l : -1;
+                        for (int l = 0; l < L; l++) p[l] = l < size ? order[next + l] : -1;
                         next += size;
+                        if (rng != null) Shuffle(p, rng);
                         list.Add(new Heat { s = s, p = p });
                     }
                 }
@@ -154,13 +160,30 @@ namespace Autorama
             // Com pilotos ≥ trilhos é o rodízio de sempre; com 3 pilotos na pista de 4 são 4 baterias de 3 carros.
             int H = Mathf.Max(nPilots, L);
             for (int s = 0; s < nStages; s++)
-                for (int k = 0; k < H; k++)
+            {
+                var slot = Shuffled(H, rng);                 // posição no rodízio → piloto (≥ nPilots: trilho vazio)
+                var ks = Shuffled(H, rng);                   // ordem das baterias
+                foreach (int k in ks)
                 {
                     var p = new int[L];
-                    for (int l = 0; l < L; l++) { int i = (k + l) % H; p[l] = i < nPilots ? i : -1; }
+                    for (int l = 0; l < L; l++) { int i = slot[(k + l) % H]; p[l] = i < nPilots ? i : -1; }
                     list.Add(new Heat { s = s, p = p });
                 }
+            }
             return list;
+        }
+
+        static int[] Shuffled(int n, System.Random rng)
+        {
+            var a = new int[n];
+            for (int i = 0; i < n; i++) a[i] = i;
+            if (rng != null) Shuffle(a, rng);
+            return a;
+        }
+
+        static void Shuffle(int[] a, System.Random rng)
+        {
+            for (int i = a.Length - 1; i > 0; i--) { int j = rng.Next(i + 1); (a[i], a[j]) = (a[j], a[i]); }
         }
 
         public static int MinPilots(int faixas, bool byTime = false) => 2;      // trilho vazio resolve a pista de 4 com 2 ou 3
@@ -238,7 +261,7 @@ namespace Autorama
         // A pista de 4 carros começa com "f4|": a mesma forma em 2 e em 4 faixas são pistas diferentes, e as de 2 não mudam.
         public static string TrackHash(TrackSave t)
         {
-            var sb = new StringBuilder(t.Faixas >= 4 ? $"f{t.Faixas}|largada:0:0" : "largada:0:0");
+            var sb = new StringBuilder((t.Faixas >= 4 ? $"f{t.Faixas}|" : "") + $"largada:0:{t.StartZ}");
             foreach (var p in t.pecas)
             {
                 var def = PieceCatalog.ById(p.tipo);
@@ -285,7 +308,7 @@ namespace Autorama
             {
                 if (byTime) { sec += HeatsPerStage(nPilots, faixas, true) * (s.secs + L * (RaceSim.Count + 1f) + (L - 1) * RaceSim.SwitchTime + 10f); continue; }
                 float len = 0f;
-                try { len = TrackLayout.Analyze(s.data.Origin, TrackLayout.Build(s.data.Origin, s.data.Pieces(), s.data.Tail), s.data.Tail).centerLength * TrackMath.Scale(s.data.Faixas); } catch { }
+                try { len = TrackLayout.Analyze(s.data.Origin, TrackLayout.Build(s.data.Origin, s.data.Pieces(), s.data.Tail, s.data.StartZ), s.data.Tail).centerLength * TrackMath.Scale(s.data.Faixas); } catch { }
                 sec += HeatsPerStage(nPilots, faixas, false) * (s.laps * len / (0.6f * vmax * TrackMath.Scale(faixas)) + 10f);
             }
             return Mathf.Max(1, Mathf.RoundToInt(sec / 60f));

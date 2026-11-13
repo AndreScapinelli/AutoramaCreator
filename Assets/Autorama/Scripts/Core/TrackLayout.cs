@@ -40,7 +40,7 @@ namespace Autorama
 
     public class TrackAnalysis
     {
-        public bool closed;          // fecha na largada, no chão
+        public bool closed;          // fecha na largada, no nível dela
         public bool closedXY;        // fecha no plano (pode estar no alto)
         public int endZ;
         public float gap;            // distância da ponta até a largada
@@ -56,11 +56,12 @@ namespace Autorama
         // Cada peça herda a pose e a altura de onde a anterior terminou; rampas sobem ou descem um nível.
         // As últimas "tail" peças da lista ficam ATRÁS da largada: são colocadas de ré a partir dela (a última da lista
         // encosta na largada), no chão. Na ordem da lista é a mesma volta: largada, frente..., atrás... e a largada de novo.
-        public static List<Segment> Build(Pose2 origin, IList<TrackPiece> pieces, int tail = 0)
+        // z0: nível da largada (0 = chão). As peças de trás ficam no nível dela.
+        public static List<Segment> Build(Pose2 origin, IList<TrackPiece> pieces, int tail = 0, int z0 = 0)
         {
             var list = new List<Segment>(pieces.Count);
             var conn = origin;
-            int z = 0;
+            int z = Mathf.Clamp(z0, 0, TrackMath.MaxLevel), zs = z;
             int front = pieces.Count - tail;
             for (int i = 0; i < front; i++)
             {
@@ -80,7 +81,7 @@ namespace Autorama
                 var p = pieces[i];
                 var a = TrackMath.EntryFor(c, p.Def, p.dir);
                 a.heading = TrackMath.Normalize(a.heading);
-                behind.Add(new Segment { index = i, piece = p, def = p.Def, a = a, b = c, zIn = 0, zOut = 0 });
+                behind.Add(new Segment { index = i, piece = p, def = p.Def, a = a, b = c, zIn = zs, zOut = zs });
                 c = a;
             }
             behind.Reverse();
@@ -102,7 +103,7 @@ namespace Autorama
             float dh = Mathf.Abs(Mathf.DeltaAngle(tip.b.heading, target.heading));
             r.closedXY = segs.Count > 1 && r.gap < 0.02f && dh < 0.5f;
             r.endZ = tip.zOut;
-            r.closed = r.closedXY && r.endZ == 0;
+            r.closed = r.closedXY && r.endZ == segs[0].zIn;
 
             // Pontos da linha central a cada 0,25 célula (x, z da mesa, altura em níveis).
             int n = segs.Count;

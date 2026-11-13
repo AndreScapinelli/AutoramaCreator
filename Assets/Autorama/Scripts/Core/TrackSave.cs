@@ -8,7 +8,7 @@ namespace Autorama
     // O mesmo JSON do botão "Copiar" do construtor em HTML: uma pista montada lá abre aqui, e vice-versa.
     // O HTML usa Y para baixo e ângulo no sentido horário; aqui, z = altura da mesa − y e ângulo = −h.
     [Serializable] public class BoardSave  { public int w = 32, h = 20; }
-    [Serializable] public class OriginSave { public float x, y, h; }
+    [Serializable] public class OriginSave { public float x, y, h; public int nivel; }   // nivel: altura da largada (0 = chão)
     [Serializable] public class PieceSave  { public string tipo; public string sentido; public string altura; }
 
     [Serializable]
@@ -44,6 +44,8 @@ namespace Autorama
 
         public int Tail => Mathf.Clamp(atras, 0, pecas.Count);
 
+        public int StartZ => Mathf.Clamp(largada.nivel, 0, TrackMath.MaxLevel);
+
         public List<TrackPiece> Pieces()
         {
             var list = new List<TrackPiece> { new TrackPiece(PieceCatalog.Start.Id) };
@@ -58,7 +60,7 @@ namespace Autorama
             return list;
         }
 
-        public static TrackSave From(string name, Vector2Int board, float cellCm, Pose2 origin, IList<TrackPiece> pieces, int tail = 0, int faixas = 2)
+        public static TrackSave From(string name, Vector2Int board, float cellCm, Pose2 origin, IList<TrackPiece> pieces, int tail = 0, int faixas = 2, int startZ = 0)
         {
             var s = new TrackSave
             {
@@ -67,7 +69,7 @@ namespace Autorama
                 mesa = new BoardSave { w = board.x, h = board.y },
                 escalaCm = cellCm,
                 atras = tail,
-                largada = new OriginSave { x = origin.pos.x, y = board.y - origin.pos.y, h = TrackMath.Normalize(-origin.heading) },
+                largada = new OriginSave { x = origin.pos.x, y = board.y - origin.pos.y, h = TrackMath.Normalize(-origin.heading), nivel = startZ },
             };
             for (int i = 1; i < pieces.Count; i++)              // a largada não vai na lista
             {

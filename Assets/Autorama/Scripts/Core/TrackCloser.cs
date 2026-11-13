@@ -184,35 +184,35 @@ namespace Autorama
 
         // tail: as peças que já ficam atrás da largada; a pista da frente (existing) tem de chegar na ponta de trás delas.
         // Começa a busca sem rodar nada ainda: use Pump no Job.
-        public static Job Start(Pose2 origin, IList<TrackPiece> existing, IList<TrackPiece> tail, bool preferBanked)
+        public static Job Start(Pose2 origin, IList<TrackPiece> existing, IList<TrackPiece> tail, bool preferBanked, int z0 = 0)
         {
             BuildTables();
             var job = new Job();
-            job.Begin(Run(job, origin, new List<TrackPiece>(existing), new List<TrackPiece>(tail), preferBanked));
+            job.Begin(Run(job, origin, new List<TrackPiece>(existing), new List<TrackPiece>(tail), preferBanked, z0));
             return job;
         }
 
         // Versão de uma vez só (testes e scripts): roda a busca inteira sem devolver o controle.
-        public static Result Close(Pose2 origin, IList<TrackPiece> existing, IList<TrackPiece> tail, bool preferBanked)
+        public static Result Close(Pose2 origin, IList<TrackPiece> existing, IList<TrackPiece> tail, bool preferBanked, int z0 = 0)
         {
-            var job = Start(origin, existing, tail, preferBanked);
+            var job = Start(origin, existing, tail, preferBanked, z0);
             job.Pump(long.MaxValue);
             return job.Result;
         }
 
-        static IEnumerator Run(Job job, Pose2 origin, List<TrackPiece> existing, List<TrackPiece> tail, bool preferBanked)
+        static IEnumerator Run(Job job, Pose2 origin, List<TrackPiece> existing, List<TrackPiece> tail, bool preferBanked, int z0)
         {
             for (int i = 0; i < ProgressiveDepths.Length; i++)
             {
                 job.step = default;
-                var step = CloseAtDepth(job, origin, existing, tail, preferBanked, i);
+                var step = CloseAtDepth(job, origin, existing, tail, preferBanked, i, z0);
                 while (step.MoveNext()) yield return null;
                 if (job.step.ok || job.stop) { job.Finish(job.step); yield break; }
             }
             job.Finish(new Result { ok = false, message = job.crossed ? CrossesTrack : NotFound });
         }
 
-        static IEnumerator CloseAtDepth(Job job, Pose2 origin, List<TrackPiece> existing, List<TrackPiece> tail, bool preferBanked, int stage)
+        static IEnumerator CloseAtDepth(Job job, Pose2 origin, List<TrackPiece> existing, List<TrackPiece> tail, bool preferBanked, int stage, int z0)
         {
             int depth = ProgressiveDepths[stage], maxChecks = ProgressiveChecks[stage];
             float from = StageFrom(stage), span = StageSpan(stage);
@@ -239,13 +239,13 @@ namespace Autorama
 
             var both = new List<TrackPiece>(existing);
             both.AddRange(tail);
-            var segs = TrackLayout.Build(origin, both, tail.Count);
+            var segs = TrackLayout.Build(origin, both, tail.Count, z0);
             int endZ = segs[existing.Count - 1].zOut;
             var before = TrackLayout.Analyze(origin, segs, tail.Count);
 
             // A pista no chão, para a busca não andar por cima dela. Com a ponta no alto as rampas que descem podem cair em
             // qualquer peça do fechamento, então aí não há poda (só o teste final).
-            var ob = endZ == 0 ? Obstacles.Of(segs, existing.Count, tail.Count > 0 ? existing.Count : 0) : null;
+            var ob = endZ == 0 && z0 == 0 ? Obstacles.Of(segs, existing.Count, tail.Count > 0 ? existing.Count : 0) : null;
 
             // Para a frente, a partir da ponta.
             var fwd = new Tree();
@@ -307,12 +307,12 @@ namespace Autorama
                     job.Progress = from + span * (0.5f + 0.5f * checks / planned);
                     job.Status = $"Procurando com até {depth * 2} peças… testando {checks} de {planned}";
                     yield return null;
-                    var add = ToPieces(seq, endZ, preferBanked);
+                    var add = ToPieces(seq, endZ - z0, preferBanked);
                     if (add == null) continue;                        // poucas peças para descer da ponte
                     var all = new List<TrackPiece>(existing);
                     all.AddRange(add);
                     all.AddRange(tail);
-                    var s2 = TrackLayout.Build(origin, all, tail.Count);
+                    var s2 = TrackLayout.Build(origin, all, tail.Count, z0);
                     var a2 = TrackLayout.Analyze(origin, s2, tail.Count);
                     if (!a2.closed) continue;
                     int extra = a2.overlaps.Count - before.overlaps.Count;
@@ -483,14 +483,15 @@ namespace Autorama
                 if (preferBanked && d == PieceCatalog.Half) d = PieceCatalog.HalfB;
                 list.Add(new TrackPiece(d.Id, Moves[m].dir));
             }
-            int need = endZ;
+            // endZ: quantos níveis a ponta está acima da largada (negativo: abaixo, e as rampas sobem).
+            int need = Mathf.Abs(endZ), step = endZ > 0 ? -1 : 1;
             // A rampa vai na reta mais suave que houver: comprida, depois curta, depois qualquer peça.
             foreach (var pass in new[] { 0, 1, 2 })
                 for (int i = 0; i < list.Count && need > 0; i++)
                 {
                     var d = list[i].Def;
                     bool ok = pass == 0 ? d == PieceCatalog.Long : pass == 1 ? d == PieceCatalog.Short : true;
-                    if (ok && list[i].rise == 0) { list[i].rise = -1; need--; }
+                    if (ok && list[i].rise == 0) { list[i].rise = step; need--; }
                 }
             return need > 0 ? null : list;
         }

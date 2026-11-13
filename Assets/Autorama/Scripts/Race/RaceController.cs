@@ -147,6 +147,8 @@ namespace Autorama
         // Contagem grande no meio da mesa (3, 2, 1, VAI!) e o resultado da prova dentro do aviso de vitória.
         VisualElement cdBox, resTable, resBtns;
         Label cdText;
+        VisualElement cdList;                // troca de trilho: a distância entre os carrinhos
+        string cdListSig;
         Button resAgain, resNext;
 
         // ---------- Início ----------
@@ -296,7 +298,7 @@ namespace Autorama
             for (int i = 0; i < list.Count; i++)
             {
                 var o = list[i];
-                try { var segs = TrackLayout.Build(o.save.Origin, o.save.Pieces(), o.save.Tail); o.closed = TrackLayout.Analyze(o.save.Origin, segs, o.save.Tail, o.save.Faixas).closed; }
+                try { var segs = TrackLayout.Build(o.save.Origin, o.save.Pieces(), o.save.Tail, o.save.StartZ); o.closed = TrackLayout.Analyze(o.save.Origin, segs, o.save.Tail, o.save.Faixas).closed; }
                 catch { o.closed = false; }
                 list[i] = o;
             }
@@ -603,6 +605,7 @@ namespace Autorama
 
             cdBox = El("cd-box", root); cdBox.pickingMode = PickingMode.Ignore;
             cdText = Text("", "cd-text", cdBox); cdText.pickingMode = PickingMode.Ignore;
+            cdList = El("cd-list", cdBox); cdList.pickingMode = PickingMode.Ignore;
             cdBox.style.display = DisplayStyle.None;
 
             BuildCamMenu(root);
@@ -934,9 +937,9 @@ namespace Autorama
             }
             camBtn.text = SplitOn ? "Câmera  ▾" : camBtn.text;
             camTargetBox.style.display = !SplitOn && CamModeValues[mode] != TopDownCamera.RaceViewMode.Tv && CamModeValues[mode] != TopDownCamera.RaceViewMode.TopFollow ? DisplayStyle.Flex : DisplayStyle.None;
-            splitBtn.text = $"Tela dividida: <b>{(set.splitScreen ? "sim" : "não")}</b>\n<size=10>Offline, 2 a 4 jogadores: um quadro para cada</size>";
+            splitBtn.text = $"Tela dividida: <b>{(set.splitScreen ? "sim" : "não")}</b>\n<size=10>2 a 4 jogadores no mesmo computador: um quadro para cada</size>";
             splitBtn.EnableInClassList("cam-opt--on", set.splitScreen);
-            splitBtn.style.display = OnlineRun ? DisplayStyle.None : DisplayStyle.Flex;
+            splitBtn.style.display = OnlineRun && !TwoLocal ? DisplayStyle.None : DisplayStyle.Flex;
             for (int k = 0; k < RaceSim.MaxCars; k++)
             {
                 camTargetBtns[k].EnableInClassList("btn--on", k == target);
@@ -1173,9 +1176,11 @@ namespace Autorama
                 cdText.EnableInClassList("cd-text--switch", true);
                 cdText.style.scale = new Scale(Vector2.one);
                 cdText.style.opacity = 1f;
+                DrawGaps(true);
                 return;
             }
             cdBox.style.display = panel.RaceMode && (cd || go) ? DisplayStyle.Flex : DisplayStyle.None;
+            DrawGaps(cd && sim.ByTime && sim.Manche > 0);       // continua na contagem da manche seguinte
             if (!(cd || go)) return;
             cdBox.style.left = panel.SideWidth;
             float step = RaceSim.Count / 3f;
@@ -1187,6 +1192,37 @@ namespace Autorama
             cdText.EnableInClassList("cd-text--go", !cd);
             cdText.style.scale = new Scale(Vector2.one * Mathf.Lerp(1.35f, 1f, Mathf.Min(1f, f * 3f)));
             cdText.style.opacity = cd ? 1f : 1f - f;
+        }
+
+        // Na troca de trilho (corrida por tempo), embaixo do aviso e do 3, 2, 1: a ordem, as voltas de cada um e quanto
+        // falta para o da frente e para o líder, em voltas (a mesma conta do Dist: bandeiradas + fração da volta).
+        void DrawGaps(bool show)
+        {
+            string sig = null;
+            var ord = Order();
+            if (show)
+            {
+                var sb = new System.Text.StringBuilder();
+                foreach (int k in ord) sb.Append(k).Append(':').Append(Num(sim.Dist(k), 2)).Append('|');
+                sig = sb.ToString();
+            }
+            if (sig == cdListSig) return;
+            cdListSig = sig;
+            cdList.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+            cdList.Clear();
+            if (!show) return;
+            float lead = sim.Dist(ord[0]);
+            for (int pos = 0; pos < ord.Count; pos++)
+            {
+                int k = ord[pos];
+                float d = Mathf.Max(0f, sim.Dist(k));
+                var r = El("res-row res-row--small" + (pos == 0 ? " res-row--win" : ""), cdList);
+                Text($"{pos + 1}º", "res-pos", r);
+                El("hud-dot", r).style.backgroundColor = pads[k].root.resolvedStyle.borderTopColor;
+                Text(hud[k].name.text, "res-name", r);
+                Text($"{Num(d, 2)} v", "res-cell", r);
+                Text(pos == 0 ? "líder" : $"−{Num(lead - sim.Dist(k), 2)} do líder · −{Num(sim.Dist(ord[pos - 1]) - sim.Dist(k), 2)} do {pos}º", "res-cell res-cell--dim", r);
+            }
         }
 
         // Resultado da prova dentro do aviso: as duas posições com tempo total, melhor volta e saídas,
@@ -1233,6 +1269,7 @@ namespace Autorama
                 resAgain.style.display = over ? DisplayStyle.None : DisplayStyle.Flex;
                 resAgain.text = "Salvar e seguir  (Enter)";
                 resNext.style.display = DisplayStyle.None;
+                DrawChampStandings(resTable);
             }
             else
             {
