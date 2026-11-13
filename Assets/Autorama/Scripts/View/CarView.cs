@@ -204,11 +204,11 @@ namespace Autorama
                     hub.localPosition = new Vector3(x, WheelR, z);
                     hub.localRotation = wheelRest[k] = Quaternion.Euler(90f, 0f, 0f);
                     Part(PrimitiveType.Cylinder, "Pneu", darkMat, Vector3.zero, new Vector3(WheelR * 2f, 0.028f, WheelR * 2f), hub);
-                    Part(cube, "Calota", trimMat, new Vector3(0f, z > 0f ? -0.03f : 0.03f, 0f), new Vector3(0.05f, 0.004f, 0.012f), hub);
+                    Part(cube, "Calota", trimMat, new Vector3(0f, z > 0f ? 0.03f : -0.03f, 0f), new Vector3(0.05f, 0.004f, 0.012f), hub);
                     // Faixa do pneu: um anel na cor do tipo no flanco de fora (disco colorido com o miolo escuro por cima).
-                    float side = z > 0f ? -1f : 1f;
-                    Part(PrimitiveType.Cylinder, "Faixa do pneu", tireMat, new Vector3(0f, 0.0285f * side, 0f), new Vector3(0.088f, 0.001f, 0.088f), hub);
-                    Part(PrimitiveType.Cylinder, "Miolo do pneu", darkMat, new Vector3(0f, 0.029f * side, 0f), new Vector3(0.066f, 0.0012f, 0.066f), hub);
+                    float side = z > 0f ? 1f : -1f;      // o Y da roda aponta para +Z do carro: o lado de fora
+                    Part(PrimitiveType.Cylinder, "Faixa do pneu", tireMat, new Vector3(0f, 0.0285f * side, 0f), new Vector3(0.096f, 0.001f, 0.096f), hub);
+                    Part(PrimitiveType.Cylinder, "Miolo do pneu", darkMat, new Vector3(0f, 0.029f * side, 0f), new Vector3(0.056f, 0.0012f, 0.056f), hub);
                     wheels[k++] = hub;
                 }
         }

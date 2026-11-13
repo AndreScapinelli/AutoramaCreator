@@ -3919,7 +3919,7 @@ No banner do meio da mesa (`carPick`, dentro de `banner`), no lugar do cartão d
 
 ### 48.4 Faixa do pneu (`CarView.SetTire`)
 
-Um anel na cor do tipo no flanco de fora de cada roda: disco `Faixa do pneu` (Ø 0,088) com o `Miolo do pneu` escuro (Ø 0,066) por cima, encostados no flanco (y = ±0,0285 no eixo da roda). Cores: **médio amarelo** `#F5C21B`, **macio vermelho** `#E53935`, **duro branco** `#F2F2EC`. Um material por carrinho (`tireMat`), trocado só quando o pneu muda. Modelo importado: materiais com nome começando por `Pneu` recebem essa cor.
+Um anel na cor do tipo no flanco de fora de cada roda: disco `Faixa do pneu` (Ø 0,096) com o `Miolo do pneu` escuro (Ø 0,056) por cima, encostados no flanco (y = ±0,0285 no eixo da roda). O Y local da roda (`Euler(90, 0, 0)`) aponta para +Z do carro, então o lado de fora é +Y nas rodas de z > 0 e −Y nas de z < 0. A primeira versão tinha o sinal trocado e o anel ficava escondido no lado de dentro; a calota tinha o mesmo erro e foi corrigida junto. Cores: **médio amarelo** `#F5C21B`, **macio vermelho** `#E53935`, **duro branco** `#F2F2EC`. Um material por carrinho (`tireMat`), trocado só quando o pneu muda. Modelo importado: materiais com nome começando por `Pneu` recebem essa cor.
 
 ### 48.5 Som de cada motor (`RaceController.Audio.cs`)
 
