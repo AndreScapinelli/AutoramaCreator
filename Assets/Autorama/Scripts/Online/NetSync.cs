@@ -151,7 +151,13 @@ namespace Autorama
             for (int k = 0; k < sim.N && k < n.cars.Count; k++)
             {
                 bool own2 = k == ownLane2 && k != ownLane;       // o segundo jogador do computador também é predito
-                Apply(n.cars[k], sim.cars[k], k == ownLane || own2, k == ownLane ? hist : own2 ? hist2 : null);
+                bool own = k == ownLane || own2;
+                Apply(n.cars[k], sim.cars[k], own, k == ownLane ? hist : own2 ? hist2 : null);
+                // A predição anda na frente do host: se ela já passou a bandeirada e o host ainda não, as bandeiradas do host
+                // com a posição prevista dão uma volta a menos (o placar pulava). Vale a conta da posição prevista.
+                var c = sim.cars[k];
+                if (own && sim.paths[c.lane] != null)
+                    c.cross = Mathf.Max(n.cars[k].cross, sim.PathOf(k).LineCount(c.s) - 1 + c.crossBase);
             }
         }
 

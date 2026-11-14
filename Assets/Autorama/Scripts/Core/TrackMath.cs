@@ -55,10 +55,64 @@ namespace Autorama
             if (!d.IsCurve)
                 return new Pose2(a.pos + Dir(a.heading) * d.Length * t, a.heading);
 
+            if (d.Lead > 0f)
+            {
+                // Reta de ajuste antes (ou depois) do arco.
+                float t0 = d.ArcFrom, t1 = d.ArcTo;
+                if (t < t0) return new Pose2(a.pos + Dir(a.heading) * d.CenterLength * t, a.heading);
+                if (t0 > 0f) { a = new Pose2(a.pos + Dir(a.heading) * d.Lead, a.heading); }
+                float u = Mathf.Min((t - t0) / (t1 - t0), 1f);
+                var e = Arc(a, d, dir, u);
+                if (t > t1) e.pos += Dir(e.heading) * d.CenterLength * (t - t1);
+                return e;
+            }
+            return Arc(a, d, dir, t);
+        }
+
+        static Pose2 Arc(Pose2 a, PieceDef d, int dir, float t)
+        {
             Vector2 center = a.pos + Dir(a.heading - 90f * dir) * d.Radius;
             float h = a.heading - dir * d.Angle * t;
             return new Pose2(center + Dir(h + 90f * dir) * d.Radius, h);
         }
+
+        // Ponto da grade mais perto de p para quem vai no rumo (eixo): no meio da fileira e na divisa das células.
+        public static Vector2 GridSnap(Vector2 p, float heading)
+        {
+            bool horizontal = Mathf.Abs(Mathf.DeltaAngle(heading, 0f)) < 1f || Mathf.Abs(Mathf.DeltaAngle(heading, 180f)) < 1f;
+            return horizontal ? new Vector2(Mathf.Round(p.x), Mathf.Round(p.y - 0.5f) + 0.5f)
+                              : new Vector2(Mathf.Round(p.x - 0.5f) + 0.5f, Mathf.Round(p.y));
+        }
+
+        // A peça como ela fica a partir da pose a (seção 51 do guia): reta na diagonal fica √2 maior (At) e a meia-curva
+        // que sai da diagonal para um eixo fora da grade (depois de um S) ganha uma reta de ajuste na diagonal e outro
+        // raio, para a ponta cair na grade.
+        public const float FitRadiusMin = 1.5f, FitRadiusMax = 3.5f;
+        public static PieceDef Fit(PieceDef d, Pose2 a, int dir)
+        {
+            d = d.At(a.heading);
+            if (!d.IsCurve || !Mathf.Approximately(d.Angle, 45f) || Mathf.Abs(Mathf.Repeat(a.heading, 90f) - 45f) > 1f) return d;
+            var e = Arc(a, d, dir, 1f);
+            var t0 = GridSnap(e.pos, e.heading);
+            if ((t0 - e.pos).sqrMagnitude < 1e-6f) return d;
+            Vector2 g = Dir(a.heading), d1 = Dir(a.heading - 90f * dir) + Dir(e.heading + 90f * dir);
+            Vector2 f = Dir(e.heading), l = Dir(e.heading - 90f);
+            float det = g.x * d1.y - g.y * d1.x, best = float.MaxValue, bR = 0f, bL = 0f;
+            for (int i = -1; i <= 1; i++)
+            for (int j = -1; j <= 1; j++)
+            {
+                var r = t0 + f * i + l * j - a.pos;
+                float lead = (r.x * d1.y - r.y * d1.x) / det, rad = (g.x * r.y - g.y * r.x) / det;
+                if (lead < -1e-4f || rad < FitRadiusMin || rad > FitRadiusMax) continue;
+                float cost = Mathf.Abs(rad - d.Radius) + 0.25f * lead;
+                if (cost < best) { best = cost; bR = rad; bL = Mathf.Max(0f, lead); }
+            }
+            return best == float.MaxValue ? d : d.Fitted(bR, bL);
+        }
+
+        // Peça de trás (de ré a partir da saída c): a mesma conta, na pose invertida.
+        public static PieceDef FitBack(PieceDef d, Pose2 c, int dir) =>
+            Fit(d, new Pose2(c.pos, c.heading + 180f), -dir).Reversed;
 
         // Loop a uma fração t do caminho (entrada reta, volta, saída reta): quanto avançou na planta (fwd), quanto
         // deslizou para o lado (lat, de 0 a LoopShift, sem quina nas pontas) e o ângulo da volta (phi, 0 a 2π).
@@ -80,7 +134,7 @@ namespace Autorama
         public static Vector2 Offset(Pose2 p, float o) => p.pos + Dir(p.heading - 90f) * o;
 
         public static int Steps(PieceDef d, float degPerStep) =>
-            d.IsCurve ? Mathf.Max(1, Mathf.CeilToInt(d.Angle / degPerStep)) : d.IsLoop ? Mathf.CeilToInt(360f / degPerStep) + 2 : 1;
+            d.IsCurve ? Mathf.Max(1, Mathf.CeilToInt(d.Angle / degPerStep * (1f + d.Lead / Mathf.Max(0.1f, d.CenterLength - d.Lead)))) : d.IsLoop ? Mathf.CeilToInt(360f / degPerStep) + 2 : 1;
 
         public static List<Pose2> Sample(Pose2 a, PieceDef d, int dir, float degPerStep = 4f)
         {
@@ -104,7 +158,7 @@ namespace Autorama
         // o loop, que só desliza de lado, continua no mesmo).
         public static Pose2 EntryFor(Pose2 c, PieceDef d, int dir)
         {
-            var e = PoseAt(new Pose2(c.pos, c.heading + 180f), d, d.IsLoop ? dir : -dir, 1f);
+            var e = PoseAt(new Pose2(c.pos, c.heading + 180f), d.Reversed, d.IsLoop ? dir : -dir, 1f);
             return new Pose2(e.pos, e.heading + 180f);
         }
     }

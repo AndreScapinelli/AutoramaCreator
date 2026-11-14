@@ -105,9 +105,18 @@ namespace Autorama
 
         static Vector2 Pos(State s) => new Vector2(s.x.Value, s.y.Value);
 
-        static State Apply(State s, int m)
+        // fit: a meia-curva que sai da diagonal fora da grade se ajusta como no TrackLayout (seção 51 do guia). Sem fit
+        // (árvore de ré da busca, cujas peças depois são montadas para a frente) o movimento não vale: ok = false.
+        static State Apply(State s, int m, bool fit = true) => Apply(s, m, fit, out _);
+        static State Apply(State s, int m, bool fit, out bool ok)
         {
-            return new State { x = s.x + dxTab[m, s.h], y = s.y + dyTab[m, s.h], h = dhTab[m, s.h] };
+            ok = true;
+            var n = new State { x = s.x + dxTab[m, s.h], y = s.y + dyTab[m, s.h], h = dhTab[m, s.h] };
+            if ((m != 4 && m != 5) || (s.h & 1) == 0 || (n.x.b == 0 && n.y.b == 0)) return n;
+            if (!fit) { ok = false; return n; }
+            var a = new Pose2(Pos(s), s.h * 45f);
+            var e = TrackMath.PoseAt(a, TrackMath.Fit(Moves[m].def, a, Moves[m].dir), Moves[m].dir, 1f);
+            return new State { x = new Q((long)Mathf.Round(e.pos.x * 8f), 0), y = new Q((long)Mathf.Round(e.pos.y * 8f), 0), h = n.h };
         }
 
         // Movimento com a mesma geometria de uma peça (a largada é uma reta curta; as inclinadas são iguais às planas;
@@ -255,11 +264,11 @@ namespace Autorama
 
             // Para a frente, a partir da ponta.
             var fwd = new Tree();
-            var ex = ExpandAt(job, end, depth, fwd, Pos(goal), ob, from, from + span * 0.2f);
+            var ex = ExpandAt(job, end, depth, fwd, Pos(goal), ob, from, from + span * 0.2f, true);
             while (ex.MoveNext()) yield return null;
             // Para trás, a partir da largada: anda de ré (rumo + 180°) com as curvas espelhadas.
             var back = new Tree();
-            ex = ExpandAt(job, goal, depth, back, Pos(end), ob, from + span * 0.2f, from + span * 0.4f);
+            ex = ExpandAt(job, goal, depth, back, Pos(end), ob, from + span * 0.2f, from + span * 0.4f, false);
             while (ex.MoveNext()) yield return null;
 
             // Junta: estado alcançado pelos dois lados. Os candidatos ficam separados pelo número de peças,
@@ -421,7 +430,7 @@ namespace Autorama
         // Expande até maxDepth peças a partir de s. Poda: (1) estado a mais de 4·maxDepth células de `other` (a raiz do
         // outro lado), porque o outro lado tem no máximo maxDepth peças e nenhuma avança mais de 4; (2) peça que passa
         // por cima da pista (ob). Anda aos poucos (yield) e leva o progresso de `from` até `to`.
-        static IEnumerator ExpandAt(Job job, State s, int maxDepth, Tree tree, Vector2 other, Obstacles ob, float from, float to)
+        static IEnumerator ExpandAt(Job job, State s, int maxDepth, Tree tree, Vector2 other, Obstacles ob, float from, float to, bool fit)
         {
             tree.nodes.Add(new Node { s = s, parent = -1, next = -1, move = -1 });
             tree.head[s] = 0;
@@ -442,7 +451,8 @@ namespace Autorama
                     var st = tree.nodes[pi].s;
                     for (int m = 0; m < SearchMoves; m++)
                     {
-                        var ns = Apply(st, m);
+                        var ns = Apply(st, m, fit, out bool ok);
+                        if (!ok) continue;
                         if ((Pos(ns) - other).sqrMagnitude > reach * reach) continue;
                         int h = tree.head.TryGetValue(ns, out int hh) ? hh : -1, count = 0;
                         for (int c = h; c >= 0 && count < KeepPerState; c = tree.nodes[c].next) count++;

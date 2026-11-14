@@ -15,6 +15,26 @@ namespace Autorama
         public readonly bool IsLoop, IsJump;
         // Salto: vão (células) e altura da ponta da rampa (seção 42.4). Fora do salto, 0.
         public readonly float Gap, Lip;
+        // Meia-curva ajustada (seção 51 do guia): reta de Lead células na diagonal antes do arco (ou depois, com
+        // LeadLast, quando a peça é percorrida de ré). Nas peças do catálogo, 0.
+        public float Lead { get; private set; }
+        public bool LeadLast { get; private set; }
+        PieceDef reversed;
+        // A mesma peça percorrida ao contrário (troca a ponta da reta de ajuste).
+        public PieceDef Reversed => Lead <= 0f ? this : reversed;
+
+        // Cópia com outro raio e reta de ajuste antes do arco; Reversed tem a reta depois.
+        public PieceDef Fitted(float radius, float lead)
+        {
+            var f = new PieceDef(Id, Name, Kind, 0f, Angle, Banked, false, radius: radius) { Lead = lead };
+            var r = new PieceDef(Id, Name, Kind, 0f, Angle, Banked, false, radius: radius) { Lead = lead, LeadLast = true };
+            f.reversed = r; r.reversed = f;
+            return f;
+        }
+        // Fração do caminho onde fica o arco (fora dele, a reta de ajuste).
+        public float ArcFrom => Lead <= 0f || LeadLast ? 0f : Lead / CenterLength;
+        public float ArcTo => Lead <= 0f || !LeadLast ? 1f : 1f - Lead / CenterLength;
+        public bool OnArc(float t) => IsCurve && t >= ArcFrom - 1e-4f && t <= ArcTo + 1e-4f;
 
         PieceDef(string id, string name, PieceKind kind, float length, float angle, bool banked, bool isStart, bool isCross = false, bool isLoop = false, bool isJump = false, float gap = 0f, float lip = 0f, float radius = 2.5f)
         {
@@ -66,7 +86,7 @@ namespace Autorama
         public bool Sided => IsCurve || IsLoop;        // tem lado (dir ±1): a curva vira, o loop sai deslocado para ele
         public bool GroundOnly => IsLoop || IsJump;    // não sobe nem desce de nível
         // Comprimento do caminho: no loop, a entrada, a volta inteira e a saída.
-        public float CenterLength => IsCurve ? Angle * Mathf.Deg2Rad * Radius : IsLoop ? Length + 2f * Mathf.PI * PieceCatalog.LoopRadius : Length;
+        public float CenterLength => IsCurve ? Lead + Angle * Mathf.Deg2Rad * Radius : IsLoop ? Length + 2f * Mathf.PI * PieceCatalog.LoopRadius : Length;
 
         // Deslocamento do trilho num ponto t da peça. No cruzamento o trilho faz um S de um lado para o outro
         // (offset·cos(π·t)): quem entra pela esquerda sai pela direita. Nas outras peças, fixo.
@@ -77,7 +97,7 @@ namespace Autorama
         {
             if (IsCross) return CrossLaneLength(Length, Mathf.Abs(offset));
             if (IsLoop) return CenterLength;
-            return IsCurve ? Angle * Mathf.Deg2Rad * (Radius - dir * offset) : Length;
+            return IsCurve ? Lead + Angle * Mathf.Deg2Rad * (Radius - dir * offset) : Length;
         }
 
         // Comprimento do S do cruzamento: o mesmo para os trilhos simétricos (na pista de 4, o 1 e o 4 fazem um S

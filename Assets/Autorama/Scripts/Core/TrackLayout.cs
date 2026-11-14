@@ -66,7 +66,7 @@ namespace Autorama
             for (int i = 0; i < front; i++)
             {
                 var p = pieces[i];
-                var d = p.Def.At(conn.heading);
+                var d = TrackMath.Fit(p.Def, conn, p.dir);
                 var b = TrackMath.PoseAt(conn, d, p.dir, 1f);
                 b.heading = TrackMath.Normalize(b.heading);
                 int zOut = Mathf.Clamp(z + (i == 0 || d.GroundOnly ? 0 : p.rise), 0, TrackMath.MaxLevel);
@@ -79,7 +79,7 @@ namespace Autorama
             for (int i = pieces.Count - 1; i >= front; i--)
             {
                 var p = pieces[i];
-                var d = p.Def.At(c.heading);
+                var d = TrackMath.FitBack(p.Def, c, p.dir);
                 var a = TrackMath.EntryFor(c, d, p.dir);
                 a.heading = TrackMath.Normalize(a.heading);
                 behind.Add(new Segment { index = i, piece = p, def = d, a = a, b = c, zIn = zs, zOut = zs });

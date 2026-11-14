@@ -3500,6 +3500,7 @@ O JSON antigo tinha ~600 bytes por carro. Agora o snapshot inteiro de 6 carros c
 - O snapshot chega atrasado em cerca de meia ida e volta. O visitante guarda a predição do carro dele nos últimos quadros (`OwnHistory`, 128 registros) e compara o host com a predição de `lag = rtt/2` atrás, não com a de agora.
 - Diferença menor que 1,5 célula (`OwnTolerance`): corrige **25%** dela (`Blend`) na posição e na velocidade, e soma a mesma correção a toda a história (senão o mesmo erro seria corrigido de novo no snapshot seguinte). Maior, ou modo/trilho diferente: copia o estado do host inteiro e zera a história, como antes.
 - Sem eco ainda (começo da bateria, ou quem só assiste): vale a regra antiga (perto do host, fica a predição).
+- **Bandeiradas do carro próprio.** A predição anda na frente do host; perto da linha ela já passou e o host não. Copiar só o `cross` do host com a posição prevista dava `Dist` uma volta a menos, e o placar pulava o próprio carro para trás (e o `CountLap` contava a volta de novo a cada snapshot). Depois do `Apply`, o carro próprio fica com `cross = max(cross do host, LineCount(s) − 1 + crossBase)`, a conta da posição prevista. Voltas, tempos e chegada continuam do host.
 
 ```csharp
 // visitante, a cada snapshot
@@ -3950,7 +3951,7 @@ O tom segue a velocidade sobre a final do próprio carro (`vmax × S × Top`).
 **Correção.** Na diagonal (rumo a 45° ± 1° de um eixo), a reta e o cruzamento ficam √2 vezes mais compridos (`PieceDef.At(heading)` em `Pieces.cs`, com a cópia guardada em `diag`). Assim a reta curta anda 2 × 2 células, a comprida 4 × 4 e a curtinha 1 × 1. A troca acontece onde o `Segment` é montado: `TrackLayout.Build` (para frente e de ré), a peça fantasma do `TrackBuilder` e as tabelas do `TrackCloser`. O resto (malha, `RaceSim`, comprimento dos trilhos) já lê `s.def`. Loop, salto e largada não mudam.
 
 - Ids e identidade da pista não mudam. Pistas salvas com reta na diagonal mudam de forma (a reta cresce).
-- **Limite:** um S de meias-curvas (45° para um lado e 45° para o outro) ainda desloca 3,536 × 1,464 células. Só a sequência meia-curva → retas diagonais → meia-curva para o mesmo lado volta à grade.
+- Um S de meias-curvas (45° para um lado e 45° para o outro) deslocava 3,536 × 1,464 células e tirava a pista da grade. Resolvido pela meia-curva que se ajusta (seção 51).
 
 **Teste** (`script eval`, origem (0; 0,5) rumo 0, tudo para a direita):
 - meia-curva, reta-curta, meia-curva → (4,5; −4), rumo 270;
@@ -4006,7 +4007,40 @@ Não testado em Play: a malha e o ícone vistos no jogo.
 Quando a última bateria é salva (`Champ.CurrentHeat(C) < 0`), o `RaceController` chama `Fogos()` (`Race/RaceController.Fogos.cs`). Vale no offline (`ChampSave`), no host online (`OnlineCommit`) e no visitante (mensagem `res`).
 
 - Um `ParticleSystem` "Fogos" (criado na primeira vez, material `sparkMaterial`) solta foguetes por `Emit`: posição sorteada dentro de `builder.Info.bounds`, velocidade para cima de 7 a 9 (× escala), cor `HSVToRGB(aleatório, 0,85, 1)`, vida 0,8 a 1,1 s, gravidade 0,25.
-- Ao morrer, o foguete dispara o subemissor "Estouro" (`Death`, `InheritColor`): 90 faíscas em esfera, velocidade 2,5 a 3,2 (× escala), arrasto 1,2, gravidade 0,35, vida 1,0 a 1,6 s, apagando nos últimos 40%.
-- Constantes: `FogosTempo 6` s, `FogosIntervalo 0.35` s, 30% de chance de dois foguetes juntos, `FogosEstouro 90`. Tamanhos e velocidades vezes `builder.Scale` (pista de 4, 6 e 8).
+- Ao morrer, o foguete dispara o subemissor "Estouro" (`Death`, `InheritColor`): 150 faíscas em esfera, velocidade 2,5 a 3,2 (× escala), arrasto 1,2, gravidade 0,35, vida 1,0 a 1,6 s, apagando nos últimos 40%.
+- Constantes: `FogosTempo 8` s, `FogosIntervalo 0.15` s, 2 ou 3 foguetes por vez, `FogosEstouro 150`, até 12000 partículas. Tamanhos e velocidades vezes `builder.Scale` (pista de 4, 6 e 8).
 
 Teste (Play, `SendMessage("Fogos")` + 70 `Step`): 2 foguetes no ar e 270 faíscas (3 estouros × 90); na captura, estouros coloridos sobre a mesa.
+
+## 51. Meia-curva que se ajusta à grade (S de meias-curvas)
+
+**Problema.** A meia-curva (raio 2,5) anda 1,768 × 0,732 células. Para o mesmo lado as sobras se anulam; num S (direita e
+depois esquerda, ou o contrário) elas somam e a ponta fica (0,23; 0,46) fora da grade, com parte do erro de lado na
+diagonal, que reta nenhuma corrige. O Q não fechava.
+
+**Correção.** `TrackMath.Fit(def, pose, dir)` (substitui `PieceDef.At` onde o `Segment` é montado): se a peça é uma
+meia-curva (plana ou inclinada) que sai da diagonal e a ponta não cai na grade (`TrackMath.GridSnap`: meio da fileira e
+divisa das células), ela vira `def.Fitted(raio, lead)`: uma reta de `lead` células na diagonal e depois o arco com outro
+raio. As duas incógnitas saem de um sistema 2 × 2 (reta na direção de entrada + arco de raio unitário × raio), testando os
+9 pontos da grade em volta; vale o de raio entre 1,5 e 3,5 (`FitRadiusMin/Max`) e lead ≥ 0 com menor
+|raio − 2,5| + 0,25·lead. Na mesma direção (sem S) a ponta já está na grade e a peça não muda.
+
+- De ré (peças atrás da largada) é a mesma conta na pose invertida (`TrackMath.FitBack`); `PieceDef.Reversed` põe a reta
+  depois do arco (`LeadLast`) e o `EntryFor` usa ela.
+- `CenterLength` e `LaneLength` somam o lead; na `RaceSim` a curvatura é 0 no trecho da reta (`OnArc`). A malha amostra
+  `PoseAt`, que faz reta + arco.
+- Fantasma do construtor usa o `Fit` também.
+- **Q (`TrackCloser`):** `Apply` refaz o ajuste quando uma meia-curva sai da diagonal e o resultado exato tem parte em √2
+  (fora da grade): converte a ponta ajustada (que é ponto da grade) para a forma exata. A árvore de ré da busca não
+  ajusta, só descarta esse movimento, porque as peças dela são montadas para a frente depois.
+- Ids, JSON e identidade não mudam. Pistas salvas com S de meias-curvas mudam de forma (o fim do S passa a cair na grade).
+
+**Teste** (conta em Python, a mesma do `Fit`, origem (0; 0,5) rumo 0):
+- S direita → esquerda: raio 2,328, lead 0,828 (2√2 − 2), ponta (4; −1,5); com 1, 2 e 3 retas curtinhas diagonais
+  no meio: (5; −2,5), (6; −3,5), (7; −4,5). Esquerda → direita, simétrico.
+- Mesmo lado: raio 2,5 e lead 0, como antes.
+- Rascunho do usuário (8 retas compridas, 3 meias à direita, 2 retas, meia D, meia E, meia D): termina em (68; −4,5),
+  rumo 180, na grade.
+- Na Unity (`script eval`, `TrackLayout.Build`): S → (4; −1,5) R 2,328 L 0,828; S com curtinha → (5; −2,5); mesmo lado → (2,5; −2), R 2,5. Q em largada + reta comprida + S: fechou com 8 peças, `closed`, sem sobreposição.
+- Não visto no Play: a malha do S ajustado.
+

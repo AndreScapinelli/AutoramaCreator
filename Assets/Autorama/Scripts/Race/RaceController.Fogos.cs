@@ -7,8 +7,8 @@ namespace Autorama
     // estouram numa esfera de faíscas da cor do foguete. Tudo em escala da pista (TrackMath.Scale).
     public partial class RaceController
     {
-        const float FogosTempo = 6f, FogosIntervalo = 0.35f;
-        const int FogosEstouro = 90;
+        const float FogosTempo = 8f, FogosIntervalo = 0.15f;
+        const int FogosEstouro = 150;
         ParticleSystem fogos;
         Coroutine fogosRun;
 
@@ -24,7 +24,7 @@ namespace Autorama
             main.startSize = 0.08f;
             main.gravityModifier = 0.25f;
             main.simulationSpace = ParticleSystemSimulationSpace.World;
-            main.maxParticles = 4000;
+            main.maxParticles = 12000;
             var em = fogos.emission; em.enabled = false;
             var sh = fogos.shape; sh.enabled = false;
             go.GetComponent<ParticleSystemRenderer>().sharedMaterial = sparkMaterial;
@@ -40,7 +40,7 @@ namespace Autorama
             bm.startSize = 0.1f;
             bm.gravityModifier = 0.35f;
             bm.simulationSpace = ParticleSystemSimulationSpace.World;
-            bm.maxParticles = 4000;
+            bm.maxParticles = 12000;
             var be = burst.emission; be.rateOverTime = 0f;
             be.SetBursts(new[] { new ParticleSystem.Burst(0f, (short)FogosEstouro) });
             var bs = burst.shape; bs.shapeType = ParticleSystemShapeType.Sphere; bs.radius = 0.05f;
@@ -75,7 +75,7 @@ namespace Autorama
             bm.startSizeMultiplier = 0.1f * k;
             for (float t = 0; t < FogosTempo; t += FogosIntervalo)
             {
-                int n = Random.value < 0.3f ? 2 : 1;
+                int n = Random.Range(2, 4);
                 for (int i = 0; i < n; i++)
                 {
                     var pos = new Vector3(p0.x + Random.Range(r.xMin, r.xMax) * k, p0.y, p0.z + Random.Range(r.yMin, r.yMax) * k);
