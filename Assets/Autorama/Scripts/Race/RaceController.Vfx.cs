@@ -8,9 +8,10 @@ namespace Autorama
     public partial class RaceController
     {
         const float SmokeSlip = 0.25f, SmokeRate = 140f, SmokeMinV = 0.3f;
-        const float SkidSlip = 0.5f, SkidW = 0.035f, SkidLift = 0.003f, SkidStep = 0.02f;
+        const float SkidSlip = 0.15f, SkidLoad = 0.85f, SkidW = 0.035f, SkidLift = 0.003f, SkidStep = 0.02f;
         const float TrailTime = 0.35f, VfxJump = 1f;
-        const int SkidMax = 3000;
+        const int SkidMax = 6000;
+        const float SkidFlush = 0.1f;            // a malha das marcas sobe para a placa no máximo 10 vezes por segundo
         static readonly Vector3[] RearWheels = { new Vector3(-0.185f, 0f, 0.145f), new Vector3(-0.185f, 0f, -0.145f) };
 
         TrailRenderer[] turboTrails;
@@ -20,6 +21,7 @@ namespace Autorama
         Color32[] skidC;
         int skidNext;
         bool skidDirty;
+        float skidFlushT;
         Vector3[,] skidLast;
         bool[,] skidHas;
         float[] smokeAcc;
@@ -193,8 +195,9 @@ namespace Autorama
                     smoke.Emit(new ParticleSystem.EmitParams { position = car.TransformPoint(RearWheels[i & 1]) + Vector3.up * 0.06f, applyShapeToPosition = true }, 1);
             }
 
-            bool skid = slide && st.slip > SkidSlip;
-            byte alpha = (byte)(Mathf.Clamp01((st.slip - SkidSlip) / (1f - SkidSlip) * 1.5f + 0.3f) * 200f);
+            bool skid = slide && (st.slip > SkidSlip || st.load > SkidLoad);
+            // No limite da curva (load perto de 1) a marca é fraca; derrapando (slip), forte.
+            byte alpha = (byte)Mathf.Min(240f, 60f + 80f * Mathf.Clamp01((st.load - SkidLoad) / (1f - SkidLoad)) + 150f * Mathf.Clamp01((st.slip - SkidSlip) / (0.6f - SkidSlip)));
             for (int w = 0; w < 2; w++)
             {
                 if (!skid) { skidHas[k, w] = false; continue; }
@@ -205,7 +208,7 @@ namespace Autorama
                 var side = Vector3.Cross(car.up, p - a).normalized * SkidW;
                 int v = skidNext * 4;
                 skidV[v] = a - side; skidV[v + 1] = a + side; skidV[v + 2] = p - side; skidV[v + 3] = p + side;
-                var c = new Color32(20, 20, 20, alpha);
+                var c = new Color32(12, 12, 12, alpha);
                 skidC[v] = skidC[v + 1] = skidC[v + 2] = skidC[v + 3] = c;
                 skidNext = (skidNext + 1) % SkidMax;
                 skidLast[k, w] = p;
@@ -216,6 +219,9 @@ namespace Autorama
         void FlushVfx()
         {
             if (!skidDirty || skidMesh == null) return;
+            skidFlushT += Time.unscaledDeltaTime;
+            if (skidFlushT < SkidFlush) return;
+            skidFlushT = 0f;
             skidMesh.vertices = skidV;
             skidMesh.colors32 = skidC;
             skidDirty = false;

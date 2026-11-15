@@ -1105,7 +1105,7 @@ Assim a barra de derrapagem aparece no próprio carrinho: quanto mais cheia, mai
 
 **Recolocar** (o segundo botão) faz o papel do fiscal de pista:
 - O carrinho volta para `exitS − 0,4`, um pouco antes de onde saiu, para não entrar embalado no mesmo ponto.
-- O retorno é uma animação de `set.reslotTime` segundos (0,3 s por padrão), da posição na mesa até o trilho. Na corrida livre dá para mudar em **Ajustes avançados > Tempo para recolocar** (0,1 a 1,5 s); o campeonato guarda o valor nas regras (`ChampRules.reslot`) e o online manda nas regras do `start` (`reslot`, conferido entre 0,1 e 1,5 pelo servidor e pelo host Steam; cliente antigo sem o campo = 0,3 s).
+- O retorno é uma animação de `set.reslotTime` segundos (0,5 s por padrão; era 0,3), da posição na mesa até o trilho. Na corrida livre dá para mudar em **Ajustes avançados > Tempo para recolocar** (0,1 a 1,5 s); o campeonato guarda o valor nas regras (`ChampRules.reslot`) e o online manda nas regras do `start` (`reslot`, conferido entre 0,1 e 1,5 pelo servidor e pelo host Steam; cliente antigo sem o campo = 0,3 s).
 - Ele volta parado, com `v = 0` e `slip = 0`.
 - O castigo é o tempo perdido. Não precisa de mais nada.
 

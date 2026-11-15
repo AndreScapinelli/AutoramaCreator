@@ -22,7 +22,7 @@ namespace Autorama
         public int cameraTarget = 0;    // alvo do third person: 0 jogador 1, 1 jogador 2
         public int cameraDistance = 100; // escala do enquadramento: 40% mais perto, 160% mais longe
         public int halfGas = 60;        // tecla de meia aceleração (S no jogador 1; ver Controles): até onde o acelerador vai, em %
-        public float reslotTime = 0.3f; // recolocar: segundos da volta da mesa até o trilho
+        public float reslotTime = 0.5f; // recolocar: segundos da volta da mesa até o trilho
         public bool bot34 = true;       // (antigo, não usado: virou set.slots; fica para ler os ajustes salvos antes)
         public int motorSound = 3;      // qual som de motor (0 broca, 1 elétrico suave, 2 escovas, 3 turbina, 4 ronco, 5 motor.wav)
         public int volume = 70;         // volume dos sons da corrida, 0 a 100 (seção 29)
@@ -355,6 +355,7 @@ namespace Autorama
         public Vector2? push;
         // piloto IA
         public float aiM = -1f, aiT, offT;
+        public float load;                       // quanto da aderência a curva está pedindo (0 parado, 1 no limite); as marcas de pneu usam
     }
 
     // A física do modo corrida, igual à do construtor em HTML (seção 15 do guia). Sem nada de cena: só números.
@@ -572,6 +573,7 @@ namespace Autorama
                     // Bolha: a aderência cresce com (v / vmax)² (com Aero 0 o fator é 1 e a conta é a de antes).
                     float vr = c.v / (set.vmax * Speed);
                     float ratio = c.v * c.v * Mathf.Abs(q.k) / (set.grip * G * su.Grip * q.grip * (1f + su.Aero * vr * vr));
+                    c.load = ratio;
                     c.slip = ratio > 1f ? c.slip + (ratio - 1f) * SlipGain * su.Slip * dt : Mathf.Max(0f, c.slip - SlipDecay * su.Decay * dt);
                     if (c.slip >= 1f) Deslot(k, null);
                     else CountLap(k);
@@ -691,7 +693,7 @@ namespace Autorama
             c.flyVel = (tangent + outward * 0.35f) * c.v;
             if (push.HasValue) c.flyVel += push.Value;                       // empurrão de uma batida
             c.flyW = -c.side * (220f + c.v * 30f);                           // gira no sentido da curva
-            c.mode = CarMode.Off;
+            c.mode = CarMode.Off; c.load = 0f;
             c.exitS = c.s; c.v = 0f; c.slip = 0f; c.offs++;
             if (set.turbo && phase == Phase.Running) c.turbo = Mathf.Min(1f, c.turbo + TurboGain(k));
             ScoreChanged?.Invoke();
