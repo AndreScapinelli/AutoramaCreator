@@ -51,12 +51,7 @@ namespace Autorama
                 return true;
             }
             // Corrida livre: a identidade da pista em uso (recalcula só quando a pista muda).
-            if (builder.Info == null) return false;
-            if (!ReferenceEquals(builder.Info, freeInfo))
-            {
-                var save = builder.ToSave();
-                freeInfo = builder.Info; freeHash = Champ.TrackHash(save); freeOdd = Champ.CrossCount(save) % 2 == 1;
-            }
+            if (FreeTrackHash() == null) return false;
             var F = FindRecords(freeHash);
             if (F == null || !F.lap.Has) return false;
             cardRows.Add(new CardRow { name = "Volta", a = RecText(F.lap) });
@@ -65,6 +60,18 @@ namespace Autorama
                 for (int k = 0; k < sim.N; k++)
                     if (sim.present[k] && F.Lane(k).Has) cardRows.Add(new CardRow { dot = pads[k].root.resolvedStyle.borderTopColor, name = LaneNames[k], a = RecText(F.Lane(k)) });
             return true;
+        }
+
+        // A identidade da pista da corrida livre (recalcula só quando a pista muda). Null: sem pista.
+        string FreeTrackHash()
+        {
+            if (builder.Info == null) return null;
+            if (!ReferenceEquals(builder.Info, freeInfo))
+            {
+                var save = builder.ToSave();
+                freeInfo = builder.Info; freeHash = Champ.TrackHash(save); freeOdd = Champ.CrossCount(save) % 2 == 1;
+            }
+            return freeHash;
         }
 
         void DrawRecCard(bool show)

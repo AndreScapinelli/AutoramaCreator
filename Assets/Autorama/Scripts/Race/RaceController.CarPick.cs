@@ -19,18 +19,19 @@ namespace Autorama
         float carPickSince, carSendAcc, carBcastAcc;
         const float CarPickWait = 45f;                              // online: o host fecha a escolha sozinho depois disso
 
-        // O ajuste numa mensagem: 1–27 (o ajuste) mais 27 se o piloto já confirmou. 0 = não é escolha.
-        static int CarCode(CarSetup c, bool ok) => 1 + c.motor * 9 + c.bolha * 3 + c.pneu + (ok ? 27 : 0);
+        // O ajuste numa mensagem: 1–81 (o ajuste) mais 81 se o piloto já confirmou. 0 = não é escolha (protocolo 4).
+        public const int CarCodes = 81;
+        static int CarCode(CarSetup c, bool ok) => 1 + c.motor * 27 + c.bolha * 9 + c.pneu * 3 + c.chassi + (ok ? CarCodes : 0);
         static CarSetup CarOf(int code, out bool ok)
         {
-            int v = Mathf.Clamp(code, 1, 54) - 1;
-            ok = v >= 27; v %= 27;
-            return new CarSetup { motor = v / 9, bolha = v / 3 % 3, pneu = v % 3 };
+            int v = Mathf.Clamp(code, 1, 2 * CarCodes) - 1;
+            ok = v >= CarCodes; v %= CarCodes;
+            return new CarSetup { motor = v / 27, bolha = v / 9 % 3, pneu = v / 3 % 3, chassi = v % 3 };
         }
-        static bool Same(CarSetup a, CarSetup b) => a.motor == b.motor && a.bolha == b.bolha && a.pneu == b.pneu;
+        static bool Same(CarSetup a, CarSetup b) => a.motor == b.motor && a.bolha == b.bolha && a.pneu == b.pneu && a.chassi == b.chassi;
 
-        // Robô: pista de muita curva, carro de curva (curto · asa · macio); de reta, carro de reta (longo · lisa · macio).
-        // O pneu macio nos dois: a IA não aproveita a folga do pneu duro (seção 47.4).
+        // Robô: pista de muita curva, carro de curva (curto · asa · macio); de reta, carro de reta (longo · lisa · duro).
+        // Chassi pesado nos dois: a IA freia pelo limite da curva e não arrisca, então o leve só tiraria a margem (seção 52).
         public static CarSetup AiCar(TrackSave d)
         {
             float curve = 0f, all = 0f;
@@ -42,7 +43,7 @@ namespace Autorama
                 all += len;
                 if (t.Contains("curva")) curve += len;
             }
-            return all > 0f && curve / all >= 0.45f ? new CarSetup { motor = 1, bolha = 1, pneu = 1 } : new CarSetup { motor = 2, bolha = 2, pneu = 1 };
+            return all > 0f && curve / all >= 0.45f ? new CarSetup { motor = 1, bolha = 1, pneu = 1, chassi = 2 } : new CarSetup { motor = 2, bolha = 2, pneu = 2, chassi = 2 };
         }
 
         // Aberta: a bateria da vez é a primeira de uma etapa ainda sem escolha, com a corrida parada.
@@ -111,7 +112,7 @@ namespace Autorama
         {
             var p = onlineChamp?.pilots.Find(x => x.id == LocalId(j));
             if (p == null) return;
-            net.Send(new NetOut { t = "in", g = j == 1, held = false, gp = 100, re = myRe[j], ts = NetSync.ClockMs, car = CarCode(p.carro, carOk.Contains(p.id)), cs = carOkStage });
+            net.Send(new NetOut { t = "in", g = j == 1, held = false, gp = 100, re = myRe[j], ts = NetSync.ClockMs, pz = myPz, car = CarCode(p.carro, carOk.Contains(p.id)), cs = carOkStage });
         }
 
         void CarBroadcast(Championship C)

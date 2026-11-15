@@ -4,8 +4,8 @@ using UnityEngine;
 
 namespace Autorama
 {
-    // Calibração do ajuste do carro (seção 47 do guia). Sem cena: `script eval 'return Autorama.SetupCalib.Run(0, 5);'`.
-    // Um piloto de teste dá voltas com cada uma das 27 combinações em seis pistas e a tabela mostra quanto cada peça
+    // Calibração do ajuste do carro (seções 47 e 52 do guia). Sem cena: `script eval 'return Autorama.SetupCalib.Run(0, 5);'`.
+    // Um piloto de teste dá voltas com cada uma das 81 combinações em seis pistas e a tabela mostra quanto cada peça
     // vale em cada pista. O piloto não é a IA do jogo (que freia pelo limite da curva e não usa a folga da
     // derrapagem): a cada passo ele procura o maior acelerador (de `GasMin` a 100%, como um gatilho de controle) com
     // que ainda dá para frear depois sem sair da pista, testando isso numa cópia da simulação. Ele freia com o gatilho
@@ -18,7 +18,9 @@ namespace Autorama
         public static float GasMin = 0.02f;
         static float SlipMax;
 
-        static readonly string[] Motor = { "padrão", "curto", "longo" }, Bolha = { "padrão", "asa", "lisa" }, Pneu = { "médio", "macio", "duro" };
+        static readonly string[] Motor = { "padrão", "curto", "longo" }, Bolha = { "padrão", "asa", "lisa" }, Pneu = { "médio", "macio", "duro" }, Chassi = { "padrão", "leve", "pesado" };
+        const int Combos = 81;
+        static CarSetup Of(int i) => new CarSetup { motor = i / 27, bolha = i / 9 % 3, pneu = i / 3 % 3, chassi = i % 3 };
 
         static PieceSave P(string tipo, string sentido = "", string altura = "") => new PieceSave { tipo = tipo, sentido = sentido, altura = altura };
 
@@ -124,14 +126,19 @@ namespace Autorama
         }
 
         // Quanto cada número do ajuste vale sozinho em cada pista: liga um de cada vez (os outros em zero) e compara
-        // com o carro padrão. Ordem: aceleração do motor, final do motor, aderência da bolha, final da bolha,
-        // aderência do pneu, derrapagem do pneu (esta é a do macio: enche mais rápido).
+        // com o carro padrão. Ordem: aceleração e final do motor, aderência e final do pneu, aerodinâmica e final da
+        // bolha, resposta, derrapagem e recuperação do chassi (as três do leve).
         public static string Sens(int from, int to)
         {
-            float[] keep = { CarSetup.MotorAccel, CarSetup.MotorTop, CarSetup.BodyGrip, CarSetup.BodyTop, CarSetup.TireGrip, CarSetup.TireSlip };
-            string[] names = { "motor acel", "motor final", "bolha ader", "bolha final", "pneu ader", "pneu derrap" };
-            var with = new[] { new CarSetup { motor = 1 }, new CarSetup { motor = 2 }, new CarSetup { bolha = 1 }, new CarSetup { bolha = 2 }, new CarSetup { pneu = 1 }, new CarSetup { pneu = 1 } };
-            void Set(float[] v) { CarSetup.MotorAccel = v[0]; CarSetup.MotorTop = v[1]; CarSetup.BodyGrip = v[2]; CarSetup.BodyTop = v[3]; CarSetup.TireGrip = v[4]; CarSetup.TireSlip = v[5]; }
+            float[] keep = { CarSetup.MotorAccel, CarSetup.MotorTop, CarSetup.TireGrip, CarSetup.TireTop, CarSetup.BodyAero, CarSetup.BodyTop, CarSetup.ChassiResp, CarSetup.ChassiSlip, CarSetup.ChassiDecay };
+            string[] names = { "motor acel", "motor final", "pneu ader", "pneu final", "bolha aero", "bolha final", "chassi resp", "chassi derrap", "chassi recup" };
+            var with = new[] { new CarSetup { motor = 1 }, new CarSetup { motor = 2 }, new CarSetup { pneu = 1 }, new CarSetup { pneu = 2 }, new CarSetup { bolha = 1 }, new CarSetup { bolha = 2 },
+                               new CarSetup { chassi = 1 }, new CarSetup { chassi = 1 }, new CarSetup { chassi = 1 } };
+            void Set(float[] v)
+            {
+                CarSetup.MotorAccel = v[0]; CarSetup.MotorTop = v[1]; CarSetup.TireGrip = v[2]; CarSetup.TireTop = v[3]; CarSetup.BodyAero = v[4];
+                CarSetup.BodyTop = v[5]; CarSetup.ChassiResp = v[6]; CarSetup.ChassiSlip = v[7]; CarSetup.ChassiDecay = v[8];
+            }
             var sb = new StringBuilder();
             var tracks = Tracks();
             for (int ti = from; ti <= to && ti < tracks.Length; ti++)
@@ -141,9 +148,9 @@ namespace Autorama
                 float Both(CarSetup su) => Drive(segs, 0, su) + Drive(segs, 1, su);
                 float t0 = Both(default);
                 sb.Append($"{s.nome}: {t0:0.000} s");
-                for (int p = 0; p < 6; p++)
+                for (int p = 0; p < keep.Length; p++)
                 {
-                    var one = new float[6];
+                    var one = new float[keep.Length];
                     one[p] = keep[p];
                     Set(one);
                     sb.Append($" · {names[p]} {keep[p] * 100f:0.#}%: {((Both(with[p]) / t0 - 1f) * 100f).ToString("+0.00;-0.00")}%");
@@ -157,12 +164,12 @@ namespace Autorama
         static float Mean(float[] t, System.Func<int, bool> pick)
         {
             float sum = 0f; int n = 0;
-            for (int i = 0; i < 27; i++) if (pick(i)) { sum += t[i]; n++; }
+            for (int i = 0; i < Combos; i++) if (pick(i)) { sum += t[i]; n++; }
             return sum / n;
         }
 
         // Pistas de `from` a `to` (índices de Tracks). Em cada uma: o tempo do carro padrão (voltas lançadas, soma dos dois trilhos), a
-        // melhor e a pior combinação e, para cada opção de cada peça, a média das 9 combinações com ela contra a média geral.
+        // melhor e a pior combinação e, para cada opção de cada peça, a média das 27 combinações com ela contra a média geral.
         public static string Run(int from, int to)
         {
             var sb = new StringBuilder();
@@ -171,19 +178,19 @@ namespace Autorama
             {
                 var s = tracks[ti];
                 var segs = TrackLayout.Build(s.Origin, s.Pieces(), s.Tail, s.StartZ);
-                if (!TrackLayout.Analyze(s.Origin, segs, s.Tail, 2).closed) { sb.AppendLine($"{s.nome}: ABERTA"); continue; }
-                var t = new float[27];
+                if (!TrackLayout.Analyze(s.Origin, segs, s.Tail, 2).closedXY) { sb.AppendLine($"{s.nome}: ABERTA"); continue; }
+                var t = new float[Combos];
                 bool fail = false;
-                for (int i = 0; i < 27; i++)
+                for (int i = 0; i < Combos; i++)
                 {
-                    var su = new CarSetup { motor = i / 9, bolha = i / 3 % 3, pneu = i % 3 };
+                    var su = Of(i);
                     float a = Drive(segs, 0, su), b = Drive(segs, 1, su);
                     if (a < 0f || b < 0f) fail = true;
                     t[i] = a + b;
                 }
                 int best = 0, worst = 0;
-                for (int i = 1; i < 27; i++) { if (t[i] < t[best]) best = i; if (t[i] > t[worst]) worst = i; }
-                string Name(int i) => $"{Motor[i / 9]}/{Bolha[i / 3 % 3]}/{Pneu[i % 3]}";
+                for (int i = 1; i < Combos; i++) { if (t[i] < t[best]) best = i; if (t[i] > t[worst]) worst = i; }
+                string Name(int i) => $"{Motor[i / 27]}/{Bolha[i / 9 % 3]}/{Pneu[i / 3 % 3]}/{Chassi[i % 3]}";
                 string Pct(float x) => ((x / t[0] - 1f) * 100f).ToString("+0.00;-0.00") + "%";
                 float all = Mean(t, i => true);
                 sb.AppendLine($"{s.nome}{(fail ? " (ALGUÉM SAIU)" : "")}: padrão {t[0]:0.000} s · melhor {Name(best)} {Pct(t[best])} · pior {Name(worst)} {Pct(t[worst])}");
@@ -193,9 +200,10 @@ namespace Autorama
                     for (int o = 0; o < 3; o++) { int oo = o; r.Append($" {names[o]} {((Mean(t, i => part(i) == oo) / all - 1f) * 100f).ToString("+0.00;-0.00")}%"); }
                     return r.ToString();
                 }
-                sb.AppendLine("  motor:" + Row(Motor, i => i / 9));
-                sb.AppendLine("  bolha:" + Row(Bolha, i => i / 3 % 3));
-                sb.AppendLine("  pneu: " + Row(Pneu, i => i % 3));
+                sb.AppendLine("  motor: " + Row(Motor, i => i / 27));
+                sb.AppendLine("  bolha: " + Row(Bolha, i => i / 9 % 3));
+                sb.AppendLine("  pneu:  " + Row(Pneu, i => i / 3 % 3));
+                sb.AppendLine("  chassi:" + Row(Chassi, i => i % 3));
             }
             return sb.ToString();
         }

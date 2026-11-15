@@ -73,7 +73,7 @@ namespace Autorama
         }
 
         // Teclas que o jogo usa para outras coisas: não podem ser de um jogador.
-        public static bool Reservada(Key k) => k == Key.None || k == Key.Enter || k == Key.NumpadEnter || k == Key.Escape;
+        public static bool Reservada(Key k) => k == Key.None || k == Key.Enter || k == Key.NumpadEnter || k == Key.Escape || k == Key.P || k == Key.F1;   // P: pausa · F1: posição nos carros
 
         public static void Restaurar()
         {

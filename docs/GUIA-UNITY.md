@@ -3803,6 +3803,8 @@ Play mode, quatro `CarView` criados por `script eval` lado a lado (Padrão, Asa,
 
 ## 47. Ajuste do carro: física por carro e calibração
 
+> **Mudou na seção 52:** agora são quatro peças (motor, pneu, bolha e chassi), com outra física para o pneu e a bolha e números novos. O que segue nesta seção é a primeira versão (três peças), guardada como histórico; a calibração e o cartão "Carro" atuais estão na 52.
+
 Cada carro tem três peças, e cada uma **troca uma coisa por outra** (não existe peça melhor). A corrida livre (aba Corrida) já escolhe o ajuste de cada carro (seção 47.5); o campeonato, os recordes e o online ainda correm com o padrão.
 
 ### 47.1 As três peças (`CarSetup`, em `Race/RaceSim.cs`)
@@ -3911,13 +3913,13 @@ O campeonato (offline e online) passa a correr com o ajuste do carro (seção 47
 No banner do meio da mesa (`carPick`, dentro de `banner`), no lugar do cartão de recordes: título "Escolha do carro · etapa N: pista", um cartão por piloto que escolhe aqui (o `DrawCarCard` da seção 47.5 sem a linha da curva, com o resumo e o botão **Pronto**) e uma lista dos outros (robô / pronto / escolhendo / saiu). Mudar uma peça tira o "pronto". Largar fica bloqueado (`ChampStart`, `OnlineStart`) enquanto a escolha está aberta.
 
 - **Offline:** cartões para todos os pilotos de gente. Fecha quando todos ficam prontos; **Enter** (ou Start do controle) deixa todos prontos com o que está escolhido. Grava em `campeonatos.json` a cada clique.
-- **Robôs:** `AiCar(pista)` pela fração do comprimento em curva (curva de 90° = 2,5 × π/2 células, 45° = metade; retas 1, 2 ou 4): **≥ 45%** curto · asa · macio; menos, longo · lisa · macio. Pneu macio nos dois porque a IA não aproveita o duro (47.4).
+- **Robôs:** `AiCar(pista)` pela fração do comprimento em curva (curva de 90° = 2,5 × π/2 células, 45° = metade; retas 1, 2 ou 4): **≥ 45%** curto · asa · macio · pesado; menos, longo · lisa · duro · pesado (regra da seção 52.5).
 - **Online:** cartões só para os jogadores deste computador (eu e o jogador 2). O host fecha quando todos os pilotos na sala ficam prontos, pelo botão "Fechar a escolha" ou sozinho depois de **`CarPickWait` = 45 s** (quem não confirmou corre com o que estiver escolhido). Depois de fechar, a largada automática (`AutoStart`, 20 s) conta de novo.
 - Estilos em `Construtor.uss`: `car-pick`, `pick-grid`, `pick-card`, `pick-card--ok`, `pick-head`, `pick-name`, `pick-sum`, `pick-ok`, `pick-others`, `pick-foot`.
 
-### 48.3 Rede (sem mudar a versão do protocolo)
+### 48.3 Rede
 
-- **Código do ajuste:** `CarCode = 1 + motor × 9 + bolha × 3 + pneu`, mais 27 se o piloto confirmou (1 a 54). 0 = não é escolha.
+- **Código do ajuste** (protocolo 4, seção 52.6): `CarCode = 1 + motor × 27 + bolha × 9 + pneu × 3 + chassi`, mais 81 se o piloto confirmou (1 a 162). 0 = não é escolha. Na primeira versão era `1 + motor × 9 + bolha × 3 + pneu`, mais 27 (1 a 54).
 - **Visitante → host:** um `in` com `car` e `cs` (a etapa). O host trata como escolha e não como botão (não mexe no acelerador). O visitante repete a cada 1 s enquanto a escolha está aberta (o host pode ter mudado). O servidor repassa `car` (preso em 0–54) e `cs` (0–`MAX_STAGES`); na Steam o `in` já vai inteiro.
 - **Host → todos:** `ev` com `k = "cars"`, `hi = carStage` e `cars` (um código por piloto, na ordem dos pilotos), a cada mudança e a cada 1 s. O `ev sync` leva os mesmos `hi` e `cars`. Com a escolha aberta, o visitante mantém a própria escolha; fechada, vale a do host.
 - **Host novo** (`OnlineTakeOver`): o prazo de 45 s recomeça; quem já estava pronto continua (os visitantes guardam o "pronto" de todos).
@@ -4044,3 +4046,113 @@ raio. As duas incógnitas saem de um sistema 2 × 2 (reta na direção de entrad
 - Na Unity (`script eval`, `TrackLayout.Build`): S → (4; −1,5) R 2,328 L 0,828; S com curtinha → (5; −2,5); mesmo lado → (2,5; −2), R 2,5. Q em largada + reta comprida + S: fechou com 8 peças, `closed`, sem sobreposição.
 - Não visto no Play: a malha do S ajustado.
 
+## 52. Ajuste do carro com quatro peças: motor, pneu, bolha e chassi
+
+Feedback dos testes: cada peça com um papel só dela. O **pneu** diz onde fica o limite da curva; o **chassi** diz o que acontece perto desse limite; a **bolha** é a aerodinâmica, que vale mais quanto mais rápido; o **motor** é o comportamento na reta. Cada peça tem três opções e a do meio é o **padrão**: com as quatro no padrão a física é bit a bit a de antes (todos os multiplicadores em 1, a aerodinâmica em 0).
+
+### 52.1 As peças (`CarSetup`, em `Race/RaceSim.cs`)
+
+| Peça | 1 | 0 (padrão) | 2 |
+|---|---|---|---|
+| `motor` | **curto**: aceleração +2,5%, final −1,25% | padrão | **longo**: aceleração −2,5%, final +1,25% |
+| `pneu` | **macio**: aderência +3%, final −1,5% | médio | **duro**: aderência −3%, final +1,5% |
+| `bolha` (`CarBody`) | **asa**: aerodinâmica +3,5%, final −0,8% | padrão | **lisa**: aerodinâmica −3,5%, final +0,8% |
+| `chassi` (novo) | **leve**: resposta +12%, a derrapagem enche 10% mais rápido e esvazia 40% mais devagar | padrão | **pesado**: resposta −12%, a derrapagem enche 10% mais devagar e esvazia 40% mais rápido |
+
+Constantes (estáticas, para a calibração variar): `MotorAccel 0.025`, `MotorTop 0.0125`, `TireGrip 0.03`, `TireTop 0.015`, `BodyAero 0.035`, `BodyTop 0.008`, `ChassiResp 0.12`, `ChassiSlip 0.1`, `ChassiDecay 0.4`. Arquivo antigo sem `chassi` abre com o chassi padrão; `Clamped` prende as quatro em 0–2.
+
+### 52.2 Onde entra no passo
+
+| Propriedade | Conta | Onde |
+|---|---|---|
+| `Top` | (1 ± `MotorTop`) × (1 ± `TireTop`) × (1 ± `BodyTop`) | velocidade final; o turbo multiplica por cima |
+| `Accel` | 1 ± `MotorAccel` | o empurrão do motor: `Accel × su.Accel × (T × top − v)` |
+| `Resp` | 1 ± `ChassiResp` (leve +) | o freio: `−(Brake × v + Brake0 × S) × Resp` |
+| `Ramp` | `Accel × Resp` | o acelerador chega a 100% em `ramp / Ramp` segundos |
+| `Grip` | 1 ± `TireGrip` | aderência em qualquer velocidade |
+| `Aero` | ± `BodyAero` | aderência × (1 + `Aero` × (v / (vmax × S))²) |
+| `Slip` | 1 ± `ChassiSlip` (leve +) | quanto a derrapagem enche: `(ratio − 1) × SlipGain × Slip × dt` |
+| `Decay` | 1 ∓ `ChassiDecay` (o leve esvazia devagar) | `SlipDecay × Decay × dt` |
+
+`ratio = v² × k / (grip × S × Grip × q.grip × (1 + Aero × vr²))`, com `vr = v / (vmax × S)`. A velocidade-limite de uma curva sai de `CarSetup.CurveV(G, k, Aero, V) = √(G / (k − G × Aero / V²))` (sem aerodinâmica, √(G / k), como antes). A IA usa a mesma conta para saber quanto frear, e o cartão "Carro" também.
+
+### 52.3 Calibração
+
+`script eval --timeout 590 'return Autorama.SetupCalib.Run(0, 5);'`: as **81** combinações (cerca de 15 s). O "8 com ponte" da biblioteca sai como ABERTA (ver 52.8), então ficam cinco pistas. `Sens(0, 5)` liga um número de cada vez (9 números agora). O piloto de teste é o da 47.3: ele aproveita a folga da derrapagem ao máximo, então o chassi vale mais para ele do que para gente.
+
+Resultado com os valores da 52.1 (média das 27 combinações com a opção contra a média geral, em %; negativo = mais rápido):
+
+| Pista | Padrão (s) | Motor curto / longo | Bolha asa / lisa | Pneu macio / duro | Chassi leve / pesado | Melhor · pior |
+|---|---|---|---|---|---|---|
+| Oval | 22,067 | −0,07 / +0,03 | −1,11 / +1,20 | −1,44 / +1,13 | +3,18 / −2,54 | −6,19 · +5,44 |
+| Retas longas | 23,033 | +0,35 / −0,36 | +0,46 / −0,47 | +0,82 / −0,79 | −1,45 / +1,58 | −2,82 · +3,18 |
+| Retas longas inclinada | 20,483 | −0,47 / +0,38 | −2,51 / +2,57 | −2,46 / +2,61 | +1,44 / −1,89 | −7,81 · +8,06 |
+| Quadrado | 14,350 | −0,17 / +0,07 | −1,44 / +1,31 | −1,64 / +1,60 | +2,56 / −1,21 | −4,76 · +8,71 |
+| Oval curto | 12,517 | −0,17 / +0,13 | −0,06 / +0,02 | 0,00 / +0,10 | −2,05 / +2,42 | −2,40 · +3,86 |
+
+- Toda opção ganha em pelo menos uma pista: longo, lisa, duro e leve nas Retas longas; curto, asa, macio e pesado nas pistas de curva; o leve também no Oval curto.
+- O caminho: o primeiro chute (motor 12%, resposta 25%, derrapagem 60%, aerodinâmica 4%) deixava o curto e o pesado ganhando em todas as pistas. O `Sens` mostrou que a resposta do chassi vale de 1 a 1,7% de volta a cada 10%, e a derrapagem de 2 a 3% a cada 10% nas pistas de curva; o pesado só deixou de dominar com a derrapagem em 10%.
+- A diferença entre a melhor e a pior combinação (até ±8%) é maior que a da primeira versão (±2%), porque são quatro peças somando.
+
+### 52.4 O carro padrão não mudou
+
+Robôs de qualidade 100, 5 voltas, colisão e turbo ligados, `Random.InitState(7)`, passo de 1/60 s, todos no padrão: Oval 23,7331429 · 23,2164841 s; 8 com ponte 32,3163452 · 32,33301 s. Os mesmos números, em todas as casas, com o código de antes desta seção (o `RaceSim` e o `SetupCalib` antigos de volta por `git stash`, recompilados). Por construção: com tudo no padrão, cada termo novo multiplica por exatamente 1 ou soma 0.
+
+### 52.5 Robôs
+
+`AiCar`: pista com **≥ 45%** do comprimento em curva → curto · asa · macio · **pesado**; menos → longo · lisa · duro · **pesado**. Chassi pesado sempre: a IA freia pelo limite da curva e não usa a folga da derrapagem, então o leve só tiraria a margem. Teste (robô 100, 5 voltas, sem colisão nem turbo; trilho 1 com o padrão, trilho 2 com o ajuste da IA): Oval 23,733 → 23,033 s, Quadrado 15,050 → 14,550 s, Retas longas 23,316 → 22,500 s, nenhuma saída.
+
+### 52.6 Interface, carrinho e rede
+
+- **Cartão "Carro":** quatro linhas (Motor, Bolha, Pneu, Chassi) e seis barras: Final (meia barra = 4%), Aceleração (5%), Curva lenta (`Grip`, 6%), Curva rápida (`Grip × (1 + Aero)`, a aderência na velocidade máxima, 8%), Agilidade (`Resp`, 15%) e Estabilidade (`1 / Slip`, 15%). Com chassi leve ou pesado aparece uma frase embaixo ("responde rápido, mas escapa fácil no limite da curva" · "mais lento no gatilho, perdoa o exagero na curva"). A linha da curva plana usa `CurveV`. As barras se chamavam Resposta e Tolerância; o nome mudou porque "tolerância" era difícil de explicar aos jogadores.
+- **Carrinho** (`CarView.SetChassi`): o leve tem uma placa prata embaixo (0,5 × 0,2); o pesado, uma placa escura mais grossa com o ímã vermelho (0,12 × 0,12); o padrão não tem placa. Trocar a bolha ou o chassi remonta o carrinho (`Rebuild`).
+- **Rede:** protocolo **4** (`OnlineClient.Protocol` e `PROTOCOL` do servidor): o código do ajuste vai até 162 (48.3) e o servidor prende `car` em 0–162. Cliente de protocolo 3 é recusado.
+
+### 52.7 Testes
+
+- `CarCode`/`CarOf`: as 81 combinações × pronto/não vão e voltam, máximo 162.
+- `CurveV` com asa + macio, r = 2,25, grip 30, vmax 14: v = 8,390 (sem aerodinâmica, 8,338), e a razão do passo nessa velocidade dá 1,0000.
+- `npm test` (com "a escolha do carro (car, cs) chega ao host, presa nos limites": 999 → 162) e `OnlineSmokeTest`: tudo ok.
+- Play (corrida de robôs, macio · pesado contra asa · duro · leve): faixa vermelha e branca nas rodas. A placa do chassi quase não aparece na câmera de perseguição.
+
+### 52.8 O que ficou de fora
+
+- O `TrackSave.Eight()` (o "8 com ponte" de exemplo) sai como pista **aberta**: `closed` e `closedXY` falsos, ponta a 4 células da largada. Não vem desta seção (a geometria não mudou aqui); por isso a calibração não mede o 8.
+
+## 53. Pausa no P
+
+`Race/RaceController.Pause.cs`. **P** pausa e continua na corrida livre, no campeonato e no online (P virou tecla reservada em `Controles.Reservada`). Vale com a prova andando (`Countdown`, `Running` ou `Switch`).
+
+- **Parado:** `PauseTick` devolve verdadeiro e o `sim.Step` não roda. O relógio da prova não anda (a volta não conta o tempo parado) e os motores ficam mudos (`AudioTick` com `!Paused`). O banner do meio mostra "Pausado"; offline, com **Continuar (P)** e **Voltar ao grid**.
+- **Continuar:** **3 s** de contagem ("Volta em 3") antes de andar de novo (`PauseResume`).
+- **Online:** o visitante manda o P no `in` como um contador (`pz`, igual ao de recolocar; o primeiro `in` de cada um só guarda o número). Quem decide é o host:
+  - pausa quem está na bateria (e o host), até **`PauseMax` = 3** vezes por piloto por bateria (zera em `OnlineHeatLoaded`);
+  - continua quem pausou ou o host; depois de **`PauseLong` = 60 s** a corrida volta sozinha;
+  - avisa todos num `ev` `pause` (`pz` 1 pausado, 0 voltando; `by` = quem pausou), repetido a cada 1 s enquanto pausado, para quem entrar no meio;
+  - o visitante também não simula enquanto pausado e conta os 3 s quando chega o `pz = 0`; o snapshot corrige a diferença.
+- Servidor: repassa `pz` (0 a 1.000.000). Teste novo: "o contador da pausa (pz) chega ao host".
+- Não testado em Play: a pausa offline e online.
+
+## 54. Posição em cima dos carros (F1) e número no minimapa
+
+- **Etiquetas** (`Race/RaceController.Tags.cs`): "1º", "2º"… na cor do painel de cada carro, acima dele (`TagUp` = 0,25 célula × `Scale`); o líder maior e com a setinha ▼. Mesma ordem do HUD (`Order()`). Uma etiqueta por carro em cada quadro da tela dividida; some fora do quadro, atrás da câmera, com o carro fora da pista e no carro da câmera em primeira pessoa. São posicionadas no evento `TopDownCamera.Moved` (depois de cada câmera se mover no `LateUpdate`), para não ficarem um quadro atrás.
+- **F1** passa por quatro estados, com aviso: **só a posição** (o padrão) → **posição e nome** (o nome curto do HUD, a 75%) → **posição, nome e tempo** (embaixo, "+0,8 s" até o carro da frente, a 70%) → **desligada** → de novo só a posição. Fica salvo em `RaceSettings.carTagMode` (0 a 3; o antigo `carTags` sai do arquivo, e quem tinha ele abre no 1). F1 é tecla reservada.
+- **Tempo até o da frente** (`TagRecord`, `TagGap`): com o modo 3, a cada `TagSample` = 0,05 s de prova guarda o `Dist` de cada carro (bandeiradas + fração da volta, o mesmo da ordem). O tempo de um carro é quanto faz que o da frente passou pelo `Dist` dele agora (busca binária e interpolação no histórico do da frente); vale também com volta de diferença. Só com a prova andando; não aparece no líder, em quem já chegou nem antes de o da frente ter histórico. O histórico zera quando o relógio da prova volta (nova largada). Teste (Oval, robôs 100 e 55, 5 voltas, sem colisão nem turbo): o tempo calculado na linha de chegada contra a diferença real de passagem, volta a volta, 0,061/0,050 · 0,327/0,333 · 0,621/0,617 · 0,945/0,950 · 1,180/1,183 s (diferença de até 0,011 s; a passagem real é medida no quadro de 1/60 s). Não visto no Play.
+- **Minimapa:** o ponto de cada carro passou de raio 4,5 para **8** (`DotR`), com o número da posição no meio: um `Label` por carro (`minimap-num`) posto em cima do ponto (`ToMap`), com letra escura nas cores claras e clara nas escuras.
+- Estilos: `car-tags`, `car-tag`, `car-tag--lider`, `minimap-num`.
+- Play (Oval, 2 robôs, câmera de perseguição): as duas etiquetas e os números 1 e 2 no minimapa aparecem. A primeira altura (0,42) deixava a etiqueta longe do carro e foi baixada para 0,25; essa altura nova não foi vista no Play.
+
+## 55. Fantasma na corrida livre e gravação da corrida
+
+**Gravação** (`Replay/CarTape.cs`), separada do fantasma para servir a outras repetições (melhores momentos etc.):
+- `CarFrame`: `t` (relógio da prova), `x`, `z`, `y`, `heading`, `pitch`, `bank`, `v`, `off`. É a pose que o `PlaceCars` usa (`CarPose`, `CarBank`).
+- `CarTape`: lista de amostras; `At(t)` interpola (rumo e inclinação por `LerpAngle`, `off` da amostra de antes); `Slice(t0, t1)` recorta com uma amostra antes e uma depois e conta o tempo a partir de `t0`; `ToBase64`/`FromBase64` em binário (33 bytes por amostra).
+- `RaceRecorder`: grava todos os carros presentes a `Rate` = 30 amostras por segundo de prova (folga de 1e-4 s, senão a 60 Hz pegava uma a cada três passos), só com a prova correndo; `force` grava fora do ritmo (e com a prova já acabada), para ter a amostra do instante em que a volta fecha. O relógio voltou: zera.
+
+**Fantasma** (`Race/RaceController.Ghost.cs`, `Replay/GhostStore.cs`):
+- Só na corrida livre (`GhostFree`: aba Corrida, fora do campeonato e do online). Um fantasma por pista: a melhor volta limpa de um piloto de gente, qualquer trilho, qualquer carro. Fica em `autorama/fantasmas/<identidade>.json` (`GhostFile`: `lap`, `date`, `lane`, `carro`, `vmax`, `grip`, `ramp` da hora e `tape`). A identidade é a dos recordes (`FreeTrackHash`, tirado do cartão de recordes).
+- Grava: `LapDone` (o `RaceSim` só chama para volta sem turbo e sem troca de trilho) de carro de gente guarda `(k, t − volta, t)`; no fim do `PlaceCars` (`GhostTick`), depois da amostra forçada, se a volta for melhor que a salva, recorta, salva e mostra "Novo fantasma!" no painel do piloto (só com o fantasma ligado). Grava sempre, ligado ou não.
+- Repete: com `RaceSettings.ghost`, um fantasma para cada piloto de gente presente, no tempo `sim.t − lapStart` dele; larga junto a cada volta (a 1ª, do grid) e some quando a gravação acaba, quando o piloto chega ou fora da prova. A pose é a do trilho onde foi gravado. A física não sabe dele: não bate, não tem som nem faísca.
+- Visual: `CarView` com `MakeGhost`: um material URP/Lit transparente (azul-claro, alfa 0,35, sem ZWrite, sem sombra) em todas as peças, também depois de trocar bolha e chassi. A bolha e o chassi são os do carro gravado. Atenção: no build, o shader precisa da variante `_SURFACE_TYPE_TRANSPARENT` (não conferido).
+- Interface: seção **FANTASMA** na aba Corrida, depois de PILOTOS: o toggle "Correr contra o fantasma" e, ligado, a volta, o trilho, a data, um aviso se a velocidade máx., a aderência ou o tempo até 100% eram outros, e o cartão do carro do fantasma (`DrawCarCard`, só para ver).
+- Testes (`script eval`, sem cena, Oval, robô 80 no trilho 1, 3 voltas): voltas 5,150 · 4,850 · 4,900 s com 156 · 147 · 148 amostras (~6,8 mil caracteres em Base64), a pose do fim do recorte igual à do carro na linha (erro 0), ida e volta pelo Base64 igual; `Slice`/`At` conferidos numa trilha sintética. **Não visto no Play.**

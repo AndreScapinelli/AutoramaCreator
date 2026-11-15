@@ -26,6 +26,7 @@ namespace Autorama
 
         // Partes da janela.
         readonly VisualElement head, canvas, grip, info;
+        readonly Label[] num = new Label[RaceSim.MaxCars];            // a posição no meio do ponto de cada carro
         readonly Label toggle, headTitle;
         readonly VisualElement[] rows = new VisualElement[RaceSim.MaxCars];
         readonly VisualElement[] rowDot = new VisualElement[RaceSim.MaxCars];
@@ -51,6 +52,11 @@ namespace Autorama
             canvas.generateVisualContent += Draw;
             Add(canvas);
 
+            for (int k = 0; k < RaceSim.MaxCars; k++)
+            {
+                num[k] = new Label(); num[k].AddToClassList("minimap-num"); num[k].pickingMode = PickingMode.Ignore;
+                canvas.Add(num[k]);
+            }
             grip = new VisualElement(); grip.AddToClassList("minimap-grip"); canvas.Add(grip);
             grip.RegisterCallback<PointerDownEvent>(e => StartDrag(e, grip, true));
             grip.RegisterCallback<PointerMoveEvent>(e => Move(e, true));
@@ -89,6 +95,7 @@ namespace Autorama
                 if (on) dots[k] = sim.CarPose(k, out _, out _).pos;
             }
             UpdateInfo(names, colors, order, cellCm);
+            PlaceNumbers(order);
             MarkDirtyRepaint();
             canvas.MarkDirtyRepaint();
         }
@@ -242,15 +249,43 @@ namespace Autorama
             return true;
         }
 
-        void Draw(MeshGenerationContext ctx)
+        // Do mundo (x, z) para o quadro do mapa, em pixels. z do mundo cresce para cima na mesa; na tela, y cresce para baixo.
+        Vector2 ToMap(Vector2 p)
         {
-            if (track.Count < 2 || box.width <= 0f || box.height <= 0f) return;
             var r = canvas.contentRect;
             float inner = Mathf.Max(1f, Mathf.Min(r.width, r.height) - Pad * 2f);
             float k = inner / Mathf.Max(box.width, box.height);
             float ox = r.x + (r.width - box.width * k) / 2f, oy = r.y + (r.height - box.height * k) / 2f;
-            // z do mundo cresce para cima na mesa; na tela, y cresce para baixo.
-            Vector2 P(Vector2 p) => new Vector2(ox + (p.x - box.xMin) * k, oy + (box.yMax - p.y) * k);
+            return new Vector2(ox + (p.x - box.xMin) * k, oy + (box.yMax - p.y) * k);
+        }
+
+        // O número da posição em cima do ponto de cada carro (o Painter2D não escreve texto).
+        void PlaceNumbers(IList<int> order)
+        {
+            bool ok = track.Count >= 2 && box.width > 0f && box.height > 0f;
+            for (int c = 0; c < RaceSim.MaxCars; c++)
+            {
+                int pos = order != null ? order.IndexOf(c) : -1;
+                bool show = ok && c < sim.N && dotOn[c] && pos >= 0;
+                num[c].style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+                if (!show) continue;
+                var p = ToMap(dots[c]);
+                string t = (pos + 1).ToString();
+                if (num[c].text != t) num[c].text = t;
+                num[c].style.left = p.x - DotR;
+                num[c].style.top = p.y - DotR;
+                // Número escuro nas cores claras, claro nas escuras.
+                var col = c < laneColors.Length ? laneColors[c] : Color.white;
+                num[c].style.color = 0.2126f * col.r + 0.7152f * col.g + 0.0722f * col.b > 0.55f ? new Color(0.06f, 0.07f, 0.06f) : Color.white;
+            }
+        }
+
+        const float DotR = 8f;
+
+        void Draw(MeshGenerationContext ctx)
+        {
+            if (track.Count < 2 || box.width <= 0f || box.height <= 0f) return;
+            Vector2 P(Vector2 p) => ToMap(p);
 
             var g = ctx.painter2D;
             g.lineJoin = LineJoin.Round;
@@ -280,8 +315,8 @@ namespace Autorama
             {
                 if (!dotOn[c] || c >= laneColors.Length) continue;
                 var p = P(dots[c]);
-                g.BeginPath(); g.Arc(p, 6f, Angle.Degrees(0f), Angle.Degrees(360f)); g.fillColor = new Color(0.05f, 0.06f, 0.05f, 1f); g.Fill();
-                g.BeginPath(); g.Arc(p, 4.5f, Angle.Degrees(0f), Angle.Degrees(360f)); g.fillColor = laneColors[c]; g.Fill();
+                g.BeginPath(); g.Arc(p, DotR + 1.5f, Angle.Degrees(0f), Angle.Degrees(360f)); g.fillColor = new Color(0.05f, 0.06f, 0.05f, 1f); g.Fill();
+                g.BeginPath(); g.Arc(p, DotR, Angle.Degrees(0f), Angle.Degrees(360f)); g.fillColor = laneColors[c]; g.Fill();
             }
         }
 

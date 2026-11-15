@@ -17,7 +17,7 @@ namespace Autorama
         readonly Quaternion[] wheelRest = new Quaternion[4];
         Vector3 wheelAxis;                         // eixo em que a roda gira, no espaço dela
         readonly List<GameObject> cockpit = new List<GameObject>();   // some na câmera em primeira pessoa
-        Material bodyMat, trimMat, darkMat, tireMat;
+        Material bodyMat, trimMat, darkMat, tireMat, silverMat, magnetMat;
         GameObject[] models;                       // modelo importado de cada bolha (índice = CarBody); sem ele, por código
         float spin, tumble;
 
@@ -41,6 +41,8 @@ namespace Autorama
             v.trimMat = v.Copy(lit, Color.white, 0.3f);
             v.darkMat = v.Copy(lit, new Color32(0x16, 0x19, 0x1B, 0xFF), 0.2f);
             v.tireMat = v.Copy(lit, TireColors[0], 0.3f);
+            v.silverMat = v.Copy(lit, new Color32(0xB8, 0xBE, 0xC4, 0xFF), 0.8f);
+            v.magnetMat = v.Copy(lit, new Color32(0xC6, 0x28, 0x28, 0xFF), 0.4f);
             v.SetTire(0);
             v.visual = new GameObject("Visual").transform;
             v.visual.SetParent(go.transform, false);
@@ -49,10 +51,25 @@ namespace Autorama
             return v;
         }
 
+        public int Chassi { get; private set; }
+
+        // Chassi (seção 52): placa embaixo do carro, prata no leve e escura com o ímã vermelho no pesado; o padrão não tem.
+        public void SetChassi(int chassi)
+        {
+            if (chassi == Chassi) return;
+            Chassi = chassi;
+            Rebuild();
+        }
+
         public void SetBody(CarBody body)
         {
             if (body == Body) return;
             Body = body;
+            Rebuild();
+        }
+
+        void Rebuild()
+        {
             for (int i = visual.childCount - 1; i >= 0; i--)
             {
                 var old = visual.GetChild(i);
@@ -60,6 +77,25 @@ namespace Autorama
                 Destroy(old.gameObject);
             }
             Build();
+            ApplyGhost();
+        }
+
+        // Fantasma (seção 55): todas as peças com um material só, transparente, sem sombra.
+        Material ghostMat;
+
+        public void MakeGhost(Material m) { ghostMat = m; ApplyGhost(); }
+
+        void ApplyGhost()
+        {
+            if (ghostMat == null) return;
+            foreach (var r in visual.GetComponentsInChildren<Renderer>(true))
+            {
+                var ms = r.sharedMaterials;
+                for (int i = 0; i < ms.Length; i++) ms[i] = ghostMat;
+                r.sharedMaterials = ms;
+                r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                r.receiveShadows = false;
+            }
         }
 
         public void SetTire(int pneu)
@@ -144,6 +180,12 @@ namespace Autorama
         {
             cockpit.Clear();
             for (int i = 0; i < 4; i++) wheels[i] = null;
+            if (Chassi == 1) Part(PrimitiveType.Cube, "Chassi leve", silverMat, new Vector3(0f, 0.022f, 0f), new Vector3(0.5f, 0.008f, 0.2f), visual);
+            else if (Chassi == 2)
+            {
+                Part(PrimitiveType.Cube, "Chassi pesado", darkMat, new Vector3(0f, 0.022f, 0f), new Vector3(0.52f, 0.014f, 0.22f), visual);
+                Part(PrimitiveType.Cube, "Ímã", magnetMat, new Vector3(0.02f, 0.012f, 0f), new Vector3(0.12f, 0.012f, 0.12f), visual);
+            }
             var model = models != null && (int)Body < models.Length ? models[(int)Body] : null;
             if (model != null) { UseModel(model); return; }
 
@@ -271,7 +313,7 @@ namespace Autorama
 
         void OnDestroy()
         {
-            Destroy(bodyMat); Destroy(trimMat); Destroy(darkMat); Destroy(tireMat);
+            Destroy(bodyMat); Destroy(trimMat); Destroy(darkMat); Destroy(tireMat); Destroy(silverMat); Destroy(magnetMat);
         }
     }
 }

@@ -34,7 +34,9 @@ namespace Autorama
         public PilotSlot[] slots;
         public float miniX = -1f, miniY = -1f, miniW = 240f;   // minimapa: posição (no canto da mesa) e largura; X < 0 = ainda não arrastado
         public bool miniOpen;           // aba Pilotos do minimapa aberta
+        public int carTagMode = 1;      // em cima de cada carrinho (F1; seção 54): 0 nada, 1 posição, 2 + nome, 3 + tempo para o da frente
         public bool turbo = true;       // turbo ligado (seção 37): tanque que enche a cada saída de pista
+        public bool ghost;              // corrida livre: correr contra o fantasma da melhor volta da pista (seção 55)
         public bool byTime;             // corrida por tempo (seção 26): dura "secs" e se divide em uma manche por trilho
         public int secs = 120;          // duração total da corrida por tempo, em segundos
 
@@ -72,27 +74,38 @@ namespace Autorama
         public void Save() { PlayerPrefs.SetString(Key, JsonUtility.ToJson(this)); PlayerPrefs.Save(); }
     }
 
-    // Ajuste do carro (seção 47): três peças, cada uma troca uma coisa por outra. Tudo em 0 é o carro padrão, com os
-    // quatro multiplicadores em 1: a física é exatamente a de antes do ajuste existir.
+    // Ajuste do carro (seções 47 e 52): quatro peças, cada uma troca uma coisa por outra. Tudo em 0 é o carro padrão,
+    // com todos os multiplicadores em 1 e a aerodinâmica em 0: a física é exatamente a de antes do ajuste existir.
+    // Motor: aceleração × final. Pneu: aderência fixa × final (o atrito de rolagem). Bolha: aderência que cresce com
+    // v² (pressão aerodinâmica) × final (arrasto). Chassi: resposta ao gatilho e ao freio × tolerância na derrapagem.
     [Serializable]
     public struct CarSetup
     {
         public int motor;   // 0 padrão, 1 curto (acelera mais, final menor), 2 longo (o contrário)
-        public int bolha;   // CarBody: 0 padrão, 1 asa (mais aderência, final menor), 2 lisa (o contrário)
-        public int pneu;    // 0 médio, 1 macio (mais aderência, a derrapagem enche mais rápido), 2 duro (o contrário)
+        public int bolha;   // CarBody: 0 padrão, 1 asa (mais aderência em alta, final menor), 2 lisa (o contrário)
+        public int pneu;    // 0 médio, 1 macio (mais aderência, final menor), 2 duro (o contrário)
+        public int chassi;  // 0 padrão, 1 leve (responde rápido, escapa na hora), 2 pesado (segura no trilho, mais inércia)
 
-        // Quanto cada peça dá e tira (calibrado na seção 47.3; não são const para a calibração poder variar).
-        public static float MotorAccel = 0.12f, MotorTop = 0.0125f, BodyGrip = 0.015f, BodyTop = 0.01f, TireGrip = 0.05f, TireSlip = 0.2f;
+        // Quanto cada peça dá e tira (calibrado na seção 52; não são const para a calibração poder variar).
+        public static float MotorAccel = 0.025f, MotorTop = 0.0125f;
+        public static float TireGrip = 0.03f, TireTop = 0.015f;
+        public static float BodyAero = 0.035f, BodyTop = 0.008f;
+        public static float ChassiResp = 0.12f, ChassiSlip = 0.1f, ChassiDecay = 0.4f;
 
         static int Sign(int v, int plus) => v == plus ? 1 : v == 0 ? 0 : -1;
-        public float Top => (1f + MotorTop * Sign(motor, 2)) * (1f + BodyTop * Sign(bolha, 2));       // × velocidade final
-        public float Accel => 1f + MotorAccel * Sign(motor, 1);                                      // × Accel e ÷ tempo do acelerador ("ramp")
-        public float Grip => (1f + BodyGrip * Sign(bolha, 1)) * (1f + TireGrip * Sign(pneu, 1));    // × aderência
-        public float Slip => 1f + TireSlip * Sign(pneu, 1);                                          // × SlipGain
+        public float Top => (1f + MotorTop * Sign(motor, 2)) * (1f + TireTop * Sign(pneu, 2)) * (1f + BodyTop * Sign(bolha, 2));   // × velocidade final
+        public float Accel => 1f + MotorAccel * Sign(motor, 1);                 // × Accel (o empurrão do motor)
+        public float Grip => 1f + TireGrip * Sign(pneu, 1);                     // × aderência, em qualquer velocidade
+        public float Aero => BodyAero * Sign(bolha, 1);                         // aderência × (1 + Aero × (v / vmax)²)
+        public float Resp => 1f + ChassiResp * Sign(chassi, 1);                 // × ritmo do acelerador e × freio
+        public float Slip => 1f + ChassiSlip * Sign(chassi, 1);                 // × SlipGain (o quanto a derrapagem enche)
+        public float Decay => 1f - ChassiDecay * Sign(chassi, 1);               // × SlipDecay (o quanto ela esvazia)
+        public float Ramp => Accel * Resp;                                      // ÷ tempo do acelerador ("ramp")
 
-        public static readonly string[] MotorNames = { "Padrão", "Curto", "Longo" }, BolhaNames = { "Padrão", "Asa", "Lisa" }, PneuNames = { "Médio", "Macio", "Duro" };
-        public bool Padrao => motor == 0 && bolha == 0 && pneu == 0;
-        // "curto · asa · macio": só as peças fora do padrão.
+        public static readonly string[] MotorNames = { "Padrão", "Curto", "Longo" }, BolhaNames = { "Padrão", "Asa", "Lisa" },
+                                        PneuNames = { "Médio", "Macio", "Duro" }, ChassiNames = { "Padrão", "Leve", "Pesado" };
+        public bool Padrao => motor == 0 && bolha == 0 && pneu == 0 && chassi == 0;
+        // "curto · asa · macio · leve": só as peças fora do padrão.
         public string Resumo
         {
             get
@@ -102,10 +115,19 @@ namespace Autorama
                 if (motor != 0) l.Add(MotorNames[motor].ToLowerInvariant());
                 if (bolha != 0) l.Add(BolhaNames[bolha].ToLowerInvariant());
                 if (pneu != 0) l.Add(PneuNames[pneu].ToLowerInvariant());
+                if (chassi != 0) l.Add(ChassiNames[chassi].ToLowerInvariant());
                 return string.Join(" · ", l);
             }
         }
-        public CarSetup Clamped => new CarSetup { motor = Mathf.Clamp(motor, 0, 2), bolha = Mathf.Clamp(bolha, 0, 2), pneu = Mathf.Clamp(pneu, 0, 2) };
+        public CarSetup Clamped => new CarSetup { motor = Mathf.Clamp(motor, 0, 2), bolha = Mathf.Clamp(bolha, 0, 2), pneu = Mathf.Clamp(pneu, 0, 2), chassi = Mathf.Clamp(chassi, 0, 2) };
+
+        // Velocidade-limite numa curva: v² × k = G × (1 + Aero × v² / V²), com G a aderência (sem a aerodinâmica),
+        // k a curvatura e V a velocidade máxima da pista. Sem aerodinâmica é √(G / k), a conta de sempre.
+        public static float CurveV(float G, float k, float aero, float V)
+        {
+            float den = k - G * aero / (V * V);
+            return den <= 1e-6f ? 1e6f : Mathf.Sqrt(G / den);
+        }
     }
 
     // Um lugar no grid da corrida livre: gente ou robô (com a qualidade dele).
@@ -421,10 +443,10 @@ namespace Autorama
                 {
                     c.hold += dt;
                     float g = Mathf.Clamp01(c.gas);
-                    c.T = c.T > g ? g : Mathf.Min(g, Mathf.Min(1f, c.hold * setup[k].Accel / set.ramp));
+                    c.T = c.T > g ? g : Mathf.Min(g, Mathf.Min(1f, c.hold * setup[k].Ramp / set.ramp));
                     // Parado num nível abaixo de 100% (S, gatilho), o tempo segurado fica preso nele: ao passar para A
                     // o acelerador continua subindo daí no ritmo de sempre, em vez de pular para 100%.
-                    if (g < 1f && c.T >= g) c.hold = g * set.ramp / setup[k].Accel;
+                    if (g < 1f && c.T >= g) c.hold = g * set.ramp / setup[k].Ramp;
                 }
                 else { c.hold = 0f; c.T = 0f; }
                 c.hitFx = Mathf.Max(0f, c.hitFx - dt);
@@ -463,7 +485,7 @@ namespace Autorama
                     var su = setup[k];
                     float top = set.vmax * Scale * su.Top * (tb ? 1f + TurboBoost : 1f);
                     if (tb) { c.turbo = Mathf.Max(0f, c.turbo - dt / TurboTime); c.turboLap = true; }
-                    float a = (c.T == 0f ? -(Brake * c.v + Brake0 * Scale) : Accel * su.Accel * (c.T * top - c.v)) - SlopeG * Scale * here.slope;
+                    float a = (c.T == 0f ? -(Brake * c.v + Brake0 * Scale) * su.Resp : Accel * su.Accel * (c.T * top - c.v)) - SlopeG * Scale * here.slope;
                     c.v = Mathf.Max(0f, c.v + a * dt);
                     c.s += c.v * dt;
                     Travel[k] += c.v * dt;      // distância percorrida, em unidades do mundo (o painel converte para metros)
@@ -489,8 +511,10 @@ namespace Autorama
                         continue;
                     }
                     if (q.k != 0f) c.side = q.k > 0f ? 1 : -1;
-                    float ratio = c.v * c.v * Mathf.Abs(q.k) / (set.grip * Scale * su.Grip * q.grip);
-                    c.slip = ratio > 1f ? c.slip + (ratio - 1f) * SlipGain * su.Slip * dt : Mathf.Max(0f, c.slip - SlipDecay * dt);
+                    // Bolha: a aderência cresce com (v / vmax)² (com Aero 0 o fator é 1 e a conta é a de antes).
+                    float vr = c.v / (set.vmax * Scale);
+                    float ratio = c.v * c.v * Mathf.Abs(q.k) / (set.grip * Scale * su.Grip * q.grip * (1f + su.Aero * vr * vr));
+                    c.slip = ratio > 1f ? c.slip + (ratio - 1f) * SlipGain * su.Slip * dt : Mathf.Max(0f, c.slip - SlipDecay * su.Decay * dt);
                     if (c.slip >= 1f) Deslot(k, null);
                     else CountLap(k);
                 }
@@ -886,7 +910,7 @@ namespace Autorama
                 // Curva em C (seção 50.3): entra no limite (sem contar com a derrapagem) e freia mais cedo, porque o freio
                 // perde força em baixa velocidade e a C pede quase parar.
                 bool pin = q.def == PieceCatalog.Hairpin && m <= 1.25f;
-                float v = Mathf.Sqrt(set.grip * Scale * setup[k].Grip * q.grip / Mathf.Abs(q.k)) * (pin ? Mathf.Min(m, 1f) : m);
+                float v = CarSetup.CurveV(set.grip * Scale * setup[k].Grip * q.grip, Mathf.Abs(q.k), setup[k].Aero, set.vmax * Scale) * (pin ? Mathf.Min(m, 1f) : m);
                 need = Mathf.Min(need, Mathf.Sqrt(v * v + 2f * (pin ? AiBrakePin : AiBrake) * Scale * d));
             }
             // Dentro do loop não deixa a velocidade cair abaixo de LoopAi, mesmo com curva logo depois.

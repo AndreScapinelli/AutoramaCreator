@@ -85,6 +85,8 @@ namespace Autorama
         // in (visitante → host): o botão e o contador de "recolocar"
         public bool held;
         public int re;
+        public int pz;                                    // in: contador do P (pausa; seção 53) · ev pause: 1 pausado, 0 voltando
+        public string by;                                 // ev pause: o id de quem pausou
         public int gp;                                    // in: nível do acelerador em % (0 = cliente antigo, vale 100)
         public bool tb;                                   // in: turbo apertado
         public int ts;                                    // in: o relógio do visitante, em ms (volta no snapshot: latência)
@@ -108,6 +110,7 @@ namespace Autorama
         public bool pub, ready, held, collide, byTime;
         public bool turbo = true;                         // start: turbo ligado (regra da sala, como a colisão)
         public int re, ver;                               // ver: versão do protocolo (hello)
+        public int pz;                                    // in: contador do P (pausa; seção 53)
         public int sorteio;                               // start: seed do sorteio das baterias (todos montam igual)
         public int gp;                                    // in: nível do acelerador em % (1–100)
         public bool tb;                                   // in: turbo apertado
@@ -126,6 +129,7 @@ namespace Autorama
     public class NetOutEv
     {
         public string t = "ev"; public string k, to; public int hi; public List<HeatResult> heatRes = new List<HeatResult>();
+        public int pz; public string by;                  // pause: 1 pausado (por "by"), 0 voltando
         public string title; public NetRules rules; public List<NetPlayer> pilots = new List<NetPlayer>(); public List<NetStage> stages = new List<NetStage>();
         public List<NetHeatRes> heats = new List<NetHeatRes>();
         public List<int> cars = new List<int>();          // cars / sync: o ajuste de cada piloto; hi: a última etapa com a escolha fechada

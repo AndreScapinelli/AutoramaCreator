@@ -205,7 +205,7 @@ namespace Autorama
         void AudioTick()
         {
             if (motor == null || sim == null) return;
-            bool on = panel.RaceMode && sim.Ready;
+            bool on = panel.RaceMode && sim.Ready && !Paused;
             float dt = Time.unscaledDeltaTime, master = Master;
             // Com 4 carrinhos cada motor toca mais baixo, para a soma não estourar.
             float each0 = sim.N > 2 ? 0.16f : 0.24f;

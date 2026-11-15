@@ -222,7 +222,16 @@ namespace Autorama
             lastMouse = mouse;
         }
 
+        // Depois de cada câmera se mover no quadro (as etiquetas de posição sobre os carros seguem a câmera, seção 54).
+        public static event System.Action Moved;
+
         void LateUpdate()
+        {
+            LateMove();
+            Moved?.Invoke();
+        }
+
+        void LateMove()
         {
             if (RaceMode == RaceViewMode.FirstPerson && hasRaceTargets)
             {

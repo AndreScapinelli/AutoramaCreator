@@ -5,7 +5,7 @@
 const http = require('http');
 const { WebSocketServer } = require('ws');
 
-const PROTOCOL = 3;                    // muda quando as mensagens deixam de combinar com o cliente (OnlineClient.Protocol)
+const PROTOCOL = 4;                    // muda quando as mensagens deixam de combinar com o cliente (OnlineClient.Protocol)
 const MAX_PLAYERS = 8;                 // o mesmo limite do campeonato
 const MAX_STAGES = 12;
 const MAX_TRACK_JSON = 100 * 1024;     // por pista
@@ -211,8 +211,9 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
       const ts = Math.max(0, Math.min(2147483647, Math.round(Number(m.ts)) || 0));
       const from = m.g && c.guest ? c.guest.id : c.id;    // g: o botão é do segundo jogador
       // car: o ajuste do carro escolhido antes da etapa cs (seção 48 do guia); 0 = não é escolha.
-      const car = Math.max(0, Math.min(54, Math.round(Number(m.car)) || 0)), cs = Math.max(0, Math.min(MAX_STAGES, Math.round(Number(m.cs)) || 0));
-      if (host) send(host, { t: 'in', from, held: !!m.held, gp, tb: !!m.tb, re: Math.max(0, Math.min(1e6, Math.round(Number(m.re)) || 0)), ts, car, cs });
+      const car = Math.max(0, Math.min(162, Math.round(Number(m.car)) || 0)), cs = Math.max(0, Math.min(MAX_STAGES, Math.round(Number(m.cs)) || 0));
+      const pz = Math.max(0, Math.min(1e6, Math.round(Number(m.pz)) || 0));   // pz: contador do P (pausa; seção 53)
+      if (host) send(host, { t: 'in', from, held: !!m.held, gp, tb: !!m.tb, re: Math.max(0, Math.min(1e6, Math.round(Number(m.re)) || 0)), ts, car, cs, pz });
     },
     color(c, m) {
       const r = c.room; if (!r) return;

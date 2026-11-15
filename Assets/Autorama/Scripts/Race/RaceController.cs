@@ -161,9 +161,11 @@ namespace Autorama
             sim.ScoreChanged += () => scoreDirty = true;
             sim.LapDone += OnLapDone;
             CreateCars();
+            GhostStart();
             CreateSparks();
             AudioStart();
             BuildUI();
+            BuildTags();
             BuildChampUI();
             BuildOnlineUI();
             builder.Changed += OnTrackChanged;
@@ -176,6 +178,7 @@ namespace Autorama
         void OnDestroy()
         {
             SplitDestroy();
+            TagsDestroy();
             if (builder) builder.Changed -= OnTrackChanged;
             if (panel) { panel.ModeChanged -= OnMode; panel.OptionsRequested -= ShowKeys; }
             OnlineDestroy();
@@ -364,6 +367,7 @@ namespace Autorama
             AudioTick();
             KeysUpdate();                                        // a tela de teclas captura a próxima tecla (e some com Esc)
             CamKeys();
+            TagsKeys();
             if (OnlineRun) { OnlineRunUpdate(); return; }
             if (sim == null || !sim.Ready) return;
             if (!panel.RaceMode) { PlaceCars(); return; }       // no construtor, os carrinhos ficam no grid
@@ -380,9 +384,10 @@ namespace Autorama
                 if (g > 0f) sim.cars[k].gas = g;
                 if ((keys && KeyWasPressed(kb, ReslotKey(k))) || PadPressed(k, p => p.buttonSouth)) sim.Reslot(k);
             }
-            if ((keys && (kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame)) || AnyPadStart()) { if (panel.ChampMode) ChampEnter(); else StartRace(); }
+            if (!Paused && ((keys && (kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame)) || AnyPadStart())) { if (panel.ChampMode) ChampEnter(); else StartRace(); }
 
-            sim.Step(Mathf.Min(Time.deltaTime, 0.05f));
+            if (keys && kb.pKey.wasPressedThisFrame) PausePressed(null);
+            if (!PauseTick()) sim.Step(Mathf.Min(Time.deltaTime, 0.05f));
             PlaceCars();
             UpdatePads();
             UpdateTop();
@@ -416,6 +421,7 @@ namespace Autorama
                 var st = sim.cars[k];
                 carViews[k].SetBody((CarBody)sim.setup[k].bolha);
                 carViews[k].SetTire(sim.setup[k].pneu);
+                carViews[k].SetChassi(sim.setup[k].chassi);
                 carViews[k].SetCockpit(cam.InFirstPersonOf(k));
                 carViews[k].Tick(st.mode == CarMode.OnSlot ? st.v : 0f, st.mode == CarMode.Off, Time.deltaTime);
                 carPos[k] = pos; carHeading[k] = p.heading;
@@ -437,6 +443,7 @@ namespace Autorama
                     for (int k = 0; k < RaceSim.MaxCars; k++) followMask[k] = k < sim.N && sim.present[k];
                 cam.SetFollowCars(followMask);
             }
+            GhostTick();
             UpdateSplit(LeaderCar());
             if (camMenu != null)
             {
@@ -458,8 +465,7 @@ namespace Autorama
             {
                 miniColors[k] = pads[k] != null ? pads[k].root.resolvedStyle.borderTopColor : Color.white;
                 string nm = pads[k] != null ? pads[k].name.text : "";
-                int cut = nm.IndexOf(" · ");
-                miniNames[k] = cut > 0 ? nm.Substring(0, cut) : nm;
+                miniNames[k] = ShortName(nm);
             }
             minimap.Refresh(sim, set, miniNames, miniColors, Order(), builder != null ? builder.cellCm : 15f);
         }
@@ -497,6 +503,8 @@ namespace Autorama
             // Pilotos: um cartão por carro (gente ou robô; o robô tem a qualidade dele).
             var pilots = Section(box, "PILOTOS");
             pilotBox = El(null, pilots);
+
+            BuildGhostUI(box);                             // fantasma (RaceController.Ghost.cs)
 
             // Formato: por voltas (vence quem completar primeiro) ou por tempo (manches, uma por trilho).
             var fmt = Section(box, "FORMATO");
@@ -604,6 +612,7 @@ namespace Autorama
             recCard.style.display = DisplayStyle.None;
             carPick = El("car-pick", banner);              // escolha do carro antes da etapa (RaceController.CarPick.cs)
             carPick.style.display = DisplayStyle.None;
+            BuildPauseUI();                                // pausa no P (RaceController.Pause.cs)
             resTable = El("res-table", banner);
             resBtns = El("res-btns", banner);
             resAgain = Btn("Correr de novo  (Enter)", () => { if (ChampLike) ChampEnter(); else StartRace(); }, "btn btn--accent res-btn", resBtns);
@@ -834,7 +843,7 @@ namespace Autorama
 
         int openCar = -1;      // qual cartão de piloto está com o ajuste do carro aberto
 
-        // O cartão "Carro": as três peças (cada uma com as três opções), o que o ajuste dá e tira contra o padrão e o
+        // O cartão "Carro": as quatro peças (cada uma com as três opções), o que o ajuste dá e tira contra o padrão e o
         // limite da curva plana para este carro nesta pista. `change` recebe o ajuste novo a cada clique.
         void DrawCarCard(VisualElement parent, CarSetup su, System.Action<CarSetup> change, bool full = true)
         {
@@ -852,6 +861,7 @@ namespace Autorama
             Row("Motor", CarSetup.MotorNames, su.motor, o => { var n = su; n.motor = o; return n; });
             Row("Bolha", CarSetup.BolhaNames, su.bolha, o => { var n = su; n.bolha = o; return n; });
             Row("Pneu", CarSetup.PneuNames, su.pneu, o => { var n = su; n.pneu = o; return n; });
+            Row("Chassi", CarSetup.ChassiNames, su.chassi, o => { var n = su; n.chassi = o; return n; });
             // Barra a partir do meio: verde para mais, laranja para menos. "range" é a variação que enche meia barra.
             void Stat(string name, float m, float range)
             {
@@ -866,14 +876,19 @@ namespace Autorama
                 El("car-mid", bar);
                 Text(Mathf.Abs(m - 1f) < 0.0005f ? "padrão" : ((m - 1f) * 100f).ToString("+0.#;−0.#") + "%", "small car-stat-val", row);
             }
-            Stat("Final", su.Top, 0.025f);
-            Stat("Aceleração", su.Accel, 0.15f);
-            Stat("Aderência", su.Grip, 0.07f);
-            Stat("Tolerância", 1f / su.Slip, 0.25f);      // quanto tempo a derrapagem leva para encher
+            Stat("Final", su.Top, 0.04f);
+            Stat("Aceleração", su.Accel, 0.05f);
+            Stat("Curva lenta", su.Grip, 0.06f);                       // aderência sem a aerodinâmica
+            Stat("Curva rápida", su.Grip * (1f + su.Aero), 0.08f);      // aderência na velocidade máxima, com a bolha
+            Stat("Agilidade", su.Resp, 0.15f);                         // acelerador e freio
+            Stat("Estabilidade", 1f / su.Slip, 0.15f);                 // quanto tempo a derrapagem leva para encher
+            if (su.chassi != 0)
+                Text(su.chassi == 1 ? "Chassi leve: responde rápido, mas escapa fácil no limite da curva."
+                                    : "Chassi pesado: mais lento no gatilho, perdoa o exagero na curva.", "small", box);
             if (!full) return;
             float sc = sim.Scale;
             var lanes = TrackMath.LanesOf(builder.Faixas);
-            float Lim(float r) => Mathf.Round(Mathf.Sqrt(sim.set.grip * sc * su.Grip * r) / (sim.set.vmax * sc * su.Top) * 100f);
+            float Lim(float r) => Mathf.Round(Mathf.Min(CarSetup.CurveV(sim.set.grip * sc * su.Grip, 1f / r, su.Aero, sim.set.vmax * sc) / (sim.set.vmax * sc * su.Top), 1f) * 100f);
             Text($"Curva plana: segura até {Lim((2.5f + lanes[0]) * sc)}% da final deste carro no trilho de dentro e {Lim((2.5f - lanes[0]) * sc)}% no de fora. Meia aceleração: {set.halfGas}%.", "small", box);
         }
 
@@ -1206,6 +1221,15 @@ namespace Autorama
 
         int Leader() => Order()[0];
 
+        // O nome do painel sem o trilho (" · ESQUERDA") e sem o resumo do ajuste ("  <size=10>…"), que "JOGADOR 1" tem sem trilho.
+        static string ShortName(string nm)
+        {
+            int cut = nm.IndexOf(" · ");
+            int aj = nm.IndexOf("  <size");
+            if (aj >= 0 && (cut < 0 || aj < cut)) cut = aj;
+            return cut > 0 ? nm.Substring(0, cut) : nm;
+        }
+
         void UpdateHud()
         {
             bool show = sim.closed && sim.phase != RaceSim.Phase.Idle;
@@ -1217,9 +1241,7 @@ namespace Autorama
             for (int k = 0; k < sim.N; k++)
             {
                 var c = sim.cars[k]; var h = hud[k];
-                string nm = pads[k].name.text;
-                int cut = nm.IndexOf(" · ");
-                h.name.text = cut > 0 ? nm.Substring(0, cut) : nm;
+                h.name.text = ShortName(pads[k].name.text);
                 h.dot.style.backgroundColor = pads[k].root.resolvedStyle.borderTopColor;
                 h.pos.text = sim.winner == k ? "🏁" : $"{ord.IndexOf(k) + 1}º";
                 h.root.EnableInClassList("hud-card--lead", k == lead);
@@ -1366,6 +1388,7 @@ namespace Autorama
             }
             // Antes do 3, 2, 1: os recordes da pista (e de cada piloto da bateria).
             if (ChampLike) CarPickTick();
+            if (PauseUI()) return;
             if (CarPickUI(showLights)) return;
             bool card = StartCard(out string cardTitle) && !showLights;
             DrawRecCard(card);

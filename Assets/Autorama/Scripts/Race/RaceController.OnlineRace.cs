@@ -176,6 +176,7 @@ namespace Autorama
         // Uma bateria nova está valendo: carrega a pista, zera o grid e redesenha.
         void OnlineHeatLoaded()
         {
+            PauseClear();
             UseChampTrack();
             sim.Reset();
             ClearSeenBest();
@@ -251,7 +252,8 @@ namespace Autorama
                 if (AutoLeft() != autoShown) champDirty = true;
             }
 
-            sim.Step(dt);
+            if (keys && kb.pKey.wasPressedThisFrame) PausePressed(myId);
+            if (!PauseTick()) sim.Step(dt);
             if (IsHost) OnlineLapFlash();
             if (sim.phase != lastPhase) { lastPhase = sim.phase; scoreDirty = champDirty = true; snapAcc = 1f; SideForPhase(); phaseSince = Time.realtimeSinceStartup; }
             if (!IsHost && lane >= 0) ownHist.Add(Time.realtimeSinceStartup, sim.cars[lane]);
@@ -278,7 +280,7 @@ namespace Autorama
             SendIn(j);
         }
 
-        void SendIn(int j) => net.Send(new NetOut { t = "in", g = j == 1, held = lastSentHeld[j], gp = NetSync.GasPct(lastSentGas[j]), tb = lastSentBoost[j], re = myRe[j], ts = NetSync.ClockMs });
+        void SendIn(int j) => net.Send(new NetOut { t = "in", g = j == 1, held = lastSentHeld[j], gp = NetSync.GasPct(lastSentGas[j]), tb = lastSentBoost[j], re = myRe[j], ts = NetSync.ClockMs, pz = myPz });
 
         void ClearOwnHist(bool lag)
         {
@@ -310,7 +312,7 @@ namespace Autorama
             return wait < 0f ? -1 : Mathf.Max(0, Mathf.CeilToInt(wait - (Time.realtimeSinceStartup - phaseSince)));
         }
 
-        void ClearRemote() { remoteHeld.Clear(); remoteRe.Clear(); remoteGas.Clear(); remoteBoost.Clear(); remoteInAt.Clear(); remoteTs.Clear(); }
+        void ClearRemote() { remotePz.Clear(); remoteHeld.Clear(); remoteRe.Clear(); remoteGas.Clear(); remoteBoost.Clear(); remoteInAt.Clear(); remoteTs.Clear(); }
 
         // ---------- Entradas e snapshots recebidos ----------
 
@@ -335,6 +337,9 @@ namespace Autorama
         {
             if (!OnlineRun || !IsHost || string.IsNullOrEmpty(m.from)) return;
             if (m.car > 0) { OnlineCarIn(m.from, m.car, m.cs); return; }      // escolha do carro (seção 48), não é botão
+            // Apertou P (seção 53). O primeiro "in" de cada um só guarda o contador.
+            if (!remotePz.TryGetValue(m.from, out int pzPrev)) remotePz[m.from] = m.pz;
+            else if (m.pz > pzPrev) { remotePz[m.from] = m.pz; PausePressed(m.from); }
             remoteHeld[m.from] = m.held;
             remoteGas[m.from] = NetSync.GasOf(m.gp);
             remoteBoost[m.from] = m.tb;
@@ -415,6 +420,7 @@ namespace Autorama
                 OnlineHeatLoaded();
             }
             else if (m.k == "cars") OnlineApplyCars(m.hi, m.cars);
+            else if (m.k == "pause") OnlinePauseEv(m.pz == 1, m.by);
             else if (m.k == "reset") { sim.Reset(); ClearSeenBest(); ClearOwnHist(false); phaseSince = Time.realtimeSinceStartup; scoreDirty = champDirty = true; }
         }
 
