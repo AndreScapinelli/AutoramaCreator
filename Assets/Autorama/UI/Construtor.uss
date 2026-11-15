@@ -426,8 +426,8 @@
 .hist { margin-bottom: 6px; }
 .hist .unity-foldout__text { color: var(--texto); font-size: 12px; }
 
-.pad-state--rec { background-color: var(--destaque); color: var(--sobre-destaque); -unity-font-style: bold; padding: 1px 5px; border-radius: 4px; }
-.pad-state--pb { color: var(--ok); -unity-font-style: bold; }
+.pad-state--rec { background-color: var(--destaque); color: var(--sobre-destaque); -unity-font-style: bold; font-size: 15px; letter-spacing: 1px; padding: 2px 8px; border-radius: 5px; }
+.pad-state--pb { color: var(--sobre-destaque); background-color: var(--ok); -unity-font-style: bold; font-size: 14px; padding: 2px 8px; border-radius: 5px; }
 .gas--ai { border-color: var(--borda-hover); }
 .gas--ai .gas-text { font-size: 14px; color: var(--texto-fraco); }
 
@@ -520,6 +520,11 @@
 .res-name { flex-grow: 1; font-size: 13px; -unity-font-style: bold; color: var(--texto); margin: 0 12px 0 0; padding: 0; }
 .res-cell { font-size: 12px; color: var(--texto); margin: 0 0 0 12px; padding: 0; }
 .res-cell--dim { color: var(--texto-fraco); }
+/* Melhor volta da prova (roxo) e recorde da pista (selo dourado) */
+.res-cell--fast { color: rgb(196, 120, 255); -unity-font-style: bold; }
+.res-badge { font-size: 11px; -unity-font-style: bold; letter-spacing: 1px; color: var(--sobre-destaque); background-color: var(--destaque); padding: 1px 6px; border-radius: 4px; margin: 0 0 0 10px; }
+.banner-rec { font-size: 16px; -unity-font-style: bold; letter-spacing: 1px; color: var(--sobre-destaque); background-color: var(--destaque); padding: 4px 14px; border-radius: 6px; margin: 8px 0 0 0; }
+.hud-best--top { color: rgb(196, 120, 255); -unity-font-style: bold; }
 .res-row--small { padding: 3px 8px; margin-bottom: 2px; }
 .res-head { font-size: 11px; -unity-font-style: bold; color: var(--texto-fraco); letter-spacing: 1px; margin: 10px 0 4px 2px; padding: 0; }
 /* Troca de trilho: a lista das distâncias embaixo do aviso */
@@ -597,4 +602,10 @@
 .car-tags { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
 .car-tag { position: absolute; translate: -50% -100%; font-size: 15px; -unity-font-style: bold; -unity-text-align: lower-center; -unity-text-outline-width: 1px; -unity-text-outline-color: rgb(10, 12, 11); margin: 0; padding: 0; }
 .car-tag--lider { font-size: 18px; }
+.narra {
+    margin: 0 0 8px 0; padding: 6px 16px; border-radius: 8px; max-width: 720px; white-space: normal; -unity-text-align: middle-center;
+    font-size: 15px; -unity-font-style: bold; color: var(--texto); background-color: rgba(14, 17, 16, 0.88);
+    border-left-width: 4px; border-color: var(--destaque);
+}
+.narra--forte { font-size: 17px; color: var(--destaque); }
 .minimap-num { position: absolute; width: 16px; height: 16px; font-size: 10px; -unity-font-style: bold; -unity-text-align: middle-center; margin: 0; padding: 0; }

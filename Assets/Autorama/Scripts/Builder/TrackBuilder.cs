@@ -381,7 +381,7 @@ namespace Autorama
                 var s = Segments[i];
                 views[i].index = i;
                 views[i].name = $"{i + 1:00} {s.piece.Describe()}";
-                views[i].Build(s, theme, null, Faixas);
+                views[i].Build(s, theme, null, Faixas, Segments);
                 // Na corrida, sem destaques de edição.
                 views[i].SetHighlight(RaceMode ? null : i == Selected ? theme.selected : Info.overlaps.Contains(i) ? theme.overlap : null);
             }

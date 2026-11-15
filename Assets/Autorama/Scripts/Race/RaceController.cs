@@ -129,7 +129,7 @@ namespace Autorama
         class PadUI { public VisualElement root, gas, fill, speed, slip, turbo, turboFill; public Label turboText; public Label name, state, gasText; public Button reslot; public string flash; public bool flashRec; public float flashT; }
         readonly PadUI[] pads = new PadUI[RaceSim.MaxCars];
         VisualElement pickList, scoreBox, padsBox, topBox, lights, banner;
-        Label raceHint, clock, gripHint, bannerTitle, bannerSub;
+        Label raceHint, clock, gripHint, bannerTitle, bannerSub, bannerRec;
         Button startBtn;
         // Menu da câmera: botão no canto superior direito da mesa que abre a lista de modos.
         VisualElement camMenu, camPop, camTargetBox;
@@ -166,11 +166,13 @@ namespace Autorama
             AudioStart();
             BuildUI();
             BuildTags();
+            BuildNarra();
             BuildChampUI();
             BuildOnlineUI();
             builder.Changed += OnTrackChanged;
             panel.ModeChanged += OnMode;
             panel.OptionsRequested += ShowKeys;
+            panel.TestRequested += ToggleTest;
             OnTrackChanged();
             SplitStart();
         }
@@ -180,7 +182,7 @@ namespace Autorama
             SplitDestroy();
             TagsDestroy();
             if (builder) builder.Changed -= OnTrackChanged;
-            if (panel) { panel.ModeChanged -= OnMode; panel.OptionsRequested -= ShowKeys; }
+            if (panel) { panel.ModeChanged -= OnMode; panel.OptionsRequested -= ShowKeys; panel.TestRequested -= ToggleTest; }
             OnlineDestroy();
         }
 
@@ -248,6 +250,7 @@ namespace Autorama
             if (builder.Segments.Count == 0 || builder.Info == null) return;
             int before = sim.N;
             sim.SetTrack(builder.Segments, builder.Info.closed, builder.Faixas);
+            if (testing) sim.StartTest();
             if (sim.N != before) { SetBot(); LayoutForCars(); }
             scoreDirty = true;
             PlaceCars();
@@ -255,6 +258,7 @@ namespace Autorama
 
         void OnMode(BuilderPanel.Mode m)
         {
+            if (testing) SetTest(false);
             bool race = m != BuilderPanel.Mode.Build;
             // Saindo do construtor, guarda a pista dele; voltando, reencontra.
             if (race && builderStash == null) builderStash = builder.ToSave();
@@ -369,9 +373,11 @@ namespace Autorama
             KeysUpdate();                                        // a tela de teclas captura a próxima tecla (e some com Esc)
             CamKeys();
             TagsKeys();
+            NarraKeys();
+            NarraTick();
             if (OnlineRun) { OnlineRunUpdate(); return; }
             if (sim == null || !sim.Ready) return;
-            if (!panel.RaceMode) { PlaceCars(); return; }       // no construtor, os carrinhos ficam no grid
+            if (!panel.RaceMode) { if (testing) sim.Step(Mathf.Min(Time.deltaTime, 0.05f)); PlaceCars(); return; }       // no construtor, os carrinhos ficam no grid
 
             var kb = Keyboard.current;
             bool keys = kb != null && !IsTyping && !keysOpen;
@@ -615,6 +621,8 @@ namespace Autorama
             banner = El("banner", topBox);
             bannerTitle = Text("", "banner-title", banner);
             bannerSub = Text("", "banner-sub", banner);
+            bannerRec = Text("", "banner-rec", banner);    // selo de recorde da pista batido (campeonato)
+            bannerRec.style.display = DisplayStyle.None;
             recCard = El("res-table", banner);              // recordes antes da largada (RaceController.Records.cs)
             recCard.style.display = DisplayStyle.None;
             carPick = El("car-pick", banner);              // escolha do carro antes da etapa (RaceController.CarPick.cs)
@@ -1247,7 +1255,7 @@ namespace Autorama
             if (!show) return;
             int L = sim.set.laps;
             var ord = Order();
-            int lead = ord[0];
+            int lead = ord[0], fast = FastestCar();
             for (int k = 0; k < sim.N; k++)
             {
                 var c = sim.cars[k]; var h = hud[k];
@@ -1256,7 +1264,8 @@ namespace Autorama
                 h.pos.text = sim.winner == k ? "🏁" : $"{ord.IndexOf(k) + 1}º";
                 h.root.EnableInClassList("hud-card--lead", k == lead);
                 h.lap.text = sim.ByTime ? $"{LapsCell(k)} v · T{c.lane + 1}" : c.finish != null ? "Chegou" : $"Volta {Mathf.Clamp(c.laps + 1, 1, L)}/{L}";
-                h.best.text = c.best != null ? $"Melhor {Fmt(c.best)}" : "";
+                h.best.text = c.best != null ? (k == fast ? $"★ {Fmt(c.best)}" : $"Melhor {Fmt(c.best)}") : "";
+                h.best.EnableInClassList("hud-best--top", k == fast);
             }
         }
 
@@ -1350,6 +1359,7 @@ namespace Autorama
             if (!show) return;
             resTable.Clear();
             var ord = new List<int>(Order());
+            int fast = FastestCar(), recCar = ChampLike ? RecordCar() : -1;
             for (int pos = 0; pos < ord.Count; pos++)
             {
                 int k = ord[pos];
@@ -1359,8 +1369,10 @@ namespace Autorama
                 El("hud-dot", r).style.backgroundColor = pads[k].root.resolvedStyle.borderTopColor;
                 Text(hud[k].name.text, "res-name", r);
                 Text(sim.ByTime ? $"{LapsCell(k)} voltas" : c.finish != null ? Fmt(c.finish) : "não terminou", "res-cell", r);
-                Text("melhor " + Fmt(c.best), "res-cell res-cell--dim", r);
+                if (k == fast) Text("★ melhor volta " + Fmt(c.best), "res-cell res-cell--fast", r);
+                else Text("melhor " + Fmt(c.best), "res-cell res-cell--dim", r);
                 Text(c.offs == 1 ? "1 saída" : $"{c.offs} saídas", "res-cell res-cell--dim", r);
+                if (k == recCar) Text("RECORDE", "res-badge", r);
             }
             if (ChampLike)
             {
@@ -1403,12 +1415,14 @@ namespace Autorama
             bool card = StartCard(out string cardTitle) && !showLights;
             DrawRecCard(card);
             bannerSub.style.display = DisplayStyle.Flex;
+            bannerRec.style.display = DisplayStyle.None;
             if (ChampLike)
             {
                 bool champShow = ChampBanner(out string title, out string sub) && !showLights;
                 if (card && !champShow) { champShow = true; title = cardTitle; sub = ""; }
                 banner.style.display = champShow ? DisplayStyle.Flex : DisplayStyle.None;
                 if (champShow) { bannerTitle.text = title; bannerSub.text = sub; BannerColor(-1); bannerSub.style.display = sub == "" ? DisplayStyle.None : DisplayStyle.Flex; }
+                if (champShow && sim.phase == RaceSim.Phase.Done && champRecText != null) { bannerRec.text = champRecText; bannerRec.style.display = DisplayStyle.Flex; }
                 SetResult(champShow && sim.phase == RaceSim.Phase.Done && sim.winner >= 0);
                 if (card) DrawResult(false);                 // os botões do resultado começam visíveis
                 return;
@@ -1426,9 +1440,18 @@ namespace Autorama
             if (!showBanner) return;
             if (!sim.closed) { bannerTitle.text = "Pista aberta"; bannerSub.text = "Escolha um circuito fechado na lista."; BannerColor(-1); return; }
             var w = sim.cars[sim.winner];
-            bannerTitle.text = $"{LaneNames[sim.winner]} venceu";
+            bannerTitle.text = $"{pads[sim.winner].name.text} venceu";
             BannerColor(sim.winner);
-            bannerSub.text = sim.ByTime ? $"{LapsCell(sim.winner)} voltas em {Dur(sim.set.secs)} · melhor volta {Fmt(w.best)}" : $"{Fmt(w.finish)} · melhor volta {Fmt(w.best)}";
+            bannerSub.text = $"{LaneNames[sim.winner]} · " + (sim.ByTime ? $"{LapsCell(sim.winner)} voltas em {Dur(sim.set.secs)} · melhor volta {Fmt(w.best)}" : $"{Fmt(w.finish)} · melhor volta {Fmt(w.best)}");
+        }
+
+        // O carro com a melhor volta da prova (gente ou IA): fica em roxo no placar e no resultado. −1: ninguém ainda.
+        int FastestCar()
+        {
+            int f = -1;
+            for (int k = 0; k < sim.N; k++)
+                if (sim.present[k] && sim.cars[k].best != null && (f < 0 || sim.cars[k].best < sim.cars[f].best)) f = k;
+            return f;
         }
 
         void BannerColor(int lane)

@@ -453,6 +453,15 @@ namespace Autorama
 
         // Pedido do botão Opções da tela inicial: quem tem as opções (a RaceController, com as teclas) abre a tela.
         public event System.Action OptionsRequested;
+        // Testar a pista no construtor (seção 61): o RaceController liga e desliga o carro IA de teste.
+        public event System.Action TestRequested;
+        Button barTest;
+        public void SetTestOn(bool on)
+        {
+            barTest.text = on ? "■" : "▶";
+            barTest.tooltip = on ? "Parar o teste" : "Testar a pista com um carro IA (anda mesmo com a pista aberta)";
+            barTest.EnableInClassList("btn--accent", on);
+        }
 
         // Sair: fecha o jogo (no Editor, para o Play mode).
         static void QuitGame()
@@ -497,6 +506,9 @@ namespace Autorama
             actionBar = El("action-bar", root);
             Button B(string t, string tip, System.Action a) { var b = Btn(t, a, "btn bar-btn", actionBar); b.tooltip = tip; return b; }
             void Gap() => El("bar-gap", actionBar);
+            barTest = B("▶", "", () => TestRequested?.Invoke());
+            SetTestOn(false);
+            Gap();
             barUndo = B("↶", "Desfazer (Ctrl+Z)", () => builder.Undo());
             barRedo = B("↷", "Refazer (Ctrl+Y)", () => builder.Redo());
             Gap();

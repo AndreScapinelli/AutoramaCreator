@@ -34,7 +34,8 @@ namespace Autorama
         public PilotSlot[] slots;
         public float miniX = -1f, miniY = -1f, miniW = 240f;   // minimapa: posição (no canto da mesa) e largura; X < 0 = ainda não arrastado
         public bool miniOpen;           // aba Pilotos do minimapa aberta
-        public int carTagMode = 1;      // em cima de cada carrinho (F1; seção 54): 0 nada, 1 posição, 2 + nome, 3 + tempo para o da frente
+        public int carTagMode = 1;      // em cima de cada carrinho (F1; seção 54): 0 desligada, 1 posição, nome e tempo (só no carro do jogador)
+        public bool narra = true;       // narração da corrida na faixa do topo (F2; seção 60)
         public bool turbo = true;       // turbo ligado (seção 37): tanque que enche a cada saída de pista
         public bool ghost;              // corrida livre: correr contra o fantasma da melhor volta da pista (seção 55)
         public bool byTime;             // corrida por tempo (seção 26): dura "secs" e se divide em uma manche por trilho
@@ -166,14 +167,17 @@ namespace Autorama
         readonly List<float> lps = new List<float>(), hds = new List<float>();
         public readonly List<float> marks = new List<float>();     // distâncias da bandeirada dentro do caminho
         public float Total => cum.Count > 0 ? cum[cum.Count - 1] : 0f;
+        // Pista aberta (teste no construtor, seção 61): uma passada só, e At para na ponta em vez de dar a volta.
+        public readonly bool open;
 
         // scale: unidades do mundo por célula (2 na pista de 4 carros). O caminho fica no mundo: posições, alturas,
         // distâncias e curvatura; a rampa continua em níveis por célula (o ângulo é o mesmo nas duas pistas).
-        public LanePath(List<Segment> segs, float offset, float scale = 1f)
+        public LanePath(List<Segment> segs, float offset, float scale = 1f, bool open = false)
         {
+            this.open = open;
             int crosses = 0;
             foreach (var s in segs) if (s.def.IsCross) crosses++;
-            int laps = crosses % 2 == 1 ? 2 : 1;
+            int laps = !open && crosses % 2 == 1 ? 2 : 1;
             var lapStart = new List<int>();
             float off = offset;
             for (int lap = 0; lap < laps; lap++)
@@ -279,7 +283,7 @@ namespace Autorama
 
         int IndexAt(float d)
         {
-            d = Mathf.Repeat(d, Total);
+            d = open ? Mathf.Clamp(d, 0f, Total) : Mathf.Repeat(d, Total);
             int lo = 0, hi = cum.Count - 1;
             while (hi - lo > 1) { int m = (lo + hi) / 2; if (cum[m] <= d) lo = m; else hi = m; }
             return lo;
@@ -287,7 +291,7 @@ namespace Autorama
 
         public LanePoint At(float d)
         {
-            d = Mathf.Repeat(d, Total);
+            d = open ? Mathf.Clamp(d, 0f, Total) : Mathf.Repeat(d, Total);
             int lo = 0, hi = cum.Count - 1;
             while (hi - lo > 1) { int m = (lo + hi) / 2; if (cum[m] <= d) lo = m; else hi = m; }
             float t = (d - cum[lo]) / Mathf.Max(cum[hi] - cum[lo], 1e-5f);
@@ -430,6 +434,18 @@ namespace Autorama
         public bool Ready => paths[0] != null && paths[0].Total > 0f;
 
         // faixas 4: quatro carrinhos, um por trilho, com o caminho no mundo (escala 2). Seção 25 do guia.
+        // Teste no construtor (seção 61): só os pilotos IA presentes andam, sem largada, voltas nem recorde; a pista pode
+        // estar aberta, e quem chega na ponta volta ao grid.
+        public bool test;
+        public const float TestEnd = 0.3f;     // a quantas células da ponta da pista aberta o carrinho volta ao grid
+
+        public void StartTest()
+        {
+            if (!Ready) return;
+            Reset();
+            phase = Phase.Running;
+        }
+
         public void SetTrack(List<Segment> segs, bool isClosed, int faixas = 2)
         {
             var lanes = TrackMath.LanesOf(faixas);
@@ -439,7 +455,7 @@ namespace Autorama
                 cars = new CarState[lanes.Length];
                 for (int k = 0; k < cars.Length; k++) cars[k] = new CarState();
             }
-            for (int k = 0; k < MaxCars; k++) paths[k] = k < lanes.Length ? new LanePath(segs, lanes[k], Scale) : null;
+            for (int k = 0; k < MaxCars; k++) paths[k] = k < lanes.Length ? new LanePath(segs, lanes[k], Scale, !isClosed) : null;
             closed = isClosed;
             Reset();
         }
@@ -575,6 +591,10 @@ namespace Autorama
                     if (c.backT >= 1f) { c.mode = CarMode.OnSlot; c.v = 0f; c.slip = 0f; }
                 }
             }
+            if (test && !closed)
+                for (int k = 0; k < N; k++)
+                    if (present[k] && cars[k].mode == CarMode.OnSlot && cars[k].s >= PathOf(k).Total - TestEnd * Scale)
+                        cars[k] = new CarState { s = GridPos, lane = k };
             if (set.collide) Collide(dt);
         }
 
@@ -710,6 +730,7 @@ namespace Autorama
 
         void CountLap(int k)
         {
+            if (test) return;
             var c = cars[k];
             int cr = PathOf(k).LineCount(c.s) - 1 + c.crossBase;      // -1 no grid; 0 ao largar; 1 ao completar a primeira volta
             if (cr <= c.cross) return;

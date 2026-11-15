@@ -949,8 +949,22 @@ namespace Autorama
             else panel.SetStatus(where, "");
         }
 
+        string champRecText;   // o selo dourado do aviso (null: ninguém bateu o recorde da pista na bateria)
+
+        // O carrinho de gente que bateu o recorde de volta da pista nesta bateria. −1: ninguém.
+        int RecordCar()
+        {
+            if (!HeatNow(out _, out _, out _, out var stage, out var pl)) return -1;
+            var R = FindRecords(stage.hash);
+            float hb = sim.HumanBest();
+            if (float.IsPositiveInfinity(hb) || (R != null && R.lap.Has && hb >= R.lap.t)) return -1;
+            for (int k = 0; k < pl.Length; k++) if (pl[k] != null && !pl[k].ai && sim.cars[k].best == hb) return k;
+            return -1;
+        }
+
         bool ChampBanner(out string title, out string sub)
         {
+            champRecText = null;
             title = sub = "";
             var C = ActiveChamp;
             if (C == null) return false;
@@ -968,9 +982,8 @@ namespace Autorama
                 sub = $"{Fmt(c.finish)} · melhor volta {Fmt(c.best)}";
                 // Recorde de volta na bateria: pode ter sido de quem perdeu, então diz de quem é.
                 var R = FindRecords(stage.hash);
-                float hb = sim.HumanBest();
-                if (!float.IsPositiveInfinity(hb) && (R == null || !R.lap.Has || hb < R.lap.t))
-                    for (int k = 0; k < pl.Length; k++) if (pl[k] != null && !pl[k].ai && sim.cars[k].best == hb) { sub += $" · RECORDE {pl[k].tag} {Fmt(hb)}"; break; }
+                int rk = RecordCar();
+                champRecText = rk >= 0 ? $"★  RECORDE DA PISTA  ·  {pl[rk].name}  {Fmt(sim.cars[rk].best)}" : null;
                 return true;
             }
             // Primeira bateria de uma etapa nova: mostra quem venceu a anterior.
@@ -993,6 +1006,16 @@ namespace Autorama
             bool champ = ChampLike, live = champ && HeatNow(out _, out _, out _, out _, out pl);
             int lane = OnlineRun ? MyLane() : -1;                // online: cada um só tem o controle do próprio carrinho
             padsBox.style.display = panel.RaceMode && (!champ || live) && (!OnlineRun || lane >= 0) ? DisplayStyle.Flex : DisplayStyle.None;
+            // Placar de cima: uma ficha por carro que corre (o campeonato muda present sem mudar sim.N).
+            int shown = 0;
+            for (int k = 0; k < RaceSim.MaxCars; k++)
+            {
+                bool on = k < sim.N && sim.present[k];
+                if (on) shown++;
+                hud[k].root.style.display = on ? DisplayStyle.Flex : DisplayStyle.None;
+            }
+            hudBox.EnableInClassList("hud--6", shown > 4);
+            hudBox.EnableInClassList("hud--8", shown > 6);
             for (int k = 0; k < RaceSim.MaxCars; k++)
             {
                 var p = pads[k];

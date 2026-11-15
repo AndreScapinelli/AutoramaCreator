@@ -21,8 +21,10 @@ namespace Autorama
 
         // only: desenha tudo com este material (peça fantasma), sem pilares.
         // faixas 4 ou 6: a arte da pista larga (a malha é em células; a raiz da pista tem escala 2 ou 3).
-        public void Build(Segment s, TrackTheme theme, Material only = null, int faixas = 2)
+        // all: a pista inteira, para os pilares que caem sobre outra pista virarem pórtico (seção 58 do guia).
+        public void Build(Segment s, TrackTheme theme, Material only = null, int faixas = 2, IList<Segment> all = null)
         {
+            this.all = all;
             bool wide = faixas >= 4 && theme != null && theme.HasWide(faixas);
             V.Clear(); UV.Clear(); Surface.Clear(); Checker.Clear(); Guard.Clear(); Side.Clear();
             var d = s.def;
@@ -252,6 +254,7 @@ namespace Autorama
                 Kill(p);
             }
             pillars.Clear();
+            portals.Clear();
             if (theme == null || !s.High) return;
             if (faixas >= 4) { BuildPillars4(s, theme, faixas); return; }
             int count = Mathf.Max(1, Mathf.RoundToInt(s.def.CenterLength / 1.25f));
@@ -260,6 +263,7 @@ namespace Autorama
                 float t = j / (float)count, h = s.ZSmooth(t) * TrackMath.LevelHeight;
                 if (s.ZAt(t) < 0.25f) continue;
                 var q = TrackMath.PoseAt(s.a, s.def, s.piece.dir, t);
+                if (Portal(s, q, new[] { -0.4f, 0.4f }, h - Thickness, theme.support, 1f, 0.05f)) continue;
                 foreach (float side in new[] { -0.4f, 0.4f })
                 {
                     var go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
@@ -290,6 +294,7 @@ namespace Autorama
                 if (s.ZAt(t) < 0.25f) continue;
                 var q = TrackMath.PoseAt(s.a, s.def, s.piece.dir, t);
                 var rot = Quaternion.Euler(0f, -q.heading, 0f);
+                if (!s.def.IsLoop && !s.def.IsJump && Portal(s, q, new[] { -0.44f, 0f, 0.44f }, TrackLayout.SurfaceY(s, t, 0f) - 0.06f, mat, k, thin / 2f)) continue;
                 foreach (float side in new[] { -0.44f, 0f, 0.44f })
                 {
                     var o = TrackMath.Offset(q, side);
@@ -304,6 +309,115 @@ namespace Autorama
                 var pb = new Vector3(eb.x, TrackLayout.SurfaceY(s, t, 0.475f) - 0.035f, eb.y);
                 pillars.Add(Box("Travessa", mat, (pa + pb) / 2f, new Vector3(0.06f * 2f / k, 0.05f * 2f / k, Vector3.Distance(pa, pb)), Quaternion.LookRotation(pb - pa)));
             }
+        }
+
+        // Pista sobre pista (seção 58 do guia): se algum pilar da fileira q cairia sobre uma peça mais baixa, a fileira
+        // vira um pórtico: dois postes do lado de fora da pista de baixo e uma viga atravessando por cima dela, logo
+        // abaixo da de cima (beamTop). Pórticos a menos de 0,9 célula um do outro na mesma peça viram um só.
+        // Sem vão para a viga (as pistas quase se encostam), a fileira fica sem pilar. Devolve se tratou a fileira.
+        IList<Segment> all;
+        readonly List<Vector2> portals = new List<Vector2>();
+
+        bool Portal(Segment s, Pose2 q, float[] sides, float beamTop, Material mat, float k, float postHalf)
+        {
+            if (all == null) return false;
+            float reach = 0.5f + 0.05f / k + postHalf;      // pilar a menos disso do meio da pista de baixo bate nela
+            Segment low = null;
+            float tL = 0f;
+            foreach (float side in sides)
+            {
+                var o = TrackMath.Offset(q, side);
+                foreach (var l in all)
+                    if (l != s && Under(l, o, reach, beamTop - 0.02f, out tL)) { low = l; break; }
+                if (low != null) break;
+            }
+            if (low == null) return false;
+            if (Under(low, q.pos, reach, beamTop - 0.02f, out float tC)) tL = tC;     // o pórtico sob o meio da fileira, se der
+            var qL = TrackMath.PoseAt(low.a, low.def, low.piece.dir, tL);
+            foreach (var p in portals) if (Vector2.Distance(p, qL.pos) < 0.9f) return true;
+            portals.Add(qL.pos);
+
+            float beamH = 0.06f / k, foot = Thickness / k;
+            float lowTop = Mathf.Max(TrackLayout.SurfaceY(low, tL, -0.5f), TrackLayout.SurfaceY(low, tL, 0.5f)) + 0.14f / k;
+            // A viga é reta e a pista de cima pode ser rampa ou inclinada: o topo fica abaixo da pista de cima em todo o
+            // comprimento (9 pontos), com a mesma folga que tem no meio da fileira.
+            if (Closest(s, q.pos, out float tS, out _))
+            {
+                float gap = TrackLayout.SurfaceY(s, tS, 0f) - beamTop;
+                for (int j = -4; j <= 4; j++)
+                {
+                    var pt = TrackMath.Offset(qL, j / 4f * (reach + postHalf));
+                    foreach (var l in all)
+                        if (l != low && Closest(l, pt, out float tl, out float lat) && Mathf.Abs(lat) <= 0.5f)
+                        {
+                            float y = TrackLayout.SurfaceY(l, tl, lat);
+                            if (y > lowTop) beamTop = Mathf.Min(beamTop, y - gap);
+                        }
+                }
+            }
+            if (beamTop - beamH < lowTop + 0.02f / k) return true;
+            var rot = Quaternion.Euler(0f, -qL.heading, 0f);
+            foreach (float sd in new[] { -reach, reach })
+            {
+                var o = TrackMath.Offset(qL, sd);
+                var pos = new Vector3(o.x, (beamTop - foot) / 2f, o.y);
+                if (k > 1f) { pillars.Add(Box("Poste do pórtico", mat, pos, new Vector3(postHalf * 2f, beamTop + foot, postHalf * 2f), rot)); continue; }
+                var go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                go.name = "Poste do pórtico";
+                go.hideFlags = HideFlags.DontSave;
+                Kill(go.GetComponent<Collider>());
+                go.transform.SetParent(transform, false);
+                go.transform.localPosition = pos;
+                go.transform.localScale = new Vector3(postHalf * 2f, (beamTop + foot) / 2f, postHalf * 2f);
+                go.GetComponent<MeshRenderer>().sharedMaterial = mat;
+                pillars.Add(go);
+            }
+            var c = qL.pos;
+            pillars.Add(Box("Viga do pórtico", mat, new Vector3(c.x, beamTop - beamH / 2f, c.y), new Vector3(beamH * 1.2f, beamH, reach * 2f + postHalf * 2f), rot));
+            return true;
+        }
+
+        // A parte da peça l embaixo de p: o ponto mais perto de p entre os que ficam a até "reach" de lado e com a
+        // superfície abaixo de maxY. Não é só o ponto mais perto da peça: na hélice (curva em C sobre curva em C) o mais
+        // perto é a emenda, no alto, e a volta de baixo passa ao lado.
+        static bool Under(Segment l, Vector2 p, float reach, float maxY, out float t)
+        {
+            t = 0f;
+            if (l.def.IsLoop || Vector2.Distance(p, l.a.pos) > l.def.CenterLength + 1.5f) return false;
+            int n = Mathf.CeilToInt(l.def.CenterLength / 0.1f);
+            float best = float.MaxValue;
+            for (int j = 0; j <= n; j++)
+            {
+                float tj = j / (float)n;
+                var pj = TrackMath.PoseAt(l.a, l.def, l.piece.dir, tj);
+                var v = p - pj.pos;
+                float along = Vector2.Dot(v, TrackMath.Dir(pj.heading)), lat = Vector2.Dot(v, TrackMath.Dir(pj.heading - 90f));
+                if (Mathf.Abs(along) > 0.08f || Mathf.Abs(lat) > reach || v.sqrMagnitude >= best) continue;
+                if (TrackLayout.SurfaceY(l, tj, Mathf.Clamp(lat, -0.5f, 0.5f)) >= maxY) continue;
+                best = v.sqrMagnitude; t = tj;
+            }
+            return best < float.MaxValue;
+        }
+
+        // Ponto da peça l mais perto de p (amostras a cada 0,1 célula): t e o deslocamento lateral. Falso se p fica
+        // antes ou depois das pontas, ou se l é um loop (o pilar de quem passa por cima do loop segue normal).
+        static bool Closest(Segment l, Vector2 p, out float t, out float lat)
+        {
+            t = 0f; lat = 0f;
+            if (l.def.IsLoop || Vector2.Distance(p, l.a.pos) > l.def.CenterLength + 1.5f) return false;
+            int n = Mathf.CeilToInt(l.def.CenterLength / 0.1f);
+            float best = float.MaxValue, along = 0f;
+            for (int j = 0; j <= n; j++)
+            {
+                float tj = j / (float)n;
+                var pj = TrackMath.PoseAt(l.a, l.def, l.piece.dir, tj);
+                var v = p - pj.pos;
+                if (v.sqrMagnitude >= best) continue;
+                best = v.sqrMagnitude; t = tj;
+                along = Vector2.Dot(v, TrackMath.Dir(pj.heading));
+                lat = Vector2.Dot(v, TrackMath.Dir(pj.heading - 90f));
+            }
+            return (t > 0f && t < 1f) || Mathf.Abs(along) < 0.06f;      // no meio, a projeção numa curva estica com o raio
         }
 
         GameObject Box(string name, Material mat, Vector3 pos, Vector3 size, Quaternion rot)
