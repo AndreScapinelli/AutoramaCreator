@@ -333,6 +333,38 @@ const trilha = (n, extra = {}) => ({ name: 'Pista ' + n, laps: 3, hash: 'a34f4cb
     H2.close(); A3.close();
   }
 
+  // ---------- partida rápida (fila e sorteio) ----------
+  {
+    const mms = await criarServidor({ port: 0, host: '127.0.0.1' });
+    const Q = [await cliente(mms.port), await cliente(mms.port), await cliente(mms.port), await cliente(mms.port), await cliente(mms.port)];
+    const pj = (f, n) => JSON.stringify({ nome: n, faixas: f });
+    Q[0].send({ t: 'mm', on: true, faixas: 3, name: 'A', hash: 'a34f4cb9', json: pj(4, 'x') });
+    assert.strictEqual((await Q[0].next('error')).code, 'mm'); ok('fila: tamanho inválido é recusado');
+    Q[0].send({ t: 'mm', on: true, faixas: 4, name: 'A', hash: 'a34f4cb9', json: pj(2, 'x') });
+    assert.strictEqual((await Q[0].next('error')).code, 'mm'); ok('fila: pista de outro tamanho é recusada');
+    for (let i = 0; i < 3; i++) Q[i].send({ t: 'mm', on: true, faixas: 4, name: 'P' + i, uid: 'uid-fila-0000' + i, track: 'T' + i, hash: 'a34f4cb' + i, json: pj(4, 'T' + i) });
+    let st; do st = await Q[0].next('mm'); while (st.n < 3);
+    assert.deepStrictEqual(st.tracks, ['T0', 'T1', 'T2']); assert.strictEqual(st.need, 4); ok('fila: 3 de 4, com as pistas na disputa');
+    Q[3].send({ t: 'list' }); assert.deepStrictEqual((await Q[3].next('rooms')).mmq, [0, 3, 0, 0]); ok('a lista de salas leva quantos estão em cada fila');
+    Q[2].send({ t: 'mm', on: false }); do st = await Q[0].next('mm'); while (st.n !== 2); ok('sair da fila');
+    Q[2].send({ t: 'mm', on: true, faixas: 4, name: 'P2', track: 'T2', hash: 'a34f4cb2', json: pj(4, 'T2') });
+    Q[3].send({ t: 'mm', on: true, faixas: 4, name: 'p0', track: 'T3', hash: 'a34f4cb3', json: pj(4, 'T3') });
+    assert.strictEqual((await Q[3].next('error')).code, 'nome-usado'); ok('fila: nome repetido é recusado');
+    Q[4].send({ t: 'mm', on: true, faixas: 2, name: 'Solo', track: 'S', hash: 'a34f4cb4', json: pj(2, 'S') });
+    Q[3].send({ t: 'mm', on: true, faixas: 4, name: 'P3', track: 'T3', hash: 'a34f4cb3', json: pj(4, 'T3') });
+    const ss = await Promise.all(Q.slice(0, 4).map(c => c.next('started')));
+    const s0 = ss[0];
+    assert.strictEqual(s0.pilots.length, 4); assert.strictEqual(s0.stages.length, 1);
+    assert.strictEqual(s0.stages[0].secs, 240); assert(s0.stages[0].tempo); assert(s0.rules.byTime); assert.strictEqual(s0.stages[0].faixas, 4);
+    assert.strictEqual(s0.mm.tracks.length, 4); assert.strictEqual(s0.stages[0].name, s0.mm.tracks[s0.mm.pick].name);
+    assert(ss.every(x => x.mm.pick === s0.mm.pick && x.rules.sorteio === s0.rules.sorteio)); ok('fila cheia: sala com 4, por tempo (4:00), pista sorteada ' + s0.stages[0].name);
+    await Q[4].quiet('started'); ok('a fila de 2 não larga com 1 só');
+    Q[4].send({ t: 'list' }); assert.deepStrictEqual((await Q[4].next('rooms')).mmq, [1, 0, 0, 0]); ok('quem largou sai da fila');
+    Q[4].close(); await new Promise(r => setTimeout(r, 100));
+    assert.strictEqual(mms.rooms.size, 1); ok('desconectar tira da fila');
+    Q.forEach(c => c.close()); await mms.close();
+  }
+
   // ---------- versão e limites por endereço ----------
   const v = await cliente(P, true);
   v.send({ t: 'create', name: 'Sem hello', pub: true });

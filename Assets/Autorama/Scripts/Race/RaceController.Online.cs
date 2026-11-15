@@ -86,6 +86,7 @@ namespace Autorama
             oMsg = Text("", "small bad", head);
             oMsg.style.marginTop = 6;
 
+            BuildMatchUI(oEntry);
             var create = Section(oEntry, "CRIAR SALA");
             oRoomName = Field("Nome da sala (opcional)", 30, create);
             oPublic = new Toggle("Sala pública (aparece na lista)") { value = true };
@@ -106,6 +107,7 @@ namespace Autorama
             Btn("Atualizar lista", RefreshRooms, "btn", pubs);
             oRooms = El(null, pubs);
             oRooms.style.marginTop = 8;
+            mmHide.Add(create); mmHide.Add(join); mmHide.Add(pubs);
 
             // Dentro da sala
             oLobby = El(null, box);
@@ -319,6 +321,7 @@ namespace Autorama
             PlayerPrefs.SetInt(PrefSteam, on ? 1 : 0);
             oServer.style.display = on ? DisplayStyle.None : DisplayStyle.Flex;
             oName.SetEnabled(!on);
+            DrawMatch();
             oName.SetValueWithoutNotify(on ? steamNet.LocalName : PlayerPrefs.GetString(PrefName, ""));
         }
 
@@ -390,7 +393,7 @@ namespace Autorama
         void ResetOnlineState()
         {
             OnlineExitRun();
-            room = null; myId = null; wasHost = false; pendingNet = null;
+            room = null; myId = null; wasHost = false; pendingNet = null; mmIn = 0;
             onlineStages.Clear();
             suggestions.Clear(); sentSuggestions.Clear();
             invited.Clear();
@@ -466,7 +469,7 @@ namespace Autorama
             switch (m.t)
             {
                 case "joined":
-                    myId = m.you; room = m.room; wasHost = IsHost;
+                    myId = m.you; room = m.room; wasHost = IsHost; mmIn = 0;
                     onlineStages.Clear(); suggestions.Clear(); sentSuggestions.Clear();
                     chatLog.Clear(); oChat.Clear(); oRunChat.Clear();
                     foreach (var c in m.chat) AddChat(c);
@@ -485,8 +488,10 @@ namespace Autorama
                     wasHost = IsHost;
                     DrawOnline(); OnlineStatus();
                     break;
+                case "mm": OnMatchStatus(m); break;
                 case "rooms":
                     listed = m.rooms;
+                    if (m.mmq.Count == 4) { mmq = m.mmq.ToArray(); DrawMatch(); }
                     DrawRooms();
                     break;
                 case "chat":
@@ -494,10 +499,11 @@ namespace Autorama
                     break;
                 case "error":
                     if (rejoinCode != null && room == null) { rejoinCode = null; rejoinAt = -1f; }    // a sala acabou: desiste de voltar
+                    if (room == null && mmIn > 0 && (m.code == "mm" || m.code == "nome-usado" || m.code == "sala" || m.code == "nome")) { mmIn = 0; DrawMatch(); }   // o servidor tirou da fila
                     SetOnlineMsg(m.text);
                     if (room != null) panel.Toast(m.text);
                     break;
-                case "started": if (room != null) BeginOnlineRun(m); break;
+                case "started": if (room != null) { BeginOnlineRun(m); if (OnlineRun) ShowSorteio(m.mm); } break;
                 case "lobby":
                     bool sendStages = takeOverStages && IsHost;
                     takeOverStages = false;
@@ -692,7 +698,7 @@ namespace Autorama
             oEntry.style.display = room == null ? DisplayStyle.Flex : DisplayStyle.None;
             oLobby.style.display = room != null && !OnlineRun ? DisplayStyle.Flex : DisplayStyle.None;
             oRun.style.display = OnlineRun ? DisplayStyle.Flex : DisplayStyle.None;
-            if (room == null) DrawRooms();
+            if (room == null) { DrawRooms(); DrawMatch(); }
             else if (OnlineRun) champDirty = true;               // quem entrou ou saiu muda os nomes na tela da corrida
             else DrawLobby();
         }

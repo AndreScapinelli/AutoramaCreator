@@ -25,6 +25,7 @@ namespace Autorama
     {
         public string code, name, host, state;            // host: id do jogador que manda na sala
         public bool pub;
+        public bool mm;                                   // sala da partida rápida (seção 62)
         public int max;
         public List<NetPlayer> players = new List<NetPlayer>();
         public List<NetStage> stages = new List<NetStage>();
@@ -32,6 +33,9 @@ namespace Autorama
     }
 
     [Serializable] public class NetListed { public string code, name, host; public int players, max, stages; }
+    // Partida rápida: as pistas na disputa (nome e de quem) e a sorteada (índice).
+    [Serializable] public class NetMMTrack { public string name, by; }
+    [Serializable] public class NetMM { public List<NetMMTrack> tracks = new List<NetMMTrack>(); public int pick = -1; }
     [Serializable] public class NetChat { public bool sys; public string from, name, color, text; public long time; }
     [Serializable] public class NetRules { public float vmax, ramp, grip; public bool collide, byTime; public bool turbo = true; public int sorteio; public float reslot = 0.3f; }   // sorteio: seed das baterias (seção 45)   // byTime: campeonato por tempo (seção 26)
 
@@ -82,6 +86,11 @@ namespace Autorama
         public NetRules rules = new NetRules();
         public List<NetPlayer> pilots = new List<NetPlayer>();
         public List<NetStage> stages = new List<NetStage>();
+        public NetMM mm = new NetMM();                    // started: o sorteio da partida rápida (vazio: campeonato normal)
+        // mm: a fila em que estou (faixas; 0 = fora), quantos tem (n) de quantos precisa (need) e as pistas · mmq (também em rooms): quantos em cada fila (2, 4, 6, 8)
+        public int n, need;
+        public List<string> tracks = new List<string>();
+        public List<int> mmq = new List<int>();
         // in (visitante → host): o botão e o contador de "recolocar"
         public bool held;
         public int re;

@@ -18,6 +18,7 @@ namespace Autorama
         int carOkStage = -1;
         float carPickSince, carSendAcc, carBcastAcc;
         const float CarPickWait = 45f;                              // online: o host fecha a escolha sozinho depois disso
+        float CarPickWaitNow => MmRoom ? MmCarWait : CarPickWait;  // partida rápida: 20 s
 
         // O ajuste numa mensagem: 1–81 (o ajuste) mais 81 se o piloto já confirmou. 0 = não é escolha (protocolo 4).
         public const int CarCodes = 81;
@@ -165,7 +166,7 @@ namespace Autorama
             float dt = Time.unscaledDeltaTime;
             if (IsHost)
             {
-                if (AllCarOk(C) || Time.realtimeSinceStartup - carPickSince >= CarPickWait) { CarPickClose(C, s); return; }
+                if (AllCarOk(C) || Time.realtimeSinceStartup - carPickSince >= CarPickWaitNow) { CarPickClose(C, s); return; }
                 carBcastAcc += dt;
                 if (carBcastAcc >= 1f) CarBroadcast(C);
             }
@@ -197,7 +198,7 @@ namespace Autorama
             bannerSub.text = "Motor, bolha e pneu para a etapa inteira. Cada peça dá uma coisa e tira outra.";
             bannerSub.style.display = DisplayStyle.Flex;
             BannerColor(-1);
-            int left = OnlineRun ? Mathf.Max(0, Mathf.CeilToInt(CarPickWait - (Time.realtimeSinceStartup - carPickSince))) : -1;
+            int left = OnlineRun ? Mathf.Max(0, Mathf.CeilToInt(CarPickWaitNow - (Time.realtimeSinceStartup - carPickSince))) : -1;
             var sb = new System.Text.StringBuilder($"{s}|{OnlineRun}|{IsHost}|{left}|{openCar}");
             foreach (var p in C.pilots) sb.Append('|').Append(CarCode(p.carro, carOk.Contains(p.id))).Append(OnlineRun && OnlinePresent(p.id));
             string sig = sb.ToString();

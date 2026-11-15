@@ -4236,3 +4236,23 @@ Uma faixa no topo da mesa, embaixo das fichas dos pilotos, narra a prova em tom 
 - **`RaceSim`:** `test` (a pista pode estar aberta; o `CountLap` sai logo e não conta volta) e `StartTest()` (`Reset` e depois `Phase.Running`, sem a contagem). No fim do `Step`, com `test && !closed`, o carro `OnSlot` que passa de `Total − TestEnd × Scale` vira um `CarState` novo no grid.
 - **`RaceController.Test.cs`:** `SetTest(on)` deixa só o carro 0 em `present`, com `aiSkill = TestSkill 80` e `setup` padrão. No construtor, o `Update` chama `sim.Step` só quando `testing` está ligado. `BuilderPanel.TestRequested` e `SetTestOn` cuidam do botão.
 - **Teste** (`script eval`): oval sem as 3 últimas peças (aberta, `Total` 27,88). Foram 6000 passos de 0,01 s, com IA 80. O carro chegou a 27,58 e voltou ao grid 16 vezes, sem sair da pista. `laps` ficou em 0 e a fase em `Running`. Recompilado sem erros; não houve teste no modo Play.
+
+## 62. Partida rápida (fila e sorteio da pista; protocolo 5)
+
+- **O que faz:** na aba Online, o cartão **Partida rápida** fica acima de Criar sala. O jogador escolhe o tamanho (2, 4, 6 ou 8 carros) e uma pista fechada dele, que entra adaptada a esse tamanho (seção 32). Depois toca em **Procurar partida**. Na fila, a tela mostra "3 de 4", o tempo de espera, as pistas na disputa (repetidas aparecem com ×2) e o botão **Sair da fila**. As outras seções da entrada somem enquanto o jogador está na fila. Só larga com a fila cheia. Quando ela enche, o servidor cria uma sala privada (`room.mm`) e sorteia uma das pistas. Uma pista repetida conta uma vez por jogador que a escolheu. Em seguida o servidor larga sozinho: uma bateria **por tempo, 4:00**, com todos na mesma bateria (`MakeHeats` por tempo com pilotos = trilhos dá uma bateria só) e as regras padrão. Na tela aparece a roleta do sorteio (`.mm-sorteio`, ~3 s, para na pista escolhida). Depois vem a escolha do carro, que dura **20 s** (`MmCarWait`; no campeonato são 45). O host larga sozinho 20 s depois, como no campeonato online. No fim, todos veem **Jogar de novo** (sai da sala e volta à fila com o mesmo tamanho e a mesma pista) e **Sair**. Não tem "Voltar ao lobby" nem "Encerrar campeonato": o botão de baixo vira "Sair da partida". Só existe no servidor Node: com a Steam, o cartão some, porque não há um servidor neutro para sortear.
+- **Servidor** (`servidor.js`): `MM_SIZES [2,4,6,8]`, `MM_SECS 240`, `MM_RULES` (vmax 14, ramp 0,5, grip 29, colisão, turbo, reslot 0,3, por tempo). A fila é `queues` (tamanho → entradas). As mensagens:
+  - `mm {on, faixas, name, uid, track, hash, json}` entra na fila. Antes, o servidor tira o jogador de qualquer outra fila. O servidor recusa tamanho inválido, pista cujo JSON tem outro `faixas`, nome repetido na fila e quem já está numa sala. `on: false` sai da fila.
+  - O servidor responde `mm {faixas, n, need, tracks, mmq}` a todos da fila (`faixas 0`: fora). `mmq` traz quantos esperam em cada fila e também vai no `rooms` (a lista de salas).
+  - Fila cheia (`mmMatch`): os primeiros n jogadores entram na sala nova (`enter`, que manda `joined`) e o servidor chama `launch`, o mesmo do `start`, com `sorteio` de `crypto.randomInt` e mais `mm {tracks: [{name, by}], pick}` no `started`.
+  - Cair ou sair tira o jogador da fila (`mmOut` no `leave`). Voltar de uma queda funciona como no campeonato (seção 41), pelo código da sala.
+- **Unity:** `RaceController.Match.cs` tem o cartão, a fila, o relógio, a roleta e o "Jogar de novo". As outras peças:
+  - `NetRoom.mm`, `NetMM`/`NetMMTrack` e os campos `n`, `need`, `tracks` e `mmq` no `NetMsg`;
+  - `MmRoom` muda o prazo do carro (`CarPickWaitNow`), os botões do fim (`DrawOnlineActs`) e o sair (`OnlineQuit` sai sem encerrar);
+  - `OnlineClient.Protocol = 5`.
+  - Ficam guardados em `PlayerPrefs` (`autorama.mm.tamanho`, `autorama.mm.pista`).
+- **Teste:**
+  - `npm test`: 11 verificações novas (tamanho inválido, pista de outro tamanho, 3 de 4 com as pistas, `mmq` na lista, sair, nome repetido, fila cheia larga com 4 por tempo 4:00 e o mesmo sorteio para todos, fila de 2 com 1 não larga, quem largou sai da fila, desconectar tira da fila) e todas as antigas.
+  - `OnlineSmokeTest` contra o servidor: tudo ok.
+  - `script eval`: o `JsonUtility` lê o `started` com `mm` (pista sorteada certa, `room.mm` verdadeiro; sem `mm`, a lista vem vazia e o `pick` −1). `MakeHeats(n, 1, n, true)` dá uma bateria com os n pilotos, para 2, 4, 6 e 8.
+  - Recompilado sem erros. Não houve teste no modo Play.
+- **Ainda não tem:** ranking (Elo), fila por nível e conferência do resultado por todos. Isso fica para a parte 2.

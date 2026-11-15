@@ -609,3 +609,10 @@
 }
 .narra--forte { font-size: 17px; color: var(--destaque); }
 .minimap-num { position: absolute; width: 16px; height: 16px; font-size: 10px; -unity-font-style: bold; -unity-text-align: middle-center; margin: 0; padding: 0; }
+
+/* ---------- Partida rápida: a roleta do sorteio (seção 62) ---------- */
+.mm-sorteio {
+    position: absolute; top: 30%; left: 50%; translate: -50% 0; min-width: 320px; padding: 14px 28px; border-radius: 12px;
+    align-items: center; background-color: var(--fundo); border-width: 2px; border-color: var(--botao);
+}
+.mm-sorteio-nome { font-size: 26px; -unity-font-style: bold; color: var(--texto); margin: 6px 0; }

@@ -5,7 +5,7 @@
 const http = require('http');
 const { WebSocketServer } = require('ws');
 
-const PROTOCOL = 4;                    // muda quando as mensagens deixam de combinar com o cliente (OnlineClient.Protocol)
+const PROTOCOL = 5;                    // muda quando as mensagens deixam de combinar com o cliente (OnlineClient.Protocol)
 const MAX_PLAYERS = 8;                 // o mesmo limite do campeonato
 const MAX_STAGES = 12;
 const MAX_TRACK_JSON = 100 * 1024;     // por pista
@@ -21,6 +21,10 @@ const IN_RATE = 120;                   // entradas (botão) por segundo de cada 
 const MAX_CONN_IP = 20;                // conexões abertas ao mesmo tempo por endereço
 const MAX_CREATES_IP = 6;              // salas criadas por minuto por endereço
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';   // sem 0/O/1/I
+// Partida rápida (seção 62 do guia): fila por tamanho de pista; com a fila cheia, sorteia uma das pistas e larga sozinho.
+const MM_SIZES = [2, 4, 6, 8];
+const MM_SECS = 240;                   // sempre por tempo: 4 minutos
+const MM_RULES = { vmax: 14, ramp: 0.5, grip: 29, collide: true, byTime: true, turbo: true, reslot: 0.3 };   // os padrões do RaceSettings
 const COLORS = ['#E0362C', '#2563EB', '#F2B705', '#16A34A', '#9333EA', '#F97316', '#0EA5B7', '#E04B95'];   // PILOT_COLORS do guia
 
 // Tira controle e espaços repetidos; nome vazio vira ''.
@@ -31,6 +35,7 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
   const rooms = new Map();             // code -> room
   const conns = new Map();             // ip -> conexões abertas
   const creates = new Map();           // ip -> horas das últimas salas criadas
+  const queues = new Map(MM_SIZES.map(n => [n, []]));   // tamanho -> [{ c, name, uid, track, hash, json }]
   let nextId = 1;
   const ipOf = req => {
     const fwd = trustProxy && (req.headers['fly-client-ip'] || String(req.headers['x-forwarded-for'] || '').split(',')[0].trim());
@@ -48,13 +53,21 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
   // Os pilotos da sala: cada conexão e, logo depois dela, o segundo jogador do mesmo computador (c.guest), se tiver.
   const pilots = r => r.players.flatMap(c => c.guest ? [c, c.guest] : [c]);
   const snapshot = r => ({
-    code: r.code, name: r.name, pub: r.pub, host: r.host, max: MAX_PLAYERS, state: r.state,
+    code: r.code, name: r.name, pub: r.pub, mm: !!r.mm, host: r.host, max: MAX_PLAYERS, state: r.state,
     // o host está sempre pronto; o segundo jogador fica pronto junto com o dono
     players: pilots(r).map(p => { const o = p.owner || p; return { id: p.id, name: p.name, color: p.color, uid: p.uid, ready: o.id === r.host || !!o.ready }; }),
     stages: r.stages.map(s => ({ name: s.name, laps: s.laps, secs: s.secs, tempo: s.tempo, faixas: s.faixas, hash: s.hash })),
   });
   const broadcast = (r, msg) => r.players.forEach(p => send(p, msg));
   const pushRoom = r => broadcast(r, { t: 'room', room: snapshot(r) });
+  const mmCounts = () => MM_SIZES.map(n => queues.get(n).length);
+  const mmPush = n => {
+    const q = queues.get(n);
+    q.forEach(e => send(e.c, { t: 'mm', faixas: n, n: q.length, need: n, tracks: q.map(x => x.track), mmq: mmCounts() }));
+  };
+  const mmOut = c => {
+    for (const [n, q] of queues) { const i = q.findIndex(e => e.c === c); if (i >= 0) { q.splice(i, 1); c.mm = 0; mmPush(n); return; } }
+  };
   const say = (r, text) => {
     const m = { t: 'chat', sys: true, text, time: Date.now() };
     r.chat.push(m); if (r.chat.length > CHAT_KEEP) r.chat.shift();
@@ -108,6 +121,7 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
   }
 
   function leave(c) {
+    mmOut(c);
     const r = c.room; if (!r) return;
     c.room = null; c.guest = null;
     r.players = r.players.filter(p => p !== c);
@@ -119,6 +133,30 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
       say(r, r.state === 'racing' ? `${r.players[0].name} agora é o host: a bateria da vez recomeça.` : `${r.players[0].name} agora é o host.`);
     }
     pushRoom(r);
+  }
+
+  // Começa o campeonato: entrega a todos as pistas (JSON) e as regras. extra: campos a mais no "started" (o sorteio da partida rápida).
+  function launch(r, title, rules, extra) {
+    r.state = 'racing';
+    r.seats = new Map(pilots(r).filter(p => p.uid).map(p => [p.uid, { id: p.id, color: p.color }]));   // para quem cair voltar ao mesmo lugar
+    broadcast(r, Object.assign({ t: 'started', title, rules, pilots: snapshot(r).players, stages: r.stages.map(s => ({ name: s.name, laps: s.laps, secs: s.secs, tempo: s.tempo, faixas: s.faixas, hash: s.hash, json: s.json })) }, extra));
+  }
+
+  // Fila cheia: sala privada com os primeiros n, uma das pistas sorteada (pista repetida conta mais), e larga.
+  function mmMatch(n) {
+    const q = queues.get(n);
+    if (q.length < n || rooms.size >= MAX_ROOMS) return;
+    const group = q.splice(0, n);
+    const pick = require('crypto').randomInt(group.length), win = group[pick];
+    const r = { code: newCode(), name: `Partida rápida · ${n} carros`, pub: false, mm: true, host: group[0].c.id, state: 'lobby', players: [], chat: [],
+      stages: [{ name: win.track, laps: 30, secs: MM_SECS, tempo: true, faixas: n, hash: win.hash, json: win.json }] };
+    rooms.set(r.code, r);
+    group.forEach(e => { e.c.mm = 0; enter(e.c, r, e.name, e.uid); });
+    launch(r, `Partida rápida · ${win.track}`, Object.assign({ sorteio: require('crypto').randomInt(1, 2147483647) }, MM_RULES),
+      { mm: { tracks: group.map(e => ({ name: e.track, by: e.name })), pick } });
+    say(r, `Pista sorteada: ${win.track} (de ${win.name}).`);
+    pushRoom(r);
+    mmPush(n);
   }
 
   // Corrida: o host manda snapshots e eventos para todos; os outros só mandam o botão, e só para o host.
@@ -134,7 +172,7 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
       const out = [...rooms.values()].filter(r => r.pub && r.state === 'lobby').map(r => ({
         code: r.code, name: r.name, host: r.players.find(p => p.id === r.host).name, players: pilots(r).length, max: MAX_PLAYERS, stages: r.stages.length,
       }));
-      send(c, { t: 'rooms', rooms: out });
+      send(c, { t: 'rooms', rooms: out, mmq: mmCounts() });
     },
     // A primeira mensagem de todo cliente: a versão do protocolo. Versão diferente: avisa e derruba.
     hello(c, m) {
@@ -165,6 +203,26 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
       enter(c, r, name, m.uid);
     },
     leave(c) { leave(c); send(c, { t: 'left' }); },
+    // Partida rápida: entra na fila (on) com o tamanho (faixas) e a pista que concorre ao sorteio, ou sai dela.
+    mm(c, m) {
+      mmOut(c);
+      if (!m.on) return send(c, { t: 'mm', faixas: 0, n: 0, need: 0, tracks: [], mmq: mmCounts() });
+      if (c.room) return fail(c, 'sala', 'Você já está numa sala.');
+      const n = Number(m.faixas);
+      if (!MM_SIZES.includes(n)) return fail(c, 'mm', 'Tamanho de pista inválido.');
+      const name = validName(c, m.name); if (!name) return;
+      if (!/^[0-9a-f]{8}$/.test(String(m.hash)) || typeof m.json !== 'string' || !m.json || m.json.length > MAX_TRACK_JSON)
+        return fail(c, 'mm', 'Pista inválida ou grande demais.');
+      let fx; try { fx = Number(JSON.parse(m.json).faixas) || 2; } catch (e) { fx = 0; }
+      if (fx !== n) return fail(c, 'mm', `A pista não é de ${n} carros.`);
+      const q = queues.get(n);
+      if (q.some(e => e.name.toLowerCase() === name.toLowerCase())) return fail(c, 'nome-usado', 'Já tem alguém com esse nome na fila.');
+      const uid = typeof m.uid === 'string' && /^[A-Za-z0-9:-]{8,64}$/.test(m.uid) && !q.some(e => e.uid === m.uid) ? m.uid : '';
+      q.push({ c, name, uid, track: clean(m.track, 60) || 'Pista', hash: m.hash, json: m.json });
+      c.mm = n;
+      mmPush(n);
+      mmMatch(n);
+    },
     // Pronto para largar. O host está sempre pronto; mexer nas pistas (ou chegar alguém) zera os outros.
     ready(c, m) {
       const r = c.room; if (!r) return;
@@ -183,11 +241,8 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
       if (falta.length) return fail(c, 'nao-prontos', `Falta ficar pronto: ${falta.map(p => p.name).join(', ')}.`);
       const rules = { vmax: Number(m.vmax), ramp: Number(m.ramp), grip: Number(m.grip), collide: !!m.collide, byTime: !!m.byTime, turbo: m.turbo !== false, sorteio: Number(m.sorteio) | 0, reslot: Number(m.reslot) >= 0.1 && Number(m.reslot) <= 1.5 ? Number(m.reslot) : 0.3 };   // reslot: segundos do recolocar (cliente antigo: 0,3)   // turbo: ausente (cliente antigo) = ligado; sorteio: seed das baterias (cliente antigo: 0)
       if (!(rules.vmax >= 8 && rules.vmax <= 20 && rules.ramp >= 0.2 && rules.ramp <= 1.5 && rules.grip >= 15 && rules.grip <= 45)) return fail(c, 'regras', 'Regras inválidas.');
-      r.state = 'racing';
-      r.seats = new Map(pilots(r).filter(p => p.uid).map(p => [p.uid, { id: p.id, color: p.color }]));   // para quem cair voltar ao mesmo lugar
       const title = clean(m.name, 40) || `Campeonato de ${c.name}`;
-      const msg = { t: 'started', title, rules, pilots: snapshot(r).players, stages: r.stages.map(s => ({ name: s.name, laps: s.laps, secs: s.secs, tempo: s.tempo, faixas: s.faixas, hash: s.hash, json: s.json })) };
-      broadcast(r, msg);
+      launch(r, title, rules);
       say(r, `${c.name} largou o campeonato "${title}".`);
       pushRoom(r);
     },

@@ -201,7 +201,7 @@ namespace Autorama
             oRunQuit.text = QuitLabel();
         }
 
-        string QuitLabel() => IsHost ? "Encerrar campeonato" : "Sair da sala";
+        string QuitLabel() => MmRoom ? "Sair da partida" : IsHost ? "Encerrar campeonato" : "Sair da sala";
 
         // ---------- Quadro a quadro ----------
 
@@ -566,7 +566,7 @@ namespace Autorama
                 return;
             }
             oRunQuit.text = QuitLabel();
-            if (IsHost) net.Send(new NetOut { t = "end", text = "O host encerrou o campeonato." });
+            if (IsHost && !MmRoom) net.Send(new NetOut { t = "end", text = "O host encerrou o campeonato." });
             else LeaveRoom();
         }
 
@@ -577,6 +577,14 @@ namespace Autorama
         {
             var ph = sim.phase;
             bool host = IsHost;
+            if (MmRoom && !live)
+            {
+                Btn("Jogar de novo", MatchAgain, "btn btn--primary", cActs);
+                Btn("Sair", LeaveRoom, "btn", cActs);
+                cHint.text = "A partida acabou. Jogar de novo volta para a fila com o mesmo tamanho e a mesma pista.";
+                autoShown = -1;
+                return;
+            }
             if (host)
             {
                 if (!live) Btn("Voltar ao lobby", OnlineEnd, "btn btn--primary", cActs);

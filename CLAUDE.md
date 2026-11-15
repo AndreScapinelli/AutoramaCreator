@@ -21,6 +21,7 @@ O usuário escreve em português, e o projeto inteiro também: textos da interfa
 - **Loop e rampa de salto** (seção 42 do guia): ids `loop` (com `sentido`) e `salto`; não sobem nem descem e os dois podem ficar no alto. No loop o carrinho cai se `v²/raio` não segura o peso na parte de cima ou se para na parede, e volta antes da peça; no salto ele voa (`CarState.air`, gravidade `JumpG 29`), cai no vão se vier devagar e, se vier rápido demais, o pouso tira velocidade e dá derrapagem até 0,6 (`JumpHard 5`, `JumpSlipMax 0.6`, `JumpLoss 1.2`), sem capotar sozinho. O vão do salto é de 1 a 3 células (`TrackPiece.vao`, `"vao"` no JSON; a peça fica com 4 a 6 células e a ponta da rampa sobe para 0,2 · 0,3 · 0,4); o vão 1 tem a identidade de antes.
 - **Fantasma** (seção 55): na corrida livre, toggle na aba Corrida; a melhor volta limpa de gente na pista, salva em `fantasmas/<identidade>.json`. A gravação (`Replay/CarTape.cs`: `CarFrame`, `CarTape`, `RaceRecorder`) é separada para servir a outras repetições.
 - **Narração** (seção 60): faixa no topo, embaixo das fichas; F2 liga e desliga (`RaceSettings.narra`). `Race/Narrador.cs` é puro (eventos, fila e frases); `RaceController.Narra.cs` monta o quadro e a projeção do campeonato (só quando a bateria fecha a etapa). F2 é tecla reservada.
+- **Partida rápida** (seção 62): na aba Online (só servidor Node), fila por tamanho (2, 4, 6, 8); cada um põe uma pista, o servidor sorteia uma com a fila cheia e larga uma bateria por tempo de 4:00 com as regras padrão (`MM_RULES`). Protocolo 5. `RaceController.Match.cs`.
 - O piloto IA não bate recorde da pista; só o melhor pessoal dele.
 
 ## Mapa da Unity (`Assets/Autorama/Scripts`)
@@ -38,7 +39,7 @@ O usuário escreve em português, e o projeto inteiro também: textos da interfa
 | `Editor/OnlineSmokeTest.cs` | Teste do cliente online contra o servidor de verdade (`script eval`) |
 | `Editor/SteamSpacewarTest.cs`, `SteamTransportTest.cs`, `FakeLobbyBackend.cs` | Testes da camada Steam com o Spacewar (AppId 480; precisam da Steam aberta e logada) e do transporte com um mundo falso |
 
-O servidor de salas do campeonato online fica em `servidor/` (Node, fora do `Assets`). Campeonato online: seções 23, 41 e 44 do guia (protocolo 4: snapshot binário, sync, host que passa adiante, voltar de uma queda, jogador 2 no mesmo computador, chassi no ajuste e pausa).
+O servidor de salas do campeonato online fica em `servidor/` (Node, fora do `Assets`). Campeonato online: seções 23, 41 e 44 do guia (protocolo 5: partida rápida, seção 62; 4: snapshot binário, sync, host que passa adiante, voltar de uma queda, jogador 2 no mesmo computador, chassi no ajuste e pausa).
 
 A cena é `Assets/Autorama/Cenas/Construtor.unity`. Os dados do jogo ficam em `Application.persistentDataPath/autorama/`: `pistas/`, `rascunho.json`, `pilotos.json`, `campeonatos.json`, `recordes.json` e `jogador.json` (o id fixo do jogador no online, seção 39 do guia).
 
