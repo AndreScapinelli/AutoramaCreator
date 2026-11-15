@@ -20,7 +20,7 @@ namespace Autorama
         public bool splitScreen = true; // tela dividida offline com 2 a 4 humanos
         public int[] paneCam = { 2, 2, 2, 2 };   // câmera de cada quadro da tela dividida (RaceViewMode: 2, 4 ou 6)
         public int cameraTarget = 0;    // alvo do third person: 0 jogador 1, 1 jogador 2
-        public int cameraDistance = 100; // escala do enquadramento: 70% mais perto, 160% mais longe
+        public int cameraDistance = 100; // escala do enquadramento: 40% mais perto, 160% mais longe
         public int halfGas = 60;        // tecla de meia aceleração (S no jogador 1; ver Controles): até onde o acelerador vai, em %
         public float reslotTime = 0.3f; // recolocar: segundos da volta da mesa até o trilho
         public bool bot34 = true;       // (antigo, não usado: virou set.slots; fica para ler os ajustes salvos antes)
@@ -251,6 +251,40 @@ namespace Autorama
             return 0f;
         }
 
+        // Câmera lateral do loop (seção 57): há um loop entre d − back e d + ahead? Devolve o centro do anel
+        // (x, altura, z, no mundo) e o rumo da peça. Amostra a cada 0,1 do caminho.
+        readonly Dictionary<int, Vector3> loopCenters = new Dictionary<int, Vector3>();
+        public bool LoopNear(float d, float back, float ahead, out Vector3 center, out float heading)
+        {
+            center = default; heading = 0f;
+            if (Total <= 0f) return false;
+            for (float x = d - back; x <= d + ahead; x += 0.1f)
+            {
+                int i = IndexAt(x);
+                if (kinds[i] != 1) continue;
+                int pi = pis[i];
+                if (!loopCenters.TryGetValue(pi, out center))
+                {
+                    Vector3 sum = Vector3.zero; int n = 0;
+                    for (int j = 0; j < pts.Count; j++)
+                        if (kinds[j] == 1 && pis[j] == pi) { sum += new Vector3(pts[j].x, ys[j], pts[j].y); n++; }
+                    center = sum / n;
+                    loopCenters[pi] = center;
+                }
+                heading = hds[i];
+                return true;
+            }
+            return false;
+        }
+
+        int IndexAt(float d)
+        {
+            d = Mathf.Repeat(d, Total);
+            int lo = 0, hi = cum.Count - 1;
+            while (hi - lo > 1) { int m = (lo + hi) / 2; if (cum[m] <= d) lo = m; else hi = m; }
+            return lo;
+        }
+
         public LanePoint At(float d)
         {
             d = Mathf.Repeat(d, Total);
@@ -380,9 +414,15 @@ namespace Autorama
         public float RaceTime => phase == Phase.Countdown || phase == Phase.Switch ? resumeT : t;
         public int N => cars.Length;           // carrinhos na pista: 2 ou 4 (um por trilho)
         public float Scale { get; private set; } = 1f;   // unidades do mundo por célula (2 na pista de 4)
+        // Velocidade no mundo cresce com a raiz da escala (seção 25.5): na pista de 8, ×2 e não ×4, para o carrinho (que não
+        // cresce) não virar foguete. Acelerações (freio, rampa, aderência, gravidade) escalam com Speed²/Scale = G, e assim
+        // o carro se comporta igual em % da velocidade final; a volta numa pista larga demora √Scale vezes mais.
+        public float Speed { get; private set; } = 1f;
+        public float G => Speed * Speed / Scale;
 
         public event Action<Vector3> Spark;     // posição da batida no mundo
         public event Action ScoreChanged;
+        public event Action Resets;             // voltou ao grid (os efeitos limpam rastro e marcas)
         public event Action<int, float> LapDone;      // carro, tempo da volta (antes de atualizar best e bestT)
 
         public RaceSim(RaceSettings settings) { set = settings; }
@@ -393,7 +433,7 @@ namespace Autorama
         public void SetTrack(List<Segment> segs, bool isClosed, int faixas = 2)
         {
             var lanes = TrackMath.LanesOf(faixas);
-            Scale = TrackMath.Scale(faixas);
+            Scale = TrackMath.Scale(faixas); Speed = Mathf.Sqrt(Scale);
             if (cars.Length != lanes.Length)
             {
                 cars = new CarState[lanes.Length];
@@ -414,6 +454,7 @@ namespace Autorama
             phase = Phase.Idle; t = 0f; winner = -1; bestT = null; Manche = 0; resumeT = 0f; switchT = 0f;
             for (int k = 0; k < N; k++) { bool held = cars[k].held; cars[k] = new CarState { held = held, s = GridPos, lane = k }; }
             System.Array.Clear(pairContact, 0, pairContact.Length);
+            Resets?.Invoke();
             ScoreChanged?.Invoke();
         }
 
@@ -481,11 +522,11 @@ namespace Autorama
                     var here = P.At(c.s);
                     // Turbo: só com o acelerador apertado, tanque com carga e a prova valendo. Soma velocidade e gasta o tanque.
                     bool tb = set.turbo && c.boost && c.turbo > 0f && c.T > 0f && phase == Phase.Running;
-                    // Tudo em células × Scale: a física de uma pista de 4 ou 6 é a de 2 esticada (ver seção 25.5 do guia).
+                    // Distâncias × Scale, velocidades × Speed, acelerações × G (seção 25.5 do guia).
                     var su = setup[k];
-                    float top = set.vmax * Scale * su.Top * (tb ? 1f + TurboBoost : 1f);
+                    float top = set.vmax * Speed * su.Top * (tb ? 1f + TurboBoost : 1f);
                     if (tb) { c.turbo = Mathf.Max(0f, c.turbo - dt / TurboTime); c.turboLap = true; }
-                    float a = (c.T == 0f ? -(Brake * c.v + Brake0 * Scale) * su.Resp : Accel * su.Accel * (c.T * top - c.v)) - SlopeG * Scale * here.slope;
+                    float a = (c.T == 0f ? -(Brake * c.v + Brake0 * Speed) * su.Resp : Accel * su.Accel * (c.T * top - c.v)) - SlopeG * G * here.slope;
                     c.v = Mathf.Max(0f, c.v + a * dt);
                     c.s += c.v * dt;
                     Travel[k] += c.v * dt;      // distância percorrida, em unidades do mundo (o painel converte para metros)
@@ -502,7 +543,7 @@ namespace Autorama
                     // Loop: na parte de cima, v²/raio tem que segurar o peso. Devagar demais, despenca e volta no começo da peça.
                     float down = Mathf.Cos(q.pitch * Mathf.Deg2Rad);
                     // Parado na parede do loop (a rampa vence o motor) também despenca: senão fica preso no trilho sem poder recolocar.
-                    if (q.loop && (c.v * c.v / (PieceCatalog.LoopRadius * Scale) + LoopG * Scale * down < 0f || c.v <= 0f && q.pitch > LoopStall))
+                    if (q.loop && (c.v * c.v / (PieceCatalog.LoopRadius * Scale) + LoopG * G * down < 0f || c.v <= 0f && q.pitch > LoopStall))
                     {
                         float v0 = c.v;
                         Deslot(k, null);
@@ -512,8 +553,8 @@ namespace Autorama
                     }
                     if (q.k != 0f) c.side = q.k > 0f ? 1 : -1;
                     // Bolha: a aderência cresce com (v / vmax)² (com Aero 0 o fator é 1 e a conta é a de antes).
-                    float vr = c.v / (set.vmax * Scale);
-                    float ratio = c.v * c.v * Mathf.Abs(q.k) / (set.grip * Scale * su.Grip * q.grip * (1f + su.Aero * vr * vr));
+                    float vr = c.v / (set.vmax * Speed);
+                    float ratio = c.v * c.v * Mathf.Abs(q.k) / (set.grip * G * su.Grip * q.grip * (1f + su.Aero * vr * vr));
                     c.slip = ratio > 1f ? c.slip + (ratio - 1f) * SlipGain * su.Slip * dt : Mathf.Max(0f, c.slip - SlipDecay * su.Decay * dt);
                     if (c.slip >= 1f) Deslot(k, null);
                     else CountLap(k);
@@ -545,7 +586,7 @@ namespace Autorama
             var c = cars[k];
             var P = PathOf(k);
             float s0 = c.s, y0 = c.airY;
-            c.airVy -= JumpG * Scale * dt;
+            c.airVy -= JumpG * G * dt;
             c.airY += c.airVy * dt;
             c.s += c.v * dt;
             Travel[k] += c.v * dt;
@@ -559,7 +600,7 @@ namespace Autorama
             }
             if (!hole && c.airY > q.y) { CountLap(k); return; }
             hole |= q.gap;
-            float hit = Mathf.Max(0f, c.v * q.slope * TrackMath.LevelHeight - c.airVy) / (JumpHard * Scale);
+            float hit = Mathf.Max(0f, c.v * q.slope * TrackMath.LevelHeight - c.airVy) / (JumpHard * Speed);
             // O pouso sozinho não capota: a derrapagem dele para em JumpSlipMax, e o tranco acima de JumpSoft tira velocidade.
             if (!hole)
             {
@@ -892,7 +933,7 @@ namespace Autorama
             if (c.mode == CarMode.Off) { c.held = false; if ((c.offT += dt) >= AiReslotDelay(sk)) { c.offT = 0f; Reslot(k); } return; }
             if (c.mode != CarMode.OnSlot || c.finish != null) { c.held = false; return; }
             var P = PathOf(k);
-            // Velocidades e freio em unidades do mundo: o freio de AiBrake (em células) vira AiBrake × Scale.
+            // Velocidades × Speed e freio × G, como na física.
             float m = c.aiM;
             float need = float.PositiveInfinity;
             bool jumpNear = false;
@@ -902,26 +943,26 @@ namespace Autorama
                 // Rampa de salto: chega na ponta a JumpAi (um pouco mais ou menos conforme a coragem; no erro, rápido demais).
                 if (q.jump && q.slope > 0f)
                 {
-                    float vj = JumpAi[Mathf.RoundToInt(q.def.Gap) - 1] * Scale * (m > 1.25f ? m : Mathf.Clamp(m, 0.9f, 1.1f));
-                    need = Mathf.Min(need, Mathf.Sqrt(vj * vj + 2f * AiBrake * Scale * d));
+                    float vj = JumpAi[Mathf.RoundToInt(q.def.Gap) - 1] * Speed * (m > 1.25f ? m : Mathf.Clamp(m, 0.9f, 1.1f));
+                    need = Mathf.Min(need, Mathf.Sqrt(vj * vj + 2f * AiBrake * G * d));
                     jumpNear = true;
                 }
                 if (q.k == 0f) continue;
                 // Curva em C (seção 50.3): entra no limite (sem contar com a derrapagem) e freia mais cedo, porque o freio
                 // perde força em baixa velocidade e a C pede quase parar.
                 bool pin = q.def == PieceCatalog.Hairpin && m <= 1.25f;
-                float v = CarSetup.CurveV(set.grip * Scale * setup[k].Grip * q.grip, Mathf.Abs(q.k), setup[k].Aero, set.vmax * Scale) * (pin ? Mathf.Min(m, 1f) : m);
-                need = Mathf.Min(need, Mathf.Sqrt(v * v + 2f * (pin ? AiBrakePin : AiBrake) * Scale * d));
+                float v = CarSetup.CurveV(set.grip * G * setup[k].Grip * q.grip, Mathf.Abs(q.k), setup[k].Aero, set.vmax * Speed) * (pin ? Mathf.Min(m, 1f) : m);
+                need = Mathf.Min(need, Mathf.Sqrt(v * v + 2f * (pin ? AiBrakePin : AiBrake) * G * d));
             }
             // Dentro do loop não deixa a velocidade cair abaixo de LoopAi, mesmo com curva logo depois.
-            if (P.At(c.s).loop) need = Mathf.Max(need, LoopAi * Scale);
+            if (P.At(c.s).loop) need = Mathf.Max(need, LoopAi * Speed);
             c.held = c.v < need;
             // Chegando no salto ela não solta o botão: dosa o gatilho (1% ou 100%). Soltar e apertar de novo faz o
             // acelerador recomeçar do zero, e o carrinho chegaria na ponta da rampa devagar demais para cruzar o vão.
             c.gas = jumpNear && !c.held ? 0.01f : 1f;
             if (jumpNear) c.held = true;
             // Turbo da IA: só quando nenhuma curva à frente pede freio nem na velocidade com turbo (retas longas).
-            c.boost = set.turbo && c.turbo > 0f && need > set.vmax * Scale * setup[k].Top * (1f + TurboBoost);
+            c.boost = set.turbo && c.turbo > 0f && need > set.vmax * Speed * setup[k].Top * (1f + TurboBoost);
         }
 
         // Melhor volta da bateria só entre gente: piloto IA não bate recorde da pista.
@@ -934,6 +975,6 @@ namespace Autorama
 
         // Velocidade limite de uma curva para o ajuste de aderência (para o texto de ajuda).
         // Em unidades do mundo (a mesma conta de `ratio` no passo).
-        public float CornerLimit(float radius, float gripMultiplier) => Mathf.Sqrt(set.grip * Scale * gripMultiplier * radius);
+        public float CornerLimit(float radius, float gripMultiplier) => Mathf.Sqrt(set.grip * G * gripMultiplier * radius);
     }
 }

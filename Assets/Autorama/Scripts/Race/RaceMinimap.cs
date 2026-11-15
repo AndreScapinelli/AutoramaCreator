@@ -9,7 +9,7 @@ namespace Autorama
     // redimensiona-se pelo canto. A posição, o tamanho e a aba aberta ficam salvos em RaceSettings.
     public class RaceMinimap : VisualElement
     {
-        const float Step = 0.25f;               // distância (em unidades do mundo) entre os pontos do traçado
+        const float Step = 0.25f;               // distância (em células, × Scale no mundo) entre os pontos do traçado
         const float Pad = 10f;                  // margem interna do traçado, em pixels
         const float MinW = 220f, MaxW = 460f;   // largura da janela (a altura do mapa é igual)
         const float Margin = 12f, TopGap = 56f; // onde ela nasce: canto superior direito, abaixo do botão da câmera
@@ -25,7 +25,7 @@ namespace Autorama
         Vector2 finishPos; bool hasFinish;
 
         // Partes da janela.
-        readonly VisualElement head, canvas, grip, info;
+        readonly VisualElement head, canvas, dotLayer, grip, info;   // canvas: traçado (só redesenha quando muda); dotLayer: os pontos, a cada quadro
         readonly Label[] num = new Label[RaceSim.MaxCars];            // a posição no meio do ponto de cada carro
         readonly Label toggle, headTitle;
         readonly VisualElement[] rows = new VisualElement[RaceSim.MaxCars];
@@ -49,8 +49,13 @@ namespace Autorama
             head.RegisterCallback<PointerUpEvent>(e => EndDrag(e, head, false));
 
             canvas = new VisualElement(); canvas.AddToClassList("minimap-canvas"); canvas.pickingMode = PickingMode.Ignore;
-            canvas.generateVisualContent += Draw;
+            canvas.generateVisualContent += DrawTrack;
             Add(canvas);
+            dotLayer = new VisualElement { pickingMode = PickingMode.Ignore };
+            dotLayer.style.position = Position.Absolute;
+            dotLayer.style.left = 0; dotLayer.style.top = 0; dotLayer.style.right = 0; dotLayer.style.bottom = 0;
+            dotLayer.generateVisualContent += DrawDots;
+            canvas.Add(dotLayer);
 
             for (int k = 0; k < RaceSim.MaxCars; k++)
             {
@@ -96,8 +101,7 @@ namespace Autorama
             }
             UpdateInfo(names, colors, order, cellCm);
             PlaceNumbers(order);
-            MarkDirtyRepaint();
-            canvas.MarkDirtyRepaint();
+            dotLayer.MarkDirtyRepaint();
         }
 
         // ---------- Posição e tamanho ----------
@@ -228,7 +232,7 @@ namespace Autorama
             {
                 var P = sim.paths[k];
                 if (P == null || P.Total <= 0f) continue;
-                int n = Mathf.Max(2, Mathf.CeilToInt(P.Total / Step));
+                int n = Mathf.Max(2, Mathf.CeilToInt(P.Total / (Step * sim.Scale)));
                 for (int i = 0; i <= n; i++)
                 {
                     var p = P.At(P.Total * i / n).pos;
@@ -241,6 +245,7 @@ namespace Autorama
             box = Rect.MinMaxRect(x0 - 0.5f, y0 - 0.5f, x1 + 0.5f, y1 + 0.5f);
             hasFinish = sim.paths[0] != null && sim.paths[0].marks.Count > 0;
             if (hasFinish) finishPos = sim.paths[0].At(sim.paths[0].marks[0]).pos;
+            canvas.MarkDirtyRepaint();
         }
 
         bool SameAs(LanePath[] other)
@@ -282,7 +287,9 @@ namespace Autorama
 
         const float DotR = 8f;
 
-        void Draw(MeshGenerationContext ctx)
+        // O traçado tem milhares de pontos (8 trilhos na pista de 8): tesselar a cada quadro travava a corrida.
+        // Só redesenha quando a pista muda (EnsureTrack) ou a janela muda de tamanho.
+        void DrawTrack(MeshGenerationContext ctx)
         {
             if (track.Count < 2 || box.width <= 0f || box.height <= 0f) return;
             Vector2 P(Vector2 p) => ToMap(p);
@@ -310,7 +317,15 @@ namespace Autorama
                 g.BeginPath(); g.MoveTo(f + new Vector2(-4f, -4f)); g.LineTo(f + new Vector2(4f, 4f)); g.Stroke();
             }
 
-            // Carrinhos: ponto com borda escura, na cor do painel do carrinho.
+        }
+
+        // Carrinhos: ponto com borda escura, na cor do painel do carrinho. dotLayer cobre o canvas inteiro, então o
+        // contentRect dele é o mesmo e ToMap serve.
+        void DrawDots(MeshGenerationContext ctx)
+        {
+            if (track.Count < 2 || box.width <= 0f || box.height <= 0f || sim == null) return;
+            Vector2 P(Vector2 p) => ToMap(p);
+            var g = ctx.painter2D;
             for (int c = 0; c < sim.N; c++)
             {
                 if (!dotOn[c] || c >= laneColors.Length) continue;

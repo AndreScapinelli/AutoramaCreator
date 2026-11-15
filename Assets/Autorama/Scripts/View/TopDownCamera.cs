@@ -68,6 +68,12 @@ namespace Autorama
         Vector3 chaseLook;                    // ponto olhado suavizado
         bool chaseReady;                      // false = começa a seguir do zero (troca de modo ou de carrinho)
 
+        // Câmera lateral do loop: a LoopSide células (× escala) do centro do anel, de lado, misturada com a de trás.
+        const float LoopSide = 6f, LoopUp = 0.4f, LoopBlendRate = 4f, LoopLookCar = 0.5f;
+        float loopW;                          // 0 = atrás do carrinho, 1 = de lado do loop
+        float loopSign;                       // de que lado do loop (escolhido ao entrar, fixo até sair)
+        bool loopSideSet;
+
         void Awake()
         {
             cam = GetComponent<Camera>();
@@ -130,7 +136,18 @@ namespace Autorama
 
         public void SetCarAhead(int k, Vector3 p) { if (k >= 0 && k < raceAhead.Length) raceAhead[k] = p; }
 
-        public void SetDistanceScale(float scale) => distanceScale = Mathf.Clamp(scale, 0.7f, 1.6f);
+        // Loop perto do carrinho (seção 57): centro do anel e rumo da peça, para a Perseguição ir para o lado.
+        readonly bool[] loopOn = new bool[RaceSim.MaxCars];
+        readonly Vector3[] loopCenter = new Vector3[RaceSim.MaxCars];
+        readonly float[] loopHeading = new float[RaceSim.MaxCars];
+        public void SetCarLoop(int k, bool on, Vector3 center, float heading)
+        {
+            if (k < 0 || k >= loopOn.Length) return;
+            loopOn[k] = on;
+            if (on) { loopCenter[k] = center; loopHeading[k] = heading; }
+        }
+
+        public void SetDistanceScale(float scale) => distanceScale = Mathf.Clamp(scale, 0.4f, 1.6f);
 
         // Posição e rumo dos carrinhos (count = 2 ou 4). focus: o que a vista dinâmica acompanha (-1 enquadra todos).
         public void SetRaceTargets(Vector3[] pos, float[] heading, int count, int focus = -1)
@@ -289,8 +306,30 @@ namespace Autorama
 
             chaseLook = Vector3.Lerp(chaseLook, look, 1f - Mathf.Exp(-ThirdLookRate * dt));
             Vector3 desired = car - chaseFwd * ChaseBack * u + Vector3.up * ChaseUp * u;
+            Vector3 lookAt = chaseLook;
+
+            // Loop à frente: vai para o lado do anel, para o carrinho aparecer dando a volta.
+            bool wantLoop = loopOn[k] && !spun[k];
+            if (wantLoop && !loopSideSet)
+            {
+                float hr = loopHeading[k] * Mathf.Deg2Rad;
+                Vector3 n0 = new Vector3(-Mathf.Sin(hr), 0f, Mathf.Cos(hr));
+                loopSign = Vector3.Dot(transform.position - loopCenter[k], n0) >= 0f ? 1f : -1f;   // o lado mais perto
+                loopSideSet = true;
+            }
+            loopW = Mathf.Lerp(loopW, wantLoop ? 1f : 0f, 1f - Mathf.Exp(-LoopBlendRate * dt));
+            if (!wantLoop && loopW < 0.01f) { loopW = 0f; loopSideSet = false; }
+            if (loopW > 0f && loopSideSet)
+            {
+                float hr = loopHeading[k] * Mathf.Deg2Rad;
+                Vector3 n = new Vector3(-Mathf.Sin(hr), 0f, Mathf.Cos(hr)) * loopSign;
+                Vector3 c = loopCenter[k];
+                Vector3 side = c + n * LoopSide * trackScale + Vector3.up * LoopUp * trackScale;
+                desired = Vector3.Lerp(desired, side, loopW);
+                lookAt = Vector3.Lerp(chaseLook, Vector3.Lerp(c, car, LoopLookCar), loopW);
+            }
             transform.position = Vector3.Lerp(transform.position, desired, 1f - Mathf.Exp(-ChasePosRate * dt));
-            transform.rotation = Quaternion.LookRotation((chaseLook - transform.position).normalized, Vector3.up);
+            transform.rotation = Quaternion.LookRotation((lookAt - transform.position).normalized, Vector3.up);
 
             cam.orthographic = false;
             cam.fieldOfView = 55f;

@@ -1467,7 +1467,7 @@ else if (slip < SpinOut)       spun[k] = false;
 - **Corrida livre com um humano só:** esse humano.
 - **Senão:** `-1`; a TV segue o líder, a Perseguição e a Primeira pessoa seguem o alvo do menu.
 
-O slider **Distância** vale para a TV (zoom) e a Perseguição: `100%` é o padrão, a faixa é `70%–160%`.
+O slider **Distância** vale para a TV (zoom) e a Perseguição: `100%` é o padrão, a faixa é `40%–160%` (era 70%; seção 57).
 
 Implementação: `RaceController.BuildCamMenu(root)` monta `.cam-menu`, `.cam-btn`, `.cam-pop` com um `.cam-opt` por modo (`CamModeValues`, `CamModes`, `CamModeHints`), o `.cam-sub` do alvo e o `SliderInt`. `RaceSettings` salva `cameraMode` (valor de `RaceViewMode`: 5, 2 ou 4; padrão 5), `cameraTarget` e `cameraDistance`.
 
@@ -2836,6 +2836,22 @@ Testes (`script eval`, oval, `faixas` 2, 4 e 6, `vmax` 14, `grip` 29):
 
 Os tempos das seções 25.7 e 31.4 são da física antiga. Os recordes das pistas de 4 e de 6 vão mudar; as identidades (`f4|`, `f6|`) não.
 
+### 25.5c Velocidade × √S (o carrinho não vira foguete)
+
+Com a física × `S` (25.5b), o tempo de volta era igual em todas as pistas. Mas o carrinho não cresce: na pista de 8 ele andava 4 comprimentos de carro para cada 1 na de 2, e parecia um foguete. Agora a velocidade no mundo cresce com `RaceSim.Speed = √S` (×1,41 · ×1,73 · ×2), e as distâncias continuam × `S`. Para o carro se comportar igual em % da velocidade final, toda aceleração passa a ser × `G = Speed²/S` (que, com √S, vale 1):
+
+| Conta | 25.5b | Agora |
+|---|---|---|
+| `top`, `Brake0`, `vr` da bolha, `JumpAi`, `LoopAi`, `JumpHard`, turbo da IA | × `S` | × `Speed` |
+| `grip` (razão `v²·k/grip`, `CornerLimit`, `CurveV` da IA), `SlopeG`, `LoopG`, `JumpG`, `AiBrake`, `AiBrakePin` | × `S` | × `G` |
+| distâncias (caminho, grid, `JumpBack`, `AiLook`, alturas) | × `S` | × `S` |
+
+A volta demora √S vezes mais que na pista de 2. A barra de velocidade, o som, a dica de curva (`RaceController`) e o `ChampData.EstimateMin` dividem por `Speed`, não por `S`. A pista de 2 fica bit a bit igual.
+
+Recordes: a identidade das pistas largas virou `f4v2|`, `f6v2|`, `f8v2|` (`Champ.TrackHash`). Os recordes e fantasmas feitos na velocidade antiga continuam nos arquivos, mas ficam para trás. A pista de 2 não muda (oval = `a34f4cb9`).
+
+Teste (`script eval`, oval, `vmax` 14, `grip` 29, `ramp` 0,5, robôs de qualidade 100 em todos os trilhos, 5 voltas, colisão ligada, `Random.InitState(7)`): melhor volta de 4,58 s (2 trilhos), 6,10 s (4), 7,38 s (6) e 8,43 s (8); nenhuma saída. Velocidade máxima no mundo: 12,2 · 18,5 · 22,2 · 27,1.
+
 ### 25.6 Campeonato
 
 - **Carros por bateria: 2 · 4** no Novo campeonato (`ChampDraft.faixas`, `Championship.faixas`). Só aparecem as pistas do tipo escolhido; trocar o tipo tira as etapas do outro (segundo clique). **Os dois tipos nunca se misturam.**
@@ -3167,7 +3183,7 @@ Um mapa esquemático da pista no canto superior direito da mesa, logo abaixo do 
 
 **Posição e tamanho (USS):** `position: absolute; top: 56px; right: 12px; width: 200px; height: 200px`, borda `--borda`, cantos de 12px. O `top: 56px` deixa o botão da câmera (34px a partir de 10px) livre.
 
-**Traçado:** lido dos caminhos dos trilhos (`RaceSim.paths[k]`, `LanePath`), não de `TrackLayout`. Assim vale para qualquer tamanho (2, 4 ou 6 trilhos) e para a pista adaptada, sem código extra. Cada trilho é amostrado a cada `Step = 0,25` unidades do mundo (`LanePath.At(d).pos`). A caixa do traçado é o menor retângulo que contém os trilhos, com meia unidade de folga.
+**Traçado:** lido dos caminhos dos trilhos (`RaceSim.paths[k]`, `LanePath`), não de `TrackLayout`. Assim vale para qualquer tamanho (2, 4 ou 6 trilhos) e para a pista adaptada, sem código extra. Cada trilho é amostrado a cada `Step = 0,25` célula (`Step × sim.Scale` no mundo, `LanePath.At(d).pos`). Antes era 0,25 no mundo: na pista de 8, eram 16× mais pontos que na de 2. A caixa do traçado é o menor retângulo que contém os trilhos, com meia unidade de folga.
 
 **Orientação:** igual à mesa de cima. A coordenada `z` do mundo cresce para cima na tela (`oy + (box.yMax − z) · k`), a mesma regra da miniatura de pista salva (`TrackThumb`, seção 6).
 
@@ -3180,7 +3196,7 @@ Um mapa esquemático da pista no canto superior direito da mesa, logo abaixo do 
 4. Chegada: um tracinho branco de 8 px na bandeirada do trilho 1 (`LanePath.marks[0]`).
 5. Carrinhos: um círculo escuro de raio 6 px e, por cima, um de raio 4,5 px na cor do carrinho. A cor vem de `pads[k].root.resolvedStyle.borderTopColor` (a mesma do cartão do HUD).
 
-**Atualização:** `RaceMinimap.Refresh()` recalcula a posição de cada carrinho com `RaceSim.CarPose(k)` (inclui o carrinho fora da pista, que aparece onde está) e chama `MarkDirtyRepaint()`. O traçado só é refeito quando os caminhos mudam (`builtFor` guarda a referência dos `LanePath`; `SetTrack` cria caminhos novos). Carrinho sem trilho ou fora da corrida (`present[k] = false`) não aparece.
+**Atualização:** `RaceMinimap.Refresh()` recalcula a posição de cada carrinho com `RaceSim.CarPose(k)` (inclui o carrinho fora da pista, que aparece onde está) e redesenha só a camada dos pontos (`dotLayer`, filho do `canvas` que o cobre inteiro, `DrawDots`). O traçado (`canvas`, `DrawTrack`) só é tesselado de novo quando muda: `EnsureTrack` chama `canvas.MarkDirtyRepaint()`, e a UI redesenha sozinha quando a janela muda de tamanho. Antes, os dois passos de traço de todos os trilhos eram refeitos a cada quadro: na pista de 8 (8 trilhos, caminho 4× maior), isso travava a corrida. O traçado só é refeito quando os caminhos mudam (`builtFor` guarda a referência dos `LanePath`; `SetTrack` cria caminhos novos). Carrinho sem trilho ou fora da corrida (`present[k] = false`) não aparece.
 
 **Quando aparece:** `panel.RaceMode` e `sim.Ready`. No construtor, o minimapa fica escondido; ao entrar na aba Corrida, aparece.
 
@@ -4156,3 +4172,23 @@ Robôs de qualidade 100, 5 voltas, colisão e turbo ligados, `Random.InitState(7
 - Visual: `CarView` com `MakeGhost`: um material URP/Lit transparente (azul-claro, alfa 0,35, sem ZWrite, sem sombra) em todas as peças, também depois de trocar bolha e chassi. A bolha e o chassi são os do carro gravado. Atenção: no build, o shader precisa da variante `_SURFACE_TYPE_TRANSPARENT` (não conferido).
 - Interface: seção **FANTASMA** na aba Corrida, depois de PILOTOS: o toggle "Correr contra o fantasma" e, ligado, a volta, o trilho, a data, um aviso se a velocidade máx., a aderência ou o tempo até 100% eram outros, e o cartão do carro do fantasma (`DrawCarCard`, só para ver).
 - Testes (`script eval`, sem cena, Oval, robô 80 no trilho 1, 3 voltas): voltas 5,150 · 4,850 · 4,900 s com 156 · 147 · 148 amostras (~6,8 mil caracteres em Base64), a pose do fim do recorte igual à do carro na linha (erro 0), ida e volta pelo Base64 igual; `Slice`/`At` conferidos numa trilha sintética. **Não visto no Play.**
+
+## 56. Efeitos: rastro do turbo, fumaça e marca de pneu
+
+`Race/RaceController.Vfx.cs` (partial). Só lê o `CarState` (`boost`, `turbo`, `slip`, `v`, `air`, `mode`), que o online já manda no snapshot. Por isso funciona igual offline e online, e a física não muda. `CreateVfx()` roda no `Start` depois do `CreateSparks`; `UpdateVfx(k, st)` roda no `PlaceCars` depois de posicionar cada carrinho; `FlushVfx()` envia a malha das marcas uma vez por quadro. Em pausa (`Paused`) nada sai. Todos usam um material `Sprites/Default` criado em tempo de execução (cor por vértice, alfa), sem asset novo.
+
+- **Rastro do turbo:** um `TrailRenderer` por carro, filho do carrinho, em (−0,27; 0,07; 0) local. Liga com `boost && turbo > 0`, no trilho e fora do ar. `TrailTime 0.35` s, largura 0,18 → 0, de branco a laranja a vermelho, alfa 0,9 → 0.
+- **Fumaça:** um `ParticleSystem` só, em espaço do mundo, com `Emit` alternando os dois pneus traseiros (−0,185; ±0,145 local). Taxa `SmokeRate 140`/s × `(slip − SmokeSlip)/(1 − SmokeSlip)`, com `SmokeSlip 0.25` e `v > SmokeMinV 0.3`. Vida de 0,8 a 1,2 s, tamanho de 0,25 a 0,4 que cresce de 0,6× a 3×, alfa de 0,75 a 0, 0,06 acima dos pneus, textura radial gerada (`SmokeTexture`, 32×32), `maxParticles 1500`.
+- **Marca de pneu:** uma `Mesh` dinâmica com `SkidMax 3000` faixas num buffer circular (as mais velhas são substituídas). Com `slip > SkidSlip 0.5`, cada pneu traseiro grava um quad do ponto anterior ao atual a cada `SkidStep 0.02`, com meia-largura `SkidW 0.035` e `SkidLift 0.003` acima do chão (segue a rampa e o banking pela pose do carro). Cor (20, 20, 20), alfa até 200 conforme o `slip`.
+- **Limpeza:** `RaceSim.Resets` (evento novo no fim do `Reset`) chama `ClearVfx`: apaga os rastros, a fumaça e as marcas. Um salto de mais de `VfxJump 1` entre quadros (volta ao trilho, grid) limpa o rastro e corta a marca, para não riscar a mesa.
+- **Teste** (Play, `script eval`, carro 0 forçado com slip 0,8, v 2 e turbo por 30 passos): `Sprites/Default` encontrado, 29 partículas de fumaça, rastro ligado com 19 pontos, 58 faixas de marca; depois do `Reset`, 0 faixas. **Não visto na tela.** No build, `Sprites/Default` precisa estar nos shaders sempre incluídos (é o padrão do projeto Unity; não conferido).
+- **Batida e saída de pista** (no mesmo `UpdateVfx`, pelo estado e não pelo evento `Spark`, para aparecer também no cliente online): quando `hitFx` sobe, saem `HitSparks 10` faíscas em cada carro (20 por batida); quando `mode` vira `Off`, saem `OffSparks 12` faíscas e `OffDust 30` puffs de poeira (o sistema da fumaça, a 0,8 de velocidade para os lados e para cima). O `sim.Spark` agora só toca o som. As faíscas ficaram maiores: vida de 0,35 a 0,6 s, velocidade de 2 a 4, tamanho de 0,08 a 0,15 (eram 0,3 s, 2,2 e 0,07), `maxParticles 1500`. Teste no Play: batida 10 faíscas por carro (eram 40, exagerado); saída 12 faíscas e 30 puffs (eram 50, exagerado).
+- **Poeira fora da pista:** os puffs da saída duram de `DustLifeMin 2` a `DustLifeMax 2.8` s (a fumaça do drift continua com 0,8 a 1,2). Enquanto o carro roda fora da pista (`mode Off`, `flyVel` acima de 0,3), sai poeira contínua, `DustRate 30`/s, com a mesma vida. Teste no Play (20 passos fora da pista): 41 puffs, vida máxima 2,77 s.
+
+## 57. Perseguição: zoom maior e câmera de lado no loop
+
+- **Zoom:** o slider **Distância** vai de `40%` a `160%` (era 70%). O limite está no `SliderInt`, no `Mathf.Clamp` de `set.cameraDistance` e em `TopDownCamera.SetDistanceScale` (0,4 a 1,6). Em 40%, a Perseguição fica a 1,3 célula atrás e 0,7 acima (× escala da pista).
+- **Loop à frente:** a cada quadro, `RaceController` pergunta `LanePath.LoopNear(s, back, ahead, out centro, out rumo)` para cada carrinho no trilho: há um ponto de loop (`kinds == 1`) entre `s − LoopCamAfter 0.5` e `s + max(LoopCamMin 1.5, v · LoopCamLead 0.6 s)`? Medidas em células × `sim.Scale`. O centro do anel é a média dos pontos do loop daquela peça, guardado em `loopCenters`. O resultado chega à câmera em `TopDownCamera.SetCarLoop(k, on, centro, rumo)`.
+- **Câmera de lado** (`ApplyThirdPerson`): com o loop ligado e o carrinho sem rodar, ela escolhe o lado do anel mais perto de onde está (o sinal fica fixo até sair) e vai para `centro + normal · LoopSide 6 + cima · LoopUp 0.4` (× `trackScale`, sem a Distância, para o anel caber inteiro com 55° de campo), olhando entre o centro e o carrinho (`LoopLookCar 0.5`). A mistura com a posição de trás é exponencial (`LoopBlendRate 4`/s) nos dois sentidos, e a suavização normal da posição (`ChasePosRate`) continua por cima. Se o carrinho cai do loop (`spun`), ela volta para trás dele.
+- Vale para a Perseguição, a Primeira pessoa quando ela vira Perseguição (carrinho rodando) e cada vista da tela dividida.
+- **Teste** (`script eval`, pista `lavarapidohotwheels`, 8 carros, escala 4): `LoopNear` liga em s = 254,2, o loop começa em 258,3 e termina em 283,5, e ela desliga em 285,4. Centro (29,97; 11,28; 61,76), rumo 180°. Compila sem erro. **O movimento da câmera não foi visto na tela.**

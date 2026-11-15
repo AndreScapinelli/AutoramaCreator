@@ -42,7 +42,7 @@ function render(w, h, ss, fn){
 /* ---------- Cores (as mesmas do HTML) ---------- */
 const hex = s => [parseInt(s.slice(1, 3), 16), parseInt(s.slice(3, 5), 16), parseInt(s.slice(5, 7), 16)];
 const C = {
-  asphalt:hex('#2F3533'), edge:hex('#F2F2EC'), rail:hex('#AEB4B8'), slot:hex('#0E1110'), curb:hex('#D13A2E'),
+  asphalt:hex('#4A514E'), edge:hex('#F2F2EC'), rail:hex('#AEB4B8'), slot:hex('#0E1110'), curb:hex('#D13A2E'),
   laneA:hex('#D3261C'), laneB:hex('#1F5ED4'), accent:hex('#E9A800'), warn:hex('#C2410C'),
   board:hex('#F3F6F0'), minor:hex('#D5DCD2'), major:hex('#A6B3A4'),
   laneAdark:hex('#8E1912'), laneBdark:hex('#163F8F'), tire:hex('#141716'), glass:hex('#1B2730'), glassHi:hex('#5C7383'),
@@ -290,7 +290,7 @@ for (const [name, p] of Object.entries(PIECES)){
    Trilhos em ±0,125 e ±0,375 célula (no mundo: ±0,25 e ±0,75, a célula vale 2).
    ===================================================================== */
 const C4 = {
-  asphalt:hex('#2A3138'), edge:hex('#F4F6F8'), copper:hex('#C07A45'), copperHi:hex('#E3A372'), slot:hex('#0B0E11'),
+  asphalt:hex('#454D55'), edge:hex('#F4F6F8'), copper:hex('#C07A45'), copperHi:hex('#E3A372'), slot:hex('#0B0E11'),
   kerbA:hex('#1F5ED4'), kerbB:hex('#F4F6F8'), wall:hex('#24467F'), wallHi:hex('#5C86C8'), chevron:hex('#E9EEF5'),
   shoulder:hex('#3B4650'), dash:hex('#D9DEE3'),
   lanes:[hex('#D3261C'), hex('#1F5ED4'), hex('#2FA95A'), hex('#E8A91E'), hex('#8B3FD9'), hex('#19B5C9'), hex('#F0781E'), hex('#E04896')],

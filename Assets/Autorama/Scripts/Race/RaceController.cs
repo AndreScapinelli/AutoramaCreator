@@ -157,12 +157,12 @@ namespace Autorama
         {
             set = RaceSettings.Load();
             sim = new RaceSim(set);
-            sim.Spark += p => { if (sparks) sparks.Emit(new ParticleSystem.EmitParams { position = p, applyShapeToPosition = true }, 18); };
             sim.ScoreChanged += () => scoreDirty = true;
             sim.LapDone += OnLapDone;
             CreateCars();
             GhostStart();
             CreateSparks();
+            CreateVfx();
             AudioStart();
             BuildUI();
             BuildTags();
@@ -228,9 +228,10 @@ namespace Autorama
             var main = sparks.main;
             main.playOnAwake = false;
             main.loop = false;
-            main.startLifetime = 0.3f;
-            main.startSpeed = 2.2f;
-            main.startSize = 0.07f;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(0.35f, 0.6f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(2f, 4f);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.08f, 0.15f);
+            main.maxParticles = 1500;
             main.startColor = new Color(1f, 0.8f, 0.2f);
             main.gravityModifier = 0.6f;
             main.simulationSpace = ParticleSystemSimulationSpace.World;
@@ -424,11 +425,17 @@ namespace Autorama
                 carViews[k].SetChassi(sim.setup[k].chassi);
                 carViews[k].SetCockpit(cam.InFirstPersonOf(k));
                 carViews[k].Tick(st.mode == CarMode.OnSlot ? st.v : 0f, st.mode == CarMode.Off, Time.deltaTime);
+                UpdateVfx(k, st);
                 carPos[k] = pos; carHeading[k] = p.heading;
                 // Ponto do trilho à frente, para a Perseguição olhar a curva antes de chegar.
                 var ahead = sim.PathOf(k).At(st.s + CamAhead * sim.Scale);
                 for (int i = 0; i < CamCount; i++) PaneCam(i).SetCarAhead(k, new Vector3(ahead.pos.x, ahead.y, ahead.pos.y));
+                // Loop logo à frente (ou o carrinho dentro dele): a Perseguição vai para o lado (seção 57).
+                bool nearLoop = sim.PathOf(k).LoopNear(st.s, LoopCamAfter * sim.Scale,
+                    Mathf.Max(LoopCamMin * sim.Scale, st.v * LoopCamLead), out var loopC, out float loopH) && st.mode == CarMode.OnSlot;
+                for (int i = 0; i < CamCount; i++) PaneCam(i).SetCarLoop(k, nearLoop, loopC, loopH);
             }
+            FlushVfx();
             if (panel != null && panel.RaceMode)
             {
                 if (framedPath != sim.PathOf(0)) FrameTrackForCamera();
@@ -553,7 +560,7 @@ namespace Autorama
                 half.label = $"Meia aceleração (tecla de meia): {set.halfGas}%";
                 reslot.label = $"Tempo para recolocar: {Num(set.reslotTime, 2)} s";
                 float sc = sim.Scale;
-                float Lim(float r, float m) => Mathf.Min(100f, Mathf.Round(sim.CornerLimit(r, m) / (set.vmax * sc) * 100f));
+                float Lim(float r, float m) => Mathf.Min(100f, Mathf.Round(sim.CornerLimit(r, m) / (set.vmax * sim.Speed) * 100f));
                 // Raio do trilho de dentro e do de fora, no mundo: 2,25 e 2,75 na pista de 2; 4,25 e 5,75 na de 4.
                 var lanes = TrackMath.LanesOf(builder.Faixas);
                 float rIn = (2.5f + lanes[0]) * sc, rOut = (2.5f - lanes[0]) * sc;
@@ -888,7 +895,7 @@ namespace Autorama
             if (!full) return;
             float sc = sim.Scale;
             var lanes = TrackMath.LanesOf(builder.Faixas);
-            float Lim(float r) => Mathf.Round(Mathf.Min(CarSetup.CurveV(sim.set.grip * sc * su.Grip, 1f / r, su.Aero, sim.set.vmax * sc) / (sim.set.vmax * sc * su.Top), 1f) * 100f);
+            float Lim(float r) => Mathf.Round(Mathf.Min(CarSetup.CurveV(sim.set.grip * sim.G * su.Grip, 1f / r, su.Aero, sim.set.vmax * sim.Speed) / (sim.set.vmax * sim.Speed * su.Top), 1f) * 100f);
             Text($"Curva plana: segura até {Lim((2.5f + lanes[0]) * sc)}% da final deste carro no trilho de dentro e {Lim((2.5f - lanes[0]) * sc)}% no de fora. Meia aceleração: {set.halfGas}%.", "small", box);
         }
 
@@ -900,6 +907,9 @@ namespace Autorama
         }
 
         const float CamAhead = 2.2f;      // células à frente do carrinho que a Perseguição olha
+        const float LoopCamLead = 0.6f;   // segundos de antecedência para a câmera ir para o lado do loop
+        const float LoopCamMin = 1.5f;    // células: antecedência mínima
+        const float LoopCamAfter = 0.5f;  // células depois da saída do loop até voltar para trás do carrinho
         LanePath framedPath;
         Rect trackFrameRect; float trackFrameTop;
         readonly bool[] followMask = new bool[RaceSim.MaxCars];
@@ -962,7 +972,7 @@ namespace Autorama
                 camTargetBtns[k] = Btn(CamTargets[k], () => { set.cameraTarget = t; set.Save(); ApplyCameraSettings(); }, "btn", seg);
             }
             camTargetNote = Text("No online, segue o seu carrinho.", "small", camTargetBox);
-            cameraDistanceSlider = new SliderInt(70, 160) { value = Mathf.Clamp(set.cameraDistance, 70, 160) };
+            cameraDistanceSlider = new SliderInt(40, 160) { value = Mathf.Clamp(set.cameraDistance, 40, 160) };
             cameraDistanceSlider.AddToClassList("setting");
             camPop.Add(cameraDistanceSlider);
             cameraDistanceSlider.RegisterValueChangedCallback(e => { set.cameraDistance = e.newValue; set.Save(); ApplyCameraSettings(); });
@@ -999,7 +1009,7 @@ namespace Autorama
             int mode = System.Array.IndexOf(CamModeValues, (TopDownCamera.RaceViewMode)set.cameraMode);
             if (mode < 0) mode = 0;
             int target = Mathf.Clamp(set.cameraTarget, 0, (sim != null ? sim.N : 2) - 1);
-            set.cameraDistance = Mathf.Clamp(set.cameraDistance, 70, 160);
+            set.cameraDistance = Mathf.Clamp(set.cameraDistance, 40, 160);
             set.cameraMode = (int)CamModeValues[mode];
             set.cameraTarget = target;
 
@@ -1154,7 +1164,7 @@ namespace Autorama
                 var c = sim.cars[k];
                 var p = pads[k];
                 p.fill.style.width = Length.Percent(c.T * 100f);
-                p.speed.style.width = Length.Percent(Mathf.Min(100f, c.v / (sim.set.vmax * sim.Scale * sim.setup[k].Top) * 100f));
+                p.speed.style.width = Length.Percent(Mathf.Min(100f, c.v / (sim.set.vmax * sim.Speed * sim.setup[k].Top) * 100f));
                 p.slip.style.width = Length.Percent(Mathf.Min(100f, c.slip * 100f));
                 p.slip.style.backgroundColor = c.slip < 0.45f ? new Color(0.24f, 0.75f, 0.45f) : c.slip < 0.75f ? new Color(0.96f, 0.76f, 0.1f) : new Color(0.94f, 0.48f, 0.23f);
                 bool off = c.mode == CarMode.Off, ai = sim.aiSkill[k] > 0;

@@ -260,10 +260,11 @@ namespace Autorama
 
         // A identidade da pista é a forma (sequência de peças), não o nome nem a posição na mesa.
         // "id:sentido:altura" de cada peça, FNV-1a de 32 bits: o mesmo número que o HTML calcula.
-        // A pista de 4 carros começa com "f4|": a mesma forma em 2 e em 4 faixas são pistas diferentes, e as de 2 não mudam.
+        // A pista de 4, 6 ou 8 começa com "f4v2|", "f6v2|", "f8v2|": a mesma forma em 2 e em 4 faixas são pistas diferentes,
+        // e as de 2 não mudam. O "v2" veio com a velocidade × √Scale (seção 25.5): os recordes da velocidade antiga ficam para trás.
         public static string TrackHash(TrackSave t)
         {
-            var sb = new StringBuilder((t.Faixas >= 4 ? $"f{t.Faixas}|" : "") + $"largada:0:{t.StartZ}");
+            var sb = new StringBuilder((t.Faixas >= 4 ? $"f{t.Faixas}v2|" : "") + $"largada:0:{t.StartZ}");
             foreach (var p in t.pecas)
             {
                 var def = PieceCatalog.ById(p.tipo);
@@ -312,7 +313,7 @@ namespace Autorama
                 if (byTime) { sec += HeatsPerStage(nPilots, faixas, true) * (s.secs + L * (RaceSim.Count + 1f) + (L - 1) * RaceSim.SwitchTime + 10f); continue; }
                 float len = 0f;
                 try { len = TrackLayout.Analyze(s.data.Origin, TrackLayout.Build(s.data.Origin, s.data.Pieces(), s.data.Tail, s.data.StartZ), s.data.Tail).centerLength * TrackMath.Scale(s.data.Faixas); } catch { }
-                sec += HeatsPerStage(nPilots, faixas, false) * (s.laps * len / (0.6f * vmax * TrackMath.Scale(faixas)) + 10f);
+                sec += HeatsPerStage(nPilots, faixas, false) * (s.laps * len / (0.6f * vmax * Mathf.Sqrt(TrackMath.Scale(faixas))) + 10f);
             }
             return Mathf.Max(1, Mathf.RoundToInt(sec / 60f));
         }
