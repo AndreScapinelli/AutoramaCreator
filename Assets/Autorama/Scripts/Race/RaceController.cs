@@ -406,7 +406,8 @@ namespace Autorama
             KeysUpdate();
             ShopKeys();
             CoinsTick();
-            CoinTick();                                        // a tela de teclas captura a próxima tecla (e some com Esc)
+            CoinTick();
+            WetTick();                                        // a tela de teclas captura a próxima tecla (e some com Esc)
             CamKeys();
             TagsKeys();
             NarraKeys();

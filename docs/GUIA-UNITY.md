@@ -4569,3 +4569,13 @@ A região conta aberta se está aberta em **algum** save (`RegionReached`). Regi
 - **Campeonato por tempo** (`NodeDef.porTempo`, `segundos`): nas pistas largas, por voltas o jogador correria uma bateria por trilho (4, 6 ou 8 por etapa). Por tempo (as regras da seção 26) é **uma bateria por etapa** com todos, em manches de `segundos / trilhos`, cada um passando por todos os trilhos: Clube 90 s, Regional 120 s, Nacional 160 s. `Championship.byTime`, `Stage.secs`, `MakeHeats(…, byTime)`, sem corte; a linha da bateria e a posição usam a distância.
 
 **Teste (Play, save 3 de teste apagado; moedas do perfil devolvidas):** verificação sem cena: as 41 provas com as pistas certas e no número de faixas da região, 3 estrelas cada, `depois` válidos; o save 1 do jogador (campeão da Garagem) abre o Clube. Salão do Clube: 4 trilhos, 3 carros, IA 75, mestre 150 no lugar do jogador em 1º, ★★★. Taça Clube: por tempo, 3 baterias para 3 etapas, 90 s; o mestre 150 venceu as 3: 33 pts (Marina 24, Rafa 17, Dona Célia 16), ★★★, Regional aberto. Mapa do Clube com 10 pinos.
+
+## 76. Pista molhada: efeitos (VFX)
+
+Só visual (`Race/RaceController.Wet.cs`); a aderência menor continua vindo da regra `molhada` (`Career.Wet = 0,8`). Liga sozinho nas provas da carreira com a regra `molhada` (telas Race e Result: `WantWet`) e desliga ao sair.
+
+- **Chuva:** `ParticleSystem` com riscos esticados (`Stretch`, `velocityScale 0,035`), 900/s, tamanho 0,012–0,022, azul-claro com alfa 0,35, numa caixa de 26 × 26 (× √`Scale` na pista larga) centrada no ponto da mesa que a câmera olha (o raio da câmera até y = 0), nascendo a 4 × √`Scale` (no máximo 60% da altura da câmera) e durando o tempo de chegar na mesa (`h / 14`). Antes ela nascia acima da câmera e os riscos passavam colados na lente, enormes.
+- **Pista:** `MaterialPropertyBlock` em cada `MeshRenderer` filho do construtor (os materiais do projeto não mudam): `_BaseColor × 0,7` e `_Smoothness` 0,82. Reaplicado a cada 0,5 s se o número de peças mudou (a pista se reconstrói ao trocar de prova); `SetPropertyBlock(null)` ao desligar.
+- **Luz:** a principal (`RenderSettings.sun`) × 0,7, devolvida ao desligar.
+- **Spray:** névoa nas duas rodas de trás (`RearWheels`) de cada carro no trilho acima de 1,5 células/s, até 70 por segundo pela fração da velocidade máxima; para trás e para cima × v, gravidade 0,25, 0,35–0,6 s, cresce 0,6 → 1,6 e some. Textura gerada (`SoftDot`, bolinha 32 × 32 com borda suave): sem ela o `Sprites/Default` desenha quadradinhos.
+- **Teste:** Chuva na Garagem com a IA no lugar do jogador: chuva com ~700 partículas, spray ~66, carros andando; captura conferida.
