@@ -193,6 +193,7 @@ namespace Autorama
             BuildNarra();
             BuildChampUI();
             BuildCareerUI();
+            BuildShopUI();
             BuildOnlineUI();
             OnlineBoot();
             builder.Changed += OnTrackChanged;
@@ -208,6 +209,7 @@ namespace Autorama
             SplitDestroy();
             TagsDestroy();
             CareerDestroy();
+            Progresso.Changed -= OnProfileChanged;
             if (builder) builder.Changed -= OnTrackChanged;
             if (panel) { panel.ModeChanged -= OnMode; panel.OptionsRequested -= ShowKeys; panel.TestRequested -= ToggleTest; }
             OnlineDestroy();
@@ -400,7 +402,9 @@ namespace Autorama
         {
             OnlineTick();
             AudioTick();
-            KeysUpdate();                                        // a tela de teclas captura a próxima tecla (e some com Esc)
+            KeysUpdate();
+            ShopKeys();
+            CoinsTick();                                        // a tela de teclas captura a próxima tecla (e some com Esc)
             CamKeys();
             TagsKeys();
             NarraKeys();
@@ -533,7 +537,7 @@ namespace Autorama
             for (int i = 0; i < 4; i++)
             {
                 int f = 2 + 2 * i;
-                sizeBtns[i] = Btn($"{f} trilhos", () => { if (Racing || sim.N == f) return; set.raceFaixas = f; set.Save(); UseTrack(set.track); sim.Reset(); scoreDirty = true; }, "btn", sizeRow);
+                sizeBtns[i] = Btn($"{f} trilhos", () => { if (Racing || sim.N == f) return; if (!Progresso.FaixasOk(f)) { panel.Toast($"Pista de {f} trilhos: abre na carreira."); return; } set.raceFaixas = f; set.Save(); UseTrack(set.track); sim.Reset(); scoreDirty = true; }, "btn", sizeRow);
             }
 
             // Carros: de 1 (treino contra o relógio) até o número de trilhos.

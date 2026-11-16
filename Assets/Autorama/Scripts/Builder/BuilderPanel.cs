@@ -249,7 +249,12 @@ namespace Autorama
         // Construtor da carreira (seção 72): apaga as peças que a prova não deixa usar.
         public void RefreshAllowed()
         {
-            foreach (var (tile, e) in paletteTiles) tile.SetEnabled(TrackBuilder.AllowedEntry == null || TrackBuilder.AllowedEntry(e));
+            foreach (var (tile, e) in paletteTiles)
+            {
+                bool ok = TrackBuilder.AllowedEntry == null || TrackBuilder.AllowedEntry(e);
+                tile.SetEnabled(ok);
+                tile.tooltip = ok ? $"{e.label} · {e.sub} (tecla {KeyName(e.key)})" : (TrackBuilder.LockTip?.Invoke(e) ?? "Não vale aqui.");
+            }
         }
         Button kind2Btn, kind4Btn, kind6Btn, kind8Btn;
         Label subtitle;
@@ -273,6 +278,7 @@ namespace Autorama
         void ChooseKind(int faixas)
         {
             if (builder.Faixas == faixas) return;
+            if (!Progresso.FaixasOk(faixas)) { Say($"Pista de {faixas} trilhos: abre na carreira."); return; }
             builder.AdaptTo(faixas);
             FrameTrack();
             Say(builder.pieces.Count > 1 ? $"Pista adaptada para {faixas} carros." : $"Pista de {faixas} carros.");
@@ -460,6 +466,7 @@ namespace Autorama
             Opt("Campeonato", "Pilotos, etapas, tabela e recordes", "★", Mode.Champ);
             Opt("Online", "Campeonato com amigos pela Steam", "◉", Mode.Online);
             var extra = El("start-extra", card);
+            shopBtn = Btn("Loja", () => ShopRequested?.Invoke(), "btn start-btn", extra);
             Btn("Opções", () => OptionsRequested?.Invoke(), "btn start-btn", extra);
             Btn("Sair", QuitGame, "btn start-btn", extra);
             Text("O botão ⌂ no painel volta para esta tela.", "start-foot", card);
@@ -467,6 +474,10 @@ namespace Autorama
 
         // Pedido do botão Opções da tela inicial: quem tem as opções (a RaceController, com as teclas) abre a tela.
         public event System.Action OptionsRequested;
+        // Loja (seção 74): o RaceController abre a tela; o botão mostra as moedas.
+        public event System.Action ShopRequested;
+        Button shopBtn;
+        public void SetShopCoins(int coins) { if (shopBtn != null) shopBtn.text = $"Loja · ◎ {coins}"; }
         // Testar a pista no construtor (seção 61): o RaceController liga e desliga o carro IA de teste.
         public event System.Action TestRequested;
         Button barTest;

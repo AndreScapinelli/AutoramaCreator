@@ -143,6 +143,10 @@ namespace Autorama
         public static Func<PaletteEntry, bool> AllowedEntry;
         public static int MaxPieces;
         public static string RuleNotice = "Esta peça não vale nesta prova.";
+        // Loja (seção 74): rampa e vão do salto também têm dono. null = livre.
+        public static Func<int, bool> GapOk;
+        public static Func<bool> RiseOk;
+        public static Func<PaletteEntry, string> LockTip;
 
         bool Refuse(PaletteEntry e)
         {
@@ -210,6 +214,7 @@ namespace Autorama
             if (Selected <= 0) return;
             if (rise != 0 && pieces[Selected].Def.GroundOnly) { Notice?.Invoke("Loop e rampa de salto não sobem nem descem de nível."); return; }
             if (rise != 0 && Selected >= FrontEnd) { Notice?.Invoke(NoRampBehind); return; }
+            if (rise != 0 && RiseOk != null && !RiseOk()) { Notice?.Invoke(RuleNotice); return; }
             Commit(() => pieces[Selected].rise = rise);
         }
 
@@ -218,6 +223,7 @@ namespace Autorama
         {
             if (Selected <= 0 || !pieces[Selected].Def.IsJump) return;
             vao = Mathf.Clamp(vao, 1, PieceCatalog.MaxGap);
+            if (GapOk != null && !GapOk(vao)) { Notice?.Invoke(RuleNotice); return; }
             if (vao != pieces[Selected].vao) Commit(() => pieces[Selected].vao = vao);
         }
 

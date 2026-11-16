@@ -39,8 +39,8 @@ th { color:var(--mut); font-weight:600; }
 <h1>Modo Carreira</h1>
 <p class="sub">Acompanhamento do desenvolvimento. Branch <code>carreira</code>. Atualizado a cada etapa.</p>
 
-<div class="bar"><div style="width:82%"></div></div>
-<p class="sub">Fases 1 a 6 prontas · a Garagem está completa · a seguir: fase M (moedas e loja) e as regiões 2 a 4 (fase 7)</p>
+<div class="bar"><div style="width:88%"></div></div>
+<p class="sub">Fases 1 a 6 e M prontas · a Garagem está completa · a seguir: as regiões 2 a 4 (fase 7)</p>
 
 <h2>Visão geral</h2>
 <p>4 regiões em sequência, cada uma num mapa de nós ligados por caminhos com ramos. Cada nó dá de 1 a 3 estrelas. O rival da região abre com um número de estrelas, e vencer o campeonato da região abre a próxima.</p>
@@ -145,7 +145,7 @@ th { color:var(--mut); font-weight:600; }
 </div>
 
 <div class="fase">
-<h3>7 · Regiões 2 a 4 <span class="tag todo">a fazer</span></h3>
+<h3>7 · Regiões 2 a 4 <span class="tag doing">próxima</span></h3>
 <ul class="chk">
 <li>Nós, objetivos e calibração do Clube, Regional e Nacional</li>
 <li>Desbloqueio de peças pela carreira</li>
@@ -153,15 +153,16 @@ th { color:var(--mut); font-weight:600; }
 </div>
 
 <div class="fase">
-<h3>M · Moedas e loja de peças <span class="tag todo">a fazer</span></h3>
+<h3>M · Moedas e loja de peças <span class="tag ok">pronta</span></h3>
 <p>No lugar de XP e nível. A carreira <b>abre</b> a peça para compra; a moeda <b>compra</b>. Correr é sempre livre: pista com peça não comprada corre e vai ao online, só não se edita com ela. O Q só usa peças compradas.</p>
 <ul class="chk">
-<li><code>PlayerProfile</code> em <code>perfil.json</code> (um por computador): moedas e peças compradas, valendo em todos os slots</li>
-<li>Prêmios: estrela nova 50/75/100 · rival 300 · campeão 500/800/1200/2000 · corrida livre 10 + 5 por posição · recorde 50 · online × 1,5 · metade a partir da 4ª corrida seguida na mesma pista</li>
-<li>Loja (aba Garagem): grátis reta/curva longa/meia · 150 curtinha e ponte · 250 troca de faixa · 400 inclinadas · 500 curva em C · 600 salto 1 · 1000 loop · 1200 salto 2 e 3</li>
-<li>Botão "Desbloquear tudo" nas Opções, atrás de <code>Progresso.Teste</code> (sai no lançamento)</li>
-<li>Cadeado no <code>BuilderPanel</code> e filtro no <code>TrackCloser.MovesOf</code></li>
+<li class="f"><code>PlayerProfile</code> em <code>perfil.json</code> (um por computador): moedas e peças compradas, valendo em todos os slots</li>
+<li class="f">Prêmios: estrela nova 50/75/100 · rival 300 · campeão 500/800/1200/2000 · corrida livre 10 + 5 por posição · recorde 50 · online × 1,5 · metade a partir da 4ª corrida seguida na mesma pista</li>
+<li class="f">Loja (aba Garagem): grátis reta/curva longa/meia · 150 curtinha e ponte · 250 troca de faixa · 400 inclinadas · 500 curva em C · 600 salto 1 · 1000 loop · 1200 salto 2 e 3</li>
+<li class="f">Botão "Desbloquear tudo" nas Opções, atrás de <code>Progresso.Teste</code> (sai no lançamento)</li>
+<li class="f">Cadeado no <code>BuilderPanel</code> e filtro no <code>TrackCloser.MovesOf</code></li>
 <li>Depois: ajustes do carro, pinturas e tema da mesa na loja</li>
+<li class="f">Loja no menu inicial; travas no construtor, no Q, na rampa, no vão do salto e nos tamanhos de pista</li>
 </ul>
 </div>
 
@@ -179,6 +180,7 @@ th { color:var(--mut); font-weight:600; }
 
 <h2>Diário</h2>
 <ul class="log">
+<li><b>16/11/2026</b> · Fase M: perfil com moedas, Loja com 8 itens, travas no construtor, moedas na carreira e nas corridas, "Desbloquear tudo" de teste. Seção 74 do guia.</li>
 <li><b>16/11/2026</b> · Fase 6: campeonato da região (Copa Garagem), campeão abre a próxima região. A Garagem tem os 11 nós. Seção 73 do guia.</li>
 <li><b>16/11/2026</b> · Fase 5: construtor com restrições (paleta, Q e checagem), nó Oficina, pista montada no save e na biblioteca. Seção 72 do guia.</li>
 <li><b>16/11/2026</b> · Fase 4: desafios (molhada, carro imposto, sobrevivência, largada atrasada, turbo livre) e o rival Tio Beto em melhor de 3. Seção 71 do guia.</li>

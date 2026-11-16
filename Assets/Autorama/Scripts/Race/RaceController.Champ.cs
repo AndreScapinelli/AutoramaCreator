@@ -894,7 +894,12 @@ namespace Autorama
                     float best = r.best;
                     if (!p.ai)
                     {
-                        if (best == heatBest && best < prevLap) { R.lap = Make(best); r.rec = true; news.Add($"recorde de volta de {p.name} ({Fmt(best)})"); }
+                        if (best == heatBest && best < prevLap)
+                        {
+                            R.lap = Make(best); r.rec = true;
+                            if (!online) Progresso.Earn(Progresso.RecordPrize);       // seção 74: recorde da pista paga (só offline)
+                            news.Add($"recorde de volta de {p.name} ({Fmt(best)}){(online ? "" : $", +{Progresso.RecordPrize} moedas")}");
+                        }
                         // Com cruzamentos em número ímpar o carrinho passa pelos dois trilhos: recorde por trilho não faz sentido.
                         // Por tempo o carrinho passa por todos os trilhos: também não há recorde por trilho.
                         if (!odd && !C.byTime && (!R.Lane(k).Has || best < R.Lane(k).t)) R.SetLane(k, Make(best));

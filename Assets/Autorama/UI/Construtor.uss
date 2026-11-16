@@ -664,3 +664,10 @@
 .k-rival { font-size: 13px; -unity-font-style: italic; color: var(--texto); margin: 2px 0 6px 0; padding: 0; white-space: normal; }
 .k-res-score { font-size: 32px; -unity-font-style: bold; color: var(--destaque); margin: 4px 0; padding: 0; }
 .k-build { position: absolute; right: 16px; top: 52px; width: 340px; padding: 16px 18px; border-radius: 14px; background-color: var(--fundo-painel); border-width: 2px; border-color: var(--destaque); }
+.k-coins { font-size: 15px; -unity-font-style: bold; color: var(--destaque); margin: 2px 0 6px 0; padding: 0; }
+.k-shop { width: 620px; }
+.k-shop-head { flex-direction: row; justify-content: space-between; align-items: center; }
+.k-shop-row { flex-direction: row; align-items: center; justify-content: space-between; padding: 8px 10px; margin: 3px 0; border-radius: 8px; background-color: var(--fundo-campo); }
+.k-shop-texts { flex-grow: 1; flex-shrink: 1; }
+.k-shop-own { font-size: 13px; -unity-font-style: bold; color: var(--ok); margin: 0 6px; padding: 0; }
+.k-shop-why { font-size: 11px; color: var(--texto-fraco); margin: 0 0 0 8px; padding: 0; width: 160px; white-space: normal; }

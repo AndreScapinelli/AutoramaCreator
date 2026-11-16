@@ -4510,3 +4510,39 @@ Nó `tipo: "campeonato"` (`Race/RaceController.CareerChamp.cs`): o mesmo modelo 
 **Garagem:** **Copa Garagem** (`garagem-copa`, último nó, abre com o Tio Beto): etapas garagem-c1 (Oval), c2 (Gancho), c3 (Caracol), 3 voltas; pilotos Zé da Oficina (IA 60, azul), Lu Parafuso (IA 70, verde, motor curto e chassi leve), Tio Beto (IA 85, marrom, duro e pesado). 4 pilotos na pista de 2: 4 baterias por etapa, o jogador corre 2 (12 baterias, 6 dele). ★ pódio · ★★ campeão · ★★★ todas as etapas. Garagem: 11 nós, 33 estrelas.
 
 **Teste (Play, save 3 de teste apagado depois; mestre 150 no lugar do jogador):** 2 baterias simuladas antes da 1ª do jogador; nela, o jogador no trilho 0 e o Tio Beto no carro 1, trilho 1. Depois da 1ª etapa: Você 11, Lu 8, Tio Beto 6, Zé 5. Final: 6 baterias do jogador, campeão com 33 pts (Tio Beto 22, Lu 20, Zé 15), 3/3 etapas, ★★★, o campeonato saiu do save. Na tela final os controles voltavam a "ROBÔ" (o campeonato já tinha saído do save): os nomes agora vêm do que acabou (`kFinalChamp`).
+
+## 74. Moedas e Loja (fase M)
+
+**Perfil** (`Scripts/Profile/PlayerProfile.cs`, `persistentDataPath/autorama/perfil.json`, um por computador, vale para os 3 saves): `moedas`, `compras` (ids dos itens), `tudo` ("Desbloquear tudo"), `ultimaPista`/`seguidas` (contra farm). Tudo em `Progresso` (estático): `P`, `Save`, `Changed`, `Owns`, `CanBuy`, `Buy`, `Earn`, `RacePay`, as travas e os preços.
+
+**Desbloquear tudo:** `Progresso.Teste = true` mostra o botão na Loja; `All = Teste && P.tudo` libera todas as peças e tamanhos sem gastar nem apagar compras. No lançamento: `Teste = false` (o botão some e o desbloqueio deixa de valer).
+
+**Loja** (`Progresso.Loja`; menu inicial › **Loja · ◎ N**; Esc fecha). Cada item é um grupo de peças com preço e a região da carreira que o abre para compra (a carreira abre, a moeda compra). Grátis: largada, reta curta, reta comprida, curva longa, meia curva.
+
+| item | peças | preço | abre na região |
+|---|---|---|---|
+| `curtinha` | reta curtinha | 150 | Garagem |
+| `rampas` | subida e descida (ponte) | 150 | Garagem |
+| `troca` | cruzamento e cruzamento curto | 250 | Clube |
+| `inclinadas` | curva longa e curta inclinadas | 400 | Clube |
+| `curva-c` | curva em C | 500 | Regional |
+| `salto` | salto de vão 1 | 600 | Regional |
+| `loop` | loop | 1000 | Nacional |
+| `salto-grande` | salto de vão 2 e 3 | 1200 | Nacional |
+
+A região conta aberta se está aberta em **algum** save (`RegionReached`). Região que ainda não existe no `carreira.json` conta como aberta (hoje só há a Garagem: tudo está à venda, só pelas moedas).
+
+**Travas** (`Progresso.ApplyGate`, ligadas no início e a cada mudança do perfil, `OnProfileChanged`):
+- Construtor: `TrackBuilder.AllowedEntry = Progresso.EntryOk` (a peça e, com rampa, `rampas`); `SetRise` pede `TrackBuilder.RiseOk` e `SetGap` (vão 2 e 3) pede `TrackBuilder.GapOk` (`salto-grande`). A paleta apaga as peças que não são suas, com a dica "<item>: compre na Loja (N moedas)" (`TrackBuilder.LockTip`, `BuilderPanel.RefreshAllowed`).
+- Q: `TrackCloser.Allowed = Progresso.PieceOk` (sem a curtinha, o Q fecha sem ela).
+- Tamanhos: `Progresso.FaixasOk` nos botões de 4, 6 e 8 trilhos do construtor (`ChooseKind`) e da corrida livre: aberto quando a região que traz esse tamanho está aberta (região que não existe ainda: aberto).
+- **Correr é sempre livre:** pista salva, recebida no online ou de campeonato com peça que você não tem corre normalmente; só não dá para colocar a peça. Carregar a pista no construtor também pode (as peças dela ficam; as novas seguem a trava).
+- No construtor da carreira (seção 72), as regras da prova valem **no lugar** das compras (a peça da prova pode, mesmo sem ser sua); no fim, `EndBuild` → `OnProfileChanged` devolve as travas da Loja.
+
+**Moedas:**
+- Corrida fora da carreira (livre, campeonato, online; `CoinsTick` vê a passagem para `Done` em todo quadro, inclusive no online): o melhor carro de gente desta máquina ganha `10 + 5 × carros atrás dele`; online × 1,5; a partir da 4ª corrida seguida na mesma pista (`TrackHash`), metade. Aviso "+N moedas (◎ total)".
+- Recorde de volta da pista no campeonato offline: +50 (no aviso do recorde).
+- Carreira (`CareerCoins`, em `Finish`): cada estrela **nova** de um nó paga uma vez: 50 (1ª), 75 (2ª), 100 (3ª); rival vencido pela 1ª vez +300; campeão da região pela 1ª vez +500 · 800 · 1200 · 2000 (Garagem, Clube, Regional, Nacional); e +10 pela corrida (contra farm, por nó). A tela de resultado mostra "+N moedas · ◎ total"; o mapa, as moedas ao lado das estrelas.
+- Garagem completa, da 1ª vez: 11 nós × 225 = 2475 + 300 (Tio Beto) + 500 (campeão) + 10 por prova ≈ **3400 moedas**: dá para as 4 primeiras peças (1300) e sobra.
+
+**Teste (Play; o `perfil.json` de teste foi apagado depois):** sem compras, a curva inclinada e a reta com rampa foram recusadas e a reta entrou; com 600 moedas, "inclinadas" comprada (sobra 200) e a inclinada entrou; o loop: "Faltam 800 moedas."; "Desbloquear tudo" deixou a rampa entrar; corrida livre de 2 carros, gente em 1º: +15. O "Desbloquear tudo" era um `Toggle` com o texto escuro sobre o fundo escuro: virou um botão "Desbloquear tudo: LIGADO/desligado".

@@ -307,7 +307,7 @@ namespace Autorama
         {
             var R = KRegion;
             kRegionLabel.text = $"{R.nome} · {R.faixas} faixas";
-            kStarsLabel.text = $"★ {Career.RegionStars(kSave, R)} / {R.nos.Length * 3}";
+            kStarsLabel.text = $"★ {Career.RegionStars(kSave, R)} / {R.nos.Length * 3}   ◎ {Progresso.P.moedas}";
             ColorPins();
             kCardBox.Clear();
             var n = KNode;
@@ -463,8 +463,10 @@ namespace Autorama
         void Finish(ResultadoCorrida r)
         {
             kRes = r;
+            int before = Career.Stars(kSave, KNode.id);
             kGot = Career.Avaliar(KNode, kRes);
             kNew = Career.Record(kSave, KNode, kRes);
+            kCoins = CareerCoins(KNode, before, Career.Stars(kSave, KNode.id));
             if (KNode.tipo == "construtor" && kBuilt != null)
             {
                 var ns = Career.Of(kSave, KNode.id);
@@ -571,6 +573,7 @@ namespace Autorama
                 if (!string.IsNullOrEmpty(fala)) Text($"{n.rival}: “{fala}”", "k-sub", box);
             }
             Text(kGot == 0 ? "Não foi desta vez." : kNew > 0 ? $"+{kNew} {(kNew == 1 ? "estrela nova" : "estrelas novas")}" : "Sem estrela nova.", "k-sub", box);
+            Text($"+{kCoins} moedas  ·  ◎ {Progresso.P.moedas}", "k-coins", box);
             for (int i = 0; i < n.estrelas.Length; i++)
             {
                 bool ok = kGot > 0 && Career.Cumpre(n.estrelas[i], kRes);
@@ -662,6 +665,7 @@ namespace Autorama
         // ---------- construtor (seção 72) ----------
 
         bool kBuilding, kRunBuilt, kRunNext, kBackToMap;
+        int kCoins;
         TrackSave kUserTrack, kBuilt;
         VisualElement kBuildBox;
         Label kBuildTitle, kBuildRules, kBuildInfo;
@@ -691,8 +695,13 @@ namespace Autorama
             if (n == null) return;
             kUserTrack = builderStash ?? builder.ToSave();
             kBuilding = true;
+            // As regras da prova valem no lugar das compras da Loja: a peça da prova pode, mesmo sem ser sua.
             TrackBuilder.AllowedEntry = e => Career.PieceOk(n, e.def.Id, e.rise);
             TrackBuilder.MaxPieces = n.maxPecas;
+            TrackBuilder.RuleNotice = "Esta peça não vale nesta prova.";
+            TrackBuilder.GapOk = null;
+            TrackBuilder.RiseOk = () => n.rampas;
+            TrackBuilder.LockTip = _ => "Não vale nesta prova.";
             TrackCloser.Allowed = id => Career.PieceOk(n, id, 0);
             panel.SetMode(Mode.Build);
             var old = kBuilt ?? SavedBuilt(n);
@@ -720,10 +729,7 @@ namespace Autorama
         void EndBuild()
         {
             kBuilding = false;
-            TrackBuilder.AllowedEntry = null;
-            TrackBuilder.MaxPieces = 0;
-            TrackCloser.Allowed = null;
-            panel.RefreshAllowed();
+            OnProfileChanged();                 // voltam as travas da Loja
             kBuildBox.style.display = DisplayStyle.None;
             builder.ShowTrack(kUserTrack);
             try { TrackLibrary.SaveDraft(kUserTrack); } catch { }       // o rascunho volta a ser a pista do jogador
