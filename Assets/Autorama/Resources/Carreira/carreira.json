@@ -988,7 +988,7 @@
           ],
           "pista": "regional-c2",
           "voltas": 5,
-          "ia": 120,
+          "ia": 105,
           "adversarios": 5,
           "turbo": true,
           "estrelas": [
@@ -1005,9 +1005,9 @@
               "valor": 0
             }
           ],
-          "atraso": 2.0,
+          "atraso": 1.5,
           "carro": {
-            "motor": 2,
+            "motor": 0,
             "bolha": 0,
             "pneu": 2,
             "chassi": 2
@@ -1027,7 +1027,7 @@
           ],
           "pista": "regional-8",
           "voltas": 4,
-          "ia": 130,
+          "ia": 118,
           "adversarios": 1,
           "turbo": true,
           "rival": "Dr. Curva",
@@ -1163,7 +1163,7 @@
           "depois": [],
           "pista": "nacional-1",
           "voltas": 4,
-          "ia": 125,
+          "ia": 115,
           "adversarios": 5,
           "turbo": true,
           "estrelas": [
@@ -1217,7 +1217,7 @@
           ],
           "pista": "nacional-3",
           "voltas": 4,
-          "ia": 130,
+          "ia": 120,
           "adversarios": 5,
           "turbo": true,
           "estrelas": [
@@ -1244,7 +1244,7 @@
           ],
           "pista": "",
           "voltas": 4,
-          "ia": 130,
+          "ia": 120,
           "adversarios": 3,
           "turbo": true,
           "pecas": [
@@ -1291,7 +1291,7 @@
           ],
           "pista": "nacional-4",
           "voltas": 4,
-          "ia": 135,
+          "ia": 125,
           "adversarios": 5,
           "turbo": true,
           "estrelas": [
@@ -1351,13 +1351,13 @@
           ],
           "pista": "nacional-7",
           "voltas": 5,
-          "ia": 140,
-          "adversarios": 7,
+          "ia": 115,
+          "adversarios": 5,
           "turbo": true,
           "estrelas": [
             {
               "tipo": "posicao",
-              "valor": 3
+              "valor": 4
             },
             {
               "tipo": "posicao",
@@ -1381,8 +1381,8 @@
           ],
           "pista": "nacional-5",
           "voltas": 5,
-          "ia": 140,
-          "adversarios": 7,
+          "ia": 130,
+          "adversarios": 5,
           "turbo": true,
           "estrelas": [
             {
@@ -1400,8 +1400,7 @@
           ],
           "atraso": 2.0,
           "regras": [
-            "atrasada",
-            "turboLivre"
+            "atrasada"
           ]
         },
         {
@@ -1414,7 +1413,7 @@
           ],
           "pista": "nacional-8",
           "voltas": 4,
-          "ia": 150,
+          "ia": 142,
           "adversarios": 1,
           "turbo": true,
           "rival": "O Campeão",
@@ -1468,7 +1467,7 @@
             {
               "nome": "Rafa Turbo",
               "cor": "#F97316",
-              "ia": 130,
+              "ia": 122,
               "carro": {
                 "motor": 1,
                 "bolha": 0,
@@ -1479,7 +1478,7 @@
             {
               "nome": "Dona Célia",
               "cor": "#0EA5B7",
-              "ia": 135,
+              "ia": 127,
               "carro": {
                 "motor": 0,
                 "bolha": 1,
@@ -1490,7 +1489,7 @@
             {
               "nome": "Marina Faísca",
               "cor": "#E04B95",
-              "ia": 138,
+              "ia": 130,
               "carro": {
                 "motor": 1,
                 "bolha": 2,
@@ -1501,7 +1500,7 @@
             {
               "nome": "Tio Beto",
               "cor": "#8B5A2B",
-              "ia": 128,
+              "ia": 120,
               "carro": {
                 "motor": 0,
                 "bolha": 0,
@@ -1512,7 +1511,7 @@
             {
               "nome": "Dr. Curva",
               "cor": "#9333EA",
-              "ia": 142,
+              "ia": 134,
               "carro": {
                 "motor": 0,
                 "bolha": 1,
@@ -1523,7 +1522,7 @@
             {
               "nome": "Zé da Oficina",
               "cor": "#2563EB",
-              "ia": 125,
+              "ia": 117,
               "carro": {
                 "motor": 0,
                 "bolha": 0,
@@ -1534,7 +1533,7 @@
             {
               "nome": "O Campeão",
               "cor": "#F2B705",
-              "ia": 150,
+              "ia": 142,
               "carro": {
                 "motor": 1,
                 "bolha": 1,

@@ -854,8 +854,9 @@ namespace Autorama
                 return false;                           // na mão do fiscal, ou um na ponte e outro embaixo
             var pa = CarPose(ia, out float ya, out _);
             var pb = CarPose(ib, out float yb, out _);
-            // Um no ar e outro no chão (pista que cruza o vão do salto): passa por cima se a altura der (0,18: o carrinho).
-            if (A.air != B.air && Mathf.Abs(ya - yb) > 0.18f) return false;
+            // Um acima do outro passa por cima se a altura der (0,18: o carrinho): no ar sobre o vão do salto, ou subindo
+            // no loop ao lado de quem está no chão (o nível da pista, CarZ, não muda no loop; seção 75.1).
+            if (Mathf.Abs(ya - yb) > 0.18f) return false;
             if (!Overlap(pa, pb, out Vector2 n, out float depth)) return false;
 
             bool first = !wasTouching;
@@ -997,7 +998,8 @@ namespace Autorama
                 // Mestre: acima da velocidade pedida, o gatilho vai até a fração que segura essa velocidade.
                 // Derrapando muito, ou bem acima da velocidade pedida: freia de verdade, com o gatilho no mínimo.
                 // A derrapagem vem antes: na curva inclinada longa a velocidade "permitida" passa da máxima do carro.
-                c.gas = c.slip > AiMasterSlip || c.v > need * AiMasterBand ? 0.01f : c.held ? 1f : Mathf.Clamp(need / top, 0.01f, 1f);
+                // Chegando no salto, só a fração (frear forte ali faz decolar devagar e cair no vão; seção 75.1).
+                c.gas = c.slip > AiMasterSlip || (c.v > need * AiMasterBand && !jumpNear) ? 0.01f : c.held ? 1f : Mathf.Clamp(need / top, 0.01f, 1f);
                 c.held = true;
             }
             else

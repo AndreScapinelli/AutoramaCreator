@@ -420,6 +420,27 @@ namespace Autorama
             StartRace();
             // Rival: a cada bateria os dois trocam de trilho (o jogador continua o carro 0, com as mesmas teclas).
             if (IsRival && kHeat % 2 == 1) { sim.cars[0].lane = 1; sim.cars[1].lane = 0; }
+            else if (!IsRival && !clock && ais > 0) FairLanes(ais + 1);
+        }
+
+        // Trilhos de comprimentos diferentes (sem troca de faixa, o de fora chega a ser 14% mais longo): os carros vão
+        // para um bloco de trilhos vizinhos no meio da pista e o jogador fica no MAIS CURTO do bloco. No mediano, quem
+        // pegava os mais curtos ganhava sozinho: nas pistas de loop e salto a IA de 115 anda igual à de 150 e a ordem de
+        // chegada era a do comprimento dos trilhos (seção 75.1). Os outros carros ocupam os demais trilhos do bloco.
+        void FairLanes(int cars)
+        {
+            var len = builder.Info != null ? builder.Info.laneLengths : null;
+            int N = sim.N;
+            if (len == null || len.Length != N || cars > N) return;
+            int start = (N - cars) / 2;
+            var block = new List<int>();
+            for (int l = start; l < start + cars; l++) block.Add(l);
+            var byLen = new List<int>(block);
+            byLen.Sort((a, b) => len[a].CompareTo(len[b]));
+            int mine = byLen[0];
+            sim.cars[0].lane = mine;
+            int k = 1;
+            foreach (int l in block) if (l != mine) sim.cars[k++].lane = l;
         }
 
         void CareerPause(bool on)
