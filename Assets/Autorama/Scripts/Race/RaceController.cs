@@ -286,6 +286,7 @@ namespace Autorama
         void OnMode(BuilderPanel.Mode m)
         {
             if (testing) SetTest(false);
+            if (kBuilding && m != BuilderPanel.Mode.Build) EndBuild();      // saiu do construtor da carreira por uma aba
             if (m != BuilderPanel.Mode.Career) CareerLeave();
             bool race = m != BuilderPanel.Mode.Build;
             // Saindo do construtor, guarda a pista dele; voltando, reencontra.
@@ -404,6 +405,7 @@ namespace Autorama
             TagsKeys();
             NarraKeys();
             NarraTick();
+            if (kBuilding) BuildTick();
             if (OnlineRun) { OnlineRunUpdate(); return; }
             if (sim == null || !sim.Ready) return;
             if (!panel.RaceMode) { if (testing) sim.Step(Mathf.Min(Time.deltaTime, 0.05f)); PlaceCars(); return; }       // no construtor, os carrinhos ficam no grid

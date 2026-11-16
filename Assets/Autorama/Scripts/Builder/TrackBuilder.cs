@@ -139,8 +139,21 @@ namespace Autorama
         public void SetBack(bool back) { Back = back; Rebuild(); }
         public event Action<string> Notice;
 
+        // Construtor da carreira (seção 72): só as peças que a prova permite e no máximo MaxPieces (0 = sem limite).
+        public static Func<PaletteEntry, bool> AllowedEntry;
+        public static int MaxPieces;
+        public static string RuleNotice = "Esta peça não vale nesta prova.";
+
+        bool Refuse(PaletteEntry e)
+        {
+            if (AllowedEntry != null && !AllowedEntry(e)) { Notice?.Invoke(RuleNotice); return true; }
+            if (MaxPieces > 0 && pieces.Count - 1 >= MaxPieces) { Notice?.Invoke($"Esta prova deixa usar no máximo {MaxPieces} peças."); return true; }
+            return false;
+        }
+
         public void Add(PaletteEntry e)
         {
+            if (Refuse(e)) return;
             if (Back) { AddBack(e); return; }
             Commit(() =>
             {

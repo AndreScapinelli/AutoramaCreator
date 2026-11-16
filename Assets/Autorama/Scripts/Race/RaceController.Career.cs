@@ -79,6 +79,16 @@ namespace Autorama
             kResBox = El("k-full k-dim", kLayer);
             El("k-panel k-result", kResBox).name = "res";
 
+            // Construtor da carreira (seção 72): caixa por cima do construtor, fora da camada (que some no modo Construtor).
+            kBuildBox = El("k-build", panel.Root);
+            kBuildBox.style.display = DisplayStyle.None;
+            kBuildTitle = Text("", "k-title", kBuildBox);
+            kBuildRules = Text("", "k-sub", kBuildBox);
+            kBuildInfo = Text("", "k-goal", kBuildBox);
+            var brow = El("row", kBuildBox);
+            Btn("Cancelar", BuildCancel, "btn", brow);
+            Btn("Correr nesta pista", BuildDone, "btn btn--primary", brow);
+
             TopDownCamera.Moved += CareerPlacePins;
         }
 
@@ -91,6 +101,8 @@ namespace Autorama
             panel.HideChrome(true);
             kLayer.style.display = DisplayStyle.Flex;
             kSave ??= Career.Load(kSlot);
+            if (kRunBuilt) { kRunBuilt = false; kRunNext = true; kScreen = KScreen.Race; return; }   // larga no próximo quadro: o OnMode ainda dá Reset depois daqui
+            if (kBackToMap) { kBackToMap = false; CareerScreen(KScreen.Map); kCard = true; DrawMapUI(); return; }
             CareerScreen(KScreen.Saves);
         }
 
@@ -277,6 +289,7 @@ namespace Autorama
                 return;
             }
             if (i == kSel && kCard) { CareerRun(); return; }
+            if (i != kSel) kBuilt = null;
             kSel = i;
             kCard = true;
             DrawMapUI();
@@ -287,7 +300,7 @@ namespace Autorama
         {
             var R = KRegion;
             for (int i = kSel + d; i >= 0 && i < R.nos.Length; i += d)
-                if (Career.NodeOpen(kSave, R, R.nos[i])) { kSel = i; DrawMapUI(); return; }
+                if (Career.NodeOpen(kSave, R, R.nos[i])) { kSel = i; kBuilt = null; DrawMapUI(); return; }
         }
 
         void DrawMapUI()
@@ -306,11 +319,18 @@ namespace Autorama
             Text($"{TipoNome(n.tipo)} · {n.voltas} voltas" + (n.tipo == "relogio" ? " · sem turbo" : $" · contra {(n.adversarios == 1 ? "1 piloto" : $"{n.adversarios} pilotos")} IA {n.ia}"), "k-sub", kCardBox);
             if (n.tipo == "rival") Text($"{n.rival} · melhor de {n.baterias}, trocando de trilho" + (string.IsNullOrEmpty(n.rivalFrase) ? "" : $"\n“{n.rivalFrase}”"), "k-rival", kCardBox);
             if (n.regras != null) foreach (var g in n.regras) Text("⚠ " + Career.RegraTexto(n, g), "k-rule", kCardBox);
+            if (n.tipo == "construtor") Text(BuildRules(n), "k-rule", kCardBox);
             for (int i = 0; i < n.estrelas.Length; i++) Text($"{new string('★', i + 1)}  {Career.Texto(n.estrelas[i])}", "k-goal", kCardBox);
             var ns = Career.Of(kSave, n.id);
             Text(ns == null ? "Ainda não correu aqui." : $"Seu melhor: {Stars(ns.estrelas)}" + (ns.melhorPos > 0 && n.tipo != "relogio" ? $" · {ns.melhorPos}º" : "") + (ns.melhorVolta >= 0f ? $" · volta {Fmt(ns.melhorVolta)}" : ""), "k-sub", kCardBox);
             var row = El("row", kCardBox);
-            Btn("Correr (Enter)", CareerRun, "btn btn--primary", row);
+            if (n.tipo == "construtor")
+            {
+                bool has = SavedBuilt(n) != null;
+                Btn(has ? "Remontar" : "Montar pista (Enter)", StartBuild, has ? "btn" : "btn btn--primary", row);
+                if (has) Btn("Correr na minha pista (Enter)", CareerRun, "btn btn--primary", row);
+            }
+            else Btn("Correr (Enter)", CareerRun, "btn btn--primary", row);
             Btn("Fechar (Esc)", () => { kCard = false; DrawMapUI(); }, "btn", row);
         }
 
@@ -358,6 +378,7 @@ namespace Autorama
         // Correr a prova (no rival, começa a série).
         void CareerRun()
         {
+            if (KNode != null && KNode.tipo == "construtor" && (kBuilt ??= SavedBuilt(KNode)) == null) { StartBuild(); return; }
             kHeat = kWins = kLosses = kSerOffs = 0; kSerBest = -1f; kSerTurbo = false;
             RunHeat();
         }
@@ -382,7 +403,7 @@ namespace Autorama
                 sim.aiSkill[k] = k > 0 && k <= ais ? Mathf.Clamp(n.ia, 1, RaceSim.AiMaxSkill) : 0;
                 sim.setup[k] = k == 0 && n.Has("carro") ? n.carro.Clamped : k == 1 && IsRival ? n.rivalCarro.Clamped : default;
             }
-            var t = Career.Track(n.pista);
+            var t = n.tipo == "construtor" ? kBuilt : Career.Track(n.pista);
             if (t != null) builder.ShowTrack(t);
             ApplyCameraSettings();
             sim.Reset();
@@ -402,6 +423,7 @@ namespace Autorama
         // Quadro a quadro, só na aba Carreira: teclas, carrinho do mapa, regras, objetivos ao vivo e o fim da prova.
         void CareerTick()
         {
+            if (kRunNext) { kRunNext = false; CareerRun(); return; }
             CareerKeys();
             if (kScreen == KScreen.Map) { MapCarTick(); return; }
             if (kScreen != KScreen.Race) return;
@@ -435,6 +457,12 @@ namespace Autorama
             kRes = r;
             kGot = Career.Avaliar(KNode, kRes);
             kNew = Career.Record(kSave, KNode, kRes);
+            if (KNode.tipo == "construtor" && kBuilt != null)
+            {
+                var ns = Career.Of(kSave, KNode.id);
+                string json = kBuilt.ToJson(false);
+                if (ns.pista != json) { ns.pista = json; try { TrackLibrary.Save(kBuilt); } catch { } }   // e na biblioteca, com o nome da prova
+            }
             if (!Career.Save(kSlot, kSave)) panel.Toast("Não deu para salvar a carreira.");
         }
 
@@ -612,7 +640,97 @@ namespace Autorama
         }
 
         static string Stars(int n) => new string('★', n) + new string('☆', 3 - n);
-        static string TipoNome(string t) => t == "relogio" ? "Contra o relógio" : t == "corrida" ? "Corrida" : t == "desafio" ? "Desafio" : t == "rival" ? "Rival" : t;
+        static string TipoNome(string t) => t == "relogio" ? "Contra o relógio" : t == "corrida" ? "Corrida" : t == "desafio" ? "Desafio" : t == "rival" ? "Rival" : t == "construtor" ? "Construtor" : t;
+
+        // ---------- construtor (seção 72) ----------
+
+        bool kBuilding, kRunBuilt, kRunNext, kBackToMap;
+        TrackSave kUserTrack, kBuilt;
+        VisualElement kBuildBox;
+        Label kBuildTitle, kBuildRules, kBuildInfo;
+        float kBuildT;
+
+        TrackSave SavedBuilt(NodeDef n)
+        {
+            var ns = Career.Of(kSave, n.id);
+            if (ns == null || string.IsNullOrEmpty(ns.pista)) return null;
+            try { return TrackSave.FromJson(ns.pista); } catch { return null; }
+        }
+
+        static string BuildRules(NodeDef n)
+        {
+            var sb = new System.Text.StringBuilder("Monte a pista: ");
+            sb.Append(string.Join(", ", System.Array.ConvertAll(n.pecas ?? new string[0], Career.PieceName)));
+            sb.Append(n.rampas ? " (com rampas)" : " (sem rampas)");
+            if (n.maxPecas > 0) sb.Append($" · no máximo {n.maxPecas} peças");
+            if (n.exigir != null && n.exigir.Length > 0) sb.Append(" · use pelo menos: " + string.Join(", ", System.Array.ConvertAll(n.exigir, Career.PieceName)));
+            return sb.ToString();
+        }
+
+        // Vai para o Construtor com as regras da prova. A pista do jogador fica guardada e volta no fim.
+        void StartBuild()
+        {
+            var n = KNode;
+            if (n == null) return;
+            kUserTrack = builderStash ?? builder.ToSave();
+            kBuilding = true;
+            TrackBuilder.AllowedEntry = e => Career.PieceOk(n, e.def.Id, e.rise);
+            TrackBuilder.MaxPieces = n.maxPecas;
+            TrackCloser.Allowed = id => Career.PieceOk(n, id, 0);
+            panel.SetMode(Mode.Build);
+            var old = kBuilt ?? SavedBuilt(n);
+            if (old != null) builder.Load(old); else builder.NewTrack(KRegion.faixas);
+            builder.TrackName = $"Carreira · {n.nome}";
+            panel.RefreshAllowed();
+            panel.FrameTrack();
+            kBuildTitle.text = $"{n.nome} · monte a pista";
+            kBuildRules.text = BuildRules(n);
+            kBuildBox.style.display = DisplayStyle.Flex;
+            kBuildT = 0f;
+        }
+
+        // A cada 0,2 s: peças usadas e se a pista já vale.
+        void BuildTick()
+        {
+            if ((kBuildT -= Time.unscaledDeltaTime) > 0f) return;
+            kBuildT = 0.2f;
+            var n = KNode;
+            int used = builder.pieces.Count - 1;
+            string why = Career.CheckBuild(n, builder.ToSave());
+            kBuildInfo.text = $"Peças: {used}{(n.maxPecas > 0 ? $" de {n.maxPecas}" : "")}\n" + (why == "" ? "<color=#3DBE74>✓ A pista vale. Pode correr.</color>" : $"<color=#F07A3A>{why}</color>");
+        }
+
+        void EndBuild()
+        {
+            kBuilding = false;
+            TrackBuilder.AllowedEntry = null;
+            TrackBuilder.MaxPieces = 0;
+            TrackCloser.Allowed = null;
+            panel.RefreshAllowed();
+            kBuildBox.style.display = DisplayStyle.None;
+            builder.ShowTrack(kUserTrack);
+            try { TrackLibrary.SaveDraft(kUserTrack); } catch { }       // o rascunho volta a ser a pista do jogador
+        }
+
+        void BuildDone()
+        {
+            var t = builder.ToSave();
+            t.faixas = KRegion.faixas;
+            t.nome = $"Carreira · {KNode.nome}";           // nome próprio: não sobrescreve uma pista do jogador na biblioteca
+            string why = Career.CheckBuild(KNode, t);
+            if (why != "") { panel.Toast(why); return; }
+            kBuilt = t;
+            EndBuild();
+            kRunBuilt = true;
+            panel.SetMode(Mode.Career);
+        }
+
+        void BuildCancel()
+        {
+            EndBuild();
+            kBackToMap = true;
+            panel.SetMode(Mode.Career);
+        }
 
         // Na prova da carreira: o jogador é "VOCÊ" e o rival tem nome e cor (placar de cima, controles, etiquetas).
         bool CareerRacing => panel.CareerMode && kScreen != KScreen.Map && kScreen != KScreen.Saves;

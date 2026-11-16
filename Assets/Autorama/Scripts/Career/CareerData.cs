@@ -45,6 +45,12 @@ namespace Autorama
         public CarSetup rivalCarro;
         public int baterias = 3;
 
+        // Construtor (seção 72): o jogador monta a pista e corre nela. pecas = ids permitidos; rampas = pode subir e
+        // descer; maxPecas = limite (sem a largada); exigir = ids que precisam aparecer pelo menos uma vez.
+        public string[] pecas, exigir;
+        public bool rampas;
+        public int maxPecas;
+
         public bool Has(string regra) => regras != null && System.Array.IndexOf(regras, regra) >= 0;
     }
 
@@ -63,7 +69,7 @@ namespace Autorama
         public int vitorias, derrotas;   // só no rival: baterias ganhas e perdidas
     }
 
-    [Serializable] public class NodeSave { public string id; public int estrelas; public int melhorPos; public float melhorVolta = -1f; }
+    [Serializable] public class NodeSave { public string id; public int estrelas; public int melhorPos; public float melhorVolta = -1f; public string pista; }   // pista: a montada no nó de construtor (JSON)
     [Serializable] public class CareerSave { public List<NodeSave> nos = new List<NodeSave>(); }
 
     public static class Career
@@ -134,6 +140,27 @@ namespace Autorama
                 case "turboLivre": return "Turbo sempre cheio, para todos";
                 default: return regra;
             }
+        }
+
+        // ----- construtor (seção 72) -----
+
+        public static bool PieceOk(NodeDef n, string id, int rise) =>
+            id == PieceCatalog.Start.Id || (n.pecas != null && Array.IndexOf(n.pecas, id) >= 0 && (rise == 0 || n.rampas));
+
+        public static string PieceName(string id) => PieceCatalog.ById(id)?.Name ?? id;
+
+        // A pista montada vale? Devolve "" se vale; senão, o motivo.
+        public static string CheckBuild(NodeDef n, TrackSave t)
+        {
+            var ps = t.Pieces();
+            if (ps.Count < 3) return "Monte a pista primeiro.";
+            if (n.maxPecas > 0 && ps.Count - 1 > n.maxPecas) return $"Passou do limite: {ps.Count - 1} de {n.maxPecas} peças.";
+            foreach (var p in ps) if (!PieceOk(n, p.id, p.rise)) return $"{PieceName(p.id)}{(p.rise != 0 ? " com rampa" : "")} não vale nesta prova.";
+            if (n.exigir != null) foreach (var id in n.exigir) if (!ps.Exists(p => p.id == id)) return $"Falta usar: {PieceName(id)}.";
+            var a = TrackLayout.Analyze(t.Origin, TrackLayout.Build(t.Origin, ps, t.Tail, t.StartZ), t.Tail, t.Faixas);
+            if (!a.closed) return "Feche o circuito (Q fecha sozinho).";
+            if (a.overlaps.Count > 0) return "A pista passa por cima dela mesma.";
+            return "";
         }
 
         // ----- progresso -----

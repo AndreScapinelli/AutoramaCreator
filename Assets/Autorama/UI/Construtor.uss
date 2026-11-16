@@ -663,3 +663,4 @@
 .k-rule { font-size: 13px; color: var(--alerta); margin: 2px 0; padding: 0; white-space: normal; }
 .k-rival { font-size: 13px; -unity-font-style: italic; color: var(--texto); margin: 2px 0 6px 0; padding: 0; white-space: normal; }
 .k-res-score { font-size: 32px; -unity-font-style: bold; color: var(--destaque); margin: 4px 0; padding: 0; }
+.k-build { position: absolute; right: 16px; top: 52px; width: 340px; padding: 16px 18px; border-radius: 14px; background-color: var(--fundo-painel); border-width: 2px; border-color: var(--destaque); }

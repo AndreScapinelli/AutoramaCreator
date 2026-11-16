@@ -244,6 +244,13 @@ namespace Autorama
         }
 
         readonly List<(Image img, string name)> paletteIcons = new List<(Image, string)>();
+        readonly List<(Button tile, PaletteEntry e)> paletteTiles = new List<(Button, PaletteEntry)>();
+
+        // Construtor da carreira (seção 72): apaga as peças que a prova não deixa usar.
+        public void RefreshAllowed()
+        {
+            foreach (var (tile, e) in paletteTiles) tile.SetEnabled(TrackBuilder.AllowedEntry == null || TrackBuilder.AllowedEntry(e));
+        }
         Button kind2Btn, kind4Btn, kind6Btn, kind8Btn;
         Label subtitle;
         int iconsFor;
@@ -365,6 +372,7 @@ namespace Autorama
                 Text(e.sub, "tile-sub", texts).pickingMode = PickingMode.Ignore;
                 Text(KeyName(e.key), "key", tile).pickingMode = PickingMode.Ignore;
                 tile.tooltip = $"{e.label} · {e.sub} (tecla {KeyName(e.key)})";
+                paletteTiles.Add((tile, entry));
                 tile.RegisterCallback<PointerEnterEvent>(_ => builder.ShowGhost(entry));
                 tile.RegisterCallback<PointerLeaveEvent>(_ => builder.HideGhost());
                 grid.Add(tile);

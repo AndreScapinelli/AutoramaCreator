@@ -86,6 +86,45 @@
           ]
         },
         {
+          "id": "garagem-oficina",
+          "nome": "Oficina",
+          "tipo": "construtor",
+          "depois": [
+            "garagem-2"
+          ],
+          "pista": "",
+          "voltas": 4,
+          "ia": 55,
+          "adversarios": 1,
+          "turbo": true,
+          "pecas": [
+            "reta-curta",
+            "reta-comprida",
+            "reta-curtinha",
+            "curva-longa",
+            "meia-curva"
+          ],
+          "rampas": false,
+          "maxPecas": 16,
+          "exigir": [
+            "meia-curva"
+          ],
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 2
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semSair",
+              "valor": 0
+            }
+          ]
+        },
+        {
           "id": "garagem-4",
           "nome": "Chuva na Garagem",
           "tipo": "desafio",

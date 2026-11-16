@@ -203,9 +203,26 @@ namespace Autorama
 
         // tail: as peças que já ficam atrás da largada; a pista da frente (existing) tem de chegar na ponta de trás delas.
         // Começa a busca sem rodar nada ainda: use Pump no Job.
+        // Construtor da carreira (seção 72): só usa as peças cujo id passa aqui (null = todas).
+        public static System.Func<string, bool> Allowed;
+        static readonly bool[] searchOk = new bool[SearchMoves];
+
         public static Job Start(Pose2 origin, IList<TrackPiece> existing, IList<TrackPiece> tail, bool preferBanked, int z0 = 0)
         {
             BuildTables();
+            if (Allowed != null)
+            {
+                // Só inclinada (ou só plana) liberada: fecha com a que pode.
+                if (preferBanked && !Allowed(PieceCatalog.CurveB.Id) && Allowed(PieceCatalog.Curve.Id)) preferBanked = false;
+                else if (!preferBanked && !Allowed(PieceCatalog.Curve.Id) && Allowed(PieceCatalog.CurveB.Id)) preferBanked = true;
+            }
+            for (int m = 0; m < SearchMoves; m++)
+            {
+                var d = Moves[m].def;
+                if (preferBanked && d == PieceCatalog.Curve) d = PieceCatalog.CurveB;
+                if (preferBanked && d == PieceCatalog.Half) d = PieceCatalog.HalfB;
+                searchOk[m] = Allowed == null || Allowed(d.Id);
+            }
             var job = new Job();
             job.Begin(Run(job, origin, new List<TrackPiece>(existing), new List<TrackPiece>(tail), preferBanked, z0));
             return job;
@@ -455,6 +472,7 @@ namespace Autorama
                     var st = tree.nodes[pi].s;
                     for (int m = 0; m < SearchMoves; m++)
                     {
+                        if (!searchOk[m]) continue;
                         var ns = Apply(st, m, fit, out bool ok);
                         if (!ok) continue;
                         if ((Pos(ns) - other).sqrMagnitude > reach * reach) continue;
