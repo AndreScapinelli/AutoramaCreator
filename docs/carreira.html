@@ -140,6 +140,7 @@ th { color:var(--mut); font-weight:600; }
 <li><code>PlayerProfile</code> em <code>perfil.json</code> (um por computador): moedas e peças compradas, valendo em todos os slots</li>
 <li>Prêmios: estrela nova 50/75/100 · rival 300 · campeão 500/800/1200/2000 · corrida livre 10 + 5 por posição · recorde 50 · online × 1,5 · metade a partir da 4ª corrida seguida na mesma pista</li>
 <li>Loja (aba Garagem): grátis reta/curva longa/meia · 150 curtinha e ponte · 250 troca de faixa · 400 inclinadas · 500 curva em C · 600 salto 1 · 1000 loop · 1200 salto 2 e 3</li>
+<li>Botão "Desbloquear tudo" nas Opções, atrás de <code>Progresso.Teste</code> (sai no lançamento)</li>
 <li>Cadeado no <code>BuilderPanel</code> e filtro no <code>TrackCloser.MovesOf</code></li>
 <li>Depois: ajustes do carro, pinturas e tema da mesa na loja</li>
 </ul>
@@ -148,7 +149,7 @@ th { color:var(--mut); font-weight:600; }
 <h2>Decisões</h2>
 <ul>
 <li class="f"><b>Decidido:</b> sem XP; desbloqueio por moedas. A carreira abre a peça para compra, a moeda compra.</li>
-<li>Quem já joga hoje: tudo liberado, ou do zero com bônus de moedas?</li>
+<li class="f"><b>Decidido:</b> o jogo não foi lançado, todo mundo começa do zero. Enquanto isso, um botão <b>"Desbloquear tudo"</b> nas Opções libera todas as peças, regiões e nós (sem gastar moedas e sem apagar o progresso). Ele fica atrás de uma constante (<code>Progresso.Teste = true</code>) e some no lançamento trocando para <code>false</code>.</li>
 <li>Construtor livre: peças bloqueadas até a carreira liberar, ou tudo livre fora da carreira?</li>
 <li>Turbo ligado por padrão na carreira (menos no relógio)?</li>
 <li>Jogador 2 pode entrar no lugar de uma IA, sem ganhar estrelas?</li>
@@ -156,6 +157,7 @@ th { color:var(--mut); font-weight:600; }
 
 <h2>Diário</h2>
 <ul class="log">
+<li><b>16/11/2026</b> · Todos começam do zero; botão temporário "Desbloquear tudo" até o lançamento.</li>
 <li><b>16/11/2026</b> · Moedas no lugar de XP: a carreira abre, a moeda compra.</li>
 <li><b>16/11/2026</b> · 43 pistas geradas e validadas; seção 67 do guia. Commit <code>f195c30</code>.</li>
 <li><b>15/11/2026</b> · Desenho da carreira; gerador de pistas; branch <code>carreira</code> criada.</li>
