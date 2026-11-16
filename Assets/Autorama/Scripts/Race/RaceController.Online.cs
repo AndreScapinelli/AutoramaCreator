@@ -640,39 +640,43 @@ namespace Autorama
             panel.Toast($"“{data.nome}” salva na sua biblioteca.");
         }
 
-        // Campeonato online: as pistas que chegaram na largada, cada uma com "Salvar" (as que já estão na biblioteca, com a mesma
-        // identidade no tamanho do campeonato, aparecem como guardadas).
+        // Campeonato online e partida rápida: as pistas que chegaram na largada vão sozinhas para a biblioteca. A que já está lá
+        // (mesma identidade no tamanho do campeonato) não é gravada de novo; os recordes vão pela identidade (recordes.json),
+        // então só mudam quando alguém bate o tempo.
         void DrawRunTracks()
         {
             oRunTracks.Clear();
             var C = onlineChamp; if (C == null) return;
             Text("PISTAS DO CAMPEONATO", "h2", oRunTracks);
-            Text("Guarde na sua biblioteca as pistas que quiser, para correr ou mexer depois.", "hint", oRunTracks);
+            Text("As pistas da corrida ficam guardadas na sua biblioteca.", "hint", oRunTracks);
             var lib = TrackLibrary.List();
             var seen = new HashSet<string>();
+            int novas = 0;
             foreach (var st in C.stages)
             {
                 if (!seen.Add(st.hash)) continue;
-                var stage = st;
-                bool have = lib.Exists(e => Champ.TrackHash(Adapted(e.save, C.faixas)) == stage.hash);
+                int i = lib.FindIndex(e => Champ.TrackHash(Adapted(e.save, C.faixas)) == st.hash);
+                bool nova = i < 0;
+                string nome = nova ? null : lib[i].save.nome;
+                if (nova) { nome = SaveRunTrack(st, lib); novas++; lib = TrackLibrary.List(); }
                 var row = El("lib-item", oRunTracks);
                 var texts = El("lib-texts", row);
-                Text(stage.name, "lib-name", texts);                  // já veio com Safe (BeginOnlineRun)
-                Text(have ? "já está na sua biblioteca" : $"pista de {C.Faixas} trilhos", "small", texts);
-                var b = Btn(have ? "Guardada" : "Salvar", () => SaveRunTrack(stage), "btn", row);
-                b.SetEnabled(!have);
+                Text(nome, "lib-name", texts);
+                Text(nova ? "guardada agora na sua biblioteca" : "já estava na sua biblioteca", "small", texts);
             }
+            if (novas > 0) panel.Toast(novas == 1 ? "1 pista nova na sua biblioteca." : $"{novas} pistas novas na sua biblioteca.");
         }
 
-        void SaveRunTrack(Stage st)
+        string SaveRunTrack(Stage st, List<TrackLibrary.Entry> lib)
         {
             var data = TrackSave.FromJson(st.data.ToJson(false));
             string nome = st.name.Replace("​", "").Trim();   // tira o Safe do nome da etapa
-            data.nome = nome.Length > 0 ? nome : "Pista";
-            if (TrackLibrary.List().Exists(e => e.save.nome == data.nome)) data.nome += " (online)";
+            string bas = nome.Length > 0 ? nome : "Pista";
+            data.nome = bas;
+            for (int n = 2; lib.Exists(e => e.save.nome == data.nome); n++)   // outra pista com o mesmo nome: não sobrescreve
+                data.nome = n == 2 ? bas + " (online)" : $"{bas} (online {n - 1})";
             TrackLibrary.Save(data);
-            panel.Toast($"“{data.nome}” salva na sua biblioteca.");
-            DrawRunTracks();
+            return data.nome;
         }
 
         // Visitante: manda uma das minhas pistas ao host.
