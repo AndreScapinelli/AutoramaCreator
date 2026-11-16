@@ -266,7 +266,7 @@ namespace Autorama
         // uma linha só (o cruzamento pode cair na emenda de duas). Duas linhas se cruzam a pelo menos CrossMinAngle,
         // longe das pontas de cada linha (CrossEnd / sen do ângulo, para as vizinhas não encostarem na outra).
         // a0..a1: a linha que vem antes na lista (a de baixo na malha); b0..b1: a outra. Índices na lista de segmentos.
-        public const float CrossMinAngle = 40f, CrossEnd = 0.92f;
+        public const float CrossMinAngle = 30f, CrossEnd = 0.5f;
         public struct FlatX { public int a0, a1, b0, b1; public Vector2 x, ua, ub; public float sin; }
 
         public static List<FlatX> FlatCrossings(IList<Segment> segs)
@@ -306,7 +306,7 @@ namespace Autorama
             return false;
         }
 
-        static bool CrossOk(Segment s) => s.def.Kind == PieceKind.Straight && !s.def.IsStart && !s.def.IsCross && !s.def.IsJump
+        static bool CrossOk(Segment s) => s.def.Kind == PieceKind.Straight && !s.def.IsCross && !s.def.IsJump
             && !s.def.IsLoop && !s.High && !s.IsRamp;
 
         static bool Touches(List<Vector3> a, List<Vector3> b, float minSqr)

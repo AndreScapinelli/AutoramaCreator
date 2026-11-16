@@ -43,7 +43,7 @@ namespace Autorama
 
             // Cruzamento de retas no chão (seção 63): a peça que vem antes na lista some no quadrado do cruzamento e a
             // outra passa inteira, com as fendas de verdade; as fendas da de baixo ficam pintadas por cima dela.
-            cutA = cutB = -1f;
+            cuts.Clear();
             var paint = new List<TrackLayout.FlatX>();
             int me = all != null ? all.IndexOf(s) : -1;
             if (me >= 0 && only == null)
@@ -61,8 +61,8 @@ namespace Autorama
                     float d0 = Vector2.Dot(c.x - s.a.pos, c.ua);
                     float a = Mathf.Max(0f, (d0 - half) / len), b = Mathf.Min(1f, (d0 + half) / len);
                     if (b <= a) continue;
-                    cutA = a; cutB = b;
-                    var list = new List<float>(ts) { cutA, cutB };
+                    cuts.Add(new Vector2(a, b));
+                    var list = new List<float>(ts) { a, b };
                     list.Sort();
                     ts = list.ToArray();
                 }
@@ -471,7 +471,8 @@ namespace Autorama
         // Faixa entre duas bordas ao longo da peça. Indo de a para b "para a direita", a face olha para cima;
         // indo para baixo, olha para a direita; para cima, para a esquerda; para a esquerda, para baixo.
         // Cada faixa tem os próprios vértices: as quinas ficam vivas (low-poly).
-        static float cutA = -1f, cutB = -1f;     // trecho (em t) que fica sem malha: o cruzamento com outra reta
+        static readonly List<Vector2> cuts = new List<Vector2>();     // trechos (em t) sem malha: os cruzamentos com outras retas
+        static bool InCut(float t) { foreach (var c in cuts) if (t > c.x && t < c.y) return true; return false; }
 
         // Fendas da reta de baixo pintadas sobre a de cima (s), no quadrado do cruzamento: faixas escuras finas.
         static void PaintCross(Segment s, Segment o, Vector2 x, int faixas, float hw, float y)
@@ -512,7 +513,7 @@ namespace Autorama
                 UV.Add(new Vector2(ea.u, dist * vScale));
                 UV.Add(new Vector2(eb.u, dist * vScale));
                 float tm = i > 0 ? (ts[i - 1] + ts[i]) / 2f : 0f;
-                if (i > 0 && !(s.def.IsJump && s.def.JumpGapAt(ts[i] * s.def.Length)) && !(tm > cutA && tm < cutB))     // no vão do salto não há pista; no cruzamento, a outra reta
+                if (i > 0 && !(s.def.IsJump && s.def.JumpGapAt(ts[i] * s.def.Length)) && !InCut(tm))     // no vão do salto não há pista; no cruzamento, a outra reta
                 {
                     int k = start + i * 2;
                     tri.Add(k - 2); tri.Add(k); tri.Add(k - 1);

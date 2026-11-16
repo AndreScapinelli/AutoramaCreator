@@ -4290,20 +4290,25 @@ Duas retas podem se cruzar no mesmo nível, como no 8 sem ponte. Não é peça n
 deixa de marcar sobreposição. Pistas e recordes salvos continuam iguais.
 
 - **Regra** (`TrackLayout.FlatCrossings`): conta a **linha reta inteira**. Retas comuns seguidas, no mesmo rumo e
-  emendadas, são uma linha só (não entram largada, cruzamento X, salto nem loop; todas planas e no chão, sem rampa,
-  `!High`). Duas linhas se cruzam a pelo menos `CrossMinAngle = 40°` (na prática, 90° ou 45°), com o ponto a pelo menos
-  `CrossEnd / sen(ângulo)` das pontas de cada linha (`CrossEnd = 0,92`, a distância da sobreposição), para as vizinhas
-  (curvas, largada) não encostarem na outra. O `Analyze` pula os pares de peças das duas linhas (`InCross`); qualquer
+  emendadas, são uma linha só (a largada entra; não entram cruzamento X, salto nem loop; todas planas e no chão, sem
+  rampa, `!High`). Duas linhas se cruzam a pelo menos `CrossMinAngle = 30°`, com o ponto a pelo menos
+  `CrossEnd / sen(ângulo)` das pontas de cada linha (`CrossEnd = 0,5`, meia largura: o quadrado do cruzamento fica dentro
+  da linha). Uma vizinha (curva) que encoste na outra linha continua dando sobreposição, porque não faz parte do par.
+  O `Analyze` pula os pares de peças das duas linhas (`InCross`); qualquer
   outra sobreposição continua valendo.
   - Antes a regra era por peça: o cruzamento na emenda de duas retas (curta + curta) ou perto da ponta de uma reta
     curta, mesmo com reta seguida, era recusado.
-- **Malha** (`TrackPieceView`): as peças da linha que vem antes na lista somem no quadrado do cruzamento (`cutA`/`cutB`, meia
+- **Malha** (`TrackPieceView`): as peças da linha que vem antes na lista somem no quadrado de cada cruzamento (lista `cuts`, vários por peça; meia
   largura `(0,5 + 0,5·|cos|) / sen`). A outra passa inteira, com as fendas de verdade, e a peça dela onde cai o ponto ganha as fendas da de
   baixo pintadas por cima (`PaintCross`: faixas escuras, 0,002 acima).
 - **Batida** (`RaceSim.CollidePair`): a colisão já era pela pose dos carrinhos. Se os dois estão no trilho e com rumos
   a mais de `CrossHitAngle = 30°` um do outro, não é raspar: é choque com troca de impulso (`Impulse`). A parte de lado
   vira derrapagem (`HitSlip + lado · HitSlipSide`) e, rápido, tira da pista. A IA não espera o outro passar.
 - **Q:** percorre a pista com o cruzamento, mas a busca não cria cruzamento (os obstáculos seguem iguais).
+
+Mais permissivo (16/11/2026; antes: 40°, `CrossEnd 0,92`, sem largada, um corte só por peça). Teste (`script eval`):
+reta comprida, largada, reta curta, 3 curvas longas à direita, reta comprida: a última cruza a largada a 90° no ponto
+(5,5; 0); 1 cruzamento, 0 sobreposições.
 
 Teste (`script eval`): largada, reta comprida, 3 curvas longas à esquerda, reta comprida (cruza a primeira a 90°, no
 ponto 1,5 dela e 2,5 da outra), 2 curvas longas à direita: sem sobreposição. O Q fechou com 5 peças, ainda sem
