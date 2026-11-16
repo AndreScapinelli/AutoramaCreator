@@ -11,7 +11,7 @@ namespace Autorama
     // Rodar: script eval 'return Autorama.CareerTracks.Gerar();'
     public static class CareerTracks
     {
-        public const string Folder = "Assets/Autorama/Carreira/pistas";
+        public const string Folder = "Assets/Autorama/Resources/Carreira/pistas";
 
         // Peças em texto, separadas por espaço: código + lado (e/d) + altura (^ sobe, v desce) + número (vão ou raio).
         // R reta curta · L comprida · t curtinha · X cruzamento · x cruzamento curto · C curva longa · M meia curva

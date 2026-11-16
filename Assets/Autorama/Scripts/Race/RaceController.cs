@@ -192,6 +192,7 @@ namespace Autorama
             BuildTags();
             BuildNarra();
             BuildChampUI();
+            BuildCareerUI();
             BuildOnlineUI();
             OnlineBoot();
             builder.Changed += OnTrackChanged;
@@ -301,6 +302,11 @@ namespace Autorama
             {
                 ApplyCameraSettings();
                 UseChampTrack();
+            }
+            else if (m == BuilderPanel.Mode.Career)
+            {
+                ApplyCameraSettings();
+                UseCareerNode();
             }
             else
             {
@@ -416,17 +422,18 @@ namespace Autorama
                 if (g > 0f) sim.cars[k].gas = g;
                 if ((keys && KeyWasPressed(kb, ReslotKey(k))) || PadPressed(k, p => p.buttonSouth)) sim.Reslot(k);
             }
-            if (!Paused && ((keys && (kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame)) || AnyPadStart())) { if (panel.ChampMode) ChampEnter(); else StartRace(); }
+            if (!Paused && ((keys && (kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame)) || AnyPadStart())) { if (panel.ChampMode) ChampEnter(); else if (panel.CareerMode) CareerEnter(); else StartRace(); }
 
             if (keys && kb.pKey.wasPressedThisFrame) PausePressed(null);
             if (!PauseTick()) sim.Step(Mathf.Min(Time.deltaTime, 0.05f));
+            if (panel.CareerMode) CareerTick();
             PlaceCars();
             UpdatePads();
             UpdateTop();
             if (sim.phase != lastPhase) { lastPhase = sim.phase; scoreDirty = true; champDirty = true; SideForPhase(); }
             if (scoreDirty) { scoreDirty = false; DrawScore(); DrawStatus(); }
             if (champDirty && panel.ChampMode) { champDirty = false; DrawChampSide(); }
-            (panel.ChampMode ? cClock : clock).text = ClockText();
+            (panel.ChampMode ? cClock : panel.CareerMode ? kClock : clock).text = ClockText();
         }
 
         readonly Vector3[] carPos = new Vector3[RaceSim.MaxCars];
@@ -655,7 +662,7 @@ namespace Autorama
             BuildPauseUI();                                // pausa no P (RaceController.Pause.cs)
             resTable = El("res-table", banner);
             resBtns = El("res-btns", banner);
-            resAgain = Btn("Correr de novo  (Enter)", () => { if (ChampLike) ChampEnter(); else StartRace(); }, "btn btn--accent res-btn", resBtns);
+            resAgain = Btn("Correr de novo  (Enter)", () => { if (ChampLike) ChampEnter(); else if (panel.CareerMode) CareerEnter(); else StartRace(); }, "btn btn--accent res-btn", resBtns);
             resNext = Btn("Trocar pista", () => { sideAutoHidden = false; panel.SetSideFromRace(true); }, "btn res-btn", resBtns);
             lights.pickingMode = PickingMode.Ignore;
             minimap = new RaceMinimap();
@@ -1220,6 +1227,7 @@ namespace Autorama
         void DrawScore()
         {
             if (ChampLike) { DrawChampScore(); return; }
+            if (panel.CareerMode) { DrawCareerScore(); return; }
             scoreBox.Clear();
             void Row(string[] cells, string cls)
             {
@@ -1248,6 +1256,7 @@ namespace Autorama
         {
             if (!panel.RaceMode) return;
             if (ChampLike) { ChampStatus(); return; }
+            if (panel.CareerMode) { CareerStatus(); return; }
             if (!sim.closed) panel.SetStatus("Feche o circuito no Construtor para correr", "status--warn");
             else if (sim.winner >= 0) panel.SetStatus($"{LaneNames[sim.winner]} venceu", "status--ok");
             else if (sim.phase == RaceSim.Phase.Countdown) panel.SetStatus("Atenção à largada", "");

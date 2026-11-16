@@ -38,13 +38,14 @@ namespace Autorama
 
         // ---------- Abas Construtor / Corrida / Campeonato / Online ----------
 
-        public enum Mode { Build, Race, Champ, Online }
+        public enum Mode { Build, Race, Champ, Online, Career }
         public Mode CurrentMode { get; private set; }
-        public bool RaceMode => CurrentMode == Mode.Race || CurrentMode == Mode.Champ || (CurrentMode == Mode.Online && OnlineRacing);        // corrida ou campeonato: os carrinhos andam
+        public bool RaceMode => CurrentMode == Mode.Race || CurrentMode == Mode.Champ || CurrentMode == Mode.Career || (CurrentMode == Mode.Online && OnlineRacing);        // corrida ou campeonato: os carrinhos andam
         public bool OnlineRacing { get; private set; }            // campeonato online em andamento: a aba Online vira a tela de corrida
         public void SetOnlineRacing(bool on) { OnlineRacing = on; Refresh(); }
         public bool ChampMode => CurrentMode == Mode.Champ;
         public bool OnlineMode => CurrentMode == Mode.Online;
+        public bool CareerMode => CurrentMode == Mode.Career;
         public bool Locked => CurrentMode != Mode.Build;          // fora do construtor a pista não se edita
         public static bool EditLocked => instance && (instance.Locked || instance.MenuOpen);
         // Tela inicial: aparece ao abrir o jogo; escolher um modo (ou um convite da Steam) fecha.
@@ -54,6 +55,7 @@ namespace Autorama
         public VisualElement RaceBox => raceBox;          // conteúdo da aba Corrida na barra lateral
         public VisualElement ChampBox => champBox;        // conteúdo da aba Campeonato
         public VisualElement OnlineBox => onlineBox;      // conteúdo da aba Online
+        public VisualElement CareerBox => careerBox;      // conteúdo da aba Carreira (seção 68)
         public VisualElement Root => root;                // camada por cima da mesa (controles dos jogadores, luzes)
         public float SideWidth => sideVisible && side != null ? side.layout.width : 0f;
 
@@ -67,10 +69,12 @@ namespace Autorama
             tabRace.EnableInClassList("tab--on", m == Mode.Race);
             tabChamp.EnableInClassList("tab--on", m == Mode.Champ);
             tabOnline.EnableInClassList("tab--on", m == Mode.Online);
+            tabCareer.EnableInClassList("tab--on", m == Mode.Career);
             buildBox.style.display = m == Mode.Build ? DisplayStyle.Flex : DisplayStyle.None;
             raceBox.style.display = m == Mode.Race ? DisplayStyle.Flex : DisplayStyle.None;
             champBox.style.display = m == Mode.Champ ? DisplayStyle.Flex : DisplayStyle.None;
             onlineBox.style.display = m == Mode.Online ? DisplayStyle.Flex : DisplayStyle.None;
+            careerBox.style.display = m == Mode.Career ? DisplayStyle.Flex : DisplayStyle.None;
             if (m != Mode.Build) closeBtn.style.display = DisplayStyle.None;      // "Fechar circuito" é do Construtor: fora dele, pista aberta nem aparece
             if (Locked) { builder.CancelAutoClose(); builder.HideGhost(); builder.SetHoverCell(null); hover = null; }
             root.focusController?.focusedElement?.Blur();
@@ -88,8 +92,8 @@ namespace Autorama
         public void Toast(string text) => Say(text);
 
         UIDocument doc;
-        VisualElement buildBox, raceBox, champBox, onlineBox;
-        Button tabBuild, tabRace, tabChamp, tabOnline;
+        VisualElement buildBox, raceBox, champBox, onlineBox, careerBox;
+        Button tabBuild, tabRace, tabChamp, tabOnline, tabCareer;
         VisualElement root, side, content, showTab, topRuler, leftRuler, info, scaleBar;
         VisualElement statusBox, statusDot, selectedBox, summaryBox, seqBox, libList;
         Label statusText, hint, cellLabel, scaleText, toast, viewBadge;
@@ -295,6 +299,7 @@ namespace Autorama
 
             var tabs = El("tabs", content);
             tabBuild = Btn("CONSTRUTOR", () => SetMode(Mode.Build), "tab tab--on", tabs);
+            tabCareer = Btn("CARREIRA", () => SetMode(Mode.Career), "tab", tabs);
             tabRace = Btn("CORRIDA", () => SetMode(Mode.Race), "tab", tabs);
             tabChamp = Btn("CAMPEONATO", () => SetMode(Mode.Champ), "tab", tabs);
             tabOnline = Btn("ONLINE", () => SetMode(Mode.Online), "tab", tabs);
@@ -318,6 +323,8 @@ namespace Autorama
             champBox.style.display = DisplayStyle.None;
             onlineBox = El(null, content);
             onlineBox.style.display = DisplayStyle.None;
+            careerBox = El(null, content);
+            careerBox.style.display = DisplayStyle.None;
 
             // Tipo da pista: 2, 4, 6 ou 8 carros. Trocar adapta a pista aberta, sem perder peças.
             var kind = Section("TAMANHO DA PISTA");
@@ -442,6 +449,7 @@ namespace Autorama
                 grid.Add(b);
             }
             Opt("Construir", "Encaixe as peças e feche o circuito", "▦", Mode.Build);
+            Opt("Carreira", "Da garagem ao campeonato nacional", "⚑", Mode.Career);
             Opt("Correr", "Dois jogadores no mesmo teclado ou contra o robô", "▶", Mode.Race);
             Opt("Campeonato", "Pilotos, etapas, tabela e recordes", "★", Mode.Champ);
             Opt("Online", "Campeonato com amigos pela Steam", "◉", Mode.Online);

@@ -4342,7 +4342,7 @@ A tecla de meia (S no jogador 1) acelerava sempre até `RaceSettings.halfGas` (6
 
 ## 67. Pistas da carreira (gerador)
 
-As pistas fixas do modo carreira ficam em `Assets/Autorama/Carreira/pistas/<id>.json`, no JSON de pista de sempre (mesmos ids de peça, mesma identidade de recorde). Quem as gera é `Editor/CareerTracks.cs`.
+As pistas fixas do modo carreira ficam em `Assets/Autorama/Resources/Carreira/pistas/<id>.json` (em `Resources` para o jogo compilado ler com `Resources.Load`), no JSON de pista de sempre (mesmos ids de peça, mesma identidade de recorde). Quem as gera é `Editor/CareerTracks.cs`.
 
 - **Como cada pista nasce:** um trecho escrito à mão (o "jeito" da pista) e o fechar sozinho (`TrackCloser.Close`) completa o circuito. Se a ponta fica presa em cima do começo, o gerador tira até 3 peças do fim e pede o Q de novo. Cada pista pode ter alternativas separadas por `|`: vale a primeira que fecha sem sobrepor (`TrackLayout.Analyze`: `closed` e sem `overlaps`).
 - **Texto das peças:** código + lado (`e`/`d`) + altura (`^` sobe, `v` desce) + número (vão do salto ou raio da C). `R` reta curta, `L` comprida, `t` curtinha, `X` cruzamento, `x` cruzamento curto, `C` curva longa, `M` meia curva, `B` longa inclinada, `b` curta inclinada, `U` curva em C, `O` loop, `J` salto. Ex.: `"L J2 L Bd Bd"`.
@@ -4360,3 +4360,40 @@ Peças por região (o Q só pode pôr peças planas ou inclinadas, conforme `inc
 | Nacional | 8 | 13 | + loop, salto vão 2 e 3 | 40 a 85 |
 
 No mundo a pista larga é `Scale` vezes maior e a velocidade × √escala (seção 25.5c): a mesma volta em células dura √escala vezes mais. Por isso o número de células cresce pouco entre as regiões, e a dificuldade vem das peças novas.
+
+## 68. Modo carreira: base (fase 1)
+
+Aba **CARREIRA** no painel (e na tela inicial). Por enquanto uma lista de nós da região; o mapa vem na fase 2. Acompanhamento em `docs/carreira.html`.
+
+**Arquivos**
+- `Scripts/Career/CareerData.cs`: `CareerDef` → `RegionDef` → `NodeDef` → `Objetivo`; `ResultadoCorrida`; `CareerSave`/`NodeSave`; e `Career` (estático, sem cena): `Avaliar`, `Record`, `NodeOpen`, `RegionOpen`, `Load`/`Save`.
+- `Resources/Carreira/carreira.json`: a definição (vem no jogo). `Resources/Carreira/pistas/<id>.json`: as pistas (seção 67).
+- `Scripts/Race/RaceController.Career.cs`: a aba, a corrida a partir de um nó e as estrelas no fim.
+- `Editor/CareerCalib.cs`: melhor volta da IA sozinha numa pista (`CareerCalib.Laps("garagem-2", 50, 75, 100)`), base dos tempos do relógio.
+- Progresso: `persistentDataPath/autorama/carreira-1.json` a `carreira-3.json` (3 saves).
+
+**Nó** (`NodeDef`): `tipo` (`corrida` ou `relogio`; depois `desafio`, `construtor`, `rival`, `campeonato`), `depois` (abre quando **qualquer** um deles tem 1 estrela; vazio = aberto), `pista`, `voltas`, `ia` (1–100), `adversarios`, `turbo` (no relógio sempre desligado) e 3 `estrelas`.
+
+**Objetivos** (`Objetivo.tipo`, `valor`): `posicao` (chegar até a posição), `semSair` (no máximo `valor` saídas), `semTurbo`, `volta` (melhor volta até `valor` s), `tempo` (prova até `valor` s). Sem terminar, só `volta` pode valer.
+
+**Estrelas:** a 1ª é concluir; sem ela, zero. A 2ª e a 3ª valem cada uma por si (`Career.Avaliar`). `Career.Record` guarda o máximo de estrelas, a melhor posição e a melhor volta, e devolve só as estrelas novas.
+
+**Abertura:** nó aberto pela regra de `depois`; o tipo `rival` também pede `RegionStars ≥ estrelasRival`. Região aberta: a 1ª, ou a anterior com o último nó (o campeonato) com 1 estrela.
+
+**A corrida:** o jogador é o carro 0; os carros 1..`adversarios` são a IA com a qualidade `ia`; os outros trilhos ficam vazios. `sim.set` é montado do nó (voltas e turbo) com o resto dos ajustes da corrida livre (`vmax`, `ramp`, `grip`, colisão, recolocar, meia). Carro sempre no ajuste padrão (o cartão "Carro" entra depois). Sem fantasma na carreira (`GhostFree`). `CareerTick`, a cada quadro: anota se o carro 0 usou o turbo, zera tudo na contagem de uma prova nova e, ao fim (`Phase.Done`), avalia, salva e mostra `★★☆ +1 estrela nova!`. Posição pelo `Order()`.
+
+**Garagem (fase 1):** 5 nós, todos com 2 faixas (1 adversário).
+
+| Nó | Tipo | Pista | Voltas | IA | ★ · ★★ · ★★★ |
+|---|---|---|---|---|---|
+| garagem-1 Primeira Volta | corrida | garagem-1 | 3 | 25 | terminar · vencer · sem sair |
+| garagem-2 Reta da Bancada | relógio | garagem-2 | 3 | — | volta 4,70 · 4,25 · 3,95 s |
+| garagem-3 Feijão | corrida | garagem-3 | 4 | 40 | terminar · vencer · sem turbo |
+| garagem-5 Cotovelo | corrida | garagem-5 | 5 | 50 | terminar · vencer · até 1 saída |
+| garagem-6 Serpentina | relógio | garagem-6 | 3 | — | volta 6,35 · 5,75 · 5,35 s |
+
+Ramos: o 3 e o 5 abrem com o 2; o 6 abre com o 3 **ou** o 5. Tempos do relógio: ouro = melhor volta da IA 100 sozinha, prata × 1,07, bronze × 1,18 (IA 100: garagem-2 3,98 s, garagem-6 5,38 s). A IA tem ruído: 30, 50 e 75 dão quase o mesmo tempo, então a calibração por qualidade fica para a fase 3.
+
+**Teste:** `Avaliar` e `NodeOpen` por `script eval` (perdeu 1, venceu 2, venceu sem sair 3, não terminou 0; relógio 4,0 s = 2, 3,9 s = 3). No Play, com a IA 90 no lugar do jogador no garagem-1: venceu em 10,60 s, volta 3,47 s, ★★★, `carreira-1.json` gravado (apagado depois do teste).
+
+As abas passaram a ter letra de 8 px, porque com cinco os nomes se encostavam.

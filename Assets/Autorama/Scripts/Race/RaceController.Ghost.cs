@@ -19,7 +19,7 @@ namespace Autorama
         bool ghostLoaded;
         VisualElement ghostInfo;
 
-        bool GhostFree => panel != null && panel.RaceMode && !panel.ChampMode && !OnlineRun;
+        bool GhostFree => panel != null && panel.RaceMode && !panel.ChampMode && !panel.CareerMode && !OnlineRun;
 
         void GhostStart()
         {

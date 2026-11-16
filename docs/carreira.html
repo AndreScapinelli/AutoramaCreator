@@ -39,8 +39,8 @@ th { color:var(--mut); font-weight:600; }
 <h1>Modo Carreira</h1>
 <p class="sub">Acompanhamento do desenvolvimento. Branch <code>carreira</code>. Atualizado a cada etapa.</p>
 
-<div class="bar"><div style="width:10%"></div></div>
-<p class="sub">Pistas prontas · fase 1 a seguir</p>
+<div class="bar"><div style="width:22%"></div></div>
+<p class="sub">Fase 1 pronta · fase 2 (mapa) a seguir</p>
 
 <h2>Visão geral</h2>
 <p>4 regiões em sequência, cada uma num mapa de nós ligados por caminhos com ramos. Cada nó dá de 1 a 3 estrelas. O rival da região abre com um número de estrelas, e vencer o campeonato da região abre a próxima.</p>
@@ -67,23 +67,23 @@ th { color:var(--mut); font-weight:600; }
 </div>
 
 <div class="fase">
-<h3>1 · Base: dados, objetivos e corrida a partir de um nó <span class="tag doing">próxima</span></h3>
+<h3>1 · Base: dados, objetivos e corrida a partir de um nó <span class="tag ok">pronta</span></h3>
 <p>O esqueleto da carreira, sem o mapa bonito ainda: dá para escolher um nó numa lista, correr e ganhar estrelas que ficam salvas.</p>
 <ul class="chk">
-<li><code>CareerDef</code> / <code>RegionDef</code> / <code>NodeDef</code> / <code>Objetivo</code>: a definição, em <code>Carreira/carreira.json</code></li>
-<li><code>CareerSave</code>: progresso em <code>carreira-N.json</code> (3 slots), estrelas e melhor resultado por nó</li>
-<li><code>Objetivos.Avaliar(nó, resultado)</code> → estrelas: código puro, testado por <code>script eval</code></li>
-<li><code>ResultadoCorrida</code> montado pelo <code>RaceController</code> no fim (posição, voltas, saídas, turbo, melhor volta)</li>
-<li>Regra de abertura dos nós (anterior com ≥ 1 estrela, rival por estrelas)</li>
-<li>Corrida e Relógio rodando a partir de um nó (pista, voltas, IA, adversários)</li>
-<li>Tela de fim com as estrelas ganhas</li>
-<li>Região Garagem com os nós de corrida e relógio</li>
-<li>Seção no guia</li>
+<li class="f"><code>CareerDef</code> / <code>RegionDef</code> / <code>NodeDef</code> / <code>Objetivo</code>: a definição, em <code>Carreira/carreira.json</code></li>
+<li class="f"><code>CareerSave</code>: progresso em <code>carreira-N.json</code> (3 slots), estrelas e melhor resultado por nó</li>
+<li class="f"><code>Objetivos.Avaliar(nó, resultado)</code> → estrelas: código puro, testado por <code>script eval</code></li>
+<li class="f"><code>ResultadoCorrida</code> montado pelo <code>RaceController</code> no fim (posição, voltas, saídas, turbo, melhor volta)</li>
+<li class="f">Regra de abertura dos nós (anterior com ≥ 1 estrela, rival por estrelas)</li>
+<li class="f">Corrida e Relógio rodando a partir de um nó (pista, voltas, IA, adversários)</li>
+<li class="f">Tela de fim com as estrelas ganhas</li>
+<li class="f">Região Garagem com os nós de corrida e relógio</li>
+<li class="f">Seção no guia</li>
 </ul>
 </div>
 
 <div class="fase">
-<h3>2 · Mapa da região <span class="tag todo">a fazer</span></h3>
+<h3>2 · Mapa da região <span class="tag doing">próxima</span></h3>
 <ul class="chk">
 <li>Tela do mapa (UI Toolkit): nós, caminhos, cadeados, estrelas</li>
 <li>Cartão do nó: tipo, minimapa, objetivos, melhor resultado, Correr</li>
@@ -157,6 +157,7 @@ th { color:var(--mut); font-weight:600; }
 
 <h2>Diário</h2>
 <ul class="log">
+<li><b>16/11/2026</b> · Fase 1: aba CARREIRA, 5 nós da Garagem (corrida e relógio), estrelas e 3 saves. Testado: lógica por script eval e uma prova inteira no Play (★★★ gravado). Seção 68 do guia.</li>
 <li><b>16/11/2026</b> · Todos começam do zero; botão temporário "Desbloquear tudo" até o lançamento.</li>
 <li><b>16/11/2026</b> · Moedas no lugar de XP: a carreira abre, a moeda compra.</li>
 <li><b>16/11/2026</b> · 43 pistas geradas e validadas; seção 67 do guia. Commit <code>f195c30</code>.</li>
