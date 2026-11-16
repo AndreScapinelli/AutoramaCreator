@@ -320,6 +320,7 @@ namespace Autorama
             if (n.tipo == "rival") Text($"{n.rival} · melhor de {n.baterias}, trocando de trilho" + (string.IsNullOrEmpty(n.rivalFrase) ? "" : $"\n“{n.rivalFrase}”"), "k-rival", kCardBox);
             if (n.regras != null) foreach (var g in n.regras) Text("⚠ " + Career.RegraTexto(n, g), "k-rule", kCardBox);
             if (n.tipo == "construtor") Text(BuildRules(n), "k-rule", kCardBox);
+            if (n.tipo == "campeonato") Text(ChampCard(n), "k-rival", kCardBox);
             for (int i = 0; i < n.estrelas.Length; i++) Text($"{new string('★', i + 1)}  {Career.Texto(n.estrelas[i])}", "k-goal", kCardBox);
             var ns = Career.Of(kSave, n.id);
             Text(ns == null ? "Ainda não correu aqui." : $"Seu melhor: {Stars(ns.estrelas)}" + (ns.melhorPos > 0 && n.tipo != "relogio" ? $" · {ns.melhorPos}º" : "") + (ns.melhorVolta >= 0f ? $" · volta {Fmt(ns.melhorVolta)}" : ""), "k-sub", kCardBox);
@@ -329,6 +330,11 @@ namespace Autorama
                 bool has = SavedBuilt(n) != null;
                 Btn(has ? "Remontar" : "Montar pista (Enter)", StartBuild, has ? "btn" : "btn btn--primary", row);
                 if (has) Btn("Correr na minha pista (Enter)", CareerRun, "btn btn--primary", row);
+            }
+            else if (n.tipo == "campeonato" && KChamp != null)
+            {
+                Btn("Recomeçar", () => { kSave.campeonato = null; kSave.campNo = ""; Career.Save(kSlot, kSave); CareerRun(); }, "btn", row);
+                Btn("Continuar (Enter)", CareerRun, "btn btn--primary", row);
             }
             else Btn("Correr (Enter)", CareerRun, "btn btn--primary", row);
             Btn("Fechar (Esc)", () => { kCard = false; DrawMapUI(); }, "btn", row);
@@ -379,12 +385,14 @@ namespace Autorama
         void CareerRun()
         {
             if (KNode != null && KNode.tipo == "construtor" && (kBuilt ??= SavedBuilt(KNode)) == null) { StartBuild(); return; }
+            if (IsChamp) { ChampGo(); return; }
             kHeat = kWins = kLosses = kSerOffs = 0; kSerBest = -1f; kSerTurbo = false;
             RunHeat();
         }
 
         void RunHeat()
         {
+            if (IsChamp) { RunChampHeat(); return; }
             var n = KNode;
             if (n == null) return;
             bool clock = n.tipo == "relogio";
@@ -447,7 +455,7 @@ namespace Autorama
                 kDoneT = Time.unscaledTime;
                 var r = Result();
                 if (kOut) r.terminou = false;
-                if (IsRival) Tally(r); else Finish(r);
+                if (IsChamp) ChampHeatDone(); else if (IsRival) Tally(r); else Finish(r);
             }
             if (Time.unscaledTime - kDoneT > 1.2f) ShowResult();       // um respiro depois da bandeirada
         }
@@ -507,7 +515,8 @@ namespace Autorama
             {
                 var o = n.estrelas[i];
                 string mark;
-                switch (o.tipo)
+                if (IsChamp) mark = "…";        // vale a tabela final
+                else switch (o.tipo)
                 {
                     case "semSair": mark = r.saidas > o.valor ? "✗" : r.terminou && !IsRival ? "✓" : "…"; break;
                     case "semTurbo": mark = r.turbo ? "✗" : r.terminou && !IsRival ? "✓" : "…"; break;
@@ -520,6 +529,7 @@ namespace Autorama
                 string color = mark == "✓" ? "#3DBE74" : mark == "✗" ? "#F07A3A" : "#94A197";
                 sb.Append(i > 0 ? "\n" : "").Append($"<color={color}>{mark}</color>  {new string('★', i + 1)}  {Career.Texto(o)}");
             }
+            if (IsChamp) sb.Append(ChampLiveLine());
             if (IsRival) sb.Append($"\n<color=#F5C21B>Bateria {kHeat + 1} de {n.baterias} · você {kWins} × {kLosses} {n.rival}</color>");
             if (n.Has("sobrevivencia")) sb.Append($"\n<color={(sim.cars[0].offs >= n.limite ? "#F07A3A" : "#94A197")}>Saídas {sim.cars[0].offs} de {n.limite}</color>");
             if (n.Has("atrasada") && sim.phase == RaceSim.Phase.Running && sim.t < n.atraso) sb.Append($"\n<color=#F07A3A>Você sai em {Num(n.atraso - sim.t, 1)} s</color>");
@@ -541,7 +551,7 @@ namespace Autorama
             var box = kResBox.Q("res");
             box.Clear();
             var n = KNode;
-            if (kInterim) { ShowHeat(box); return; }
+            if (kInterim) { if (IsChamp) ShowChampHeat(box); else ShowHeat(box); return; }
             var stars = Text("☆☆☆", "k-res-stars", box);
             for (int i = 0; i < kGot; i++)
             {
@@ -549,7 +559,8 @@ namespace Autorama
                 box.schedule.Execute(() => stars.text = Stars(k)).ExecuteLater(300 + 400 * i);   // uma estrela de cada vez
             }
             if (kGot == 3) box.schedule.Execute(Fogos).ExecuteLater(1500);
-            string head = IsRival ? (kWins > kLosses ? $"Você venceu a série · {kWins} × {kLosses}" : $"{n.rival} venceu a série · {kLosses} × {kWins}")
+            string head = IsChamp ? (kRes.posicao == 1 ? $"Campeão da {KRegion.nome}!" : $"Você terminou em {kRes.posicao}º · {n.nome}")
+                : IsRival ? (kWins > kLosses ? $"Você venceu a série · {kWins} × {kLosses}" : $"{n.rival} venceu a série · {kLosses} × {kWins}")
                 : kOut ? $"Fora: mais de {n.limite} {(n.limite == 1 ? "saída" : "saídas")}"
                 : n.tipo == "relogio" ? (kRes.melhorVolta >= 0f ? $"Melhor volta {Fmt(kRes.melhorVolta)}" : "Nenhuma volta completa")
                 : !kRes.terminou ? "Não terminou" : $"{kRes.posicao}º lugar · {Fmt(kRes.tempo)}";
@@ -566,6 +577,12 @@ namespace Autorama
                 Text($"{(ok ? "<color=#3DBE74>✓</color>" : "<color=#F07A3A>✗</color>")}  {Career.Texto(n.estrelas[i])}", "k-goal", box);
             }
             foreach (var x in NewlyOpened()) Text($"Abriu: {x}", "k-open", box);
+            if (IsChamp && kFinalTable != null)
+            {
+                ChampTable(box, kFinalChamp, kFinalTable);
+                if (kRes.posicao == 1)
+                    Text(kRegion + 1 < Career.Def.regioes.Length ? $"Abriu: {Career.Def.regioes[kRegion + 1].nome} ({Career.Def.regioes[kRegion + 1].faixas} faixas)" : "As próximas regiões ainda estão sendo construídas.", "k-open", box);
+            }
             var row = El("row k-res-row", box);
             Btn("Correr de novo", CareerRun, "btn", row);
             Btn("Mapa (Esc)", () => CareerScreen(KScreen.Map), "btn", row);
@@ -633,14 +650,14 @@ namespace Autorama
                     if (esc && sim.phase != RaceSim.Phase.Done) CareerPause(!kPause);
                     break;
                 case KScreen.Result:
-                    if (enter) { if (kInterim) NextHeat(); else CareerNext(); }
+                    if (enter) { if (kInterim) { if (IsChamp) ChampGo(); else NextHeat(); } else CareerNext(); }
                     else if (esc) CareerScreen(KScreen.Map);
                     break;
             }
         }
 
         static string Stars(int n) => new string('★', n) + new string('☆', 3 - n);
-        static string TipoNome(string t) => t == "relogio" ? "Contra o relógio" : t == "corrida" ? "Corrida" : t == "desafio" ? "Desafio" : t == "rival" ? "Rival" : t == "construtor" ? "Construtor" : t;
+        static string TipoNome(string t) => t == "relogio" ? "Contra o relógio" : t == "corrida" ? "Corrida" : t == "desafio" ? "Desafio" : t == "rival" ? "Rival" : t == "construtor" ? "Construtor" : t == "campeonato" ? "Campeonato" : t;
 
         // ---------- construtor (seção 72) ----------
 
@@ -734,7 +751,7 @@ namespace Autorama
 
         // Na prova da carreira: o jogador é "VOCÊ" e o rival tem nome e cor (placar de cima, controles, etiquetas).
         bool CareerRacing => panel.CareerMode && kScreen != KScreen.Map && kScreen != KScreen.Saves;
-        string CareerName(int k) => !CareerRacing ? null : k == 0 ? "VOCÊ" : k == 1 && IsRival ? KNode.rival.ToUpperInvariant() : null;
-        Color? CareerColor(int k) => CareerRacing && k == 1 && IsRival && ColorUtility.TryParseHtmlString(KNode.rivalCor, out var c) ? c : (Color?)null;
+        string CareerName(int k) => !CareerRacing ? null : k == 0 ? "VOCÊ" : IsChamp ? ChampName(k) : k == 1 && IsRival ? KNode.rival.ToUpperInvariant() : null;
+        Color? CareerColor(int k) => !CareerRacing ? null : IsChamp ? ChampColor(k) : k == 1 && IsRival && ColorUtility.TryParseHtmlString(KNode.rivalCor, out var c) ? c : (Color?)null;
     }
 }

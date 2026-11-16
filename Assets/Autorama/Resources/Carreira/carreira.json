@@ -318,6 +318,73 @@
               "valor": 0
             }
           ]
+        },
+        {
+          "id": "garagem-copa",
+          "nome": "Copa Garagem",
+          "tipo": "campeonato",
+          "depois": [
+            "garagem-9"
+          ],
+          "pista": "",
+          "voltas": 3,
+          "ia": 0,
+          "adversarios": 0,
+          "turbo": true,
+          "etapas": [
+            "garagem-c1",
+            "garagem-c2",
+            "garagem-c3"
+          ],
+          "pilotos": [
+            {
+              "nome": "Zé da Oficina",
+              "cor": "#2563EB",
+              "ia": 60,
+              "carro": {
+                "motor": 0,
+                "bolha": 0,
+                "pneu": 0,
+                "chassi": 0
+              }
+            },
+            {
+              "nome": "Lu Parafuso",
+              "cor": "#16A34A",
+              "ia": 70,
+              "carro": {
+                "motor": 1,
+                "bolha": 0,
+                "pneu": 0,
+                "chassi": 1
+              }
+            },
+            {
+              "nome": "Tio Beto",
+              "cor": "#8B5A2B",
+              "ia": 85,
+              "carro": {
+                "motor": 0,
+                "bolha": 0,
+                "pneu": 2,
+                "chassi": 2
+              }
+            }
+          ],
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "todasEtapas",
+              "valor": 0
+            }
+          ]
         }
       ]
     }

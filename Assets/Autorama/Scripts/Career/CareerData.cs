@@ -51,8 +51,14 @@ namespace Autorama
         public bool rampas;
         public int maxPecas;
 
+        // Campeonato da região (seção 73): etapas (ids de pista), os pilotos IA e o rodízio do campeonato offline.
+        public string[] etapas;
+        public PilotoDef[] pilotos;
+
         public bool Has(string regra) => regras != null && System.Array.IndexOf(regras, regra) >= 0;
     }
+
+    [Serializable] public class PilotoDef { public string nome, cor; public int ia = 50; public CarSetup carro; }
 
     // tipo: posicao (chegar até a posição valor) · semSair (no máximo valor saídas) · semTurbo · volta (melhor volta até valor s)
     //       · tempo (prova inteira até valor s)
@@ -67,10 +73,17 @@ namespace Autorama
         public float melhorVolta;   // < 0: nenhuma volta completa
         public float tempo;
         public int vitorias, derrotas;   // só no rival: baterias ganhas e perdidas
+        public int etapas, etapasVencidas;   // só no campeonato: posicao é a da tabela final
     }
 
     [Serializable] public class NodeSave { public string id; public int estrelas; public int melhorPos; public float melhorVolta = -1f; public string pista; }   // pista: a montada no nó de construtor (JSON)
-    [Serializable] public class CareerSave { public List<NodeSave> nos = new List<NodeSave>(); }
+    [Serializable]
+    public class CareerSave
+    {
+        public List<NodeSave> nos = new List<NodeSave>();
+        public Championship campeonato;   // o campeonato da região em andamento (seção 73); sem baterias = nenhum
+        public string campNo;             // o nó dele
+    }
 
     public static class Career
     {
@@ -99,6 +112,7 @@ namespace Autorama
                 case "tempo": return r.terminou && r.tempo <= o.valor;
                 case "serie": return r.terminou && r.vitorias > r.derrotas;
                 case "invicto": return r.terminou && r.vitorias > 0 && r.derrotas == 0;
+                case "todasEtapas": return r.terminou && r.etapas > 0 && r.etapasVencidas == r.etapas;
                 default: return false;
             }
         }
@@ -123,6 +137,7 @@ namespace Autorama
                 case "tempo": return $"Prova abaixo de {RaceController.Fmt(o.valor)}";
                 case "serie": return "Vencer a série";
                 case "invicto": return "Vencer sem perder bateria";
+                case "todasEtapas": return "Vencer todas as etapas";
                 default: return o.tipo;
             }
         }
@@ -175,12 +190,22 @@ namespace Autorama
             return n;
         }
 
-        // Região aberta: a primeira, ou a anterior com o último nó (o campeonato) concluído.
+        // Região aberta: a primeira, ou a anterior com o último nó concluído; se ele é o campeonato, só sendo campeão (★★).
         public static bool RegionOpen(CareerSave s, int i)
         {
             if (i <= 0) return true;
             var prev = Def.regioes[i - 1];
-            return RegionOpen(s, i - 1) && prev.nos.Length > 0 && Stars(s, prev.nos[prev.nos.Length - 1].id) > 0;
+            if (!RegionOpen(s, i - 1) || prev.nos.Length == 0) return false;
+            var last = prev.nos[prev.nos.Length - 1];
+            return Stars(s, last.id) >= (last.tipo == "campeonato" ? 2 : 1);
+        }
+
+        // O maior tamanho de pista (faixas) já conquistado num save: o da região mais longe aberta (para a corrida livre, depois).
+        public static int FaixasAbertas(CareerSave s)
+        {
+            int f = 2;
+            for (int i = 0; i < Def.regioes.Length; i++) if (RegionOpen(s, i)) f = Mathf.Max(f, Def.regioes[i].faixas);
+            return f;
         }
 
         public static bool NodeOpen(CareerSave s, RegionDef r, NodeDef n)
