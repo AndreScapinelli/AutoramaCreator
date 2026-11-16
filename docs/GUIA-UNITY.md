@@ -4546,3 +4546,8 @@ A região conta aberta se está aberta em **algum** save (`RegionReached`). Regi
 - Garagem completa, da 1ª vez: 11 nós × 225 = 2475 + 300 (Tio Beto) + 500 (campeão) + 10 por prova ≈ **3400 moedas**: dá para as 4 primeiras peças (1300) e sobra.
 
 **Teste (Play; o `perfil.json` de teste foi apagado depois):** sem compras, a curva inclinada e a reta com rampa foram recusadas e a reta entrou; com 600 moedas, "inclinadas" comprada (sobra 200) e a inclinada entrou; o loop: "Faltam 800 moedas."; "Desbloquear tudo" deixou a rampa entrar; corrida livre de 2 carros, gente em 1º: +15. O "Desbloquear tudo" era um `Toggle` com o texto escuro sobre o fundo escuro: virou um botão "Desbloquear tudo: LIGADO/desligado".
+
+### 74.1 Selo das moedas e o botão do painel na carreira
+
+- **Selo** (`.coin-chip`, `RaceController.Shop.cs`): canto de cima à direita, disco dourado "$" e o total (pt-BR, "2.390"). Aparece no menu, no construtor, na carreira fora da prova e na Loja; nas telas de corrida (aba Corrida, Campeonato, Online, a prova da carreira) só com o "+N", 40 px mais abaixo (o menu da câmera fica no canto). Clicar abre a Loja (fora da prova). Ao ganhar (`Progresso.Earned`): o número sobe contando (`CoinCountRate`), o selo pulsa 0,5 s (+18%) e um "+N" verde sobe e some em 2,2 s (`CoinPopTime`). A barra de cima da carreira (`.k-top`) para 168 px antes da borda, para não ficar embaixo do selo.
+- **Bug:** na carreira, a tecla Tab (ou a janela estreita) chamava `SetSide`, que mostrava "☰ Painel (Tab)" por baixo do "◀ Saves". Agora `SetSide` respeita `chromeHidden` e o Tab não faz nada com a carreira na tela.

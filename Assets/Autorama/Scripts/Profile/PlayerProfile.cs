@@ -65,6 +65,7 @@ namespace Autorama
         static PlayerProfile p;
         public static PlayerProfile P => p ??= Load();
         public static event Action Changed;
+        public static event Action<int> Earned;     // moedas ganhas agora (o selo anima)
 
         static string PathOf => Path.Combine(TrackLibrary.Root, "perfil.json");
 
@@ -122,6 +123,7 @@ namespace Autorama
             if (coins <= 0) return 0;
             P.moedas += coins;
             Save();
+            Earned?.Invoke(coins);
             return coins;
         }
 

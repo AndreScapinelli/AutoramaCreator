@@ -807,8 +807,9 @@ namespace Autorama
         void SetSide(bool visible)
         {
             sideVisible = visible;
-            side.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
-            showTab.style.display = visible ? DisplayStyle.None : DisplayStyle.Flex;
+            // Com a carreira na tela (HideChrome) os dois ficam escondidos; o estado volta quando ela sai.
+            side.style.display = visible && !chromeHidden ? DisplayStyle.Flex : DisplayStyle.None;
+            showTab.style.display = !visible && !chromeHidden ? DisplayStyle.Flex : DisplayStyle.None;
             root.focusController?.focusedElement?.Blur();
             root.schedule.Execute(FrameTrack).ExecuteLater(20);
         }
@@ -839,7 +840,7 @@ namespace Autorama
             PumpClose();
             if (kb != null && !IsTyping)
             {
-                if (kb.tabKey.wasPressedThisFrame) SetSide(!sideVisible);
+                if (kb.tabKey.wasPressedThisFrame && !chromeHidden) SetSide(!sideVisible);
                 if (kb.cKey.wasPressedThisFrame && !kb.ctrlKey.isPressed) FrameTrack();
                 if (kb.qKey.wasPressedThisFrame && !Locked) AutoClose();
             }

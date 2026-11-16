@@ -635,7 +635,7 @@
 .k-save-title { font-size: 16px; -unity-font-style: bold; color: var(--texto); margin: 0; padding: 0; }
 .k-save-sub { font-size: 13px; color: var(--texto-fraco); margin: 0; padding: 0; }
 .k-save-stars { font-size: 15px; color: var(--destaque); margin: 0; padding: 0; }
-.k-top { position: absolute; left: 16px; right: 16px; top: 12px; flex-direction: row; align-items: center; justify-content: space-between; }
+.k-top { position: absolute; left: 16px; right: 168px; top: 12px; flex-direction: row; align-items: center; justify-content: space-between; }
 .k-top-mid { flex-direction: row; align-items: center; padding: 4px 8px; border-radius: 10px; background-color: var(--fundo-vidro); }
 .k-region { font-size: 18px; -unity-font-style: bold; color: var(--texto); margin: 0 10px; padding: 0; }
 .k-stars { font-size: 18px; -unity-font-style: bold; color: var(--destaque); padding: 6px 12px; border-radius: 10px; background-color: var(--fundo-vidro); margin: 0; }
@@ -671,3 +671,17 @@
 .k-shop-texts { flex-grow: 1; flex-shrink: 1; }
 .k-shop-own { font-size: 13px; -unity-font-style: bold; color: var(--ok); margin: 0 6px; padding: 0; }
 .k-shop-why { font-size: 11px; color: var(--texto-fraco); margin: 0 0 0 8px; padding: 0; width: 160px; white-space: normal; }
+
+/* Selo das moedas (seção 74.1): canto de cima, à direita, em todas as telas menos durante a prova. */
+.coin-chip {
+    position: absolute; right: 16px; top: 12px; flex-direction: row; align-items: center; padding: 5px 14px 5px 6px; border-radius: 20px;
+    background-color: rgba(22, 28, 25, 0.92); border-width: 2px; border-color: rgb(245, 194, 27); transform-origin: right center;
+}
+.coin-chip:hover { background-color: rgb(40, 48, 44); }
+.coin-disc {
+    width: 26px; height: 26px; border-radius: 13px; margin-right: 8px; align-items: center; justify-content: center;
+    background-color: rgb(245, 194, 27); border-width: 2px; border-color: rgb(190, 140, 10);
+}
+.coin-disc > Label { font-size: 14px; -unity-font-style: bold; color: rgb(110, 75, 0); margin: 0; padding: 0; -unity-text-align: middle-center; }
+.coin-text { font-size: 20px; -unity-font-style: bold; color: rgb(245, 194, 27); margin: 0; padding: 0; }
+.coin-pop { position: absolute; right: 10px; top: 100%; font-size: 18px; -unity-font-style: bold; color: rgb(61, 190, 116); -unity-text-outline-width: 1px; -unity-text-outline-color: rgb(10, 12, 11); margin: 0; padding: 0; display: none; }

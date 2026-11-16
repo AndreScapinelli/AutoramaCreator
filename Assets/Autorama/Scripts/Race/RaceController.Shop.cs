@@ -8,7 +8,44 @@ namespace Autorama
     // Moedas e Loja (seção 74 do guia): a tela da Loja, as travas no construtor e as moedas de cada corrida.
     public partial class RaceController
     {
-        VisualElement shopLayer, shopList;
+        VisualElement shopLayer, shopList, coinChip;
+        Label coinText, coinPop;
+        float coinShown, coinPopT, coinPulseT;
+        const float CoinPopTime = 2.2f, CoinCountRate = 3f;
+
+        void OnEarned(int n)
+        {
+            coinPop.text = $"+{n}";
+            coinPopT = CoinPopTime;
+            coinPulseT = 0.5f;
+        }
+
+        // A cada quadro: quando aparece, conta até o total e anima o "+N".
+        void CoinTick()
+        {
+            if (coinChip == null) return;
+            // Nas telas de corrida (aba Corrida, Campeonato, Online, a prova da carreira) só aparece com o "+N", abaixo do menu da câmera.
+            bool raceScreen = panel.RaceMode && RaceUI && !ShopOpen && !panel.MenuOpen;
+            bool show = !raceScreen || coinPopT > 0f;
+            coinChip.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+            coinChip.style.top = raceScreen ? 52f : 12f;
+            float target = Progresso.P.moedas, dt = Time.unscaledDeltaTime;
+            if (coinShown != target) coinShown = Mathf.Abs(target - coinShown) < 1f ? target : Mathf.Lerp(coinShown, target, 1f - Mathf.Exp(-CoinCountRate * dt * 3f));
+            string t = Mathf.RoundToInt(coinShown).ToString("N0", new System.Globalization.CultureInfo("pt-BR"));
+            if (coinText.text != t) coinText.text = t;
+            if (coinPulseT > 0f) coinPulseT -= dt;
+            float pulse = coinPulseT > 0f ? 1f + 0.18f * Mathf.Sin(coinPulseT / 0.5f * Mathf.PI) : 1f;
+            coinChip.style.scale = new Scale(new Vector3(pulse, pulse, 1f));
+            if (coinPopT > 0f)
+            {
+                coinPopT -= dt;
+                float u = 1f - coinPopT / CoinPopTime;          // 0 → 1
+                coinPop.style.display = DisplayStyle.Flex;
+                coinPop.style.translate = new Translate(0, -6f - 26f * u);
+                coinPop.style.opacity = u < 0.7f ? 1f : 1f - (u - 0.7f) / 0.3f;
+            }
+            else coinPop.style.display = DisplayStyle.None;
+        }
         Label shopCoins;
         Button shopAll;
 
@@ -28,8 +65,20 @@ namespace Autorama
             }
             Btn("Fechar (Esc)", () => ShowShop(false), "btn start-btn", card);
 
+            // Selo das moedas (seção 74.1): canto de cima, à direita; anima ao ganhar.
+            coinChip = El("coin-chip", panel.Root);
+            coinChip.pickingMode = PickingMode.Position;
+            coinChip.RegisterCallback<ClickEvent>(_ => { if (!Racing) ShowShop(true); });
+            coinChip.tooltip = "Moedas · clique para abrir a Loja";
+            El("coin-disc", coinChip).Add(new Label("$") { pickingMode = PickingMode.Ignore });
+            coinText = Text("0", "coin-text", coinChip);
+            coinPop = Text("", "coin-pop", coinChip);
+            coinPop.pickingMode = PickingMode.Ignore;
+            coinShown = Progresso.P.moedas;
+
             panel.ShopRequested += () => ShowShop(true);
             Progresso.Changed += OnProfileChanged;
+            Progresso.Earned += OnEarned;
             OnProfileChanged();
         }
 

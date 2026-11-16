@@ -307,7 +307,7 @@ namespace Autorama
         {
             var R = KRegion;
             kRegionLabel.text = $"{R.nome} · {R.faixas} faixas";
-            kStarsLabel.text = $"★ {Career.RegionStars(kSave, R)} / {R.nos.Length * 3}   ◎ {Progresso.P.moedas}";
+            kStarsLabel.text = $"★ {Career.RegionStars(kSave, R)} / {R.nos.Length * 3}";
             ColorPins();
             kCardBox.Clear();
             var n = KNode;

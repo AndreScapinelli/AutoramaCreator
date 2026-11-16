@@ -210,6 +210,7 @@ namespace Autorama
             TagsDestroy();
             CareerDestroy();
             Progresso.Changed -= OnProfileChanged;
+            Progresso.Earned -= OnEarned;
             if (builder) builder.Changed -= OnTrackChanged;
             if (panel) { panel.ModeChanged -= OnMode; panel.OptionsRequested -= ShowKeys; panel.TestRequested -= ToggleTest; }
             OnlineDestroy();
@@ -404,7 +405,8 @@ namespace Autorama
             AudioTick();
             KeysUpdate();
             ShopKeys();
-            CoinsTick();                                        // a tela de teclas captura a próxima tecla (e some com Esc)
+            CoinsTick();
+            CoinTick();                                        // a tela de teclas captura a próxima tecla (e some com Esc)
             CamKeys();
             TagsKeys();
             NarraKeys();
