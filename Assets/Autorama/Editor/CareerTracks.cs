@@ -23,6 +23,12 @@ namespace Autorama
 
         static readonly Def[] Pistas =
         {
+            // ----- Mapas (seção 69): a maquete de cada região, onde ficam os pinos das provas -----
+            P("mapa-garagem", "Mapa · Garagem", 2, "L L L Cd Cd L Ce Ce L L L Cd Cd L L|L L L Cd Cd L Ce Ce L L Cd Cd|L L Cd Cd L L Cd Cd"),
+            P("mapa-clube", "Mapa · Clube", 2, "L L Cd L Cd L Ce L Ce L L Cd Cd L L L|L L Cd L Cd L Ce Ce L Cd Cd|L L Cd Cd L L Cd Cd"),
+            P("mapa-regional", "Mapa · Regional", 2, "L L L Cd Md Me L Cd L Ce Ce L Cd Cd L L|L L L Cd Cd L Ce Ce L Cd Cd|L L Cd Cd L L Cd Cd"),
+            P("mapa-nacional", "Mapa · Nacional", 2, "L L L L Cd Cd L Ce Ce L Cd Cd L Ce Ce L Cd Cd|L L L Cd Cd L Ce Ce L L Cd Cd|L L Cd Cd L L Cd Cd"),
+
             // ----- 1 · Garagem (2 faixas): reta, curva longa e meia curva, no chão -----
             P("garagem-1", "Primeira Volta", 2, "L Cd Cd R L Cd Cd"),
             P("garagem-2", "Reta da Bancada", 2, "L L Cd Cd R L L Cd Cd"),

@@ -4397,3 +4397,23 @@ Ramos: o 3 e o 5 abrem com o 2; o 6 abre com o 3 **ou** o 5. Tempos do relógio:
 **Teste:** `Avaliar` e `NodeOpen` por `script eval` (perdeu 1, venceu 2, venceu sem sair 3, não terminou 0; relógio 4,0 s = 2, 3,9 s = 3). No Play, com a IA 90 no lugar do jogador no garagem-1: venceu em 10,60 s, volta 3,47 s, ★★★, `carreira-1.json` gravado (apagado depois do teste).
 
 As abas passaram a ter letra de 8 px, porque com cinco os nomes se encostavam.
+
+## 69. Carreira: telas próprias e mapa 3D (fase 2)
+
+A carreira saiu do painel lateral (a aba CARREIRA da seção 68 não existe mais; as abas voltaram a 4, com letra de 10 px). Entra só pelo menu inicial (`Mode.Career`). Tudo da seção 68 por baixo continua igual: dados, estrelas, abertura, saves.
+
+**Fluxo** (`RaceController.Career.cs`, `enum KScreen { Saves, Map, Race, Result }`): Save → Mapa → (cartão) → Corrida → Resultado → Mapa.
+
+- **Camada:** `kLayer` (`.k-layer`, tela cheia) dentro de `panel.Root`. Ao entrar, `BuilderPanel.HideChrome(true)` esconde o painel, o botão de mostrá-lo, as réguas e o selo da vista 3D (`chromeHidden`); ao sair (`ModeChanged` para outro modo → `CareerLeave`), volta tudo e a câmera volta à inclinação de antes. `SidePixels` passa a dar 0 com o painel escondido.
+- **HUD da corrida:** `RaceUI` = fora da carreira, ou nas telas Race e Result. Placar de cima, controles, minimapa, menu da câmera e etiquetas só aparecem com ele. `CareerSteps`: a simulação só anda na prova (sem a pausa do Esc) e no resultado. O aviso e a janela de resultado da corrida livre não aparecem na carreira (`UpdateTop`), e `SideForPhase` não mexe no painel.
+- **Save:** 3 cartões (`.k-save`) com a região mais longe aberta e as estrelas de todas as regiões; Esc volta ao menu inicial.
+- **Mapa 3D:** a pista `mapa-<região>` (`Resources/Carreira/pistas`, gerada por `CareerTracks`, 2 faixas: `mapa-garagem` 22 peças e 87,6 células; `mapa-clube` 93,4; `mapa-regional` 92,0; `mapa-nacional` 109,8) aparece na mesa com a câmera `Atual`, `SetTilted(true)` (a vista inclinada do construtor, `TopDownCamera.SetTilted`) e `SetDistanceScale(1)` (sem o zoom da corrida das Opções, que deixava a câmera a 40%). Enquadra de novo nos 5 primeiros quadros (`kFrame`), porque a mesa se monta depois.
+  - **Pinos:** um por prova, em `Total·(i+0,5)/n` ao longo do trilho do carro 0, 1,1 célula para a esquerda do sentido; haste (cilindro 0,08 × 0,5) e disco (0,5, ou 0,75 no rival/campeonato), com o material `theme.support`. Cores: cinza fechado, branco aberto, verde com estrela, dourado com 3, vermelho rival aberto. O escolhido pulsa (±15%, 5 rad/s). Rótulo (`.k-pin`, um `Button`) com nome e estrelas, posto em cada `TopDownCamera.Moved` por `WorldToScreenPoint` → `ScreenToPanel`.
+  - **Carrinho:** o carro 0 sozinho, sem simulação: `MapCarTick` leva `cars[0].s` até o pino escolhido pelo lado mais curto, a 10 células/s (`v = 6` para as rodas girarem).
+  - **Barra de cima** (`.k-top`): ◀ Saves, região com ◀ ▶ (só regiões abertas; as que não existem no `carreira.json` dão aviso) e ★ da região.
+  - **Cartão** (`.k-card`, à direita): minimapa (`TrackThumb`), tipo, voltas, adversário (`IA 40`), os 3 objetivos, o seu melhor e Correr / Fechar.
+  - **Teclas:** ← → (ou ↑ ↓) andam entre as provas abertas; Enter abre o cartão e, com ele aberto, corre; Esc fecha o cartão ou volta aos saves. Clicar num pino abre o cartão; clicar de novo, corre.
+- **Corrida** (`CareerRun`): monta `sim.set` e os carros do nó (como na seção 68), câmera das Opções (`ApplyCameraSettings`) e já larga. Objetivos ao vivo no canto (`.k-obj`): ✓ cumprido, ✗ perdido, ↑ na posição pedida agora, … em aberto (só redesenha quando muda). Esc: pausa com Continuar · Reiniciar · Voltar ao mapa.
+- **Resultado:** 1,2 s depois da bandeirada (`kDoneT`). Estrelas uma a uma (300 ms + 400 ms cada), fogos com 3, a posição e o tempo (no relógio, a melhor volta), estrelas novas, ✓/✗ por objetivo e "Abriu: …" (as provas cuja única porta era esta e que ganharam a 1ª estrela agora). Correr de novo · Mapa (Esc) · Próxima prova (Enter: a 1ª aberta sem 3 estrelas, com o cartão aberto).
+
+**Teste (Play, `script eval` com `EditorApplication.Step`):** mapa da Garagem com 5 pinos e o carrinho no Feijão; câmera a 30,7 de distância para a mesa de 28×16 depois da correção da escala; prova do Feijão com a IA 90 no lugar do jogador: 1º lugar em 15,90 s, ★★★, tela de resultado. O save 1 do jogador foi copiado antes e restaurado depois. Com o editor avançando quadro a quadro, o `schedule` da UI (estrelas uma a uma) não roda; no jogo, roda.

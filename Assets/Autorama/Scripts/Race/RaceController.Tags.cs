@@ -52,7 +52,7 @@ namespace Autorama
             if (tagRoot == null || tagRoot.panel == null) return;
             // O histórico grava sempre, para o tempo já aparecer quando a etiqueta é ligada no meio da prova.
             if (sim != null && sim.Ready) TagRecord();
-            bool on = set.carTagMode > 0 && panel.RaceMode && sim != null && sim.Ready && !keysOpen;
+            bool on = set.carTagMode > 0 && panel.RaceMode && RaceUI && sim != null && sim.Ready && !keysOpen;
             var ord = on ? Order() : null;
             for (int i = 0; i < 4; i++)
             {

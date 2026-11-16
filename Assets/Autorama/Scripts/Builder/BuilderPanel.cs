@@ -69,7 +69,6 @@ namespace Autorama
             tabRace.EnableInClassList("tab--on", m == Mode.Race);
             tabChamp.EnableInClassList("tab--on", m == Mode.Champ);
             tabOnline.EnableInClassList("tab--on", m == Mode.Online);
-            tabCareer.EnableInClassList("tab--on", m == Mode.Career);
             buildBox.style.display = m == Mode.Build ? DisplayStyle.Flex : DisplayStyle.None;
             raceBox.style.display = m == Mode.Race ? DisplayStyle.Flex : DisplayStyle.None;
             champBox.style.display = m == Mode.Champ ? DisplayStyle.Flex : DisplayStyle.None;
@@ -93,7 +92,7 @@ namespace Autorama
 
         UIDocument doc;
         VisualElement buildBox, raceBox, champBox, onlineBox, careerBox;
-        Button tabBuild, tabRace, tabChamp, tabOnline, tabCareer;
+        Button tabBuild, tabRace, tabChamp, tabOnline;
         VisualElement root, side, content, showTab, topRuler, leftRuler, info, scaleBar;
         VisualElement statusBox, statusDot, selectedBox, summaryBox, seqBox, libList;
         Label statusText, hint, cellLabel, scaleText, toast, viewBadge;
@@ -299,7 +298,6 @@ namespace Autorama
 
             var tabs = El("tabs", content);
             tabBuild = Btn("CONSTRUTOR", () => SetMode(Mode.Build), "tab tab--on", tabs);
-            tabCareer = Btn("CARREIRA", () => SetMode(Mode.Career), "tab", tabs);
             tabRace = Btn("CORRIDA", () => SetMode(Mode.Race), "tab", tabs);
             tabChamp = Btn("CAMPEONATO", () => SetMode(Mode.Champ), "tab", tabs);
             tabOnline = Btn("ONLINE", () => SetMode(Mode.Online), "tab", tabs);
@@ -768,7 +766,7 @@ namespace Autorama
         // Largura do painel em pixels de tela (0 se escondido).
         float SidePixels()
         {
-            if (!sideVisible || root.layout.width <= 0) return 0f;
+            if (!sideVisible || side.style.display == DisplayStyle.None || root.layout.width <= 0) return 0f;
             return side.layout.width * Screen.width / root.layout.width;
         }
 
@@ -776,6 +774,16 @@ namespace Autorama
 
         // A corrida recolhe o painel na largada e devolve na chegada (só se foi ela quem recolheu).
         public void SetSideFromRace(bool visible) { if (visible != sideVisible) SetSide(visible); }
+
+        // Carreira (seção 69): telas próprias; o painel e o botão de mostrá-lo somem. Ao sair, voltam como estavam.
+        bool chromeHidden;
+        public void HideChrome(bool hide)
+        {
+            chromeHidden = hide;
+            side.style.display = !hide && sideVisible ? DisplayStyle.Flex : DisplayStyle.None;
+            showTab.style.display = !hide && !sideVisible ? DisplayStyle.Flex : DisplayStyle.None;
+            root.schedule.Execute(FrameTrack).ExecuteLater(20);
+        }
 
         void SetSide(bool visible)
         {
@@ -835,8 +843,8 @@ namespace Autorama
             if (root?.panel == null || builder.Info == null) return;
             bool top = cam.IsTopView;
             float left = sideVisible ? side.layout.width : 0f;
-            topRuler.style.display = leftRuler.style.display = top ? DisplayStyle.Flex : DisplayStyle.None;
-            viewBadge.style.display = cam.Tilted ? DisplayStyle.Flex : DisplayStyle.None;
+            topRuler.style.display = leftRuler.style.display = top && !chromeHidden ? DisplayStyle.Flex : DisplayStyle.None;
+            viewBadge.style.display = cam.Tilted && !chromeHidden ? DisplayStyle.Flex : DisplayStyle.None;
             viewBtn.EnableInClassList("btn--on", cam.Tilted);
             info.style.left = left + 34f;
             // Na corrida o canto de baixo é dos controles dos jogadores.

@@ -25,7 +25,7 @@ O usuário escreve em português, e o projeto inteiro também: textos da interfa
 - **Cruzamento de retas no chão** (seção 63): duas retas comuns, planas e no chão, podem se cruzar (retas seguidas contam como uma linha; ≥ 40°, longe das pontas da linha; `TrackLayout.FlatCrossings`). A de antes na lista é cortada no cruzamento, a outra ganha as fendas pintadas; carros que se cruzam a mais de 30° batem com impulso. Ids e JSON iguais.
 - **Steam por padrão e Opções** (seção 65): o jogo abre conectado à Steam (`OnlineBoot`); o toggle Steam e o endereço do servidor Node ficam na tela de Opções, junto com a lista de todas as teclas (`AllKeys` em `RaceController.cs`). Atalho novo ou mudado: atualize `AllKeys`.
 - O piloto IA não bate recorde da pista; só o melhor pessoal dele.
-- **Carreira** (seções 67 e 68; acompanhamento em `docs/carreira.html`): aba CARREIRA, `Career/CareerData.cs` (dados, estrelas, abertura, saves `carreira-1..3.json`), `Race/RaceController.Career.cs`; definição e pistas em `Resources/Carreira/` (`carreira.json`, `pistas/`), geradas por `Editor/CareerTracks.cs`. Desbloqueio de peças por moedas (a carreira abre, a moeda compra), sem XP.
+- **Carreira** (seções 67, 68 e 69; acompanhamento em `docs/carreira.html`): só pelo menu inicial, telas próprias por cima da mesa (save, mapa 3D da região com pinos, cartão, objetivos ao vivo, resultado) e o painel lateral escondido (`BuilderPanel.HideChrome`), `Career/CareerData.cs` (dados, estrelas, abertura, saves `carreira-1..3.json`), `Race/RaceController.Career.cs`; definição e pistas em `Resources/Carreira/` (`carreira.json`, `pistas/`), geradas por `Editor/CareerTracks.cs`. Desbloqueio de peças por moedas (a carreira abre, a moeda compra), sem XP.
 
 ## Mapa da Unity (`Assets/Autorama/Scripts`)
 

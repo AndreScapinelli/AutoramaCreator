@@ -188,7 +188,7 @@
 /* ---------- Abas ---------- */
 .tabs { flex-direction: row; margin-top: 10px; padding: 3px; border-radius: 8px; background-color: var(--fundo-fundo); border-width: 1px; border-color: var(--botao); }
 .tab {
-    flex-grow: 1; flex-shrink: 1; height: 28px; margin: 0; padding: 0; border-width: 0; border-radius: 6px; font-size: 8px; -unity-font-style: bold;
+    flex-grow: 1; flex-shrink: 1; height: 28px; margin: 0; padding: 0; border-width: 0; border-radius: 6px; font-size: 10px; -unity-font-style: bold;
     letter-spacing: 0; color: var(--texto-fraco); background-color: rgba(0, 0, 0, 0);
 }
 .tab:hover { color: var(--texto); }
@@ -622,3 +622,41 @@
     align-items: center; background-color: var(--fundo); border-width: 2px; border-color: var(--botao);
 }
 .mm-sorteio-nome { font-size: 26px; -unity-font-style: bold; color: var(--texto); margin: 6px 0; }
+
+/* ---------- Carreira (seção 69): telas por cima da mesa ---------- */
+.k-layer { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
+.k-full { position: absolute; left: 0; top: 0; right: 0; bottom: 0; align-items: center; justify-content: center; }
+.k-dim { background-color: rgba(10, 14, 12, 0.55); }
+.k-panel { padding: 20px 24px; border-radius: 14px; background-color: var(--fundo-painel); border-width: 1px; border-color: var(--borda-clara); }
+.k-saves { width: 640px; }
+.k-save-row { flex-direction: row; justify-content: space-between; margin-bottom: 16px; }
+.k-save { width: 186px; height: 120px; margin: 0; padding: 12px; border-radius: 10px; flex-direction: column; align-items: flex-start; justify-content: space-between; background-color: var(--fundo-campo); border-width: 1px; border-color: var(--borda-media); }
+.k-save:hover { border-color: var(--destaque); }
+.k-save-title { font-size: 16px; -unity-font-style: bold; color: var(--texto); margin: 0; padding: 0; }
+.k-save-sub { font-size: 13px; color: var(--texto-fraco); margin: 0; padding: 0; }
+.k-save-stars { font-size: 15px; color: var(--destaque); margin: 0; padding: 0; }
+.k-top { position: absolute; left: 16px; right: 16px; top: 12px; flex-direction: row; align-items: center; justify-content: space-between; }
+.k-top-mid { flex-direction: row; align-items: center; padding: 4px 8px; border-radius: 10px; background-color: var(--fundo-vidro); }
+.k-region { font-size: 18px; -unity-font-style: bold; color: var(--texto); margin: 0 10px; padding: 0; }
+.k-stars { font-size: 18px; -unity-font-style: bold; color: var(--destaque); padding: 6px 12px; border-radius: 10px; background-color: var(--fundo-vidro); margin: 0; }
+.k-hint { position: absolute; bottom: 12px; left: 0; right: 0; -unity-text-align: middle-center; font-size: 12px; color: var(--texto-fraco); }
+.k-card { position: absolute; right: 16px; top: 64px; width: 320px; }
+.k-title { font-size: 20px; -unity-font-style: bold; color: var(--texto); margin: 6px 0 2px 0; padding: 0; white-space: normal; }
+.k-sub { font-size: 13px; color: var(--texto-fraco); margin: 2px 0 8px 0; padding: 0; white-space: normal; }
+.k-goal { font-size: 14px; color: var(--texto); margin: 2px 0; padding: 0; }
+.k-open { font-size: 14px; -unity-font-style: bold; color: var(--ok); margin: 6px 0 0 0; padding: 0; }
+.k-pin {
+    position: absolute; translate: -50% -100%; margin: 0; padding: 3px 10px; border-radius: 8px; font-size: 13px; -unity-font-style: bold;
+    -unity-text-align: middle-center; white-space: nowrap; color: var(--texto); background-color: var(--fundo-vidro); border-width: 1px; border-color: var(--borda-media);
+}
+.k-pin:hover { border-color: var(--destaque); }
+.k-pin--on { border-color: var(--destaque); border-width: 2px; color: var(--destaque); }
+.k-pin--locked { color: var(--texto-fraco); }
+.k-obj { position: absolute; right: 16px; top: 56px; padding: 10px 14px; border-radius: 10px; background-color: var(--fundo-vidro); }
+.k-obj-title { font-size: 12px; -unity-font-style: bold; letter-spacing: 1px; color: var(--texto-fraco); margin: 0 0 4px 0; padding: 0; }
+.k-obj-text { font-size: 14px; color: var(--texto); margin: 0; padding: 0; }
+.k-small { width: 280px; align-items: stretch; }
+.k-wide { margin: 4px 0; }
+.k-result { width: 540px; align-items: center; }
+.k-res-stars { font-size: 52px; color: var(--destaque); letter-spacing: 8px; margin: 0; padding: 0; }
+.k-res-row { margin-top: 14px; }

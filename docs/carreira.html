@@ -39,8 +39,8 @@ th { color:var(--mut); font-weight:600; }
 <h1>Modo Carreira</h1>
 <p class="sub">Acompanhamento do desenvolvimento. Branch <code>carreira</code>. Atualizado a cada etapa.</p>
 
-<div class="bar"><div style="width:22%"></div></div>
-<p class="sub">Fase 1 pronta · fase 2 (mapa) a seguir</p>
+<div class="bar"><div style="width:35%"></div></div>
+<p class="sub">Fases 1 e 2 prontas · fase 3 (IA por região) a seguir</p>
 
 <h2>Visão geral</h2>
 <p>4 regiões em sequência, cada uma num mapa de nós ligados por caminhos com ramos. Cada nó dá de 1 a 3 estrelas. O rival da região abre com um número de estrelas, e vencer o campeonato da região abre a próxima.</p>
@@ -83,24 +83,25 @@ th { color:var(--mut); font-weight:600; }
 </div>
 
 <div class="fase">
-<h3>2 · Telas próprias e mapa 3D <span class="tag doing">próxima</span></h3>
+<h3>2 · Telas próprias e mapa 3D <span class="tag ok">pronta</span></h3>
 <p>A carreira sai do painel lateral: entra só pelo menu inicial e tem telas cheias. Fluxo: <b>Menu → Save → Mapa 3D → Cartão da prova → Corrida → Resultado → Mapa</b>. Por baixo continua o que a fase 1 fez (dados, estrelas, abertura, saves, corrida a partir do nó).</p>
 <ul class="chk">
-<li>Tirar a aba CARREIRA do painel (abas voltam a 4, letra normal); entrada só pelo menu inicial</li>
-<li>Tela do save: 3 cartões (região, estrelas, moedas); "Nova carreira"</li>
-<li><b>Mapa 3D</b>: uma maquete na mesa, cada região um tabuleiro; os nós são pinos/placas ao longo de uma pista de autorama que liga um ao outro, com ramos; câmera de cima, inclinada</li>
-<li>Nó feito com cor e estrelas, atual pulsando, fechado cinza com cadeado; rival maior no fim com "10 ★ para abrir"</li>
-<li>Um carrinho anda pela pista do mapa de um nó ao outro ao escolher</li>
-<li>Barra de cima (UI Toolkit): Menu, região ◀ ▶, estrelas, moedas</li>
-<li>Cartão da prova por cima do mapa: minimapa, tipo, voltas, adversário (IA e qualidade), 3 objetivos, seu melhor, carro, Correr</li>
-<li>Corrida sem painel lateral e sem abas; objetivos ao vivo no canto (acendem e apagam); Esc: Continuar · Reiniciar · Voltar ao mapa</li>
-<li>Tela de resultado própria: estrelas uma a uma, ✓/✗ por objetivo, moedas e o que abriu; Correr de novo · Mapa · Próxima prova</li>
-<li>Setas andam entre os nós, Enter abre, Esc volta (teclado e controle)</li>
+<li class="f">Tirar a aba CARREIRA do painel (abas voltam a 4, letra normal); entrada só pelo menu inicial</li>
+<li class="f">Tela do save: 3 cartões (região, estrelas, moedas); "Nova carreira"</li>
+<li class="f"><b>Mapa 3D</b>: uma maquete na mesa, cada região um tabuleiro; os nós são pinos/placas ao longo de uma pista de autorama que liga um ao outro, com ramos; câmera de cima, inclinada</li>
+<li class="f">Nó feito com cor e estrelas, atual pulsando, fechado cinza com cadeado; rival maior no fim com "10 ★ para abrir"</li>
+<li class="f">Um carrinho anda pela pista do mapa de um nó ao outro ao escolher</li>
+<li>Pendente: ramos de verdade no mapa (hoje as provas ficam numa só volta, em ordem); minimapa no cartão um pouco pequeno</li>
+<li class="f">Barra de cima (UI Toolkit): Menu, região ◀ ▶, estrelas, moedas</li>
+<li class="f">Cartão da prova por cima do mapa: minimapa, tipo, voltas, adversário (IA e qualidade), 3 objetivos, seu melhor, carro, Correr</li>
+<li class="f">Corrida sem painel lateral e sem abas; objetivos ao vivo no canto (acendem e apagam); Esc: Continuar · Reiniciar · Voltar ao mapa</li>
+<li class="f">Tela de resultado própria: estrelas uma a uma, ✓/✗ por objetivo, moedas e o que abriu; Correr de novo · Mapa · Próxima prova</li>
+<li class="f">Setas andam entre os nós, Enter abre, Esc volta (teclado e controle)</li>
 </ul>
 </div>
 
 <div class="fase">
-<h3>3 · IA por região <span class="tag todo">a fazer</span></h3>
+<h3>3 · IA por região <span class="tag doing">próxima</span></h3>
 <ul class="chk">
 <li>Habilidade da IA por nó (já existe <code>skill</code> 1–100)</li>
 <li>Calibração por simulação, como o <code>SetupCalib</code></li>
@@ -168,6 +169,7 @@ th { color:var(--mut); font-weight:600; }
 
 <h2>Diário</h2>
 <ul class="log">
+<li><b>16/11/2026</b> · Fase 2: carreira fora do painel, telas próprias, mapa 3D da Garagem com pinos e carrinho, objetivos ao vivo, pausa no Esc e resultado. Seção 69 do guia.</li>
 <li><b>16/11/2026</b> · Redesenho: telas próprias, mapa 3D, sem a aba no painel.</li>
 <li><b>16/11/2026</b> · Fase 1: aba CARREIRA, 5 nós da Garagem (corrida e relógio), estrelas e 3 saves. Testado: lógica por script eval e uma prova inteira no Play (★★★ gravado). Seção 68 do guia.</li>
 <li><b>16/11/2026</b> · Todos começam do zero; botão temporário "Desbloquear tudo" até o lançamento.</li>

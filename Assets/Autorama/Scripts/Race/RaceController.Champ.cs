@@ -1005,7 +1005,7 @@ namespace Autorama
             Pilot[] pl = null;
             bool champ = ChampLike, live = champ && HeatNow(out _, out _, out _, out _, out pl);
             int lane = OnlineRun ? MyLane() : -1;                // online: cada um só tem o controle do próprio carrinho
-            padsBox.style.display = panel.RaceMode && (!champ || live) && (!OnlineRun || lane >= 0) ? DisplayStyle.Flex : DisplayStyle.None;
+            padsBox.style.display = panel.RaceMode && RaceUI && (!champ || live) && (!OnlineRun || lane >= 0) ? DisplayStyle.Flex : DisplayStyle.None;
             // Placar de cima: uma ficha por carro que corre (o campeonato muda present sem mudar sim.N).
             int shown = 0;
             for (int k = 0; k < RaceSim.MaxCars; k++)

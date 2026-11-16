@@ -85,6 +85,7 @@ namespace Autorama
         }
 
         public void ToggleTilt() => Tilted = !Tilted;
+        public void SetTilted(bool on) => Tilted = on;
 
         // Zoom pelos botões da barra do construtor (k < 1 aproxima): no centro da vista, como a roda.
         public void ZoomStep(float k)
