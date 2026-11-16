@@ -11,6 +11,7 @@ namespace Autorama
         public string code, name, host, state;
         public int players, max, stages;
         public bool pub;
+        public int mm;
     }
 
     public class SteamMember { public CSteamID id; public string name, color; public bool ready; }
@@ -47,6 +48,7 @@ namespace Autorama
         readonly Callback<GameLobbyJoinRequested_t> onJoinRequested;
         string pendingName, pendingCode;
         bool pendingPub;
+        int pendingMm;
 
         public SteamLobbyClient()
         {
@@ -70,7 +72,7 @@ namespace Autorama
 
         public void Create(string roomName, bool pub)
         {
-            pendingName = roomName; pendingPub = pub; pendingCode = NewCode();
+            pendingName = roomName; pendingPub = pub; pendingCode = NewCode(); pendingMm = 0;
             onCreated.Set(SteamMatchmaking.CreateLobby(pub ? ELobbyType.k_ELobbyTypePublic : ELobbyType.k_ELobbyTypeInvisible, MaxMembers));
         }
 
@@ -81,6 +83,24 @@ namespace Autorama
             SteamMatchmaking.AddRequestLobbyListStringFilter("ver", OnlineClient.Protocol.ToString(), ELobbyComparison.k_ELobbyComparisonEqual);
             if (string.IsNullOrEmpty(code)) SteamMatchmaking.AddRequestLobbyListStringFilter("pub", "1", ELobbyComparison.k_ELobbyComparisonEqual);
             else SteamMatchmaking.AddRequestLobbyListStringFilter("code", code.Trim().ToUpperInvariant(), ELobbyComparison.k_ELobbyComparisonEqual);
+            SteamMatchmaking.AddRequestLobbyListDistanceFilter(ELobbyDistanceFilter.k_ELobbyDistanceFilterWorldwide);
+            SteamMatchmaking.AddRequestLobbyListResultCountFilter(50);
+            onList.Set(SteamMatchmaking.RequestLobbyList());
+        }
+
+        // Partida rápida: a fila é um lobby público (achado pela busca mm/state) com limite de size membros.
+        public void CreateMatch(int size)
+        {
+            pendingName = $"Partida rápida · {size} carros"; pendingPub = false; pendingCode = NewCode(); pendingMm = size;
+            onCreated.Set(SteamMatchmaking.CreateLobby(ELobbyType.k_ELobbyTypePublic, size));
+        }
+
+        public void SearchMatch(int size)
+        {
+            SteamMatchmaking.AddRequestLobbyListStringFilter(Tag, "1", ELobbyComparison.k_ELobbyComparisonEqual);
+            SteamMatchmaking.AddRequestLobbyListStringFilter("ver", OnlineClient.Protocol.ToString(), ELobbyComparison.k_ELobbyComparisonEqual);
+            SteamMatchmaking.AddRequestLobbyListStringFilter("state", "fila", ELobbyComparison.k_ELobbyComparisonEqual);
+            if (size > 0) { SteamMatchmaking.AddRequestLobbyListStringFilter("mm", size.ToString(), ELobbyComparison.k_ELobbyComparisonEqual); SteamMatchmaking.AddRequestLobbyListFilterSlotsAvailable(1); }
             SteamMatchmaking.AddRequestLobbyListDistanceFilter(ELobbyDistanceFilter.k_ELobbyDistanceFilterWorldwide);
             SteamMatchmaking.AddRequestLobbyListResultCountFilter(50);
             onList.Set(SteamMatchmaking.RequestLobbyList());
@@ -167,7 +187,8 @@ namespace Autorama
             SteamMatchmaking.SetLobbyData(Lobby, "name", string.IsNullOrWhiteSpace(pendingName) ? $"Sala de {SteamFriends.GetPersonaName()}" : pendingName.Trim());
             SteamMatchmaking.SetLobbyData(Lobby, "code", pendingCode);
             SteamMatchmaking.SetLobbyData(Lobby, "pub", pendingPub ? "1" : "0");
-            SteamMatchmaking.SetLobbyData(Lobby, "state", "lobby");
+            SteamMatchmaking.SetLobbyData(Lobby, "state", pendingMm > 0 ? "fila" : "lobby");
+            if (pendingMm > 0) SteamMatchmaking.SetLobbyData(Lobby, "mm", pendingMm.ToString());
             SteamMatchmaking.SetLobbyData(Lobby, "stages", "0");
             Created?.Invoke(true);
         }
@@ -187,13 +208,14 @@ namespace Autorama
                 {
                     var id = SteamMatchmaking.GetLobbyByIndex(i);
                     int.TryParse(SteamMatchmaking.GetLobbyData(id, "stages"), out int stages);
+                    int.TryParse(SteamMatchmaking.GetLobbyData(id, "mm"), out int mm);
                     var owner = SteamMatchmaking.GetLobbyOwner(id);
                     list.Add(new SteamLobbyInfo
                     {
                         id = id, code = SteamMatchmaking.GetLobbyData(id, "code"), name = SteamMatchmaking.GetLobbyData(id, "name"),
                         host = owner.IsValid() ? SteamFriends.GetFriendPersonaName(owner) : "", pub = SteamMatchmaking.GetLobbyData(id, "pub") == "1",
                         state = SteamMatchmaking.GetLobbyData(id, "state"),
-                        players = SteamMatchmaking.GetNumLobbyMembers(id), max = SteamMatchmaking.GetLobbyMemberLimit(id), stages = stages,
+                        players = SteamMatchmaking.GetNumLobbyMembers(id), max = SteamMatchmaking.GetLobbyMemberLimit(id), stages = stages, mm = mm,
                     });
                 }
             Listed?.Invoke(list);

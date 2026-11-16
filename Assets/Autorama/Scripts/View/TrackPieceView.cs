@@ -41,6 +41,32 @@ namespace Autorama
             var ts = new float[n + 1];
             for (int j = 0; j <= n; j++) ts[j] = j / (float)n;
 
+            // Cruzamento de retas no chão (seção 63): a peça que vem antes na lista some no quadrado do cruzamento e a
+            // outra passa inteira, com as fendas de verdade; as fendas da de baixo ficam pintadas por cima dela.
+            cutA = cutB = -1f;
+            var paint = new List<TrackLayout.FlatX>();
+            int me = all != null ? all.IndexOf(s) : -1;
+            if (me >= 0 && only == null)
+                foreach (var c in TrackLayout.FlatCrossings(all))
+                {
+                    float len = Vector2.Distance(s.a.pos, s.b.pos);
+                    if (me >= c.b0 && me <= c.b1)
+                    {
+                        float at = Vector2.Dot(c.x - s.a.pos, c.ub);
+                        if (at >= 0f && at < len) paint.Add(c);      // só a peça onde cai o ponto pinta as fendas
+                        continue;
+                    }
+                    if (me < c.a0 || me > c.a1) continue;
+                    float half = (0.5f + 0.5f * Mathf.Sqrt(Mathf.Max(0f, 1f - c.sin * c.sin))) / c.sin;
+                    float d0 = Vector2.Dot(c.x - s.a.pos, c.ua);
+                    float a = Mathf.Max(0f, (d0 - half) / len), b = Mathf.Min(1f, (d0 + half) / len);
+                    if (b <= a) continue;
+                    cutA = a; cutB = b;
+                    var list = new List<float>(ts) { cutA, cutB };
+                    list.Sort();
+                    ts = list.ToArray();
+                }
+
             // A mesma altura que os carrinhos usam (nível da peça + inclinação das curvas inclinadas).
             float Y(float t, float lateral) => TrackLayout.SurfaceY(s, t, lateral);
 
@@ -93,6 +119,8 @@ namespace Autorama
                 }
                 else AddBand(Surface, s, ts, At(from), At(0.5f), vScale, Y);
             }
+
+            foreach (var c in paint) PaintCross(s, all[c.a0], c.x, faixas, hw, Y(0f, 0f) + 0.002f / k);
 
             // Muro com corpo: nas peças no alto (dos dois lados) e no lado de fora das curvas inclinadas.
             float wallIn = faixas >= 6 ? 0.5f - 0.08f / faixas : wide ? 0.48f : 0.45f;
@@ -443,6 +471,29 @@ namespace Autorama
         // Faixa entre duas bordas ao longo da peça. Indo de a para b "para a direita", a face olha para cima;
         // indo para baixo, olha para a direita; para cima, para a esquerda; para a esquerda, para baixo.
         // Cada faixa tem os próprios vértices: as quinas ficam vivas (low-poly).
+        static float cutA = -1f, cutB = -1f;     // trecho (em t) que fica sem malha: o cruzamento com outra reta
+
+        // Fendas da reta de baixo pintadas sobre a de cima (s), no quadrado do cruzamento: faixas escuras finas.
+        static void PaintCross(Segment s, Segment o, Vector2 x, int faixas, float hw, float y)
+        {
+            Vector2 ub = (o.b.pos - o.a.pos).normalized, nb = TrackMath.Dir(o.a.heading - 90f), nt = TrackMath.Dir(s.a.heading - 90f);
+            Vector2 side = new Vector2(-ub.y, ub.x) * hw;
+            float du = Vector2.Dot(ub, nt), dn = Vector2.Dot(nb, nt);
+            float u = TrackMath.LanesOf(faixas)[0] + 0.5f;    // o u do meio da fenda: preto na textura
+            foreach (float l in TrackMath.LanesOf(faixas))
+            {
+                float s0 = (-0.5f - l * dn) / du, s1 = (0.5f - l * dn) / du;
+                Vector2 p0 = x + nb * l + ub * s0, p1 = x + nb * l + ub * s1;
+                int v = V.Count;
+                foreach (var p in new[] { p0 - side, p0 + side, p1 - side, p1 + side })
+                {
+                    V.Add(new Vector3(p.x, y, p.y));
+                    UV.Add(new Vector2(u, 0f));
+                }
+                Surface.AddRange(new[] { v, v + 2, v + 1, v + 1, v + 2, v + 3, v, v + 1, v + 2, v + 1, v + 3, v + 2 });
+            }
+        }
+
         static void AddBand(List<int> tri, Segment s, float[] ts, Edge a, Edge b, float vScale, System.Func<float, float, float> y)
         {
             int start = V.Count;
@@ -460,7 +511,8 @@ namespace Autorama
                 V.Add(Point(s, q, ts[i], eb.o, eb.dy, y));
                 UV.Add(new Vector2(ea.u, dist * vScale));
                 UV.Add(new Vector2(eb.u, dist * vScale));
-                if (i > 0 && !(s.def.IsJump && s.def.JumpGapAt(ts[i] * s.def.Length)))     // no vão do salto não há pista
+                float tm = i > 0 ? (ts[i - 1] + ts[i]) / 2f : 0f;
+                if (i > 0 && !(s.def.IsJump && s.def.JumpGapAt(ts[i] * s.def.Length)) && !(tm > cutA && tm < cutB))     // no vão do salto não há pista; no cruzamento, a outra reta
                 {
                     int k = start + i * 2;
                     tri.Add(k - 2); tri.Add(k); tri.Add(k - 1);

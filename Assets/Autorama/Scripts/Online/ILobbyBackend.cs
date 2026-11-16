@@ -9,6 +9,7 @@ namespace Autorama
         public string code, name, host, state;
         public int players, max, stages;
         public bool pub;
+        public int mm;                          // partida rápida: tamanho da fila (0: sala comum)
     }
 
     public class LobbyMember { public ulong id; public string name; }
@@ -37,6 +38,9 @@ namespace Autorama
         void Create(string name, bool pub, Action<bool> done);
         void Search(string code, Action<List<LobbyRoomInfo>> done);    // code vazio: as salas públicas
         void Join(ulong lobbyId, Action<bool> done);
+        // Partida rápida (seção 62): lobby público com limite de size membros, mm=size e state=fila, fora da lista de salas.
+        void CreateMatch(int size, Action<bool> done);
+        void SearchMatch(int size, Action<List<LobbyRoomInfo>> done);   // size 0: todas as filas (para contar)
         void Leave();
 
         string Data(string key);                // dados do lobby: só o dono escreve

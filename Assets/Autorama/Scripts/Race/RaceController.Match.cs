@@ -30,7 +30,7 @@ namespace Autorama
         {
             mmSize = Mathf.Clamp(PlayerPrefs.GetInt(PrefMmSize, 4), 2, 8);
             mmBox = Section(entry, "PARTIDA RÁPIDA");
-            Text($"Uma corrida de {RaceTimeText(240)} contra quem estiver na fila. Cada um põe uma pista na disputa e o servidor sorteia qual vale. Só larga com a fila cheia.", "hint", mmBox);
+            Text($"Uma corrida de {RaceTimeText(240)} contra quem estiver na fila. Cada um põe uma pista na disputa e o servidor sorteia qual vale. Só larga com a fila cheia. Funciona pelo servidor e pela Steam.", "hint", mmBox);
             Text("CARROS", "h3", mmBox);
             mmSizes = El("segmented", mmBox);
             mmTrack = new DropdownField("Sua pista");
@@ -63,8 +63,8 @@ namespace Autorama
         void DrawMatch()
         {
             if (mmBox == null) return;
-            bool steam = oSteam.value, queued = mmIn > 0;
-            mmBox.style.display = !steam && !queued ? DisplayStyle.Flex : DisplayStyle.None;
+            bool queued = mmIn > 0;
+            mmBox.style.display = !queued ? DisplayStyle.Flex : DisplayStyle.None;
             mmQueueBox.style.display = queued ? DisplayStyle.Flex : DisplayStyle.None;
             foreach (var s in mmHide) s.style.display = queued ? DisplayStyle.None : DisplayStyle.Flex;
             if (queued) return;

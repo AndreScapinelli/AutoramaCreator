@@ -149,6 +149,7 @@ namespace Autorama
             cRun.style.display = DisplayStyle.Flex;
             topBox.style.display = DisplayStyle.Flex;
             DrawOnline();
+            DrawRunTracks();
             OnlineHeatLoaded();
         }
 

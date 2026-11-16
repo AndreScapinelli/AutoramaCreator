@@ -482,6 +482,8 @@
 /* Teclas dos jogadores: tela de Opções, por cima do menu inicial (RaceController.BuildKeysUI) */
 .keys-screen { position: absolute; left: 0; right: 0; top: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.6); align-items: center; justify-content: center; }
 .keys-card { width: 680px; max-width: 92%; padding: 16px; border-radius: 12px; background-color: var(--fundo-painel); border-width: 1px; border-color: var(--borda-clara); }
+.keys-card { max-height: 92%; }
+.keys-scroll { flex-shrink: 1; }
 .keys-row { flex-direction: row; align-items: center; margin-bottom: 6px; }
 .keys-who { width: 80px; flex-grow: 0; margin: 0 8px 0 0; }
 .keys-btn { flex-grow: 1; flex-basis: 0; min-width: 0; height: 32px; margin: 0 6px 0 0; font-size: 11px; }

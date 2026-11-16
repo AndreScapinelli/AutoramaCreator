@@ -628,6 +628,16 @@ namespace Autorama
                     Btn($"{v} célula{(v > 1 ? "s" : "")}", () => builder.SetGap(vao), p.vao == vao ? "btn btn--on" : "btn", gv);
                 }
             }
+            if (p.Def.IsHairpin)
+            {
+                var rv = El("segmented", selectedBox);
+                Text("Tamanho", "seg-label", rv);
+                for (int v = 1; v <= PieceCatalog.MaxHairpin; v++)
+                {
+                    int raio = v;
+                    Btn($"{v} fileira{(v > 1 ? "s" : "")}", () => builder.SetHairpin(raio), p.raio == raio ? "btn btn--on" : "btn", rv);
+                }
+            }
             if (p.Def.GroundOnly) return;      // loop e salto não sobem nem descem: sem botões de altura
 
             var seg2 = El("segmented", selectedBox);

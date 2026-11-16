@@ -169,6 +169,7 @@ namespace Autorama
             BuildNarra();
             BuildChampUI();
             BuildOnlineUI();
+            OnlineBoot();
             builder.Changed += OnTrackChanged;
             panel.ModeChanged += OnMode;
             panel.OptionsRequested += ShowKeys;
@@ -660,6 +661,7 @@ namespace Autorama
         // ---------- Teclas dos jogadores (tela de opções, seção 34 do guia) ----------
 
         VisualElement keysBox;                  // a tela: cobre a aba inteira e some com Esc ou Fechar
+        VisualElement netOpts;                  // Steam ou servidor (o toggle e o endereço vêm de BuildOnlineUI)
         Label helpLabel, keysHint;
         readonly Button[,] keyBtns = new Button[Controles.Jogadores, Controles.Acoes];
         int capJ = -1, capA;                    // a tecla que está esperando: jogador e ação (-1 = nenhuma)
@@ -669,8 +671,11 @@ namespace Autorama
         {
             keysBox = El("keys-screen", root);
             keysBox.style.display = DisplayStyle.None;
-            var card = El("keys-card", keysBox);
-            Text("OPÇÕES", "h2", card);
+            var outer = El("keys-card", keysBox);
+            Text("OPÇÕES", "h2", outer);
+            var card = new ScrollView(ScrollViewMode.Vertical);
+            card.AddToClassList("keys-scroll");
+            outer.Add(card);
             Text("TECLAS DOS JOGADORES", "hint", card);
             Text("Clique num botão e aperte a tecla nova. Se ela já era de outra ação, as duas trocam. Esc cancela.", "hint", card);
             for (int j = 0; j < Controles.Jogadores; j++)
@@ -686,16 +691,74 @@ namespace Autorama
             }
             Text("Jogadores 5 e 6 (pista de 6) jogam só com controle.", "small", card);
             keysHint = Text("", "small", card);
-            var bottom = El("row", card);
+            var reset = Btn("Restaurar padrão", () => { CancelCapture(); Controles.Restaurar(); KeysChanged(); }, "btn", card);
+            reset.style.alignSelf = Align.FlexStart;
+
+            Text("JOGO ONLINE", "hint", card).style.marginTop = 14;
+            Text("O jogo abre conectado à Steam. Desligue para jogar pelo servidor (Node) no endereço abaixo.", "hint", card);
+            netOpts = El(null, card);
+
+            Text("TODAS AS TECLAS", "hint", card).style.marginTop = 14;
+            foreach (var (grupo, linhas) in AllKeys)
+            {
+                Text(grupo, "h3", card);
+                foreach (var (k, o) in linhas)
+                {
+                    var row = El("row", card);
+                    var kl = Text($"<b>{k}</b>", "small", row); kl.style.width = 170; kl.style.flexShrink = 0;
+                    Text(o, "small", row).style.flexShrink = 1;
+                }
+            }
+            var bottom = El("row", outer);
             bottom.style.marginTop = 8;
-            Btn("Restaurar padrão", () => { CancelCapture(); Controles.Restaurar(); KeysChanged(); }, "btn", bottom);
             Btn("Fechar  (Esc)", CloseKeys, "btn btn--primary", bottom);
             KeysChanged();
         }
 
+        // A lista da tela de Opções. As do carrinho vêm de Controles (trocáveis, acima).
+        static readonly (string, (string, string)[])[] AllKeys =
+        {
+            ("CONSTRUTOR", new[] {
+                ("1 · 2 · T", "reta curta · comprida · curtinha"),
+                ("3 · 4", "curva longa esquerda · direita"),
+                ("5 · 6", "meia curva esquerda · direita"),
+                ("7 · 8", "curva longa inclinada esquerda · direita"),
+                ("9 · 0", "curva curta inclinada esquerda · direita"),
+                ("G · H", "curva em C esquerda · direita"),
+                ("U · D", "rampa sobe · desce"),
+                ("K · L", "loop saindo à esquerda · à direita"),
+                ("J", "rampa de salto"),
+                ("X · B", "cruzamento · cruzamento curto"),
+                ("F", "troca o lado (esquerda · direita) da peça selecionada"),
+                ("E", "troca a ponta de encaixe: fim da pista · atrás da largada"),
+                ("R", "gira a pista 90° em volta da largada"),
+                ("Q", "fecha o circuito sozinho (Esc cancela)"),
+                ("Delete · Backspace", "apaga a selecionada · a última"),
+                ("Ctrl+Z · Ctrl+Y (Ctrl+Shift+Z)", "desfaz · refaz"),
+                ("Esc", "tira a seleção"),
+                ("Clique", "seleciona a peça; arrastar a largada move a pista"),
+            }),
+            ("CÂMERA E TELA", new[] {
+                ("Roda do mouse", "aproxima e afasta"),
+                ("Botão direito · do meio", "arrasta a mesa; com a câmera inclinada, o direito gira"),
+                ("V", "câmera de cima · inclinada"),
+                ("C", "enquadra a pista"),
+                ("Tab", "mostra e esconde o painel"),
+                ("1 · 2 · 3 · 4 (corrida)", "troca a câmera, na ordem do menu"),
+            }),
+            ("CORRIDA", new[] {
+                ("Enter (ou Start no controle)", "larga · próxima bateria"),
+                ("P", "pausa (online: 3 por piloto, 60 s cada)"),
+                ("F1", "o que aparece em cima dos carros"),
+                ("F2", "liga e desliga a narração"),
+                ("Esc", "fecha esta tela"),
+            }),
+        };
+
         void ShowKeys()
         {
             if (keysBox == null || Racing) return;
+            if (oSteam != null) oSteam.SetEnabled(room == null);         // na sala não dá para trocar de rede
             keysBox.style.display = DisplayStyle.Flex;
             keysBox.BringToFront();
             KeysChanged();

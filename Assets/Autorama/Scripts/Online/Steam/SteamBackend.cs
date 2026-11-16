@@ -31,7 +31,7 @@ namespace Autorama
             lobby.Listed += list =>
             {
                 var d = searchDone; searchDone = null;
-                d?.Invoke(list.ConvertAll(l => new LobbyRoomInfo { id = l.id.m_SteamID, code = l.code, name = l.name, host = l.host, state = l.state, players = l.players, max = l.max, stages = l.stages, pub = l.pub }));
+                d?.Invoke(list.ConvertAll(l => new LobbyRoomInfo { id = l.id.m_SteamID, code = l.code, name = l.name, host = l.host, state = l.state, players = l.players, max = l.max, stages = l.stages, pub = l.pub, mm = l.mm }));
             };
         }
 
@@ -62,6 +62,8 @@ namespace Autorama
 
         public void Create(string name, bool pub, Action<bool> done) { createDone = done; lobby.Create(name, pub); }
         public void Search(string code, Action<List<LobbyRoomInfo>> done) { searchDone = done; lobby.Search(code); }
+        public void CreateMatch(int size, Action<bool> done) { createDone = done; lobby.CreateMatch(size); }
+        public void SearchMatch(int size, Action<List<LobbyRoomInfo>> done) { searchDone = done; lobby.SearchMatch(size); }
         public void Join(ulong lobbyId, Action<bool> done) { joinDone = done; lobby.Join(new CSteamID(lobbyId)); }
         public void Leave() => lobby.Leave();
 

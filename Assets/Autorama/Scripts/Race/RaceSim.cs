@@ -385,6 +385,7 @@ namespace Autorama
         // IA: velocidade que ela busca na ponta da rampa de salto (por vão: 1, 2, 3) e a mínima dentro do loop (células por segundo).
         static readonly float[] JumpAi = { 7.5f, 8.5f, 9f };
         const float LoopAi = 5f;
+        const float CrossHitAngle = 30f;
         const float RubKick = 0.15f, RubKickV = 0.03f, RubSlip = 8f, RubDrag = 1.2f, HitSlip = 0.12f, HitSlipSide = 0.14f, HitSpin = 60f;
 
         public enum Phase { Idle, Countdown, Running, Done, Switch }     // Switch: troca de trilho entre manches (corrida por tempo)
@@ -865,7 +866,11 @@ namespace Autorama
                 A.hitFx = B.hitFx = 0.6f; A.hits++; B.hits++;
                 ScoreChanged?.Invoke();
             }
-            if (A.mode == CarMode.OnSlot && B.mode == CarMode.OnSlot)
+            // Batida no cruzamento de retas (seção 63): os dois no trilho, um de lado para o outro. Não é raspar: é choque,
+            // com troca de impulso; a parte de lado do empurrão vira derrapagem e, rápido, tira os dois da pista.
+            float ang = Mathf.Abs(Mathf.DeltaAngle(pa.heading, pb.heading));
+            bool cross = ang > CrossHitAngle && ang < 180f - CrossHitAngle;
+            if (A.mode == CarMode.OnSlot && B.mode == CarMode.OnSlot && !cross)
             {
                 // Raspando lado a lado: os dois ganham derrapagem e perdem velocidade enquanto encostam.
                 if (first) { float kick = RubKick + RubKickV * Mathf.Max(A.v, B.v); A.slip += kick; B.slip += kick; }
@@ -971,7 +976,7 @@ namespace Autorama
                 if (q.k == 0f) continue;
                 // Curva em C (seção 50.3): entra no limite (sem contar com a derrapagem) e freia mais cedo, porque o freio
                 // perde força em baixa velocidade e a C pede quase parar.
-                bool pin = q.def == PieceCatalog.Hairpin && m <= 1.25f;
+                bool pin = q.def.IsHairpin && m <= 1.25f;
                 float v = CarSetup.CurveV(set.grip * G * setup[k].Grip * q.grip, Mathf.Abs(q.k), setup[k].Aero, set.vmax * Speed) * (pin ? Mathf.Min(m, 1f) : m);
                 need = Mathf.Min(need, Mathf.Sqrt(v * v + 2f * (pin ? AiBrakePin : AiBrake) * G * d));
             }

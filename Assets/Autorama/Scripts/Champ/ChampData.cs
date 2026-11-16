@@ -272,6 +272,7 @@ namespace Autorama
                 int rise = p.altura == "sobe" ? 1 : p.altura == "desce" ? -1 : 0;
                 sb.Append('|').Append(p.tipo).Append(':').Append(dir).Append(':').Append(rise);
                 if (def != null && def.IsJump && p.vao > 1) sb.Append(':').Append(p.vao);     // vão 1 (o antigo): identidade igual
+                if (def != null && def.IsHairpin && p.raio > 1) sb.Append(":r").Append(p.raio);  // C de raio 1 (a antiga): igual
             }
             uint h = 0x811c9dc5;
             foreach (char ch in sb.ToString()) { h ^= ch; h *= 0x01000193; }

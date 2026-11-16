@@ -138,6 +138,7 @@ namespace Autorama
             // Duas peças não vizinhas se sobrepõem se passam a menos de 0,92 célula uma da outra NA MESMA ALTURA.
             // Retas lado a lado (distância 1,0) são permitidas; uma ponte (nível 1) passa sobre o chão (nível 0).
             const float minSqr = 0.92f * 0.92f;
+            var crossings = FlatCrossings(segs);
             for (int i = 0; i < n; i++)
             for (int j = i + 1; j < n; j++)
             {
@@ -146,6 +147,7 @@ namespace Autorama
                 if ((r.closed || tail > 0) && i == 0 && j == n - 1) continue;    // vizinhas pelo fechamento
                 Rect a = boxes[i], b = boxes[j];
                 if (a.xMax + 1 < b.xMin || b.xMax + 1 < a.xMin || a.yMax + 1 < b.yMin || b.yMax + 1 < a.yMin) continue;
+                if (InCross(crossings, i, j)) continue;   // retas que se cruzam no chão (seção 63)
                 if (Touches(pts[i], pts[j], minSqr)) { r.overlaps.Add(i); r.overlaps.Add(j); }
             }
 
@@ -259,6 +261,53 @@ namespace Autorama
             float p = Mathf.Clamp01(dist / CrossLength);
             return p * p * (3f - 2f * p);
         }
+
+        // Cruzamento de retas no chão (seção 63). Conta a linha reta inteira: retas comuns seguidas, no mesmo rumo, são
+        // uma linha só (o cruzamento pode cair na emenda de duas). Duas linhas se cruzam a pelo menos CrossMinAngle,
+        // longe das pontas de cada linha (CrossEnd / sen do ângulo, para as vizinhas não encostarem na outra).
+        // a0..a1: a linha que vem antes na lista (a de baixo na malha); b0..b1: a outra. Índices na lista de segmentos.
+        public const float CrossMinAngle = 40f, CrossEnd = 0.92f;
+        public struct FlatX { public int a0, a1, b0, b1; public Vector2 x, ua, ub; public float sin; }
+
+        public static List<FlatX> FlatCrossings(IList<Segment> segs)
+        {
+            var runs = new List<(int i0, int i1)>();
+            for (int i = 0; i < segs.Count; i++)
+            {
+                if (!CrossOk(segs[i])) continue;
+                int e = i;
+                while (e + 1 < segs.Count && CrossOk(segs[e + 1]) && Mathf.Abs(Mathf.DeltaAngle(segs[e].a.heading, segs[e + 1].a.heading)) < 0.5f
+                       && Vector2.Distance(segs[e].b.pos, segs[e + 1].a.pos) < 0.02f) e++;
+                runs.Add((i, e));
+                i = e;
+            }
+            var r = new List<FlatX>();
+            float minSin = Mathf.Sin(CrossMinAngle * Mathf.Deg2Rad);
+            for (int m = 0; m < runs.Count; m++)
+            for (int k = m + 1; k < runs.Count; k++)
+            {
+                Vector2 a0 = segs[runs[m].i0].a.pos, a1 = segs[runs[m].i1].b.pos, b0 = segs[runs[k].i0].a.pos, b1 = segs[runs[k].i1].b.pos;
+                Vector2 ua = a1 - a0, ub = b1 - b0, d = b0 - a0;
+                float la = ua.magnitude, lb = ub.magnitude;
+                ua /= la; ub /= lb;
+                float cr = ua.x * ub.y - ua.y * ub.x, sin = Mathf.Abs(cr);
+                if (sin < minSin) continue;
+                float sa = (d.x * ub.y - d.y * ub.x) / cr, sb = (d.x * ua.y - d.y * ua.x) / cr, mg = CrossEnd / sin;
+                if (sa < mg || sa > la - mg || sb < mg || sb > lb - mg) continue;
+                r.Add(new FlatX { a0 = runs[m].i0, a1 = runs[m].i1, b0 = runs[k].i0, b1 = runs[k].i1, x = a0 + ua * sa, ua = ua, ub = ub, sin = sin });
+            }
+            return r;
+        }
+
+        static bool InCross(List<FlatX> xs, int i, int j)
+        {
+            foreach (var c in xs)
+                if ((i >= c.a0 && i <= c.a1 && j >= c.b0 && j <= c.b1) || (j >= c.a0 && j <= c.a1 && i >= c.b0 && i <= c.b1)) return true;
+            return false;
+        }
+
+        static bool CrossOk(Segment s) => s.def.Kind == PieceKind.Straight && !s.def.IsStart && !s.def.IsCross && !s.def.IsJump
+            && !s.def.IsLoop && !s.High && !s.IsRamp;
 
         static bool Touches(List<Vector3> a, List<Vector3> b, float minSqr)
         {

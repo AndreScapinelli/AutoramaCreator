@@ -208,6 +208,14 @@ namespace Autorama
             if (vao != pieces[Selected].vao) Commit(() => pieces[Selected].vao = vao);
         }
 
+        // Tamanho da curva em C selecionada: raio raio·0,5, saída raio fileiras ao lado (seção 50.5).
+        public void SetHairpin(int raio)
+        {
+            if (Selected <= 0 || !pieces[Selected].Def.IsHairpin) return;
+            raio = Mathf.Clamp(raio, 1, PieceCatalog.MaxHairpin);
+            if (raio != pieces[Selected].raio) Commit(() => pieces[Selected].raio = raio);
+        }
+
         // Sobe ou desce a largada um nível; a pista inteira vai junto (as rampas sobem e descem a partir dela).
         public void MoveStartLevel(int d)
         {

@@ -12,6 +12,7 @@ namespace Autorama
         {
             public ulong id, owner;
             public bool pub, joinable = true;
+            public int max = 8;
             public readonly Dictionary<string, string> data = new Dictionary<string, string>();
             public readonly List<ulong> members = new List<ulong>();
             public readonly Dictionary<ulong, Dictionary<string, string>> mdata = new Dictionary<ulong, Dictionary<string, string>>();
@@ -99,6 +100,25 @@ namespace Autorama
             Enqueue(() => done(true));
         }
 
+        public void CreateMatch(int size, Action<bool> done)
+        {
+            lobby = hub.Create(MyId, false);
+            lobby.max = size; lobby.data["mm"] = size.ToString(); lobby.data["state"] = "fila"; lobby.data["name"] = $"Partida rápida · {size} carros";
+            Enqueue(() => done(true));
+        }
+
+        public void SearchMatch(int size, Action<List<LobbyRoomInfo>> done)
+        {
+            var list = new List<LobbyRoomInfo>();
+            foreach (var l in hub.lobbies.Values)
+            {
+                if (!l.data.TryGetValue("mm", out var mm) || l.data["state"] != "fila") continue;
+                if (size > 0 && (mm != size.ToString() || l.members.Count >= l.max)) continue;
+                list.Add(new LobbyRoomInfo { id = l.id, code = l.data["code"], name = l.data["name"], state = "fila", players = l.members.Count, max = l.max, mm = int.Parse(mm) });
+            }
+            Enqueue(() => done(list));
+        }
+
         public void Search(string code, Action<List<LobbyRoomInfo>> done)
         {
             var list = new List<LobbyRoomInfo>();
@@ -114,7 +134,7 @@ namespace Autorama
 
         public void Join(ulong lobbyId, Action<bool> done)
         {
-            if (!hub.lobbies.TryGetValue(lobbyId, out var l) || !l.joinable || l.members.Count >= 8) { Enqueue(() => done(false)); return; }
+            if (!hub.lobbies.TryGetValue(lobbyId, out var l) || !l.joinable || l.members.Count >= l.max) { Enqueue(() => done(false)); return; }
             lobby = l; hub.AddMember(l, MyId);
             Enqueue(() => done(true));
         }

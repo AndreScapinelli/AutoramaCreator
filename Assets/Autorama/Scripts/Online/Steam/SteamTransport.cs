@@ -29,6 +29,15 @@ namespace Autorama
         public event Action<ulong> JoinRequested;                    // um amigo convidou: a aba decide como entrar (JoinById)
 
         bool joined, racing;
+        // Partida rápida (seção 62): na fila (queuing) o lobby ainda não é sala; o dono junta o JSON da pista de cada um.
+        bool queuing, mmPending;                     // mmPending: procurando ou entrando no lobby da fila
+        int mmSize;
+        string mmLast;
+        string mmTrack, mmHash, mmJson;
+        ulong mmSentTo;
+        bool countAsk;
+        readonly Dictionary<ulong, string> mmJsons = new Dictionary<ulong, string>();
+        static readonly int[] MmSizes = { 2, 4, 6, 8 };
         ulong raceHost, lastOwner;
         float lobbyFlipSince = -1f;
         HashSet<ulong> known = new HashSet<ulong>();
@@ -96,8 +105,8 @@ namespace Autorama
 
         public void Close()
         {
-            if (joined) b.Leave();
-            joined = racing = false;
+            if (joined || queuing || mmPending) b.Leave();
+            joined = racing = queuing = mmPending = false;
             stageData.Clear();
             state = OnlineClient.State.Closed;
         }
@@ -106,6 +115,13 @@ namespace Autorama
         {
             if (state != OnlineClient.State.Open) return;
             b.Tick();
+            if (countAsk && !joined && !queuing && !mmPending)
+            {
+                countAsk = false;
+                b.SearchMatch(0, q => { if (!joined && !queuing && !mmPending) Emit(new NetMsg { t = "mmq", mmq = MatchCounts(q) }); });
+            }
+            if (queuing) { MatchTick(); return; }
+            if (mmPending) return;
             if (!joined) return;
             if (b.Owner != lastOwner && b.Owner != 0)
             {
@@ -147,10 +163,17 @@ namespace Autorama
         {
             switch (o.t)
             {
-                case "list": b.Search(null, list => Emit(new NetMsg { t = "rooms", rooms = list.FindAll(r => r.state == "lobby").ConvertAll(r => new NetListed { code = r.code, name = r.name, host = r.host, players = r.players, max = r.max, stages = r.stages }) })); break;
+                case "list":
+                    b.Search(null, list =>
+                    {
+                        Emit(new NetMsg { t = "rooms", rooms = list.FindAll(r => r.state == "lobby" && r.mm == 0).ConvertAll(r => new NetListed { code = r.code, name = r.name, host = r.host, players = r.players, max = r.max, stages = r.stages }) });
+                        countAsk = true;                  // a contagem das filas vem numa segunda busca, no próximo Pump (uma busca de cada vez)
+                    });
+                    break;
+                case "mm": Match(o); break;
                 case "create": Create(o); break;
                 case "join": Join(o); break;
-                case "leave": if (joined) { b.Leave(); joined = racing = false; stageData.Clear(); Emit(new NetMsg { t = "left" }); } break;
+                case "leave": if (joined) { b.Leave(); joined = racing = queuing = false; stageData.Clear(); Emit(new NetMsg { t = "left" }); } break;
                 case "color": SetColor(o.color, o.g); break;
                 case "guest": SetGuest(o.on); break;
                 case "ready": if (joined && !IsHost) { if (racing) Err("andamento", "O campeonato já começou."); else b.SetMyData("ready", o.ready ? EpochNow() : "0"); } break;
@@ -162,6 +185,140 @@ namespace Autorama
                 case "suggest": Suggest(o); break;
                 case "sync": if (joined && racing && !IsHost) b.SendTo(b.Owner, Encoding.UTF8.GetBytes(JsonUtility.ToJson(o)), true); break;
             }
+        }
+
+        // ---------- Partida rápida ----------
+
+        static List<int> MatchCounts(List<LobbyRoomInfo> q)
+        {
+            var n = new List<int> { 0, 0, 0, 0 };
+            foreach (var l in q) { int i = Array.IndexOf(MmSizes, l.mm); if (i >= 0) n[i] += l.players; }
+            return n;
+        }
+
+        // Entra na fila: um lobby de partida rápida do mesmo tamanho com vaga; não tem, cria um. on=false: sai.
+        void Match(NetOut o)
+        {
+            if (!o.on)
+            {
+                if (queuing || mmPending) { b.Leave(); queuing = mmPending = false; }
+                Emit(new NetMsg { t = "mm" });
+                return;
+            }
+            if (joined) { Err("sala", "Você já está numa sala."); return; }
+            if (queuing || mmPending) return;
+            if (Array.IndexOf(MmSizes, o.faixas) < 0) { Err("mm", "Tamanho de pista inválido."); return; }
+            if (!SuggestionOk(o.hash, o.json)) { Err("mm", "Pista inválida ou grande demais."); return; }
+            string t = Clean(o.track, 60);
+            mmSize = o.faixas; mmTrack = t.Length > 0 ? t : "Pista"; mmHash = o.hash; mmJson = o.json;
+            mmPending = true;
+            b.SearchMatch(mmSize, list => TryJoinMatch(list, 0));
+        }
+
+        void TryJoinMatch(List<LobbyRoomInfo> list, int i)
+        {
+            if (state != OnlineClient.State.Open || joined || queuing || !mmPending) return;
+            while (i < list.Count && list[i].players >= list[i].max) i++;
+            if (i >= list.Count)
+            {
+                b.CreateMatch(mmSize, ok =>
+                {
+                    if (state != OnlineClient.State.Open) { b.Leave(); return; }
+                    if (!ok) { mmPending = false; Err("mm", "Não deu para criar a fila na Steam."); return; }
+                    EnterQueue();
+                });
+                return;
+            }
+            b.Join(list[i].id, ok =>
+            {
+                if (state != OnlineClient.State.Open) { b.Leave(); return; }
+                if (joined) return;                            // a largada chegou antes do fim da entrada
+                if (ok && b.Data("state") == "racing" && b.Data("mm") == mmSize.ToString()) return;   // a fila encheu comigo: a largada do dono vem logo atrás
+                if (!ok || b.Data("state") != "fila" || b.Data("mm") != mmSize.ToString()) { if (ok) b.Leave(); TryJoinMatch(list, i + 1); return; }
+                EnterQueue();
+            });
+        }
+
+        void EnterQueue()
+        {
+            if (joined || !mmPending) return;
+            queuing = true; mmPending = false; mmSentTo = 0; mmLast = null; mmJsons.Clear();
+            known = new HashSet<ulong>(); foreach (var m in b.Members()) { known.Add(m.id); names[m.id] = m.name; }
+            b.SetMyData("mmt", mmTrack); b.SetMyData("mmh", mmHash);
+            b.SetMyData("ready", "0"); b.SetMyData("g2", "0");
+            AssignColor();
+            MatchTick();
+        }
+
+        // A cada quadro na fila: manda a pista ao dono (de novo, se o dono mudou), avisa a aba e, se for o dono, larga com a fila cheia.
+        void MatchTick()
+        {
+            var members = b.Members();
+            if (b.Owner != 0 && b.Owner != b.MyId && mmSentTo != b.Owner)
+            {
+                mmSentTo = b.Owner;
+                b.SendTo(b.Owner, Encoding.UTF8.GetBytes(JsonUtility.ToJson(new NetMsg { t = "mmjson", json = mmJson })), true);
+            }
+            var m = new NetMsg { t = "mm", faixas = mmSize, n = members.Count, need = mmSize };
+            foreach (var x in members) m.tracks.Add(TrackName(x.id));
+            string sig = members.Count + "|" + string.Join("|", m.tracks);
+            if (sig != mmLast) { mmLast = sig; Emit(m); }
+            if (b.Owner == b.MyId && members.Count >= mmSize) MatchLaunch(members);
+        }
+
+        string TrackName(ulong id) { string t = Clean(b.MemberData(id, "mmt"), 60); return t.Length > 0 ? t : "Pista"; }
+
+        // O sorteio sai de uma conta que todos podem refazer (SteamIDs e pistas de todos): o dono não escolhe a pista.
+        public static int MatchSeed(List<ulong> ids, List<string> hashes)
+        {
+            var parts = new List<string>();
+            for (int i = 0; i < ids.Count; i++) parts.Add(ids[i] + ":" + hashes[i]);
+            parts.Sort(StringComparer.Ordinal);
+            uint h = 2166136261;
+            foreach (char c in string.Join("|", parts)) { h ^= c; h *= 16777619; }
+            return (int)(h & 0x7fffffff) | 1;
+        }
+
+        void MatchLaunch(List<LobbyMember> members)
+        {
+            members.Sort((x, y) => x.id.CompareTo(y.id));
+            var ids = members.ConvertAll(x => x.id);
+            var hashes = members.ConvertAll(x => b.MemberData(x.id, "mmh"));
+            int seed = MatchSeed(ids, hashes), pick = seed % members.Count;
+            string JsonOf(ulong id) => id == b.MyId ? mmJson : mmJsons.TryGetValue(id, out var j) ? j : null;
+            // A sorteada tem que ter chegado e ser do tamanho certo; senão, a próxima da lista.
+            int win = -1;
+            for (int k = 0; k < members.Count && win < 0; k++)
+            {
+                int i = (pick + k) % members.Count;
+                string j = JsonOf(ids[i]);
+                if (j == null) return;                    // ainda chegando: espera
+                try { if (TrackSave.FromJson(j).Faixas == mmSize) win = i; } catch { }
+            }
+            if (win < 0) return;
+
+            var room = BuildRoom();
+            string track = TrackName(ids[win]);
+            var m = new NetMsg { t = "started", title = Clean("Partida rápida · " + track, 40),
+                rules = new NetRules { vmax = 14f, ramp = 0.5f, grip = 29f, collide = true, byTime = true, turbo = true, sorteio = seed, reslot = 0.3f } };
+            foreach (var p in room.players) if (!NetGuest.Is(p.id)) m.pilots.Add(new NetPlayer { id = p.id, name = p.name, color = p.color, uid = p.uid });
+            m.stages.Add(new NetStage { name = track, laps = 30, secs = 240, tempo = true, faixas = mmSize, hash = hashes[win], json = JsonOf(ids[win]) });
+            for (int i = 0; i < members.Count; i++) m.mm.tracks.Add(new NetMMTrack { name = TrackName(ids[i]), by = Clean(members[i].name, 20) });
+            m.mm.pick = win;
+            var bytes = Encoding.UTF8.GetBytes(JsonUtility.ToJson(m));
+            foreach (var x in members) if (x.id != b.MyId) b.SendTo(x.id, bytes, true);
+            b.SetData("state", "racing");
+            MatchStarted(m, b.MyId);
+            Say($"Pista sorteada: {track} (de {Clean(members[win].name, 20)}).");
+        }
+
+        void MatchStarted(NetMsg m, ulong host)
+        {
+            queuing = mmPending = false; mmLast = null; mmJsons.Clear();
+            Enter();
+            racing = true; raceHost = host; lobbyFlipSince = -1f;
+            Emit(m);
+            EmitRoom();
         }
 
         bool RequireHost()
@@ -385,10 +542,17 @@ namespace Autorama
 
         void OnPeer(ulong from, byte[] data)
         {
-            if (!joined || !known.Contains(from)) return;
+            bool inQueue = queuing || mmPending;
+            if (!(joined || inQueue) || !(known.Contains(from) || inQueue && b.Members().Exists(x => x.id == from))) return;
             NetMsg m;
             try { m = JsonUtility.FromJson<NetMsg>(Encoding.UTF8.GetString(data)); } catch { return; }
             if (m == null || string.IsNullOrEmpty(m.t)) return;
+            if (inQueue)
+            {
+                if (m.t == "mmjson" && b.Owner == b.MyId && SuggestionOk("00000000", m.json)) mmJsons[from] = m.json;
+                else if (m.t == "started" && from == b.Owner) MatchStarted(m, from);
+                return;
+            }
             bool fromHost = from == b.Owner && !IsHost;
             switch (m.t)
             {
@@ -415,6 +579,7 @@ namespace Autorama
 
         void OnMembers()
         {
+            if (queuing) { known = new HashSet<ulong>(); foreach (var m in b.Members()) { known.Add(m.id); names[m.id] = m.name; } return; }
             if (!joined) return;
             var cur = new HashSet<ulong>();
             foreach (var m in b.Members())
@@ -470,7 +635,7 @@ namespace Autorama
 
         NetRoom BuildRoom()
         {
-            var r = new NetRoom { code = b.Data("code"), name = b.Data("name"), pub = b.Data("pub") == "1", host = b.Owner.ToString(), max = SteamLobbyClient.MaxMembers, state = b.Data("state") };
+            var r = new NetRoom { code = b.Data("code"), name = b.Data("name"), pub = b.Data("pub") == "1", mm = b.Data("mm") != "" && b.Data("mm") != "0", host = b.Owner.ToString(), max = SteamLobbyClient.MaxMembers, state = b.Data("state") };
             foreach (var m in b.Members())
             {
                 var p = new NetPlayer { id = m.id.ToString(), name = Clean(m.name, 20), color = ColorOf(m.id), ready = IsReady(m.id), uid = "steam:" + m.id };

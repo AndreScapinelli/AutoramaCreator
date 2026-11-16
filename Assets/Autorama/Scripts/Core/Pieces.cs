@@ -83,6 +83,7 @@ namespace Autorama
         }
 
         public bool IsCurve => Kind == PieceKind.Curve;
+        public bool IsHairpin => Id == "curva-c";
         public bool Sided => IsCurve || IsLoop;        // tem lado (dir ±1): a curva vira, o loop sai deslocado para ele
         public bool GroundOnly => IsLoop || IsJump;    // não sobe nem desce de nível
         // Comprimento do caminho: no loop, a entrada, a volta inteira e a saída.
@@ -145,6 +146,10 @@ namespace Autorama
         // Curva em C (seção 50 do guia): 180° de raio 0,5 no eixo; a volta sai na fileira do lado, ocupa 1 × 2 células.
         public const float HairpinRadius = 0.5f;
         public static readonly PieceDef Hairpin = PieceDef.MakeCurve("curva-c", "Curva em C", 180f, false, HairpinRadius);
+        // Tamanho da C (seção 50.5): raio n·0,5, a saída fica n fileiras ao lado (2R inteiro: a ponta cai na grade).
+        public const int MaxHairpin = 3;
+        static readonly PieceDef[] hairpins = { Hairpin, PieceDef.MakeCurve("curva-c", "Curva em C", 180f, false, 2f * HairpinRadius), PieceDef.MakeCurve("curva-c", "Curva em C", 180f, false, 3f * HairpinRadius) };
+        public static PieceDef HairpinOf(int raio) => hairpins[Mathf.Clamp(raio, 1, MaxHairpin) - 1];
 
         public static readonly PieceDef Loop   = PieceDef.MakeLoop("loop", "Loop");
         public static readonly PieceDef Jump   = PieceDef.MakeJump("salto", "Rampa de salto", 1f, JumpLips[0]);
@@ -168,11 +173,12 @@ namespace Autorama
         public int dir;     // 0 nas retas, -1 vira à esquerda, +1 vira à direita
         public int rise;    // -1 desce um nível, 0 plana, +1 sobe um nível
         public int vao = 1; // só no salto: o vão em células (1 a PieceCatalog.MaxGap)
+        public int raio = 1; // só na curva em C: raio raio·0,5, saída raio fileiras ao lado (1 a PieceCatalog.MaxHairpin)
 
-        public TrackPiece(string id, int dir = 0, int rise = 0, int vao = 1) { this.id = id; this.dir = dir; this.rise = rise; this.vao = vao; }
+        public TrackPiece(string id, int dir = 0, int rise = 0, int vao = 1, int raio = 1) { this.id = id; this.dir = dir; this.rise = rise; this.vao = vao; this.raio = raio; }
 
-        public PieceDef Def => id == PieceCatalog.Jump.Id ? PieceCatalog.JumpOf(vao) : PieceCatalog.ById(id);
-        public TrackPiece Clone() => new TrackPiece(id, dir, rise, vao);
+        public PieceDef Def => id == PieceCatalog.Jump.Id ? PieceCatalog.JumpOf(vao) : id == PieceCatalog.Hairpin.Id ? PieceCatalog.HairpinOf(raio) : PieceCatalog.ById(id);
+        public TrackPiece Clone() => new TrackPiece(id, dir, rise, vao, raio);
 
         public string Describe()
         {
@@ -181,6 +187,7 @@ namespace Autorama
             if (dir != 0 && d.Sided) s += dir < 0 ? " · esquerda" : " · direita";
             if (rise != 0) s += rise > 0 ? " · sobe" : " · desce";
             if (d.IsJump) s += $" · vão {vao}";
+            if (d.IsHairpin && raio > 1) s += $" · {raio} fileiras";
             return s;
         }
     }

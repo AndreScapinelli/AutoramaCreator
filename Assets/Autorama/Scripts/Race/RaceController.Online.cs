@@ -37,6 +37,7 @@ namespace Autorama
         const int MaxSuggestions = 12, MaxSuggestionsPerPlayer = 3;
         VisualElement oSuggestBox, oSuggest, oSendBox, oSend;
 
+        VisualElement oRunTracks;                       // as pistas do campeonato, para guardar na biblioteca (seção 64)
         VisualElement oEntry, oLobby, oRooms, oPlayers, oColors, oStages, oPick, oHostPick, oRun, oRunChatSec, oFormat;
         Button oByLaps, oByTime, oKind2, oKind4, oKind6, oKind8;
         Label oFormatText;
@@ -44,6 +45,7 @@ namespace Autorama
         Label oMsg, oRoomTitle, oRoomCode, oStageHint, oLobbyMsg, oRulesHint, oStartHint;
         TextField oServer, oName, oRoomName, oCode, oChatInput, oRunChatInput;
         Toggle oPublic, oVisibility, oSteam;
+        Label oVia;
         VisualElement oInviteBox, oFriends;
         ScrollView friendsScroll;                                    // a lista de amigos, com rolagem própria
         readonly HashSet<ulong> invited = new HashSet<ulong>();      // amigos já convidados nesta sala
@@ -71,14 +73,15 @@ namespace Autorama
             oEntry = El(null, box);
             var head = Section(oEntry, "CAMPEONATO ONLINE");
             Text("Um jogador cria a sala e escolhe as pistas. Os outros entram pelo código ou pela lista de salas públicas.", "hint", head);
-            oSteam = new Toggle("Jogar pela Steam (sem servidor)") { value = PlayerPrefs.GetInt(PrefSteam, 0) == 1 };
+            oSteam = new Toggle("Jogar pela Steam") { value = PlayerPrefs.GetInt(PrefSteam, 1) == 1 };   // a Steam é o padrão; o servidor fica nas Opções
             oSteam.AddToClassList("setting");
             oSteam.tooltip = "Usa o lobby e a rede da Steam: precisa da Steam aberta e logada. O nome é o da sua conta.";
             oSteam.RegisterValueChangedCallback(e => SteamToggled(e.newValue));
-            head.Add(oSteam);
+            oVia = Text("", "small", head);
             oServer = Field("Servidor (ex.: ws://localhost:8080)", 120, head);
+            netOpts.Add(oSteam); netOpts.Add(oServer);                   // o toggle e o endereço ficam na tela de Opções (BuildKeysUI)
             oServer.SetValueWithoutNotify(PlayerPrefs.GetString(PrefServer, DefaultServer));
-            oServer.RegisterValueChangedCallback(e => { PlayerPrefs.SetString(PrefServer, e.newValue); });
+            oServer.RegisterValueChangedCallback(e => { PlayerPrefs.SetString(PrefServer, e.newValue); SteamToggled(oSteam.value, false); });
             oName = Field("Seu nome", 20, head);
             oName.style.marginTop = 6;
             oName.SetValueWithoutNotify(PlayerPrefs.GetString(PrefName, ""));
@@ -199,6 +202,7 @@ namespace Autorama
             oRunChatSec = El("section");
             Text("CHAT", "h2", oRunChatSec);
             BuildChatBox(oRunChatSec, out oRunChat, out oRunChatInput);
+            oRunTracks = El("section", oRun);
             var runActs = El("section", oRun);
             oRunQuit = Btn("", null, "btn btn--danger", runActs);
             oRunQuit.clicked += OnlineQuit;
@@ -283,6 +287,13 @@ namespace Autorama
             if (keep > 0f) friendsScroll.schedule.Execute(() => friendsScroll.scrollOffset = new Vector2(0f, keep));
         }
 
+        // Ao abrir o jogo: liga a Steam (o padrão) e já conecta, sem esperar a aba Online.
+        void OnlineBoot()
+        {
+            SteamToggled(oSteam.value, false);
+            if (oSteam.value) WhenConnected(() => { });
+        }
+
         void OnlineDestroy()
         {
             wsNet?.Close();
@@ -292,7 +303,7 @@ namespace Autorama
 
         void OnlineShown()
         {
-            if (oSteam.value && (steamNet == null || steamNet.LocalName == "")) SteamToggled(true);     // a escolha da última vez
+            if (oSteam.value && (steamNet == null || steamNet.LocalName == "")) SteamToggled(true, false);     // a escolha da última vez
             DrawOnline(); OnlineStatus();
         }
 
@@ -305,7 +316,10 @@ namespace Autorama
         }
 
         // Steam ligada: o nome é o da conta, não há endereço de servidor. Desligada: volta ao servidor Node.
-        void SteamToggled(bool on)
+        void SteamToggled(bool on) => SteamToggled(on, true);
+
+        // remember=false (ao abrir o jogo): a Steam fechada não troca a escolha salva.
+        void SteamToggled(bool on, bool remember)
         {
             if (room == null && net.state != OnlineClient.State.Closed) { net.Close(); pendingNet = null; }     // a próxima ação conecta pela rede escolhida
             if (on)
@@ -318,8 +332,10 @@ namespace Autorama
                     on = false;
                 }
             }
-            PlayerPrefs.SetInt(PrefSteam, on ? 1 : 0);
-            oServer.style.display = on ? DisplayStyle.None : DisplayStyle.Flex;
+            if (remember || on) PlayerPrefs.SetInt(PrefSteam, on ? 1 : 0);
+            oServer.SetEnabled(!on);
+            oVia.text = on ? "Pela Steam, com o nome da sua conta. Para jogar pelo servidor, desligue a Steam em Opções, no menu inicial."
+                           : $"Pelo servidor {oServer.value}. Mude em Opções, no menu inicial.";
             oName.SetEnabled(!on);
             DrawMatch();
             oName.SetValueWithoutNotify(on ? steamNet.LocalName : PlayerPrefs.GetString(PrefName, ""));
@@ -489,6 +505,7 @@ namespace Autorama
                     DrawOnline(); OnlineStatus();
                     break;
                 case "mm": OnMatchStatus(m); break;
+                case "mmq": if (m.mmq.Count == 4) { mmq = m.mmq.ToArray(); DrawMatch(); } break;   // Steam: a contagem das filas vem depois da lista
                 case "rooms":
                     listed = m.rooms;
                     if (m.mmq.Count == 4) { mmq = m.mmq.ToArray(); DrawMatch(); }
@@ -621,6 +638,41 @@ namespace Autorama
             if (TrackLibrary.List().Exists(e => e.save.nome == data.nome)) data.nome = $"{s.track} (de {s.name})";
             TrackLibrary.Save(data);
             panel.Toast($"“{data.nome}” salva na sua biblioteca.");
+        }
+
+        // Campeonato online: as pistas que chegaram na largada, cada uma com "Salvar" (as que já estão na biblioteca, com a mesma
+        // identidade no tamanho do campeonato, aparecem como guardadas).
+        void DrawRunTracks()
+        {
+            oRunTracks.Clear();
+            var C = onlineChamp; if (C == null) return;
+            Text("PISTAS DO CAMPEONATO", "h2", oRunTracks);
+            Text("Guarde na sua biblioteca as pistas que quiser, para correr ou mexer depois.", "hint", oRunTracks);
+            var lib = TrackLibrary.List();
+            var seen = new HashSet<string>();
+            foreach (var st in C.stages)
+            {
+                if (!seen.Add(st.hash)) continue;
+                var stage = st;
+                bool have = lib.Exists(e => Champ.TrackHash(Adapted(e.save, C.faixas)) == stage.hash);
+                var row = El("lib-item", oRunTracks);
+                var texts = El("lib-texts", row);
+                Text(stage.name, "lib-name", texts);                  // já veio com Safe (BeginOnlineRun)
+                Text(have ? "já está na sua biblioteca" : $"pista de {C.Faixas} trilhos", "small", texts);
+                var b = Btn(have ? "Guardada" : "Salvar", () => SaveRunTrack(stage), "btn", row);
+                b.SetEnabled(!have);
+            }
+        }
+
+        void SaveRunTrack(Stage st)
+        {
+            var data = TrackSave.FromJson(st.data.ToJson(false));
+            string nome = st.name.Replace("​", "").Trim();   // tira o Safe do nome da etapa
+            data.nome = nome.Length > 0 ? nome : "Pista";
+            if (TrackLibrary.List().Exists(e => e.save.nome == data.nome)) data.nome += " (online)";
+            TrackLibrary.Save(data);
+            panel.Toast($"“{data.nome}” salva na sua biblioteca.");
+            DrawRunTracks();
         }
 
         // Visitante: manda uma das minhas pistas ao host.

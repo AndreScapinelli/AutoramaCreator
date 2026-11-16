@@ -4020,6 +4020,25 @@ Teste: oval largada · reta comprida · C · reta comprida · reta curta · C, 6
 
 Não testado em Play: a malha e o ícone vistos no jogo.
 
+### 50.4 Tamanho da C (raio)
+
+A C selecionada ganha no painel o segmentado **Tamanho: 1 · 2 · 3 fileiras** (`TrackBuilder.SetHairpin`, com desfazer).
+Raio `n · 0,5` célula no eixo (`PieceCatalog.HairpinOf(n)`, `MaxHairpin = 3`): a saída fica `n` fileiras ao lado,
+no mesmo ponto da entrada e com o rumo invertido. Com `2R` inteiro, a ponta sempre cai na grade.
+
+- `TrackPiece.raio` (1 a 3) e `"raio"` no JSON, só na C. Sem o campo, vale 1.
+- Identidade: `:r2` ou `:r3` depois de `tipo:sentido:altura`. A C de raio 1 continua com a identidade de antes.
+- Q: movimentos 11 a 14 (raio 2 e 3, à direita e à esquerda), também só para percorrer. `Mirror` troca 11 ↔ 12 e 13 ↔ 14.
+- IA: `AiCar` usa o comprimento da C do raio certo, e o cuidado da 50.3 (`m ≤ 1`, `AiBrakePin`) vale para todos os
+  raios (`q.def.IsHairpin`; antes comparava com a peça de raio 1 e as C maiores eram tratadas como curva comum).
+  Teste: o oval da 50.3 com as duas C no mesmo raio, 60 s de IA. Raio 2 e 3, pistas de 2 e 4, qualidade 100 e 60:
+  0 saídas. Melhor volta na de 2 (q100): 2,73 · 2,94 · 2,80 para raio 1 · 2 · 3.
+
+Teste (`script eval`): largada, reta comprida, C, reta comprida, reta curta. Nos 3 raios e nos 2 lados, a C saiu em
+(6; ±n) com rumo 180 e o Q fechou (7, 7 e 8 peças). Ida e volta pelo JSON manteve o raio; identidades `5ce0b447`
+(raio 1), `04298fe7` (2) e `03298e54` (3).
+
+
 ## 51. Fogos no fim do campeonato
 
 Quando a última bateria é salva (`Champ.CurrentHeat(C) < 0`), o `RaceController` chama `Fogos()` (`Race/RaceController.Fogos.cs`). Vale no offline (`ChampSave`), no host online (`OnlineCommit`) e no visitante (mensagem `res`).
@@ -4239,12 +4258,17 @@ Uma faixa no topo da mesa, embaixo das fichas dos pilotos, narra a prova em tom 
 
 ## 62. Partida rápida (fila e sorteio da pista; protocolo 5)
 
-- **O que faz:** na aba Online, o cartão **Partida rápida** fica acima de Criar sala. O jogador escolhe o tamanho (2, 4, 6 ou 8 carros) e uma pista fechada dele, que entra adaptada a esse tamanho (seção 32). Depois toca em **Procurar partida**. Na fila, a tela mostra "3 de 4", o tempo de espera, as pistas na disputa (repetidas aparecem com ×2) e o botão **Sair da fila**. As outras seções da entrada somem enquanto o jogador está na fila. Só larga com a fila cheia. Quando ela enche, o servidor cria uma sala privada (`room.mm`) e sorteia uma das pistas. Uma pista repetida conta uma vez por jogador que a escolheu. Em seguida o servidor larga sozinho: uma bateria **por tempo, 4:00**, com todos na mesma bateria (`MakeHeats` por tempo com pilotos = trilhos dá uma bateria só) e as regras padrão. Na tela aparece a roleta do sorteio (`.mm-sorteio`, ~3 s, para na pista escolhida). Depois vem a escolha do carro, que dura **20 s** (`MmCarWait`; no campeonato são 45). O host larga sozinho 20 s depois, como no campeonato online. No fim, todos veem **Jogar de novo** (sai da sala e volta à fila com o mesmo tamanho e a mesma pista) e **Sair**. Não tem "Voltar ao lobby" nem "Encerrar campeonato": o botão de baixo vira "Sair da partida". Só existe no servidor Node: com a Steam, o cartão some, porque não há um servidor neutro para sortear.
+- **O que faz:** na aba Online, o cartão **Partida rápida** fica acima de Criar sala. O jogador escolhe o tamanho (2, 4, 6 ou 8 carros) e uma pista fechada dele, que entra adaptada a esse tamanho (seção 32). Depois toca em **Procurar partida**. Na fila, a tela mostra "3 de 4", o tempo de espera, as pistas na disputa (repetidas aparecem com ×2) e o botão **Sair da fila**. As outras seções da entrada somem enquanto o jogador está na fila. Só larga com a fila cheia. Quando ela enche, o servidor cria uma sala privada (`room.mm`) e sorteia uma das pistas. Uma pista repetida conta uma vez por jogador que a escolheu. Em seguida o servidor larga sozinho: uma bateria **por tempo, 4:00**, com todos na mesma bateria (`MakeHeats` por tempo com pilotos = trilhos dá uma bateria só) e as regras padrão. Na tela aparece a roleta do sorteio (`.mm-sorteio`, ~3 s, para na pista escolhida). Depois vem a escolha do carro, que dura **20 s** (`MmCarWait`; no campeonato são 45). O host larga sozinho 20 s depois, como no campeonato online. No fim, todos veem **Jogar de novo** (sai da sala e volta à fila com o mesmo tamanho e a mesma pista) e **Sair**. Não tem "Voltar ao lobby" nem "Encerrar campeonato": o botão de baixo vira "Sair da partida". Funciona no servidor Node e na Steam (veja abaixo).
 - **Servidor** (`servidor.js`): `MM_SIZES [2,4,6,8]`, `MM_SECS 240`, `MM_RULES` (vmax 14, ramp 0,5, grip 29, colisão, turbo, reslot 0,3, por tempo). A fila é `queues` (tamanho → entradas). As mensagens:
   - `mm {on, faixas, name, uid, track, hash, json}` entra na fila. Antes, o servidor tira o jogador de qualquer outra fila. O servidor recusa tamanho inválido, pista cujo JSON tem outro `faixas`, nome repetido na fila e quem já está numa sala. `on: false` sai da fila.
   - O servidor responde `mm {faixas, n, need, tracks, mmq}` a todos da fila (`faixas 0`: fora). `mmq` traz quantos esperam em cada fila e também vai no `rooms` (a lista de salas).
   - Fila cheia (`mmMatch`): os primeiros n jogadores entram na sala nova (`enter`, que manda `joined`) e o servidor chama `launch`, o mesmo do `start`, com `sorteio` de `crypto.randomInt` e mais `mm {tracks: [{name, by}], pick}` no `started`.
   - Cair ou sair tira o jogador da fila (`mmOut` no `leave`). Voltar de uma queda funciona como no campeonato (seção 41), pelo código da sala.
+- **Steam** (`SteamTransport`, parte "Partida rápida"): a fila é um lobby público com limite de n membros e os dados `mm=n` e `state=fila`. Esse lobby fica fora da lista de salas, porque a lista pede `pub=1`, e o número de cada fila sai de `SearchMatch(0)`.
+  - **Entrar:** `SearchMatch(n)` filtra por `state`, `mm` e vaga. O jogador entra no primeiro lobby que der certo. Se nenhum der, cria um (`CreateMatch`).
+  - **Na fila:** cada membro grava `mmt` (nome da pista) e `mmh` (hash) nos dados dele e manda o JSON da pista ao dono por mensagem direta (`mmjson`). Se o dono mudar, manda de novo.
+  - **Sorteio:** com a fila cheia, o dono larga. O sorteio é uma conta que todos podem refazer: `MatchSeed` = FNV-1a dos pares `SteamID:hash` em ordem, e pista = `seed % n` sobre os membros em ordem de SteamID. Assim o dono não escolhe a pista. Se a sorteada não tiver o tamanho certo, vale a próxima da lista. O `seed` também é o `sorteio` das baterias.
+  - **Corrida em andamento:** quem acabou de entrar e encontra `state=racing` no próprio lobby espera a largada (`mmPending`) em vez de sair. Essa corrida aparecia no teste: a fila enchia com o 4º jogador, o dono largava antes de a entrada dele terminar, e o 4º saía para criar outra fila.
 - **Unity:** `RaceController.Match.cs` tem o cartão, a fila, o relógio, a roleta e o "Jogar de novo". As outras peças:
   - `NetRoom.mm`, `NetMM`/`NetMMTrack` e os campos `n`, `need`, `tracks` e `mmq` no `NetMsg`;
   - `MmRoom` muda o prazo do carro (`CarPickWaitNow`), os botões do fim (`DrawOnlineActs`) e o sair (`OnlineQuit` sai sem encerrar);
@@ -4254,5 +4278,53 @@ Uma faixa no topo da mesa, embaixo das fichas dos pilotos, narra a prova em tom 
   - `npm test`: 11 verificações novas (tamanho inválido, pista de outro tamanho, 3 de 4 com as pistas, `mmq` na lista, sair, nome repetido, fila cheia larga com 4 por tempo 4:00 e o mesmo sorteio para todos, fila de 2 com 1 não larga, quem largou sai da fila, desconectar tira da fila) e todas as antigas.
   - `OnlineSmokeTest` contra o servidor: tudo ok.
   - `script eval`: o `JsonUtility` lê o `started` com `mm` (pista sorteada certa, `room.mm` verdadeiro; sem `mm`, a lista vem vazia e o `pick` −1). `MakeHeats(n, 1, n, true)` dá uma bateria com os n pilotos, para 2, 4, 6 e 8.
-  - Recompilado sem erros. Não houve teste no modo Play.
+  - Steam: a contagem das filas chega numa mensagem própria (`mmq`), numa segunda busca feita no `Pump` seguinte à lista de salas. Fazer a segunda busca dentro da resposta da primeira, ou mandar a lista de novo com a contagem, quebrava o `SteamTransportTest` (ele lia a lista velha).
+  - Steam com o mundo falso (`FakeLobbyHub`, `script eval`, 5 jogadores): o 1º põe uma pista de 2 na fila de 4 e um fica sozinho na fila de 2. Resultado: fila 3 de 4 com `[T0,T1,T2]`, `mmq [1,3,0,0]` e nenhuma sala na lista. O 4º enche a fila e os 4 recebem `joined` (`room.mm`) e o mesmo `started`: pista T1, 240 s, mesmo `pick` e mesmo `seed`, JSON de 4 trilhos. O sozinho não larga.
+  - `SteamTransportTest` inteiro, com o mundo falso e a Steam de verdade (Spacewar): 89 ok.
+  - Recompilado sem erros. Não houve teste no modo Play nem na Steam de verdade.
 - **Ainda não tem:** ranking (Elo), fila por nível e conferência do resultado por todos. Isso fica para a parte 2.
+
+## 63. Cruzamento de retas no chão (em +)
+
+Duas retas podem se cruzar no mesmo nível, como no 8 sem ponte. Não é peça nova: os ids e o JSON não mudam, e só
+deixa de marcar sobreposição. Pistas e recordes salvos continuam iguais.
+
+- **Regra** (`TrackLayout.FlatCrossings`): conta a **linha reta inteira**. Retas comuns seguidas, no mesmo rumo e
+  emendadas, são uma linha só (não entram largada, cruzamento X, salto nem loop; todas planas e no chão, sem rampa,
+  `!High`). Duas linhas se cruzam a pelo menos `CrossMinAngle = 40°` (na prática, 90° ou 45°), com o ponto a pelo menos
+  `CrossEnd / sen(ângulo)` das pontas de cada linha (`CrossEnd = 0,92`, a distância da sobreposição), para as vizinhas
+  (curvas, largada) não encostarem na outra. O `Analyze` pula os pares de peças das duas linhas (`InCross`); qualquer
+  outra sobreposição continua valendo.
+  - Antes a regra era por peça: o cruzamento na emenda de duas retas (curta + curta) ou perto da ponta de uma reta
+    curta, mesmo com reta seguida, era recusado.
+- **Malha** (`TrackPieceView`): as peças da linha que vem antes na lista somem no quadrado do cruzamento (`cutA`/`cutB`, meia
+  largura `(0,5 + 0,5·|cos|) / sen`). A outra passa inteira, com as fendas de verdade, e a peça dela onde cai o ponto ganha as fendas da de
+  baixo pintadas por cima (`PaintCross`: faixas escuras, 0,002 acima).
+- **Batida** (`RaceSim.CollidePair`): a colisão já era pela pose dos carrinhos. Se os dois estão no trilho e com rumos
+  a mais de `CrossHitAngle = 30°` um do outro, não é raspar: é choque com troca de impulso (`Impulse`). A parte de lado
+  vira derrapagem (`HitSlip + lado · HitSlipSide`) e, rápido, tira da pista. A IA não espera o outro passar.
+- **Q:** percorre a pista com o cruzamento, mas a busca não cria cruzamento (os obstáculos seguem iguais).
+
+Teste (`script eval`): largada, reta comprida, 3 curvas longas à esquerda, reta comprida (cruza a primeira a 90°, no
+ponto 1,5 dela e 2,5 da outra), 2 curvas longas à direita: sem sobreposição. O Q fechou com 5 peças, ainda sem
+sobreposição. 5 corridas de 60 s de IA (qualidade 50 a 94), batida ligada: pista de 2, 85 voltas, 2 batidas, 1 saída;
+pista de 4, 120 voltas, 4 batidas, 2 saídas.
+
+Teste da linha inteira (mesmo 8, trocando a reta comprida de baixo): curta + curta (cruza a 0,5 da emenda), curta +
+curtinha + curtinha e curtinha + curta + curtinha foram aceitos (antes, os três davam sobreposição); o cruzamento X
+continua recusado. Não testado em Play: a malha do cruzamento vista no jogo.
+
+## 64. Guardar as pistas do campeonato online
+
+- **O que faz:** quem está num campeonato online, ou numa partida rápida, recebe na largada o JSON de todas as pistas. Até aqui elas só serviam para correr. Agora a tela da corrida online tem a seção **Pistas do campeonato**, entre o placar e o botão de sair. Ela lista cada pista uma vez só, com o botão **Salvar**, que guarda a pista na biblioteca (`TrackLibrary.Save`). Se já existir uma pista com o mesmo nome, a nova ganha " (online)" no fim. A pista que já está na biblioteca aparece como "já está na sua biblioteca", com o botão "Guardada" desligado.
+- **Como sabe que já tem:** compara a identidade (`Champ.TrackHash`) de cada pista da biblioteca, adaptada ao tamanho do campeonato (`Adapted(e.save, C.faixas)`), com o `hash` da etapa. A pista é guardada já no tamanho do campeonato. O nome da etapa chega com o `Safe` (o `<` seguido de um caractere invisível); o `SaveRunTrack` tira esse caractere antes de gravar.
+- **Código:** `DrawRunTracks` e `SaveRunTrack` em `RaceController.Online.cs`, `oRunTracks` montado em `BuildOnlineUI` e desenhado no `BeginOnlineRun`.
+- **Teste** (`script eval`): oval adaptado para 4 trilhos, mandado pela rede (JSON) e guardado: os dois dão `fe737c81`. O oval de 2 continua `a34f4cb9`. Recompilado sem erros; não houve teste no modo Play.
+
+## 65. Steam por padrão, rede e lista de teclas nas Opções
+
+- **O que faz:** o jogo abre já ligado e conectado à Steam (`OnlineBoot`, chamado logo depois de `BuildOnlineUI`: `SteamToggled(oSteam.value, false)` e `WhenConnected`). O padrão de `autorama.online.steam` passou de 0 para **1**. Se a Steam estiver fechada, o toggle fica desligado nesta sessão, mas a escolha salva não muda (`remember = false`); só desligar à mão grava 0.
+- **Rede nas Opções:** o toggle "Jogar pela Steam" e o endereço do servidor Node saíram da aba Online e foram para a tela de Opções do menu inicial (seção **JOGO ONLINE**, em `netOpts`). O endereço fica desligado com a Steam ligada. Dentro de uma sala o toggle fica desligado. A aba Online mostra só uma linha (`oVia`): por onde se está jogando e que se muda em Opções.
+- **Todas as teclas:** a tela de Opções ganhou **TODAS AS TECLAS** (`AllKeys` em `RaceController.cs`): construtor (paleta 1–0, T, X, B, G, H, U, D, K, L, J; F, E, R, Q, Delete, Backspace, Ctrl+Z/Y, Esc, clique), câmera e tela (roda, botões do mouse, V, C, Tab, 1–4 na corrida) e corrida (Enter/Start, P, F1, F2, Esc). As do carrinho continuam nos botões trocáveis acima. Mudou um atalho, mude a lista.
+- **Tela:** o conteúdo do cartão virou `ScrollView` (`.keys-scroll`; `.keys-card` com `max-height: 92%`); o botão Fechar fica fora da rolagem.
+- **Teste:** recompilado sem erros. Não houve teste no modo Play.
