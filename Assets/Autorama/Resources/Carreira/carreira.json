@@ -8,28 +8,28 @@
       "nos": [
         {
           "id": "garagem-1", "nome": "Primeira Volta", "tipo": "corrida", "depois": [],
-          "pista": "garagem-1", "voltas": 3, "ia": 25, "adversarios": 1, "turbo": true,
+          "pista": "garagem-1", "voltas": 3, "ia": 30, "adversarios": 1, "turbo": true,
           "estrelas": [ { "tipo": "posicao", "valor": 2 }, { "tipo": "posicao", "valor": 1 }, { "tipo": "semSair", "valor": 0 } ]
         },
         {
           "id": "garagem-2", "nome": "Reta da Bancada", "tipo": "relogio", "depois": ["garagem-1"],
           "pista": "garagem-2", "voltas": 3, "ia": 0, "adversarios": 0, "turbo": false,
-          "estrelas": [ { "tipo": "volta", "valor": 4.70 }, { "tipo": "volta", "valor": 4.25 }, { "tipo": "volta", "valor": 3.95 } ]
+          "estrelas": [ { "tipo": "volta", "valor": 4.04 }, { "tipo": "volta", "valor": 3.56 }, { "tipo": "volta", "valor": 3.47 } ]
         },
         {
           "id": "garagem-3", "nome": "Feijão", "tipo": "corrida", "depois": ["garagem-2"],
-          "pista": "garagem-3", "voltas": 4, "ia": 40, "adversarios": 1, "turbo": true,
+          "pista": "garagem-3", "voltas": 4, "ia": 55, "adversarios": 1, "turbo": true,
           "estrelas": [ { "tipo": "posicao", "valor": 2 }, { "tipo": "posicao", "valor": 1 }, { "tipo": "semTurbo", "valor": 0 } ]
         },
         {
           "id": "garagem-5", "nome": "Cotovelo", "tipo": "corrida", "depois": ["garagem-2"],
-          "pista": "garagem-5", "voltas": 5, "ia": 50, "adversarios": 1, "turbo": true,
+          "pista": "garagem-5", "voltas": 5, "ia": 75, "adversarios": 1, "turbo": true,
           "estrelas": [ { "tipo": "posicao", "valor": 2 }, { "tipo": "posicao", "valor": 1 }, { "tipo": "semSair", "valor": 1 } ]
         },
         {
           "id": "garagem-6", "nome": "Serpentina", "tipo": "relogio", "depois": ["garagem-3", "garagem-5"],
           "pista": "garagem-6", "voltas": 3, "ia": 0, "adversarios": 0, "turbo": false,
-          "estrelas": [ { "tipo": "volta", "valor": 6.35 }, { "tipo": "volta", "valor": 5.75 }, { "tipo": "volta", "valor": 5.35 } ]
+          "estrelas": [ { "tipo": "volta", "valor": 5.38 }, { "tipo": "volta", "valor": 4.86 }, { "tipo": "volta", "valor": 4.51 } ]
         }
       ]
     }

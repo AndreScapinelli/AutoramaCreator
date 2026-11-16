@@ -359,7 +359,7 @@ namespace Autorama
             for (int k = 0; k < RaceSim.MaxCars; k++)
             {
                 sim.present[k] = k <= ais;
-                sim.aiSkill[k] = k > 0 && k <= ais ? Mathf.Clamp(n.ia, 1, 100) : 0;
+                sim.aiSkill[k] = k > 0 && k <= ais ? Mathf.Clamp(n.ia, 1, RaceSim.AiMaxSkill) : 0;
                 sim.setup[k] = default;
             }
             var t = Career.Track(n.pista);

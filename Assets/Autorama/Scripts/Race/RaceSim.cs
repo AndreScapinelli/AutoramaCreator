@@ -942,10 +942,14 @@ namespace Autorama
         // do limite e sai da pista; a chance vai de 12,5% por sorteio (qualidade 1) a 0,5% (qualidade 100).
         // Fora da pista, aperta Recolocar depois de um tempo de reação, menor nos melhores.
         const float AiLook = 3.5f, AiBrake = 20f, AiBrakePin = 10f, AiEvery = 1.2f;
-        static float AiBase(float sk) => 0.82f + 0.33f * sk;
-        static float AiSpread(float sk) => 0.02f + 0.1f * (1f - sk);
-        static float AiMiss(float sk) => 0.005f + 0.12f * Mathf.Pow(1f - sk, 1.5f);
-        static float AiReslotDelay(float sk) => 1.4f - 0.9f * sk;
+        static float AiBase(float sk) => sk <= 1f ? 0.82f + 0.33f * sk : 1.15f * Mathf.Lerp(AiMasterLo, AiMasterHi, (sk - 1f) * 2f);
+        static float AiSpread(float sk) => 0.02f + 0.1f * Mathf.Max(0f, 1f - sk);
+        static float AiMiss(float sk) => 0.005f + 0.12f * Mathf.Pow(Mathf.Max(0f, 1f - sk), 1.5f);
+        static float AiReslotDelay(float sk) => 1.4f - 0.9f * Mathf.Min(sk, 1f);
+        // Mestres (qualidade 101–150, só a carreira usa; seção 70): além da coragem maior, dosam o gatilho em vez de
+        // soltar o botão para frear, como o piloto do SetupCalib. De 1 a 100 nada muda.
+        public const int AiMaxSkill = 150;
+        public static float AiMasterBand = 1.03f, AiMasterSlip = 0.6f, AiMasterLo = 0.85f, AiMasterHi = 1.06f;   // topo: 1,15 × 1,06 + 0,02 < 1,25 (acima disso é o "erro" da IA)
 
         void AiDrive(int k, float dt)
         {
@@ -987,8 +991,22 @@ namespace Autorama
             c.held = c.v < need;
             // Chegando no salto ela não solta o botão: dosa o gatilho (1% ou 100%). Soltar e apertar de novo faz o
             // acelerador recomeçar do zero, e o carrinho chegaria na ponta da rampa devagar demais para cruzar o vão.
-            c.gas = jumpNear && !c.held ? 0.01f : 1f;
-            if (jumpNear) c.held = true;
+            float top = set.vmax * Speed * setup[k].Top;
+            if (sk > 1f)
+            {
+                // Mestre: acima da velocidade pedida, o gatilho vai até a fração que segura essa velocidade.
+                // Derrapando muito, ou bem acima da velocidade pedida: freia de verdade, com o gatilho no mínimo.
+                // A derrapagem vem antes: na curva inclinada longa a velocidade "permitida" passa da máxima do carro.
+                c.gas = c.slip > AiMasterSlip || c.v > need * AiMasterBand ? 0.01f : c.held ? 1f : Mathf.Clamp(need / top, 0.01f, 1f);
+                c.held = true;
+            }
+            else
+            {
+                // Chegando no salto, acima da velocidade pedida: o gatilho na fração que segura essa velocidade (seção 70).
+                // Com 1% ela freava demais e, até o gatilho voltar, decolava devagar e caía no vão (pista de 2, vão 2 e 3).
+                c.gas = jumpNear && !c.held ? Mathf.Clamp(need / top, 0.01f, 1f) : 1f;
+                if (jumpNear) c.held = true;
+            }
             // Turbo da IA: só quando nenhuma curva à frente pede freio nem na velocidade com turbo (retas longas).
             c.boost = set.turbo && c.turbo > 0f && need > set.vmax * Speed * setup[k].Top * (1f + TurboBoost);
         }

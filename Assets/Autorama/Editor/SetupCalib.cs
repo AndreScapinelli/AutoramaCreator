@@ -16,6 +16,7 @@ namespace Autorama
         public static float[] Slips = { 0.85f, 0.92f, 0.98f };
         public static int Laps = 4;
         public static float GasMin = 0.02f;
+        public static int Faixas = 2;          // a carreira mede pistas de 4, 6 e 8 também (CareerCalib)
         static float SlipMax;
 
         static readonly string[] Motor = { "padrão", "curto", "longo" }, Bolha = { "padrão", "asa", "lisa" }, Pneu = { "médio", "macio", "duro" }, Chassi = { "padrão", "leve", "pesado" };
@@ -48,7 +49,7 @@ namespace Autorama
         static RaceSim New(List<Segment> segs, int lane, CarSetup su, int laps)
         {
             var sim = new RaceSim(new RaceSettings { laps = laps, collide = false, turbo = false });
-            sim.SetTrack(segs, true, 2);
+            sim.SetTrack(segs, true, Faixas);
             for (int k = 0; k < sim.N; k++) sim.present[k] = k == lane;
             sim.setup[lane] = su;
             return sim;

@@ -4417,3 +4417,36 @@ A carreira saiu do painel lateral (a aba CARREIRA da seção 68 não existe mais
 - **Resultado:** 1,2 s depois da bandeirada (`kDoneT`). Estrelas uma a uma (300 ms + 400 ms cada), fogos com 3, a posição e o tempo (no relógio, a melhor volta), estrelas novas, ✓/✗ por objetivo e "Abriu: …" (as provas cuja única porta era esta e que ganharam a 1ª estrela agora). Correr de novo · Mapa (Esc) · Próxima prova (Enter: a 1ª aberta sem 3 estrelas, com o cartão aberto).
 
 **Teste (Play, `script eval` com `EditorApplication.Step`):** mapa da Garagem com 5 pinos e o carrinho no Feijão; câmera a 30,7 de distância para a mesa de 28×16 depois da correção da escala; prova do Feijão com a IA 90 no lugar do jogador: 1º lugar em 15,90 s, ★★★, tela de resultado. O save 1 do jogador foi copiado antes e restaurado depois. Com o editor avançando quadro a quadro, o `schedule` da UI (estrelas uma a uma) não roda; no jogo, roda.
+
+## 70. IA da carreira: mestres, salto e calibração (fase 3)
+
+**Medida** (`Editor/CareerCalib.cs`, sem cena): `Race(pista, qualidade, provas, voltas)` = média de provas da IA sozinha com semente fixa (tempo, melhor volta, saídas); `Table(pista, qualidades…)`; `Optimal(pista)` = volta do piloto do `SetupCalib` (agora com `SetupCalib.Faixas`, antes sempre 2); `Clock(pista)` = os três tempos do relógio. Uma corrida só não diz nada: a IA sorteia a coragem a cada 1,2 s. Na média, da IA 1 à 100 a prova fica ~18% mais rápida, crescente, sem saídas (garagem-3: 23,51 → 19,14 s; garagem-5: 32,31 → 27,03 s).
+
+**O problema:** o piloto ótimo é 15–20% mais rápido que a IA 100 (garagem-1: 2,77 contra 3,22 s; o jogador do save 1 fez 2,77). Subir a coragem acima de 100 quase não ajuda (IA 140: garagem-3 3,54 s): a IA solta o botão para frear e o acelerador recomeça do zero.
+
+**Mestres (qualidade 101–150, `RaceSim.AiMaxSkill = 150`, só a carreira usa):**
+- Nunca soltam o botão: abaixo da velocidade pedida, gatilho 100%; um pouco acima, a fração que segura a pedida (`need / (vmax·Speed·Top)`); derrapagem > `AiMasterSlip = 0,6` ou acima de `need × AiMasterBand (1,03)`: gatilho 1% (freia). A derrapagem é olhada antes de tudo: na curva inclinada longa a velocidade "permitida" passa da máxima do carro (antes, o mestre 150 saía 2 vezes por volta nas Bd Bd).
+- Coragem `1,15 × Lerp(AiMasterLo 0,85, AiMasterHi 1,06, (q − 100)/50)`: a 101 anda como a 100, e o topo fica abaixo de 1,25 (acima disso o código lê como o "erro" de propósito da IA: salto rápido demais, curva em C sem frear).
+- `AiSpread`, `AiMiss` e `AiReslotDelay` param no valor da 100. **De 1 a 100 a IA é a mesma de antes**, menos a chegada ao salto (abaixo).
+
+| pista (voltas de 3–5) | IA 100 | 125 | 150 | ótimo |
+|---|---|---|---|---|
+| garagem-3 (volta) | 3,74 | 3,43 | 3,30 | 3,23 |
+| garagem-5 (volta) | 5,30 | 4,88 | 4,74 | 4,36 |
+| nacional-1, loop (prova 3 voltas) | 35,1 s | 33,2 s | 32,9 s | — |
+| nacional-6, ponte e loop | 24,9 s | 23,8 s | 23,6 s | — |
+
+Sem saídas nos mestres (até 0,4 por prova).
+
+**Salto (correção, vale para toda IA):** chegando na rampa acima da velocidade pedida, a IA punha o gatilho em 1% e, até ele voltar a 100%, perdia embalo: na pista de 2 trilhos decolava a 6,6–6,9 com o vão 3 pedindo ~9 e caía sempre (IA 100: 140 quedas por prova no vão 3, 199 no vão 2; na pista de 8, a IA 100 nem terminava a nacional-4). Agora põe o gatilho na fração que segura a velocidade pedida. Depois: 0 a 0,3 queda por prova em 2, 4, 6 e 8 trilhos com os vãos 1, 2 e 3 (nacional-4, nacional-2, regional-2; IA 40 e 100). Quem cai ainda volta `JumpBack = 2` antes da rampa e consegue passar (quedas forçadas na nacional-4: 13 voltas em 90 s no trilho de 2).
+
+**Calibração por região** (qualidade da IA nos nós de corrida):
+
+| Região | IA |
+|---|---|
+| Garagem | 30 → 75 |
+| Clube | 75 → 105 |
+| Regional | 100 → 130 |
+| Nacional | 125 → 150 |
+
+**Relógio:** bronze = melhor volta média da IA 90, prata = do mestre 125, ouro = piloto ótimo + 4%. Garagem: garagem-2 4,04 · 3,56 · 3,47 s; garagem-6 5,38 · 4,86 · 4,51 s. Corridas: garagem-1 IA 30, garagem-3 IA 55, garagem-5 IA 75.
