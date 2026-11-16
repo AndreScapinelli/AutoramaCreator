@@ -1023,7 +1023,7 @@ namespace Autorama
                 if (k >= sim.N || !sim.present[k]) continue;
                 var pilot = live && k < pl.Length ? pl[k] : null;
                 bool ai = sim.aiSkill[k] > 0;
-                p.name.text = pilot != null ? $"{pilot.name.ToUpperInvariant()} · {LaneNames[k].ToUpperInvariant()}"
+                p.name.text = CareerName(k) is string cn ? cn : pilot != null ? $"{pilot.name.ToUpperInvariant()} · {LaneNames[k].ToUpperInvariant()}"
                     : ai ? $"ROBÔ · {LaneNames[k].ToUpperInvariant()}" : $"JOGADOR {k + 1}";
                 // O ajuste do carro ao lado do nome (só com até 4 painéis: nos de 6 e 8 não cabe).
                 if (!sim.setup[k].Padrao && sim.N <= 4) p.name.text += $"  <size=10><color=#9AA3A8>{sim.setup[k].Resumo}</color></size>";
@@ -1031,9 +1031,10 @@ namespace Autorama
                 p.halfTri.text = HalfTri(k);
                 p.reslot.text = OnlineRun ? $"Recolocar  {KeyText(ReslotKeyAt(LocalKeySet(Math.Max(0, LocalOf(pilot?.id)))))}" : $"Recolocar  {KeyText(ReslotKey(k))}";
                 p.gas.EnableInClassList("gas--ai", ai);
-                if (pilot != null)
+                var kc = CareerColor(k);
+                if (pilot != null || kc.HasValue)
                 {
-                    var col = pilot.Color;
+                    var col = kc ?? pilot.Color;
                     p.root.style.borderTopColor = col;
                     p.gas.style.borderTopColor = p.gas.style.borderBottomColor = p.gas.style.borderLeftColor = p.gas.style.borderRightColor = col;
                     p.fill.style.backgroundColor = new Color(col.r, col.g, col.b, 0.35f);

@@ -4,32 +4,281 @@
       "id": "garagem",
       "nome": "Garagem",
       "faixas": 2,
-      "estrelasRival": 10,
+      "estrelasRival": 12,
       "nos": [
         {
-          "id": "garagem-1", "nome": "Primeira Volta", "tipo": "corrida", "depois": [],
-          "pista": "garagem-1", "voltas": 3, "ia": 30, "adversarios": 1, "turbo": true,
-          "estrelas": [ { "tipo": "posicao", "valor": 2 }, { "tipo": "posicao", "valor": 1 }, { "tipo": "semSair", "valor": 0 } ]
+          "id": "garagem-1",
+          "nome": "Primeira Volta",
+          "tipo": "corrida",
+          "depois": [],
+          "pista": "garagem-1",
+          "voltas": 3,
+          "ia": 30,
+          "adversarios": 1,
+          "turbo": true,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 2
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semSair",
+              "valor": 0
+            }
+          ]
         },
         {
-          "id": "garagem-2", "nome": "Reta da Bancada", "tipo": "relogio", "depois": ["garagem-1"],
-          "pista": "garagem-2", "voltas": 3, "ia": 0, "adversarios": 0, "turbo": false,
-          "estrelas": [ { "tipo": "volta", "valor": 4.04 }, { "tipo": "volta", "valor": 3.56 }, { "tipo": "volta", "valor": 3.47 } ]
+          "id": "garagem-2",
+          "nome": "Reta da Bancada",
+          "tipo": "relogio",
+          "depois": [
+            "garagem-1"
+          ],
+          "pista": "garagem-2",
+          "voltas": 3,
+          "ia": 0,
+          "adversarios": 0,
+          "turbo": false,
+          "estrelas": [
+            {
+              "tipo": "volta",
+              "valor": 4.04
+            },
+            {
+              "tipo": "volta",
+              "valor": 3.56
+            },
+            {
+              "tipo": "volta",
+              "valor": 3.47
+            }
+          ]
         },
         {
-          "id": "garagem-3", "nome": "Feijão", "tipo": "corrida", "depois": ["garagem-2"],
-          "pista": "garagem-3", "voltas": 4, "ia": 55, "adversarios": 1, "turbo": true,
-          "estrelas": [ { "tipo": "posicao", "valor": 2 }, { "tipo": "posicao", "valor": 1 }, { "tipo": "semTurbo", "valor": 0 } ]
+          "id": "garagem-3",
+          "nome": "Feijão",
+          "tipo": "corrida",
+          "depois": [
+            "garagem-2"
+          ],
+          "pista": "garagem-3",
+          "voltas": 4,
+          "ia": 55,
+          "adversarios": 1,
+          "turbo": true,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 2
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semTurbo",
+              "valor": 0
+            }
+          ]
         },
         {
-          "id": "garagem-5", "nome": "Cotovelo", "tipo": "corrida", "depois": ["garagem-2"],
-          "pista": "garagem-5", "voltas": 5, "ia": 75, "adversarios": 1, "turbo": true,
-          "estrelas": [ { "tipo": "posicao", "valor": 2 }, { "tipo": "posicao", "valor": 1 }, { "tipo": "semSair", "valor": 1 } ]
+          "id": "garagem-4",
+          "nome": "Chuva na Garagem",
+          "tipo": "desafio",
+          "depois": [
+            "garagem-2"
+          ],
+          "pista": "garagem-c3",
+          "voltas": 4,
+          "ia": 50,
+          "adversarios": 1,
+          "turbo": true,
+          "regras": [
+            "molhada",
+            "carro"
+          ],
+          "carro": {
+            "motor": 0,
+            "bolha": 0,
+            "pneu": 1,
+            "chassi": 2
+          },
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 2
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semSair",
+              "valor": 0
+            }
+          ]
         },
         {
-          "id": "garagem-6", "nome": "Serpentina", "tipo": "relogio", "depois": ["garagem-3", "garagem-5"],
-          "pista": "garagem-6", "voltas": 3, "ia": 0, "adversarios": 0, "turbo": false,
-          "estrelas": [ { "tipo": "volta", "valor": 5.38 }, { "tipo": "volta", "valor": 4.86 }, { "tipo": "volta", "valor": 4.51 } ]
+          "id": "garagem-5",
+          "nome": "Cotovelo",
+          "tipo": "corrida",
+          "depois": [
+            "garagem-2"
+          ],
+          "pista": "garagem-5",
+          "voltas": 5,
+          "ia": 75,
+          "adversarios": 1,
+          "turbo": true,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 2
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semSair",
+              "valor": 1
+            }
+          ]
+        },
+        {
+          "id": "garagem-6",
+          "nome": "Serpentina",
+          "tipo": "relogio",
+          "depois": [
+            "garagem-3",
+            "garagem-5"
+          ],
+          "pista": "garagem-6",
+          "voltas": 3,
+          "ia": 0,
+          "adversarios": 0,
+          "turbo": false,
+          "estrelas": [
+            {
+              "tipo": "volta",
+              "valor": 5.38
+            },
+            {
+              "tipo": "volta",
+              "valor": 4.86
+            },
+            {
+              "tipo": "volta",
+              "valor": 4.51
+            }
+          ]
+        },
+        {
+          "id": "garagem-7",
+          "nome": "Largada Atrasada",
+          "tipo": "desafio",
+          "depois": [
+            "garagem-6"
+          ],
+          "pista": "garagem-7",
+          "voltas": 5,
+          "ia": 60,
+          "adversarios": 1,
+          "turbo": true,
+          "regras": [
+            "atrasada"
+          ],
+          "atraso": 1.5,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 2
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semTurbo",
+              "valor": 0
+            }
+          ]
+        },
+        {
+          "id": "garagem-8",
+          "nome": "Turbo Sem Fim",
+          "tipo": "desafio",
+          "depois": [
+            "garagem-6"
+          ],
+          "pista": "garagem-c2",
+          "voltas": 5,
+          "ia": 70,
+          "adversarios": 1,
+          "turbo": true,
+          "regras": [
+            "turboLivre",
+            "sobrevivencia"
+          ],
+          "limite": 3,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 2
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semSair",
+              "valor": 1
+            }
+          ]
+        },
+        {
+          "id": "garagem-9",
+          "nome": "Tio Beto",
+          "tipo": "rival",
+          "depois": [
+            "garagem-7",
+            "garagem-8"
+          ],
+          "pista": "garagem-c1",
+          "voltas": 4,
+          "ia": 85,
+          "adversarios": 1,
+          "turbo": true,
+          "rival": "Tio Beto",
+          "rivalCor": "#8B5A2B",
+          "rivalCarro": {
+            "motor": 0,
+            "bolha": 0,
+            "pneu": 2,
+            "chassi": 2
+          },
+          "baterias": 3,
+          "rivalFrase": "Monto autorama desde antes de você nascer. Mostra o que sabe.",
+          "rivalVitoria": "A garagem ainda é minha. Volte quando souber frear.",
+          "rivalDerrota": "Muito bem! A garagem ficou pequena para você.",
+          "estrelas": [
+            {
+              "tipo": "serie",
+              "valor": 0
+            },
+            {
+              "tipo": "invicto",
+              "valor": 0
+            },
+            {
+              "tipo": "semSair",
+              "valor": 0
+            }
+          ]
         }
       ]
     }

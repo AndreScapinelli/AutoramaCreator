@@ -660,3 +660,6 @@
 .k-result { width: 540px; align-items: center; }
 .k-res-stars { font-size: 52px; color: var(--destaque); letter-spacing: 8px; margin: 0; padding: 0; }
 .k-res-row { margin-top: 14px; }
+.k-rule { font-size: 13px; color: var(--alerta); margin: 2px 0; padding: 0; white-space: normal; }
+.k-rival { font-size: 13px; -unity-font-style: italic; color: var(--texto); margin: 2px 0 6px 0; padding: 0; white-space: normal; }
+.k-res-score { font-size: 32px; -unity-font-style: bold; color: var(--destaque); margin: 4px 0; padding: 0; }

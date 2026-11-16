@@ -23,7 +23,7 @@ namespace Autorama
     public class NodeDef
     {
         public string id, nome;
-        public string tipo = "corrida";   // corrida · relogio (depois: desafio, construtor, rival, campeonato)
+        public string tipo = "corrida";   // corrida · relogio · desafio · rival (depois: construtor, campeonato)
         public string[] depois;           // abre quando QUALQUER um destes tem 1 estrela (vazio: aberto desde o começo)
         public string pista;              // arquivo em Resources/Carreira/pistas, sem .json
         public int voltas = 3;
@@ -31,6 +31,21 @@ namespace Autorama
         public int adversarios = 1;       // carros da IA (no relógio: 0)
         public bool turbo = true;         // no relógio fica sempre desligado
         public Objetivo[] estrelas;       // 3: a 1ª é concluir; sem ela, nenhuma estrela
+
+        // Desafio (seção 71): regras que se somam. molhada (aderência × Career.Wet) · carro (o ajuste "carro" imposto)
+        // · sobrevivencia (mais de "limite" saídas e está fora) · atrasada (larga "atraso" s depois da luz verde)
+        // · turboLivre (tanque sempre cheio, para todos).
+        public string[] regras;
+        public CarSetup carro;
+        public int limite = 3;
+        public float atraso = 2f;
+
+        // Rival (seção 71): melhor de "baterias", trocando de trilho a cada uma. Nome, cor (#RRGGBB), carro e as falas.
+        public string rival, rivalCor, rivalFrase, rivalVitoria, rivalDerrota;
+        public CarSetup rivalCarro;
+        public int baterias = 3;
+
+        public bool Has(string regra) => regras != null && System.Array.IndexOf(regras, regra) >= 0;
     }
 
     // tipo: posicao (chegar até a posição valor) · semSair (no máximo valor saídas) · semTurbo · volta (melhor volta até valor s)
@@ -45,6 +60,7 @@ namespace Autorama
         public bool turbo;
         public float melhorVolta;   // < 0: nenhuma volta completa
         public float tempo;
+        public int vitorias, derrotas;   // só no rival: baterias ganhas e perdidas
     }
 
     [Serializable] public class NodeSave { public string id; public int estrelas; public int melhorPos; public float melhorVolta = -1f; }
@@ -75,6 +91,8 @@ namespace Autorama
                 case "semTurbo": return r.terminou && !r.turbo;
                 case "volta": return r.melhorVolta >= 0f && r.melhorVolta <= o.valor;
                 case "tempo": return r.terminou && r.tempo <= o.valor;
+                case "serie": return r.terminou && r.vitorias > r.derrotas;
+                case "invicto": return r.terminou && r.vitorias > 0 && r.derrotas == 0;
                 default: return false;
             }
         }
@@ -97,7 +115,24 @@ namespace Autorama
                 case "semTurbo": return "Sem usar o turbo";
                 case "volta": return $"Volta abaixo de {RaceController.Fmt(o.valor)}";
                 case "tempo": return $"Prova abaixo de {RaceController.Fmt(o.valor)}";
+                case "serie": return "Vencer a série";
+                case "invicto": return "Vencer sem perder bateria";
                 default: return o.tipo;
+            }
+        }
+
+        public const float Wet = 0.8f;   // pista molhada: aderência × 0,8
+
+        public static string RegraTexto(NodeDef n, string regra)
+        {
+            switch (regra)
+            {
+                case "molhada": return "Pista molhada: 20% menos aderência";
+                case "carro": return $"Carro imposto: {(n.carro.Padrao ? "padrão" : n.carro.Resumo)}";
+                case "sobrevivencia": return $"Mais de {n.limite} {(n.limite == 1 ? "saída" : "saídas")} e você está fora";
+                case "atrasada": return $"Você larga {n.atraso:0.#} s depois";
+                case "turboLivre": return "Turbo sempre cheio, para todos";
+                default: return regra;
             }
         }
 

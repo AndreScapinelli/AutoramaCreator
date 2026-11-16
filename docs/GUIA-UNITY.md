@@ -4450,3 +4450,28 @@ Sem saídas nos mestres (até 0,4 por prova).
 | Nacional | 125 → 150 |
 
 **Relógio:** bronze = melhor volta média da IA 90, prata = do mestre 125, ouro = piloto ótimo + 4%. Garagem: garagem-2 4,04 · 3,56 · 3,47 s; garagem-6 5,38 · 4,86 · 4,51 s. Corridas: garagem-1 IA 30, garagem-3 IA 55, garagem-5 IA 75.
+
+## 71. Carreira: desafios e rival (fase 4)
+
+**Desafio** (`tipo: "desafio"`): uma corrida com `regras` (`NodeDef.regras`, somam-se; `NodeDef.Has`). Aplicadas em `RunHeat` e em `CareerTick` (só na prova da carreira):
+
+| regra | o que faz | campos |
+|---|---|---|
+| `molhada` | aderência × `Career.Wet = 0,8` (`sim.set.grip`; a IA usa o mesmo grip, então se adapta) | — |
+| `carro` | o ajuste do jogador é imposto | `carro` (`CarSetup`) |
+| `sobrevivencia` | mais de `limite` saídas: fora (`kOut`), a prova acaba como "não terminou" | `limite` (3) |
+| `atrasada` | preso no grid (`v = 0`, `s = GridPos`) até `atraso` s depois da luz verde | `atraso` (2) |
+| `turboLivre` | turbo ligado e o tanque de todos sempre cheio | — |
+
+O cartão mostra cada regra (`Career.RegraTexto`, com ⚠), e os objetivos ao vivo ganham as linhas das regras (saídas x de limite, "você sai em 1,2 s", pista molhada).
+
+**Rival** (`tipo: "rival"`): melhor de `baterias` (3) contra 1 IA com nome (`rival`), cor (`rivalCor`, `#RRGGBB`), carro (`rivalCarro`) e três falas (`rivalFrase` no cartão; `rivalVitoria` quando ele ganha a série, `rivalDerrota` quando perde). O nó só abre com `estrelasRival` na região (Garagem: 12 de 27).
+- A cada bateria os dois **trocam de trilho**: depois do `StartRace`, nas baterias pares `cars[0].lane = 1` e `cars[1].lane = 0` (o jogador continua o carro 0, com as mesmas teclas).
+- `CareerRun` começa a série (zera placar, saídas, turbo, melhor volta); `RunHeat` corre uma bateria; `Tally` soma a bateria e, quando alguém faz `baterias/2 + 1` ou acabam as baterias, fecha a série como um `ResultadoCorrida` com `vitorias`, `derrotas`, as saídas e o turbo somados e a melhor volta.
+- Entre baterias, a tela de resultado mostra quem ganhou e o placar (`ShowHeat`): Próxima bateria (Enter) · Desistir (Esc).
+- Objetivos novos: `serie` (vencer a série), `invicto` (vencer sem perder bateria). `semSair` conta as saídas da série toda.
+- Na tela: o jogador vira "VOCÊ" e o rival tem nome e cor nos controles, no placar de cima, nas etiquetas e no carrinho (`CareerName`, `CareerColor`, lidos em `DrawPadHeads`).
+
+**Garagem agora com 9 nós** (ordem no mapa): 1 Primeira Volta · 2 Reta da Bancada · 3 Feijão · **4 Chuva na Garagem** (desafio, `garagem-c3`, 4 voltas, IA 50, molhada + carro macio e pesado; abre com o 2) · 5 Cotovelo · 6 Serpentina · **7 Largada Atrasada** (`garagem-7`, 5 voltas, IA 60, atraso 1,5 s; ★★★ sem turbo; abre com o 6) · **8 Turbo Sem Fim** (`garagem-c2`, 5 voltas, IA 70, turbo livre + sobrevivência 3; abre com o 6) · **9 Tio Beto** (rival, `garagem-c1`, 4 voltas, IA 85, cor `#8B5A2B`, duro e pesado; abre com o 7 ou o 8 e 12 estrelas; ★ série · ★★ 2×0 · ★★★ sem sair).
+
+**Teste (Play, save 3 de teste, apagado depois):** rival com o mestre 150 no lugar do jogador: bateria 1 trilhos 0/1 → 1×0; bateria 2 trilhos 1/0 → 2×0, fim, ★★★, "TIO BETO" no controle e a fala dele. Largada atrasada: em t = 1,0 s o carro ainda em `s = 0,75` (grid), `v = 0`. Turbo livre: tanques 1 e 1. Sobrevivência: 4 saídas → fora, 0 estrela. Molhada: grip 29 → 23,2; carro imposto "macio · pesado".
