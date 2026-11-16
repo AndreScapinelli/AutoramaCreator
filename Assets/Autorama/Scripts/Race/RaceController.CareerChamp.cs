@@ -23,11 +23,12 @@ namespace Autorama
         {
             laps = n.voltas, vmax = set.vmax, ramp = set.ramp, grip = set.grip * (n.Has("molhada") ? Career.Wet : 1f), collide = set.collide,
             turbo = n.tipo != "relogio" && (n.turbo || n.Has("turboLivre")), reslotTime = set.reslotTime, halfGas = set.halfGas,
+            byTime = n.tipo == "campeonato" && n.porTempo, secs = n.segundos,
         };
 
         Championship NewChamp(NodeDef n)
         {
-            var C = new Championship { id = Champ.NewId("k"), name = n.nome, faixas = KRegion.faixas, created = Champ.Now };
+            var C = new Championship { id = Champ.NewId("k"), name = n.nome, faixas = KRegion.faixas, created = Champ.Now, byTime = n.porTempo };
             C.pilots.Add(new Pilot { id = "voce", name = "Você", tag = "VOC", color = "#E0362C" });
             for (int i = 0; i < n.pilotos.Length; i++)
             {
@@ -37,9 +38,9 @@ namespace Autorama
             foreach (var id in n.etapas)
             {
                 var t = Career.Track(id);
-                C.stages.Add(new Stage { name = t.nome, laps = n.voltas, hash = Champ.TrackHash(t), data = t });
+                C.stages.Add(new Stage { name = t.nome, laps = n.voltas, secs = n.segundos, hash = Champ.TrackHash(t), data = t });
             }
-            C.heats = Champ.MakeHeats(C.pilots.Count, C.stages.Count, C.faixas, false, Random.Range(1, int.MaxValue));
+            C.heats = Champ.MakeHeats(C.pilots.Count, C.stages.Count, C.faixas, C.byTime, Random.Range(1, int.MaxValue));
             return C;
         }
 
@@ -75,7 +76,7 @@ namespace Autorama
             var segs = TrackLayout.Build(data.Origin, data.Pieces(), data.Tail, data.StartZ);
             var s = new RaceSim(NodeSettings(KNode));
             s.SetTrack(segs, true, data.Faixas);
-            s.cutoff = Champ.Cutoff;
+            s.cutoff = C.byTime ? (float?)null : Champ.Cutoff;
             for (int k = 0; k < s.N; k++)
             {
                 int p = k < h.p.Length ? h.p[k] : -1;
@@ -105,7 +106,7 @@ namespace Autorama
             CareerScreen(KScreen.Race);
             ClearPins();
             sim.set = NodeSettings(n);
-            sim.cutoff = Champ.Cutoff;
+            sim.cutoff = C.byTime ? (float?)null : Champ.Cutoff;
             builder.ShowTrack(TrackSave.FromJson(C.stages[h.s].data.ToJson(false)));
             int L = h.p.Length, me = System.Array.IndexOf(h.p, 0), next = 1;
             for (int k = 0; k < RaceSim.MaxCars; k++) { kLaneOf[k] = k; kPilotOf[k] = -1; }
@@ -162,7 +163,8 @@ namespace Autorama
         {
             var parts = new List<(int p, HeatResult r)>();
             for (int l = 0; l < h.p.Length; l++) if (h.p[l] >= 0 && h.res != null) parts.Add((h.p[l], h.res[l]));
-            parts.Sort((a, b) => a.r.dnf != b.r.dnf ? a.r.dnf.CompareTo(b.r.dnf) : a.r.laps != b.r.laps ? b.r.laps.CompareTo(a.r.laps) : a.r.time.CompareTo(b.r.time));
+            if (C.byTime) parts.Sort((a, b) => b.r.dist.CompareTo(a.r.dist));
+            else parts.Sort((a, b) => a.r.dnf != b.r.dnf ? a.r.dnf.CompareTo(b.r.dnf) : a.r.laps != b.r.laps ? b.r.laps.CompareTo(a.r.laps) : a.r.time.CompareTo(b.r.time));
             var sb = new System.Text.StringBuilder($"{C.stages[h.s].name}: ");
             for (int i = 0; i < parts.Count; i++) sb.Append(i > 0 ? " · " : "").Append($"{i + 1}º {C.pilots[parts[i].p].name}");
             return sb.ToString();
@@ -185,7 +187,7 @@ namespace Autorama
         {
             var C = KChamp;
             int next = Champ.CurrentHeat(C);
-            Text(kRes.terminou ? $"Você chegou em {kRes.posicao}º" : "Você não terminou", "k-title", box);
+            Text(C.byTime ? $"Você ficou em {kRes.posicao}º" : kRes.terminou ? $"Você chegou em {kRes.posicao}º" : "Você não terminou", "k-title", box);
             Text(kHeatLine, "k-sub", box);
             foreach (var l in kSimLog) Text("Simulada · " + l, "k-sub", box);
             ChampTable(box, C, Champ.Standings(C));
@@ -210,8 +212,9 @@ namespace Autorama
             var sb = new System.Text.StringBuilder($"{n.etapas.Length} etapas: ");
             sb.Append(string.Join(" · ", System.Array.ConvertAll(n.etapas, id => Career.Track(id)?.nome ?? id)));
             sb.Append("\nPilotos: ").Append(string.Join(", ", System.Array.ConvertAll(n.pilotos, p => $"{p.nome} (IA {p.ia})")));
-            int heats = Champ.HeatsPerStage(n.pilotos.Length + 1, KRegion.faixas, false);
-            sb.Append($"\n{heats} baterias por etapa (você corre {KRegion.faixas}; as outras são simuladas)");
+            int heats = Champ.HeatsPerStage(n.pilotos.Length + 1, KRegion.faixas, n.porTempo);
+            if (n.porTempo) sb.Append($"\nPor tempo: {n.segundos} s por etapa, passando por todos os trilhos ({heats} {(heats == 1 ? "bateria" : "baterias")} por etapa)");
+            else sb.Append($"\n{heats} baterias por etapa (você corre {KRegion.faixas}; as outras são simuladas)");
             var C = KChamp;
             if (C != null) sb.Append($"\nEm andamento: {Champ.StagesDone(C)} de {C.stages.Count} etapas");
             return sb.ToString();

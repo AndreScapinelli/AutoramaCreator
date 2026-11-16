@@ -387,6 +387,1178 @@
           ]
         }
       ]
+    },
+    {
+      "id": "clube",
+      "nome": "Clube",
+      "faixas": 4,
+      "estrelasRival": 14,
+      "nos": [
+        {
+          "id": "clube-1",
+          "nome": "Salão do Clube",
+          "tipo": "corrida",
+          "depois": [],
+          "pista": "clube-1",
+          "voltas": 4,
+          "ia": 75,
+          "adversarios": 2,
+          "turbo": true,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semSair",
+              "valor": 0
+            }
+          ]
+        },
+        {
+          "id": "clube-2",
+          "nome": "Troca de Faixa",
+          "tipo": "relogio",
+          "depois": [
+            "clube-1"
+          ],
+          "pista": "clube-2",
+          "voltas": 3,
+          "ia": 0,
+          "adversarios": 0,
+          "turbo": false,
+          "estrelas": [
+            {
+              "tipo": "volta",
+              "valor": 5.43
+            },
+            {
+              "tipo": "volta",
+              "valor": 5.06
+            },
+            {
+              "tipo": "volta",
+              "valor": 4.59
+            }
+          ]
+        },
+        {
+          "id": "clube-3",
+          "nome": "Viaduto",
+          "tipo": "corrida",
+          "depois": [
+            "clube-2"
+          ],
+          "pista": "clube-3",
+          "voltas": 4,
+          "ia": 80,
+          "adversarios": 3,
+          "turbo": true,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semTurbo",
+              "valor": 0
+            }
+          ]
+        },
+        {
+          "id": "clube-oficina",
+          "nome": "Oficina do Clube",
+          "tipo": "construtor",
+          "depois": [
+            "clube-2"
+          ],
+          "pista": "",
+          "voltas": 4,
+          "ia": 85,
+          "adversarios": 3,
+          "turbo": true,
+          "pecas": [
+            "reta-curta",
+            "reta-comprida",
+            "reta-curtinha",
+            "curva-longa",
+            "meia-curva",
+            "curva-longa-inclinada",
+            "curva-curta-inclinada",
+            "cruzamento",
+            "cruzamento-curto"
+          ],
+          "rampas": true,
+          "maxPecas": 20,
+          "exigir": [
+            "curva-longa-inclinada",
+            "cruzamento"
+          ],
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semSair",
+              "valor": 0
+            }
+          ]
+        },
+        {
+          "id": "clube-chuva",
+          "nome": "Noite de Chuva",
+          "tipo": "desafio",
+          "depois": [
+            "clube-2"
+          ],
+          "pista": "clube-5",
+          "voltas": 4,
+          "ia": 85,
+          "adversarios": 3,
+          "turbo": true,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semSair",
+              "valor": 0
+            }
+          ],
+          "regras": [
+            "molhada"
+          ]
+        },
+        {
+          "id": "clube-6",
+          "nome": "Inclinado Duplo",
+          "tipo": "relogio",
+          "depois": [
+            "clube-3",
+            "clube-oficina",
+            "clube-chuva"
+          ],
+          "pista": "clube-6",
+          "voltas": 3,
+          "ia": 0,
+          "adversarios": 0,
+          "turbo": false,
+          "estrelas": [
+            {
+              "tipo": "volta",
+              "valor": 5.34
+            },
+            {
+              "tipo": "volta",
+              "valor": 4.88
+            },
+            {
+              "tipo": "volta",
+              "valor": 4.68
+            }
+          ]
+        },
+        {
+          "id": "clube-sobrevive",
+          "nome": "Último de Pé",
+          "tipo": "desafio",
+          "depois": [
+            "clube-6"
+          ],
+          "pista": "clube-7",
+          "voltas": 5,
+          "ia": 90,
+          "adversarios": 3,
+          "turbo": true,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semSair",
+              "valor": 0
+            }
+          ],
+          "limite": 2,
+          "regras": [
+            "sobrevivencia",
+            "turboLivre"
+          ]
+        },
+        {
+          "id": "clube-fundo",
+          "nome": "Largada do Fundo",
+          "tipo": "desafio",
+          "depois": [
+            "clube-6"
+          ],
+          "pista": "clube-8",
+          "voltas": 5,
+          "ia": 95,
+          "adversarios": 3,
+          "turbo": true,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semTurbo",
+              "valor": 0
+            }
+          ],
+          "atraso": 2.0,
+          "regras": [
+            "atrasada"
+          ]
+        },
+        {
+          "id": "clube-marina",
+          "nome": "Marina Faísca",
+          "tipo": "rival",
+          "depois": [
+            "clube-sobrevive",
+            "clube-fundo"
+          ],
+          "pista": "clube-c3",
+          "voltas": 4,
+          "ia": 105,
+          "adversarios": 1,
+          "turbo": true,
+          "rival": "Marina Faísca",
+          "rivalCor": "#E04B95",
+          "rivalCarro": {
+            "motor": 1,
+            "bolha": 2,
+            "pneu": 0,
+            "chassi": 1
+          },
+          "baterias": 3,
+          "rivalFrase": "Turbo é para usar. Vem que eu largo na sua frente.",
+          "rivalVitoria": "Rápida demais para você. Volte para a garagem!",
+          "rivalDerrota": "Ok, ok… você freia melhor que eu.",
+          "estrelas": [
+            {
+              "tipo": "serie",
+              "valor": 0
+            },
+            {
+              "tipo": "invicto",
+              "valor": 0
+            },
+            {
+              "tipo": "semSair",
+              "valor": 0
+            }
+          ]
+        },
+        {
+          "id": "clube-taca",
+          "nome": "Taça Clube",
+          "tipo": "campeonato",
+          "depois": [
+            "clube-marina"
+          ],
+          "pista": "",
+          "voltas": 3,
+          "ia": 0,
+          "adversarios": 0,
+          "turbo": true,
+          "etapas": [
+            "clube-c1",
+            "clube-c2",
+            "clube-c3"
+          ],
+          "porTempo": true,
+          "segundos": 90,
+          "pilotos": [
+            {
+              "nome": "Rafa Turbo",
+              "cor": "#F97316",
+              "ia": 90,
+              "carro": {
+                "motor": 1,
+                "bolha": 0,
+                "pneu": 0,
+                "chassi": 0
+              }
+            },
+            {
+              "nome": "Dona Célia",
+              "cor": "#0EA5B7",
+              "ia": 95,
+              "carro": {
+                "motor": 0,
+                "bolha": 1,
+                "pneu": 1,
+                "chassi": 2
+              }
+            },
+            {
+              "nome": "Marina Faísca",
+              "cor": "#E04B95",
+              "ia": 105,
+              "carro": {
+                "motor": 1,
+                "bolha": 2,
+                "pneu": 0,
+                "chassi": 1
+              }
+            }
+          ],
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "todasEtapas",
+              "valor": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "regional",
+      "nome": "Regional",
+      "faixas": 6,
+      "estrelasRival": 16,
+      "nos": [
+        {
+          "id": "regional-1",
+          "nome": "Ginásio",
+          "tipo": "corrida",
+          "depois": [],
+          "pista": "regional-1",
+          "voltas": 4,
+          "ia": 100,
+          "adversarios": 4,
+          "turbo": true,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semSair",
+              "valor": 0
+            }
+          ]
+        },
+        {
+          "id": "regional-2",
+          "nome": "Rampa Curta",
+          "tipo": "relogio",
+          "depois": [
+            "regional-1"
+          ],
+          "pista": "regional-2",
+          "voltas": 3,
+          "ia": 0,
+          "adversarios": 0,
+          "turbo": false,
+          "estrelas": [
+            {
+              "tipo": "volta",
+              "valor": 10.36
+            },
+            {
+              "tipo": "volta",
+              "valor": 9.97
+            },
+            {
+              "tipo": "volta",
+              "valor": 9.32
+            }
+          ]
+        },
+        {
+          "id": "regional-3",
+          "nome": "Cotovelo em C",
+          "tipo": "corrida",
+          "depois": [
+            "regional-2"
+          ],
+          "pista": "regional-3",
+          "voltas": 4,
+          "ia": 105,
+          "adversarios": 4,
+          "turbo": true,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semSair",
+              "valor": 1
+            }
+          ]
+        },
+        {
+          "id": "regional-oficina",
+          "nome": "Oficina Regional",
+          "tipo": "construtor",
+          "depois": [
+            "regional-2"
+          ],
+          "pista": "",
+          "voltas": 4,
+          "ia": 110,
+          "adversarios": 3,
+          "turbo": true,
+          "pecas": [
+            "reta-curta",
+            "reta-comprida",
+            "reta-curtinha",
+            "curva-longa",
+            "meia-curva",
+            "curva-longa-inclinada",
+            "curva-curta-inclinada",
+            "cruzamento",
+            "cruzamento-curto",
+            "curva-c",
+            "salto"
+          ],
+          "rampas": true,
+          "maxPecas": 24,
+          "exigir": [
+            "curva-c",
+            "salto"
+          ],
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semSair",
+              "valor": 0
+            }
+          ]
+        },
+        {
+          "id": "regional-chuva",
+          "nome": "Ziguezague Molhado",
+          "tipo": "desafio",
+          "depois": [
+            "regional-2"
+          ],
+          "pista": "regional-4",
+          "voltas": 4,
+          "ia": 110,
+          "adversarios": 5,
+          "turbo": true,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semSair",
+              "valor": 1
+            }
+          ],
+          "carro": {
+            "motor": 0,
+            "bolha": 0,
+            "pneu": 1,
+            "chassi": 2
+          },
+          "regras": [
+            "molhada",
+            "carro"
+          ]
+        },
+        {
+          "id": "regional-6",
+          "nome": "Salto e Ponte",
+          "tipo": "relogio",
+          "depois": [
+            "regional-3",
+            "regional-oficina",
+            "regional-chuva"
+          ],
+          "pista": "regional-6",
+          "voltas": 3,
+          "ia": 0,
+          "adversarios": 0,
+          "turbo": false,
+          "estrelas": [
+            {
+              "tipo": "volta",
+              "valor": 7.29
+            },
+            {
+              "tipo": "volta",
+              "valor": 7.0
+            },
+            {
+              "tipo": "volta",
+              "valor": 6.86
+            }
+          ]
+        },
+        {
+          "id": "regional-mirante",
+          "nome": "Mirante",
+          "tipo": "desafio",
+          "depois": [
+            "regional-6"
+          ],
+          "pista": "regional-7",
+          "voltas": 5,
+          "ia": 115,
+          "adversarios": 5,
+          "turbo": true,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semTurbo",
+              "valor": 0
+            }
+          ],
+          "limite": 3,
+          "regras": [
+            "turboLivre",
+            "sobrevivencia"
+          ]
+        },
+        {
+          "id": "regional-troca",
+          "nome": "Largada Pesada",
+          "tipo": "desafio",
+          "depois": [
+            "regional-6"
+          ],
+          "pista": "regional-c2",
+          "voltas": 5,
+          "ia": 120,
+          "adversarios": 5,
+          "turbo": true,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semSair",
+              "valor": 0
+            }
+          ],
+          "atraso": 2.0,
+          "carro": {
+            "motor": 2,
+            "bolha": 0,
+            "pneu": 2,
+            "chassi": 2
+          },
+          "regras": [
+            "atrasada",
+            "carro"
+          ]
+        },
+        {
+          "id": "regional-drcurva",
+          "nome": "Dr. Curva",
+          "tipo": "rival",
+          "depois": [
+            "regional-mirante",
+            "regional-troca"
+          ],
+          "pista": "regional-8",
+          "voltas": 4,
+          "ia": 130,
+          "adversarios": 1,
+          "turbo": true,
+          "rival": "Dr. Curva",
+          "rivalCor": "#9333EA",
+          "rivalCarro": {
+            "motor": 0,
+            "bolha": 1,
+            "pneu": 1,
+            "chassi": 0
+          },
+          "baterias": 3,
+          "rivalFrase": "Curva inclinada não é sorte, é geometria.",
+          "rivalVitoria": "Você ainda freia antes da hora. Estude.",
+          "rivalDerrota": "Brilhante. A geometria está do seu lado.",
+          "estrelas": [
+            {
+              "tipo": "serie",
+              "valor": 0
+            },
+            {
+              "tipo": "invicto",
+              "valor": 0
+            },
+            {
+              "tipo": "semSair",
+              "valor": 0
+            }
+          ]
+        },
+        {
+          "id": "regional-copa",
+          "nome": "Copa Regional",
+          "tipo": "campeonato",
+          "depois": [
+            "regional-drcurva"
+          ],
+          "pista": "",
+          "voltas": 3,
+          "ia": 0,
+          "adversarios": 0,
+          "turbo": true,
+          "etapas": [
+            "regional-c1",
+            "regional-c3",
+            "regional-c4"
+          ],
+          "porTempo": true,
+          "segundos": 120,
+          "pilotos": [
+            {
+              "nome": "Rafa Turbo",
+              "cor": "#F97316",
+              "ia": 110,
+              "carro": {
+                "motor": 1,
+                "bolha": 0,
+                "pneu": 0,
+                "chassi": 0
+              }
+            },
+            {
+              "nome": "Dona Célia",
+              "cor": "#0EA5B7",
+              "ia": 115,
+              "carro": {
+                "motor": 0,
+                "bolha": 1,
+                "pneu": 1,
+                "chassi": 2
+              }
+            },
+            {
+              "nome": "Marina Faísca",
+              "cor": "#E04B95",
+              "ia": 120,
+              "carro": {
+                "motor": 1,
+                "bolha": 2,
+                "pneu": 0,
+                "chassi": 1
+              }
+            },
+            {
+              "nome": "Tio Beto",
+              "cor": "#8B5A2B",
+              "ia": 112,
+              "carro": {
+                "motor": 0,
+                "bolha": 0,
+                "pneu": 2,
+                "chassi": 2
+              }
+            },
+            {
+              "nome": "Dr. Curva",
+              "cor": "#9333EA",
+              "ia": 130,
+              "carro": {
+                "motor": 0,
+                "bolha": 1,
+                "pneu": 1,
+                "chassi": 0
+              }
+            }
+          ],
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "todasEtapas",
+              "valor": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "nacional",
+      "nome": "Nacional",
+      "faixas": 8,
+      "estrelasRival": 18,
+      "nos": [
+        {
+          "id": "nacional-1",
+          "nome": "Estádio",
+          "tipo": "corrida",
+          "depois": [],
+          "pista": "nacional-1",
+          "voltas": 4,
+          "ia": 125,
+          "adversarios": 5,
+          "turbo": true,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semSair",
+              "valor": 0
+            }
+          ]
+        },
+        {
+          "id": "nacional-2",
+          "nome": "Grande Salto",
+          "tipo": "relogio",
+          "depois": [
+            "nacional-1"
+          ],
+          "pista": "nacional-2",
+          "voltas": 3,
+          "ia": 0,
+          "adversarios": 0,
+          "turbo": false,
+          "estrelas": [
+            {
+              "tipo": "volta",
+              "valor": 8.35
+            },
+            {
+              "tipo": "volta",
+              "valor": 8.02
+            },
+            {
+              "tipo": "volta",
+              "valor": 7.8
+            }
+          ]
+        },
+        {
+          "id": "nacional-3",
+          "nome": "Looping",
+          "tipo": "corrida",
+          "depois": [
+            "nacional-2"
+          ],
+          "pista": "nacional-3",
+          "voltas": 4,
+          "ia": 130,
+          "adversarios": 5,
+          "turbo": true,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semSair",
+              "valor": 1
+            }
+          ]
+        },
+        {
+          "id": "nacional-oficina",
+          "nome": "Oficina Nacional",
+          "tipo": "construtor",
+          "depois": [
+            "nacional-2"
+          ],
+          "pista": "",
+          "voltas": 4,
+          "ia": 130,
+          "adversarios": 3,
+          "turbo": true,
+          "pecas": [
+            "reta-curta",
+            "reta-comprida",
+            "reta-curtinha",
+            "curva-longa",
+            "meia-curva",
+            "curva-longa-inclinada",
+            "curva-curta-inclinada",
+            "cruzamento",
+            "cruzamento-curto",
+            "curva-c",
+            "salto",
+            "loop"
+          ],
+          "rampas": true,
+          "maxPecas": 28,
+          "exigir": [
+            "loop",
+            "salto"
+          ],
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semSair",
+              "valor": 0
+            }
+          ]
+        },
+        {
+          "id": "nacional-abismo",
+          "nome": "Abismo",
+          "tipo": "desafio",
+          "depois": [
+            "nacional-2"
+          ],
+          "pista": "nacional-4",
+          "voltas": 4,
+          "ia": 135,
+          "adversarios": 5,
+          "turbo": true,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semTurbo",
+              "valor": 0
+            }
+          ],
+          "limite": 2,
+          "regras": [
+            "sobrevivencia"
+          ]
+        },
+        {
+          "id": "nacional-6",
+          "nome": "Torre",
+          "tipo": "relogio",
+          "depois": [
+            "nacional-3",
+            "nacional-oficina",
+            "nacional-abismo"
+          ],
+          "pista": "nacional-6",
+          "voltas": 3,
+          "ia": 0,
+          "adversarios": 0,
+          "turbo": false,
+          "estrelas": [
+            {
+              "tipo": "volta",
+              "valor": 8.26
+            },
+            {
+              "tipo": "volta",
+              "valor": 7.8
+            },
+            {
+              "tipo": "volta",
+              "valor": 7.52
+            }
+          ]
+        },
+        {
+          "id": "nacional-serra",
+          "nome": "Serra Molhada",
+          "tipo": "desafio",
+          "depois": [
+            "nacional-6"
+          ],
+          "pista": "nacional-7",
+          "voltas": 5,
+          "ia": 140,
+          "adversarios": 7,
+          "turbo": true,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semSair",
+              "valor": 1
+            }
+          ],
+          "regras": [
+            "molhada"
+          ]
+        },
+        {
+          "id": "nacional-final",
+          "nome": "Troca Final",
+          "tipo": "desafio",
+          "depois": [
+            "nacional-6"
+          ],
+          "pista": "nacional-5",
+          "voltas": 5,
+          "ia": 140,
+          "adversarios": 7,
+          "turbo": true,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semSair",
+              "valor": 0
+            }
+          ],
+          "atraso": 2.0,
+          "regras": [
+            "atrasada",
+            "turboLivre"
+          ]
+        },
+        {
+          "id": "nacional-campeao",
+          "nome": "O Campeão",
+          "tipo": "rival",
+          "depois": [
+            "nacional-serra",
+            "nacional-final"
+          ],
+          "pista": "nacional-8",
+          "voltas": 4,
+          "ia": 150,
+          "adversarios": 1,
+          "turbo": true,
+          "rival": "O Campeão",
+          "rivalCor": "#F2B705",
+          "rivalCarro": {
+            "motor": 1,
+            "bolha": 1,
+            "pneu": 1,
+            "chassi": 2
+          },
+          "baterias": 3,
+          "rivalFrase": "Muitos chegaram até aqui. Nenhum passou.",
+          "rivalVitoria": "Volte quando for campeão de verdade.",
+          "rivalDerrota": "Então é você. A mesa é sua.",
+          "estrelas": [
+            {
+              "tipo": "serie",
+              "valor": 0
+            },
+            {
+              "tipo": "invicto",
+              "valor": 0
+            },
+            {
+              "tipo": "semSair",
+              "valor": 0
+            }
+          ]
+        },
+        {
+          "id": "nacional-gp",
+          "nome": "Grande Prêmio Nacional",
+          "tipo": "campeonato",
+          "depois": [
+            "nacional-campeao"
+          ],
+          "pista": "",
+          "voltas": 3,
+          "ia": 0,
+          "adversarios": 0,
+          "turbo": true,
+          "etapas": [
+            "nacional-c1",
+            "nacional-c2",
+            "nacional-c4",
+            "nacional-c5"
+          ],
+          "porTempo": true,
+          "segundos": 160,
+          "pilotos": [
+            {
+              "nome": "Rafa Turbo",
+              "cor": "#F97316",
+              "ia": 130,
+              "carro": {
+                "motor": 1,
+                "bolha": 0,
+                "pneu": 0,
+                "chassi": 0
+              }
+            },
+            {
+              "nome": "Dona Célia",
+              "cor": "#0EA5B7",
+              "ia": 135,
+              "carro": {
+                "motor": 0,
+                "bolha": 1,
+                "pneu": 1,
+                "chassi": 2
+              }
+            },
+            {
+              "nome": "Marina Faísca",
+              "cor": "#E04B95",
+              "ia": 138,
+              "carro": {
+                "motor": 1,
+                "bolha": 2,
+                "pneu": 0,
+                "chassi": 1
+              }
+            },
+            {
+              "nome": "Tio Beto",
+              "cor": "#8B5A2B",
+              "ia": 128,
+              "carro": {
+                "motor": 0,
+                "bolha": 0,
+                "pneu": 2,
+                "chassi": 2
+              }
+            },
+            {
+              "nome": "Dr. Curva",
+              "cor": "#9333EA",
+              "ia": 142,
+              "carro": {
+                "motor": 0,
+                "bolha": 1,
+                "pneu": 1,
+                "chassi": 0
+              }
+            },
+            {
+              "nome": "Zé da Oficina",
+              "cor": "#2563EB",
+              "ia": 125,
+              "carro": {
+                "motor": 0,
+                "bolha": 0,
+                "pneu": 0,
+                "chassi": 0
+              }
+            },
+            {
+              "nome": "O Campeão",
+              "cor": "#F2B705",
+              "ia": 150,
+              "carro": {
+                "motor": 1,
+                "bolha": 1,
+                "pneu": 1,
+                "chassi": 2
+              }
+            }
+          ],
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "todasEtapas",
+              "valor": 0
+            }
+          ]
+        }
+      ]
     }
   ]
 }

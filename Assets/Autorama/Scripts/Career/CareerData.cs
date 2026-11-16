@@ -54,6 +54,9 @@ namespace Autorama
         // Campeonato da região (seção 73): etapas (ids de pista), os pilotos IA e o rodízio do campeonato offline.
         public string[] etapas;
         public PilotoDef[] pilotos;
+        // Por tempo (seção 75): uma bateria por etapa com todos, passando por todos os trilhos em manches de segundos/N.
+        public bool porTempo;
+        public int segundos = 120;
 
         public bool Has(string regra) => regras != null && System.Array.IndexOf(regras, regra) >= 0;
     }

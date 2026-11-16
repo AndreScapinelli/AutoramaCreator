@@ -4551,3 +4551,21 @@ A região conta aberta se está aberta em **algum** save (`RegionReached`). Regi
 
 - **Selo** (`.coin-chip`, `RaceController.Shop.cs`): canto de cima à direita, disco dourado "$" e o total (pt-BR, "2.390"). Aparece no menu, no construtor, na carreira fora da prova e na Loja; nas telas de corrida (aba Corrida, Campeonato, Online, a prova da carreira) só com o "+N", 40 px mais abaixo (o menu da câmera fica no canto). Clicar abre a Loja (fora da prova). Ao ganhar (`Progresso.Earned`): o número sobe contando (`CoinCountRate`), o selo pulsa 0,5 s (+18%) e um "+N" verde sobe e some em 2,2 s (`CoinPopTime`). A barra de cima da carreira (`.k-top`) para 168 px antes da borda, para não ficar embaixo do selo.
 - **Bug:** na carreira, a tecla Tab (ou a janela estreita) chamava `SetSide`, que mostrava "☰ Painel (Tab)" por baixo do "◀ Saves". Agora `SetSide` respeita `chromeHidden` e o Tab não faz nada com a carreira na tela.
+
+## 75. Carreira: Clube, Regional e Nacional (fase 7)
+
+`carreira.json` tem as 4 regiões (41 nós). Cada região nova segue a forma da Garagem: corrida → relógio → (corrida | oficina | desafio) → relógio → (dois desafios) → rival → campeonato. Abre quando o jogador é **campeão** (★★) da anterior.
+
+| Região | Faixas | IA nas corridas | Rival | Campeonato |
+|---|---|---|---|---|
+| Clube | 4 | 75 → 95 | Marina Faísca (IA 105, `#E04B95`, motor curto, bolha lisa, chassi leve) na clube-c3 | Taça Clube: clube-c1, c2, c3; Rafa Turbo 90, Dona Célia 95, Marina 105 |
+| Regional | 6 | 100 → 120 | Dr. Curva (IA 130, `#9333EA`, bolha asa, pneu macio) na regional-8 | Copa Regional: regional-c1, c3, c4; 5 IA de 110 a 130 |
+| Nacional | 8 | 125 → 140 | O Campeão (IA 150, `#F2B705`, curto, asa, macio, pesado) na nacional-8 | Grande Prêmio Nacional: nacional-c1, c2, c4, c5; 7 IA de 125 a 150 |
+
+- **Estrelas para o rival:** Clube 14, Regional 16, Nacional 18 (de 30).
+- **Oficinas:** Clube (inclinadas e troca de faixa, 20 peças, exige inclinada e cruzamento); Regional (+ curva em C e salto, 24, exige os dois); Nacional (+ loop, 28, exige loop e salto). Todas com rampas.
+- **Desafios:** Noite de Chuva (molhada), Último de Pé (sobrevivência 2 + turbo livre), Largada do Fundo (atrasada 2 s); Ziguezague Molhado (molhada + pneu macio e chassi pesado), Mirante (turbo livre + sobrevivência 3), Largada Pesada (atrasada + motor longo, pneu duro, chassi pesado); Abismo (sobrevivência 2), Serra Molhada (molhada, 7 adversários), Troca Final (atrasada + turbo livre, 7 adversários).
+- **Relógios** (bronze · prata · ouro, s): clube-2 5,43 · 5,06 · 4,59; clube-6 5,34 · 4,88 · 4,68; regional-2 10,36 · 9,97 · 9,32; regional-6 7,29 · 7,00 · 6,86; nacional-2 8,35 · 8,02 · 7,80; nacional-6 8,26 · 7,80 · 7,52. Com salto ou loop o piloto ótimo do `SetupCalib` não anda (não sabe saltar): o ouro é a melhor volta média do mestre 150 − 3% (regional-2 9,61; regional-6 7,07; nacional-2 8,55; nacional-6 7,75); onde a prata (mestre 125) saiu igual ou pior que o bronze (IA 90), a prata é bronze − 4%. O mestre 150 ainda cai às vezes nos saltos das pistas largas (1,9 e 2,0 por prova na regional-2 e nacional-2).
+- **Campeonato por tempo** (`NodeDef.porTempo`, `segundos`): nas pistas largas, por voltas o jogador correria uma bateria por trilho (4, 6 ou 8 por etapa). Por tempo (as regras da seção 26) é **uma bateria por etapa** com todos, em manches de `segundos / trilhos`, cada um passando por todos os trilhos: Clube 90 s, Regional 120 s, Nacional 160 s. `Championship.byTime`, `Stage.secs`, `MakeHeats(…, byTime)`, sem corte; a linha da bateria e a posição usam a distância.
+
+**Teste (Play, save 3 de teste apagado; moedas do perfil devolvidas):** verificação sem cena: as 41 provas com as pistas certas e no número de faixas da região, 3 estrelas cada, `depois` válidos; o save 1 do jogador (campeão da Garagem) abre o Clube. Salão do Clube: 4 trilhos, 3 carros, IA 75, mestre 150 no lugar do jogador em 1º, ★★★. Taça Clube: por tempo, 3 baterias para 3 etapas, 90 s; o mestre 150 venceu as 3: 33 pts (Marina 24, Rafa 17, Dona Célia 16), ★★★, Regional aberto. Mapa do Clube com 10 pinos.
