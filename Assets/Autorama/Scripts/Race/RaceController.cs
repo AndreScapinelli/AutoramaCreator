@@ -76,7 +76,7 @@ namespace Autorama
         }
 
         // Até onde a meia aceleração vai, por trilho (seção 66): começa no ajuste "Meia aceleração" (set.halfGas) e o
-        // jogador muda na hora, arrastando o marcador na barra ACELERAR ou com meia − / meia + (Z · X no jogador 1).
+        // jogador muda na hora, arrastando o marcador na barra ACELERAR ou com meia − / meia + (← · → no jogador 1).
         public const int HalfMin = 10, HalfMax = 95, HalfStep = 5;
         readonly int[] halfPct = new int[RaceSim.MaxCars];
         int HalfOf(int k) => halfPct[k] > 0 ? halfPct[k] : set.halfGas;
@@ -85,7 +85,7 @@ namespace Autorama
             halfPct[k] = Mathf.Clamp(v, HalfMin, HalfMax);
             if (pads != null && k < pads.Length && pads[k] != null) { pads[k].half.style.left = Length.Percent(halfPct[k]); pads[k].gasText.text = GasLabel(k); pads[k].halfTri.text = HalfTri(k); }
         }
-        // O ▲ do marcador com as teclas de meia − e meia + do jogador dos lados (Z ▲ X).
+        // O ▲ do marcador com as teclas de meia − e meia + do jogador dos lados (← ▲ →).
         string HalfTri(int k)
         {
             int ks = OnlineRun ? 0 : KeySet(k);
