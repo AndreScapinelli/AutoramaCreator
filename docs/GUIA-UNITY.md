@@ -4328,3 +4328,14 @@ continua recusado. Não testado em Play: a malha do cruzamento vista no jogo.
 - **Todas as teclas:** a tela de Opções ganhou **TODAS AS TECLAS** (`AllKeys` em `RaceController.cs`): construtor (paleta 1–0, T, X, B, G, H, U, D, K, L, J; F, E, R, Q, Delete, Backspace, Ctrl+Z/Y, Esc, clique), câmera e tela (roda, botões do mouse, V, C, Tab, 1–4 na corrida) e corrida (Enter/Start, P, F1, F2, Esc). As do carrinho continuam nos botões trocáveis acima. Mudou um atalho, mude a lista.
 - **Tela:** o conteúdo do cartão virou `ScrollView` (`.keys-scroll`; `.keys-card` com `max-height: 92%`); o botão Fechar fica fora da rolagem.
 - **Teste:** recompilado sem erros. Não houve teste no modo Play.
+
+## 66. Marcador da meia aceleração (arrastar · Z/X)
+
+A tecla de meia (S no jogador 1) acelerava sempre até `RaceSettings.halfGas` (60%). Agora cada trilho tem o seu limite, mudado na hora, na corrida, no campeonato e no online:
+
+- **Marcador** na barra ACELERAR de cada jogador (linha + ▲, classes `half-mark`, `half-line`, `half-tri` no `Construtor.uss`), na posição do limite. Arrastar move o limite; o clique no marcador não acelera o carro (`StopPropagation`).
+- **Teclas** meia − / meia + (`Controles.Acao.MeiaMenos`/`MeiaMais`, trocáveis nas Opções): Z · X, I · O, PgDn · PgUp, 4 · 7 do numérico. Passo de 5%.
+- Constantes em `RaceController`: `HalfMin 10`, `HalfMax 95`, `HalfStep 5`. `halfPct[k]` por trilho (0 = ainda no padrão, `set.halfGas`); `HalfOf(k)`, `SetHalf(k, v)`, `HalfKeys`. Mexer no slider "Meia aceleração" das opções leva todos os trilhos para o novo valor.
+- `Controles.Acoes` passou de 4 para 6. Teclas salvas com 3 ou 4 ações continuam; as novas entram com o padrão (ficam sem tecla se a padrão já estava em uso).
+- O texto da barra mostra o limite no lugar do ½ (`ACELERAR A · 60% S`) e muda junto (`SetHalf` refaz o `GasLabel`); o marcador fica atrás do texto, meio transparente. Dos lados do ▲ ficam as teclas de meia − e meia + do jogador (`Z ▲ X`, `HalfTri`).
+- O limite não é salvo entre sessões; não mexe na física (só no nível pedido pelo jogador).

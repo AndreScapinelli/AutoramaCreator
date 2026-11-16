@@ -1028,6 +1028,7 @@ namespace Autorama
                 // O ajuste do carro ao lado do nome (só com até 4 painéis: nos de 6 e 8 não cabe).
                 if (!sim.setup[k].Padrao && sim.N <= 4) p.name.text += $"  <size=10><color=#9AA3A8>{sim.setup[k].Resumo}</color></size>";
                 p.gasText.text = ai && !OnlineRun ? $"IA PILOTANDO · {sim.aiSkill[k]}" : GasLabel(k);
+                p.halfTri.text = HalfTri(k);
                 p.reslot.text = OnlineRun ? $"Recolocar  {KeyText(ReslotKeyAt(LocalKeySet(Math.Max(0, LocalOf(pilot?.id)))))}" : $"Recolocar  {KeyText(ReslotKey(k))}";
                 p.gas.EnableInClassList("gas--ai", ai);
                 if (pilot != null)

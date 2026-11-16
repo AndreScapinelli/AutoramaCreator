@@ -80,7 +80,12 @@ namespace Autorama
             bool two = TwoLocal;
             bool Pressed(Controles.Acao a) => keys && (two ? KeyPressed(kb, Controles.Get(j, a)) : AnySetPressed(kb, a));
             if (uiHeld[lane] || Pressed(Controles.Acao.Acelerar)) gas = 1f;
-            else if (Pressed(Controles.Acao.Meia)) gas = set.halfGas / 100f;
+            else if (Pressed(Controles.Acao.Meia)) gas = HalfOf(lane) / 100f;
+            if (keys)
+            {
+                if (two) HalfKeys(lane, kb, Controles.Get(j, Controles.Acao.MeiaMenos), Controles.Get(j, Controles.Acao.MeiaMais));
+                else for (int s = 0; s < Controles.Jogadores; s++) HalfKeys(lane, kb, Controles.Get(s, Controles.Acao.MeiaMenos), Controles.Get(s, Controles.Acao.MeiaMais));
+            }
             if (two) gas = Mathf.Max(gas, Trigger(PadOf(j))); else foreach (var gp in Gamepad.all) gas = Mathf.Max(gas, Trigger(gp));
             if (!sim.set.turbo) return;
             boost = uiTurbo[lane] || Pressed(Controles.Acao.Turbo);

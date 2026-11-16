@@ -10,18 +10,19 @@ namespace Autorama
     public static class Controles
     {
         public const int Jogadores = 4;
-        public const int Acoes = 4;
-        public enum Acao { Acelerar = 0, Meia = 1, Recolocar = 2, Turbo = 3 }
-        public static readonly string[] AcaoNomes = { "Acelerar", "Meia", "Recolocar", "Turbo" };
+        public const int Acoes = 6;
+        public enum Acao { Acelerar = 0, Meia = 1, Recolocar = 2, Turbo = 3, MeiaMenos = 4, MeiaMais = 5 }
+        public static readonly string[] AcaoNomes = { "Acelerar", "Meia", "Recolocar", "Turbo", "Meia −", "Meia +" };
 
         // Padrão (acelerar · meia · recolocar · turbo): jogador 1 A · S · Espaço · D; jogador 2 L · K · ; · J;
-        // jogador 3 ↑ · ↓ · Shift direito · →; jogador 4 8 · 5 · 0 · 6 do numérico.
+        // jogador 3 ↑ · ↓ · Shift direito · →; jogador 4 8 · 5 · 0 · 6 do numérico. Meia − · meia + (até onde a meia
+        // acelera, seção 66): Z · X, I · O, PageDown · PageUp, 4 · 7 do numérico.
         static readonly Key[] Padrao =
         {
-            Key.A, Key.S, Key.Space, Key.D,
-            Key.L, Key.K, Key.Semicolon, Key.J,
-            Key.UpArrow, Key.DownArrow, Key.RightShift, Key.RightArrow,
-            Key.Numpad8, Key.Numpad5, Key.Numpad0, Key.Numpad6,
+            Key.A, Key.S, Key.Space, Key.D, Key.Z, Key.X,
+            Key.L, Key.K, Key.Semicolon, Key.J, Key.I, Key.O,
+            Key.UpArrow, Key.DownArrow, Key.RightShift, Key.RightArrow, Key.PageDown, Key.PageUp,
+            Key.Numpad8, Key.Numpad5, Key.Numpad0, Key.Numpad6, Key.Numpad4, Key.Numpad7,
         };
         static readonly Key[] teclas = (Key[])Padrao.Clone();      // índice = jogador * Acoes + ação
         static bool carregado;
@@ -39,7 +40,7 @@ namespace Autorama
                 if (json == "") return;
                 var d = JsonUtility.FromJson<Dados>(json);
                 if (d?.teclas == null) return;
-                // Antes do turbo eram 3 ações por jogador: as teclas salvas continuam e o turbo entra com o padrão
+                // Antes do turbo eram 3 ações por jogador, antes da meia −/+ eram 4: as teclas salvas continuam e as novas entram com o padrão
                 // (se a tecla padrão do turbo já estava em uso por outra ação, o turbo fica sem tecla até o jogador escolher).
                 int per = d.teclas.Length / Jogadores;
                 if (d.teclas.Length != per * Jogadores || per < 3 || per > Acoes) return;
@@ -93,7 +94,7 @@ namespace Autorama
         public static string Nome(Key k) => k switch
         {
             Key.UpArrow => "↑", Key.DownArrow => "↓", Key.LeftArrow => "←", Key.RightArrow => "→",
-            Key.Space => "Espaço", Key.Semicolon => ";", Key.RightShift => "Shift dir.", Key.LeftShift => "Shift esq.",
+            Key.Space => "Espaço", Key.PageUp => "PgUp", Key.PageDown => "PgDn", Key.Semicolon => ";", Key.RightShift => "Shift dir.", Key.LeftShift => "Shift esq.",
             Key.Numpad8 => "8 num.", Key.Numpad5 => "5 num.", Key.Numpad7 => "7 num.", Key.Numpad0 => "0 num.", Key.Numpad6 => "6 num.", Key.Numpad4 => "4 num.",
             Key.None => "controle",
             _ => k.ToString(),

@@ -69,9 +69,33 @@ namespace Autorama
             if (keys && kb != null)
             {
                 if (KeyPressed(kb, GasKeyAt(ks))) g = 1f;
-                else if (KeyPressed(kb, HalfKeyAt(ks))) g = Mathf.Max(g, set.halfGas / 100f);
+                else if (KeyPressed(kb, HalfKeyAt(ks))) g = Mathf.Max(g, HalfOf(k) / 100f);
+                HalfKeys(k, kb, Controles.Get(ks, Controles.Acao.MeiaMenos), Controles.Get(ks, Controles.Acao.MeiaMais));
             }
             return Mathf.Max(g, Trigger(PadOf(ks)));
+        }
+
+        // Até onde a meia aceleração vai, por trilho (seção 66): começa no ajuste "Meia aceleração" (set.halfGas) e o
+        // jogador muda na hora, arrastando o marcador na barra ACELERAR ou com meia − / meia + (Z · X no jogador 1).
+        public const int HalfMin = 10, HalfMax = 95, HalfStep = 5;
+        readonly int[] halfPct = new int[RaceSim.MaxCars];
+        int HalfOf(int k) => halfPct[k] > 0 ? halfPct[k] : set.halfGas;
+        void SetHalf(int k, int v)
+        {
+            halfPct[k] = Mathf.Clamp(v, HalfMin, HalfMax);
+            if (pads != null && k < pads.Length && pads[k] != null) { pads[k].half.style.left = Length.Percent(halfPct[k]); pads[k].gasText.text = GasLabel(k); pads[k].halfTri.text = HalfTri(k); }
+        }
+        // O ▲ do marcador com as teclas de meia − e meia + do jogador dos lados (Z ▲ X).
+        string HalfTri(int k)
+        {
+            int ks = OnlineRun ? 0 : KeySet(k);
+            Key a = Controles.Get(ks, Controles.Acao.MeiaMenos), b = Controles.Get(ks, Controles.Acao.MeiaMais);
+            return a == Key.None && b == Key.None ? "▲" : $"{KeyText(a)}  ▲  {KeyText(b)}";
+        }
+        void HalfKeys(int k, Keyboard kb, Key less, Key more)
+        {
+            if (KeyWasPressed(kb, less)) SetHalf(k, HalfOf(k) - HalfStep);
+            if (KeyWasPressed(kb, more)) SetHalf(k, HalfOf(k) + HalfStep);
         }
 
         // Turbo (seção 37): a tecla de turbo do jogador, X/□ ou RB do controle dele, ou a barra TURBO da tela.
@@ -102,7 +126,7 @@ namespace Autorama
         {
             if (GasKey(k) == Key.None) return PadOf(KeySet(k)) != null ? "ACELERAR  ·  controle" : "PRECISA DE UM CONTROLE";     // 5º e 6º humano
             string pad = PadOf(KeySet(k)) != null ? "  ·  controle" : "";
-            return OnlineRun ? $"ACELERAR  {KeyText(GasKeyAt(0))}  ·  ½ {KeyText(HalfKeyAt(0))}{(Gamepad.all.Count > 0 ? "  ·  controle" : "")}" : $"ACELERAR  {KeyText(GasKey(k))}  ·  ½ {KeyText(HalfKey(k))}{pad}";
+            return OnlineRun ? $"ACELERAR  {KeyText(GasKeyAt(0))}  ·  {HalfOf(k)}% {KeyText(HalfKeyAt(0))}{(Gamepad.all.Count > 0 ? "  ·  controle" : "")}" : $"ACELERAR  {KeyText(GasKey(k))}  ·  {HalfOf(k)}% {KeyText(HalfKey(k))}{pad}";
         }
         Key ReslotKey(int k) => ReslotKeyAt(KeySet(k));
 
@@ -126,7 +150,7 @@ namespace Autorama
         readonly Material[] carMats = new Material[RaceSim.MaxCars];      // cópia por carrinho: no campeonato ganha a cor do piloto
         RaceSim.Phase lastPhase;
 
-        class PadUI { public VisualElement root, gas, fill, speed, slip, turbo, turboFill; public Label turboText; public Label name, state, gasText; public Button reslot; public string flash; public bool flashRec; public float flashT; }
+        class PadUI { public VisualElement root, gas, fill, speed, slip, turbo, turboFill; public Label turboText; public Label name, state, gasText; public VisualElement half; public Label halfTri; public Button reslot; public string flash; public bool flashRec; public float flashT; }
         readonly PadUI[] pads = new PadUI[RaceSim.MaxCars];
         VisualElement pickList, scoreBox, padsBox, topBox, lights, banner;
         Label raceHint, clock, gripHint, bannerTitle, bannerSub, bannerRec;
@@ -596,7 +620,7 @@ namespace Autorama
             motorBtn.tooltip = "Clique para ouvir o próximo. Para usar uma gravação sua, ponha motor.wav (PCM 16 bits) em " + System.IO.Path.Combine(TrackLibrary.Root, "sons");
             vol.label = $"Som: {set.volume}%";
             vol.RegisterValueChangedCallback(e => { set.volume = e.newValue; set.Save(); vol.label = $"Som: {set.volume}%"; });
-            half.RegisterValueChangedCallback(e => { set.halfGas = e.newValue; set.Save(); Labels(); });
+            half.RegisterValueChangedCallback(e => { set.halfGas = e.newValue; set.Save(); for (int i = 0; i < halfPct.Length; i++) if (halfPct[i] > 0) SetHalf(i, e.newValue); Labels(); });
             reslot.RegisterValueChangedCallback(e => { set.reslotTime = e.newValue; set.Save(); Labels(); });
             Labels();
 
@@ -833,6 +857,7 @@ namespace Autorama
                     $"jogador 2 {KeyText(GasKeyAt(1))} · {KeyText(HalfKeyAt(1))} · {KeyText(ReslotKeyAt(1))} · {KeyText(TurboKeyAt(1))}; " +
                     $"jogador 3 {KeyText(GasKeyAt(2))} · {KeyText(HalfKeyAt(2))} · {KeyText(ReslotKeyAt(2))} · {KeyText(TurboKeyAt(2))}; " +
                     $"jogador 4 {KeyText(GasKeyAt(3))} · {KeyText(HalfKeyAt(3))} · {KeyText(ReslotKeyAt(3))} · {KeyText(TurboKeyAt(3))}. " +
+                    $"Até onde a meia acelera: arraste o marcador na barra ACELERAR ou use meia − · meia + ({KeyText(Controles.Get(0, Controles.Acao.MeiaMenos))} · {KeyText(Controles.Get(0, Controles.Acao.MeiaMais))} no jogador 1). " +
                     "Mude no menu inicial, em <b>Opções</b>.";
             DrawRaceSetup();                                // os cartões mostram as teclas novas
         }
@@ -1132,12 +1157,23 @@ namespace Autorama
             // Acelerar: segurar com o mouse ou o dedo (ou a tecla) mantém o acelerador subindo.
             var gas = p.gas = El("gas", body);
             p.fill = El("gas-fill", gas); p.fill.pickingMode = PickingMode.Ignore;
-            p.gasText = Text($"ACELERAR  {KeyText(GasKeyAt(k))}  ·  ½ {KeyText(HalfKeyAt(k))}", "gas-text", gas);
+            p.gasText = Text($"ACELERAR  {KeyText(GasKeyAt(k))}  ·  {HalfOf(k)}% {KeyText(HalfKeyAt(k))}", "gas-text", gas);
             p.gasText.pickingMode = PickingMode.Ignore;
             int idx = k;
             gas.RegisterCallback<PointerDownEvent>(e => { uiHeld[idx] = true; gas.CapturePointer(e.pointerId); e.StopPropagation(); });
             gas.RegisterCallback<PointerUpEvent>(e => { uiHeld[idx] = false; gas.ReleasePointer(e.pointerId); });
             gas.RegisterCallback<PointerCaptureOutEvent>(_ => uiHeld[idx] = false);
+
+            // Marcador da meia aceleração: arrastar muda até onde a meia acelera (não acelera o carro).
+            var half = p.half = El("half-mark", gas);
+            gas.Insert(1, half);                                   // atrás do texto, na frente do preenchimento
+            El("half-line", half).pickingMode = PickingMode.Ignore;
+            p.halfTri = Text(HalfTri(k), "half-tri", half); p.halfTri.pickingMode = PickingMode.Ignore;
+            half.style.left = Length.Percent(HalfOf(k));
+            void Drag(IPointerEvent e) => SetHalf(idx, Mathf.RoundToInt(gas.WorldToLocal(e.position).x / Mathf.Max(1f, gas.layout.width) * 100f));
+            half.RegisterCallback<PointerDownEvent>(e => { half.CapturePointer(e.pointerId); Drag(e); e.StopPropagation(); });
+            half.RegisterCallback<PointerMoveEvent>(e => { if (half.HasPointerCapture(e.pointerId)) Drag(e); });
+            half.RegisterCallback<PointerUpEvent>(e => { half.ReleasePointer(e.pointerId); e.StopPropagation(); });
 
             var side = El("pad-side", body);
             Text("Velocidade", "meter-label", side);
@@ -1247,7 +1283,7 @@ namespace Autorama
                 int tpc = Mathf.RoundToInt(c.turbo * 100f);
                 p.turboText.text = ai || tk == Key.None ? $"TURBO  {tpc}%" : $"TURBO  {KeyText(tk)}  ·  {tpc}%";
                 if (!ai) p.reslot.text = $"Recolocar  {KeyText(OnlineRun ? ReslotKeyAt(0) : ReslotKey(k))}";
-                if (!ai) p.gasText.text = GasLabel(k);         // muda com o rodízio e quando um controle é ligado
+                if (!ai) { p.gasText.text = GasLabel(k); p.halfTri.text = HalfTri(k); }         // muda com o rodízio e quando um controle é ligado
                 p.reslot.SetEnabled(off && !ai);                   // a IA se recoloca sozinha
                 p.reslot.EnableInClassList("reslot--ready", off && !ai);
                 p.root.EnableInClassList("pad--held", c.held);

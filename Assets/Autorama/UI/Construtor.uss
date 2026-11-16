@@ -258,6 +258,10 @@
     flex-grow: 1; height: 84px; margin-right: 10px; border-radius: 10px; overflow: hidden;
     background-color: var(--fundo-fundo); border-width: 2px; border-color: var(--trilho-a); justify-content: center; align-items: center;
 }
+/* Marcador da meia aceleração (seção 66): arrasta para os lados; Z · X no jogador 1. */
+.half-mark { position: absolute; top: 0; bottom: 0; width: 20px; margin-left: -10px; align-items: center; }
+.half-line { flex-grow: 1; width: 2px; background-color: rgba(240, 122, 58, 0.45); }
+.half-tri { font-size: 11px; white-space: nowrap; -unity-font-style: bold; color: rgba(240, 122, 58, 0.8); margin: -4px 0 0 0; padding: 0; -unity-text-align: middle-center; }
 .pad--b .gas { border-color: var(--trilho-b); }
 .pad--c .gas { border-color: var(--trilho-c); }
 .pad--d .gas { border-color: var(--trilho-d); }
