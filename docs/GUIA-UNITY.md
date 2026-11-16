@@ -4339,3 +4339,24 @@ A tecla de meia (S no jogador 1) acelerava sempre até `RaceSettings.halfGas` (6
 - `Controles.Acoes` passou de 4 para 6. Teclas salvas com 3 ou 4 ações continuam; as novas entram com o padrão (ficam sem tecla se a padrão já estava em uso).
 - O texto da barra mostra o limite no lugar do ½ (`ACELERAR A · 60% S`) e muda junto (`SetHalf` refaz o `GasLabel`); o marcador fica atrás do texto, meio transparente. Dos lados do ▲ ficam as teclas de meia − e meia + do jogador (`Z ▲ X`, `HalfTri`).
 - O limite não é salvo entre sessões; não mexe na física (só no nível pedido pelo jogador).
+
+## 67. Pistas da carreira (gerador)
+
+As pistas fixas do modo carreira ficam em `Assets/Autorama/Carreira/pistas/<id>.json`, no JSON de pista de sempre (mesmos ids de peça, mesma identidade de recorde). Quem as gera é `Editor/CareerTracks.cs`.
+
+- **Como cada pista nasce:** um trecho escrito à mão (o "jeito" da pista) e o fechar sozinho (`TrackCloser.Close`) completa o circuito. Se a ponta fica presa em cima do começo, o gerador tira até 3 peças do fim e pede o Q de novo. Cada pista pode ter alternativas separadas por `|`: vale a primeira que fecha sem sobrepor (`TrackLayout.Analyze`: `closed` e sem `overlaps`).
+- **Texto das peças:** código + lado (`e`/`d`) + altura (`^` sobe, `v` desce) + número (vão do salto ou raio da C). `R` reta curta, `L` comprida, `t` curtinha, `X` cruzamento, `x` cruzamento curto, `C` curva longa, `M` meia curva, `B` longa inclinada, `b` curta inclinada, `U` curva em C, `O` loop, `J` salto. Ex.: `"L J2 L Bd Bd"`.
+- **Mesa:** justa, com 2 células de margem; a largada anda só células inteiras (continua na grade).
+- **Cuidado:** o cruzamento é a troca de faixa (uma reta), não um cruzamento de pistas. Um "oito" de chão sobrepõe; um oito precisa de ponte (`L^ t Lv`).
+- **Rodar:** `script eval 'return Autorama.CareerTracks.Gerar("garagem");'` (prefixo do id; vazio = todas). Uma pista leva de 1 a 60 s por causa do Q: a geração inteira passa do tempo do `script eval`, então rode por região ou por pista.
+
+Peças por região (o Q só pode pôr peças planas ou inclinadas, conforme `inclinada`):
+
+| Região | Faixas | Pistas | Peças | Volta (células) |
+|---|---|---|---|---|
+| Garagem | 2 | 9 | reta, curva longa, meia curva | 28 a 53 |
+| Clube | 4 | 10 | + ponte, cruzamento, curvas inclinadas | 36 a 60 |
+| Regional | 6 | 11 | + curva em C, salto vão 1 | 43 a 61 |
+| Nacional | 8 | 13 | + loop, salto vão 2 e 3 | 40 a 85 |
+
+No mundo a pista larga é `Scale` vezes maior e a velocidade × √escala (seção 25.5c): a mesma volta em células dura √escala vezes mais. Por isso o número de células cresce pouco entre as regiões, e a dificuldade vem das peças novas.

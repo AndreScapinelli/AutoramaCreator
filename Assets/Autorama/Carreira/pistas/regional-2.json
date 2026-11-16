@@ -1,0 +1,118 @@
+{
+    "formato": "autorama-pista",
+    "versao": 1,
+    "nome": "Rampa Curta",
+    "mesa": {
+        "w": 24,
+        "h": 16
+    },
+    "escalaCm": 15.0,
+    "largada": {
+        "x": 5.0,
+        "y": 7.5,
+        "h": 0.0,
+        "nivel": 0
+    },
+    "pecas": [
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "salto",
+            "sentido": "",
+            "altura": "",
+            "vao": 1,
+            "raio": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "curva-longa",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "curva-longa",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "curva-longa",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "reta-curtinha",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "curva-longa",
+            "sentido": "esquerda",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "reta-curtinha",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "curva-longa",
+            "sentido": "esquerda",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "curva-longa",
+            "sentido": "esquerda",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        }
+    ],
+    "atras": 0,
+    "faixas": 6
+}

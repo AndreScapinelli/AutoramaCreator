@@ -1,0 +1,111 @@
+{
+    "formato": "autorama-pista",
+    "versao": 1,
+    "nome": "Looping",
+    "mesa": {
+        "w": 22,
+        "h": 11
+    },
+    "escalaCm": 15.0,
+    "largada": {
+        "x": 5.0,
+        "y": 2.5,
+        "h": 0.0,
+        "nivel": 0
+    },
+    "pecas": [
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "loop",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "curva-longa",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "curva-longa",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "reta-curta",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "meia-curva",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "meia-curva",
+            "sentido": "esquerda",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "reta-curta",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "meia-curva",
+            "sentido": "esquerda",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "curva-longa",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "meia-curva",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "curva-longa",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        }
+    ],
+    "atras": 0,
+    "faixas": 8
+}

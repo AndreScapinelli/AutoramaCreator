@@ -1,0 +1,146 @@
+{
+    "formato": "autorama-pista",
+    "versao": 1,
+    "nome": "Regional · Gancho",
+    "mesa": {
+        "w": 24,
+        "h": 18
+    },
+    "escalaCm": 15.0,
+    "largada": {
+        "x": 5.0,
+        "y": 7.5,
+        "h": 0.0,
+        "nivel": 0
+    },
+    "pecas": [
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "reta-curta",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "curva-c",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 1
+        },
+        {
+            "tipo": "reta-curta",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "curva-longa",
+            "sentido": "esquerda",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "curva-longa",
+            "sentido": "esquerda",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "meia-curva",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "meia-curva",
+            "sentido": "esquerda",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "curva-longa-inclinada",
+            "sentido": "esquerda",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "curva-curta-inclinada",
+            "sentido": "esquerda",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "curva-curta-inclinada",
+            "sentido": "esquerda",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "reta-curta",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "curva-longa-inclinada",
+            "sentido": "esquerda",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "curva-longa-inclinada",
+            "sentido": "esquerda",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        }
+    ],
+    "atras": 0,
+    "faixas": 6
+}

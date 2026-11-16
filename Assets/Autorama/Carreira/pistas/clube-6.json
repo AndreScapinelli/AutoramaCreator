@@ -1,0 +1,97 @@
+{
+    "formato": "autorama-pista",
+    "versao": 1,
+    "nome": "Inclinado Duplo",
+    "mesa": {
+        "w": 20,
+        "h": 12
+    },
+    "escalaCm": 15.0,
+    "largada": {
+        "x": 9.0,
+        "y": 4.5,
+        "h": 0.0,
+        "nivel": 0
+    },
+    "pecas": [
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "curva-longa-inclinada",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "curva-longa-inclinada",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "reta-curta",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "curva-curta-inclinada",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "curva-curta-inclinada",
+            "sentido": "esquerda",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "curva-longa-inclinada",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "curva-longa-inclinada",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "curva-curta-inclinada",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        },
+        {
+            "tipo": "curva-curta-inclinada",
+            "sentido": "esquerda",
+            "altura": "",
+            "vao": 0,
+            "raio": 0
+        }
+    ],
+    "atras": 0,
+    "faixas": 4
+}
