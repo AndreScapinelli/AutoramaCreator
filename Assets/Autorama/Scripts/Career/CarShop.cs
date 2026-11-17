@@ -129,11 +129,16 @@ namespace Autorama
         {
             var g = s.garagem;
             CarSetup c;
-            if (n != null && n.Has("carro")) c = n.carro.Clamped;
+            if (n != null && n.Has("carro"))
+            {
+                c = n.carro.Clamped;
+                if (Progresso.ModelOk(c.bolha, g.carro.modelo)) c.modelo = g.carro.modelo;   // o modelo é seu, mesmo no carro imposto
+            }
             else
             {
                 c = g.carro.Clamped;
                 foreach (var p in Pecas) if (!HasOpt(g, p, Get(c, p))) c = With(c, p, 0);
+                if (!Progresso.ModelOk(c.bolha, c.modelo)) c.modelo = 0;
             }
             return Levels(c, g);
         }

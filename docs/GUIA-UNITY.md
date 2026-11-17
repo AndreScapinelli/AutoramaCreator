@@ -4039,6 +4039,21 @@ Teste (`script eval`): largada, reta comprida, C, reta comprida, reta curta. Nos
 (raio 1), `04298fe7` (2) e `03298e54` (3).
 
 
+### 50.5 Aderência da C
+
+A C aguenta **1,7× a força lateral** da curva plana (`PieceCatalog.HairpinGrip = 1.7f`, via `PieceDef.GripMultiplier`,
+o mesmo caminho da curva inclinada). Vale para os 3 raios. A IA já lê a aderência do ponto (`q.grip`), então entra mais
+rápido sozinha. É só física: geometria, JSON e identidade não mudam (os recordes de pistas com C ficam mais fáceis).
+
+Limite na C de raio 1, pista de 2 (velocidade final ~11):
+
+| | dentro (r 0,25) | fora (r 0,75) |
+|---|---|---|
+| antes | 2,69 | 4,66 |
+| × 1,7 | 3,51 | 6,08 |
+
+Teste da IA: pendente (o Editor estava fechado).
+
 ## 51. Fogos no fim do campeonato
 
 Quando a última bateria é salva (`Champ.CurrentHeat(C) < 0`), o `RaceController` chama `Fogos()` (`Race/RaceController.Fogos.cs`). Vale no offline (`ChampSave`), no host online (`OnlineCommit`) e no visitante (mensagem `res`).
@@ -4283,6 +4298,12 @@ Uma faixa no topo da mesa, embaixo das fichas dos pilotos, narra a prova em tom 
   - `SteamTransportTest` inteiro, com o mundo falso e a Steam de verdade (Spacewar): 89 ok.
   - Recompilado sem erros. Não houve teste no modo Play nem na Steam de verdade.
 - **Ainda não tem:** ranking (Elo), fila por nível e conferência do resultado por todos. Isso fica para a parte 2.
+
+### 62.1 Duas filas que nunca se acham (Steam)
+
+- **Problema (teste real, dois jogadores):** os dois ficaram procurando e nunca se encontraram. Quem entra na fila procura uma vez só, ao entrar. Se os dois procuram quase juntos, nenhum vê o lobby do outro (ele ainda não existe ou ainda não aparece na busca da Steam), cada um cria o seu e fica sozinho para sempre.
+- **Correção (`SteamTransport.MatchMerge`):** o dono de um lobby de fila com 1 pessoa procura de novo a cada `MergeEveryMs` (4000 ms). Achou outra fila do mesmo tamanho com vaga e com mais gente, ou com 1 pessoa e código (`code`) menor que o seu, sai do seu lobby e entra nela (`TryJoinMatch`; se a entrada falhar, cria outra fila). Com o desempate pelo código, de dois sozinhos só um muda.
+- **Teste** (Steam falsa, `MergeEveryMs = 0`): dois jogadores pedindo a fila de 2 no mesmo quadro criaram 2 lobbies; depois os dois largaram juntos. Dois na fila de 4 ao mesmo tempo terminaram num lobby só, 2 de 4. `SteamTransportTest`: 89 ok. Ainda falta o teste com duas contas de Steam de verdade.
 
 ## 63. Cruzamento de retas no chão (em +)
 
@@ -4796,4 +4817,51 @@ if (set.turbo) c.turbo = Mathf.Min(1f, c.turbo + TurboGain(k));
   | regional-1 (6 carros) | 61,9 → 67,6 s (5,7 s) | 62,5 → 66,6 s (4,1 s) | IA 100: 0,8 · IA 50: 2,5 |
 
   O pelotão fica mais junto e todos ainda fazem pelo menos uma volta limpa (sem turbo), que vale para melhor volta e recorde.
+
+## 80. Modelos de bolha
+
+Cada bolha (seção 46) ganhou **3 modelos**. O modelo é **só visual**: a física, a caixa de colisão (0,60 × 0,32) e o JSON da pista não mudam. O desenho segue o que a bolha faz:
+- **Padrão** é equilibrado: carros de rua e de rali.
+- **Asa** é pressão aerodinâmica: asas grandes, lâminas e aletas.
+- **Lisa** é pouco arrasto: carros fechados, de bico fino e barbatana.
+
+| Bolha | 0 (de sempre) | 1 | 2 |
+|---|---|---|---|
+| Padrão | Clássico | **Coupé GT**: fastback de turismo, faixas duplas no capô, faróis e rabeta levantada | **Rali**: hatch alto e quadrado, tomada e barra de faróis no teto, número na porta e para-lamas |
+| Asa | Fórmula | **Protótipo**: endurance fechado, bolha de cabine, barbatana, asa larga com aletas, entradas de ar | **Asa dupla**: casco fino, rodas de fora, asa enorme sobre a cabine em 4 apoios, duas lâminas na frente |
+| Lisa | Gota | **Flecha**: cunha baixa de bico fino, saia, duas barbatanas pequenas e difusor | **Bala**: charuto de recorde, bico redondo, bolha da cabine lá na frente, barbatana alta e faixas |
+
+### Abrir pela carreira, usar em todo lugar
+
+`Progresso.Modelos` (`Profile/PlayerProfile.cs`). O modelo 0 vem aberto. Os outros abrem quando um nó da carreira, em qualquer save, chega às estrelas pedidas. Depois de aberto, o modelo vale em **todos os modos**: corrida livre, campeonato, online e carreira.
+
+| Modelo | Abre ao |
+|---|---|
+| Coupé GT | vencer Tio Beto (`garagem-9`) |
+| Rali | ser campeão da Copa Garagem (`garagem-copa`, ★★) |
+| Flecha | vencer Marina Faísca (`clube-marina`) |
+| Protótipo | vencer Dr. Curva (`regional-drcurva`) |
+| Bala | ser campeão da Copa Regional (`regional-copa`, ★★) |
+| Asa dupla | vencer O Campeão (`nacional-campeao`) |
+
+- **Rivais:** cada rival corre com o modelo que entrega: Tio Beto de Coupé GT, Marina de Flecha, Dr. Curva de Protótipo e O Campeão de Asa dupla. Isso vale no `rivalCarro` e nos pilotos dos campeonatos (`"modelo"` no `carreira.json`). Você vê o carro dele antes de ganhá-lo.
+- **Resultado da prova:** "Modelo novo: Coupé GT (bolha padrão). Vale em todos os modos (cartão Carro)."
+- O `Progresso.Scan` lê os saves junto com as peças (seção 78) e guarda o resultado; `Career.Save` → `Refresh`.
+
+### Dados e rede
+
+- `CarSetup.modelo` (0–2) vai para o JSON (`PilotSlot.carro`, `Pilot.carro`, nós da carreira); arquivos antigos leem 0. `Clamped` e `Same` contam o modelo; `Padrao` e `Resumo` não, porque são da física.
+- **Código online** (seção 48): soma `486 × modelo`, de 1 a 1.458. Com o modelo 0 e o turbo padrão, o código é o mesmo de antes. Teste: os 1.458 códigos vão e voltam sem erro.
+- `CarView.SetBody(body, modelo)` refaz o carrinho. O cache das malhas usa `Bolha/Modelo/peça`. O modelo importado (`TrackTheme.carModels`) só substitui o modelo 0. O fantasma usa o modelo dele.
+
+### Tela
+
+- **Cartão "Carro"** (corrida livre, campeonato, escolha antes da etapa): linha **Modelo** embaixo da Bolha, com os 3 modelos da bolha escolhida. Os fechados aparecem com 🔒 e a dica "Vença Dr. Curva (Regional) na carreira.". Trocar a bolha volta para o modelo 0 se o mesmo número estiver fechado na bolha nova.
+- **Garagem do carro** (carreira): a mesma linha embaixo da bolha. Num carro imposto pela regra "carro", o seu modelo vai junto se ele estiver aberto para a bolha imposta.
+
+### Teste
+
+- **No Play:** os 9 modelos lado a lado, em duas câmeras, nas três cores (vermelho, azul e amarelo; amarelo usa o detalhe escuro).
+- **Abertura** (`script eval`, com o "Desbloquear tudo" desligado só na memória): o slot 1, que venceu Tio Beto, Marina e a Copa Garagem, abre Coupé GT, Rali e Flecha. Protótipo, Bala e Asa dupla aparecem fechados, com a dica certa.
+- **JSON:** `{"bolha":1,"modelo":2,…}`.
 

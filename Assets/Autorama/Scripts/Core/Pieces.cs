@@ -115,12 +115,13 @@ namespace Autorama
         }
 
         // Quanto a peça aguenta de força lateral, em relação a uma curva plana.
-        public float GripMultiplier => Banked ? PieceCatalog.BankGrip : 1f;
+        public float GripMultiplier => Banked ? PieceCatalog.BankGrip : IsHairpin ? PieceCatalog.HairpinGrip : 1f;
     }
 
     // As peças disponíveis. Os ids são os mesmos do JSON exportado pelo construtor em HTML.
     public static class PieceCatalog
     {
+        public const float HairpinGrip = 1.35f; // curva em C (seção 50.5): aguenta 1,35× a plana, para o trilho de dentro não pedir parar
         public const float BankGrip = 1.7f;    // curva inclinada (~15°) aguenta 1,7× a força lateral da plana
         public const float BankAngle = 15f;
 
@@ -146,7 +147,7 @@ namespace Autorama
         // Curva em C (seção 50 do guia): 180° de raio 0,5 no eixo; a volta sai na fileira do lado, ocupa 1 × 2 células.
         public const float HairpinRadius = 0.5f;
         public static readonly PieceDef Hairpin = PieceDef.MakeCurve("curva-c", "Curva em C", 180f, false, HairpinRadius);
-        // Tamanho da C (seção 50.5): raio n·0,5, a saída fica n fileiras ao lado (2R inteiro: a ponta cai na grade).
+        // Tamanho da C (seção 50.4): raio n·0,5, a saída fica n fileiras ao lado (2R inteiro: a ponta cai na grade).
         public const int MaxHairpin = 3;
         static readonly PieceDef[] hairpins = { Hairpin, PieceDef.MakeCurve("curva-c", "Curva em C", 180f, false, 2f * HairpinRadius), PieceDef.MakeCurve("curva-c", "Curva em C", 180f, false, 3f * HairpinRadius) };
         public static PieceDef HairpinOf(int raio) => hairpins[Mathf.Clamp(raio, 1, MaxHairpin) - 1];

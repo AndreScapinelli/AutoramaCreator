@@ -5,6 +5,7 @@ namespace Autorama
 {
     // A bolha do carrinho (seção 46 do guia). O número vai para o JSON: 0 = padrão.
     public enum CarBody { Padrao, Asa, Lisa }
+    // Cada bolha tem 3 modelos (seção 80): só o visual muda; física e caixa de colisão são as da bolha.
 
     // O carrinho 3D (seções 28 e 46 do guia). Low-poly de duas cores montado por código: cubos, cilindros e peças
     // de perfil (`Shape`). Se houver um modelo importado para a bolha (`models`), ele entra no lugar e as cores vão
@@ -22,6 +23,16 @@ namespace Autorama
         float spin, tumble;
 
         public CarBody Body { get; private set; }
+        public int Model { get; private set; }
+
+        // Modelos de cada bolha (índice = CarSetup.modelo). O 0 é o de sempre.
+        public static readonly string[][] ModelNames =
+        {
+            new[] { "Clássico", "Coupé GT", "Rali" },
+            new[] { "Fórmula", "Protótipo", "Asa dupla" },
+            new[] { "Gota", "Flecha", "Bala" },
+        };
+        public static string ModelName(int bolha, int modelo) => ModelNames[Mathf.Clamp(bolha, 0, 2)][Mathf.Clamp(modelo, 0, 2)];
         public int Tire { get; private set; } = -1;
 
         // A faixa do pneu (seção 48): médio amarelo, macio vermelho, duro branco. Índice = CarSetup.pneu.
@@ -61,10 +72,12 @@ namespace Autorama
             Rebuild();
         }
 
-        public void SetBody(CarBody body)
+        public void SetBody(CarBody body, int model = 0)
         {
-            if (body == Body) return;
+            model = Mathf.Clamp(model, 0, 2);
+            if (body == Body && model == Model) return;
             Body = body;
+            Model = model;
             Rebuild();
         }
 
@@ -145,7 +158,7 @@ namespace Autorama
         // da peça naquele ponto (a carroceria pode afinar no bico e na traseira). O contorno tem que ser convexo.
         void Shape(string name, Material m, params Vector3[] p)
         {
-            string key = Body + "/" + name;
+            string key = Body + "/" + Model + "/" + name;
             if (!meshes.TryGetValue(key, out var mesh) || mesh == null)
             {
                 var v = new List<Vector3>(); var nr = new List<Vector3>(); var t = new List<int>();
@@ -186,12 +199,13 @@ namespace Autorama
                 Part(PrimitiveType.Cube, "Chassi pesado", darkMat, new Vector3(0f, 0.022f, 0f), new Vector3(0.52f, 0.014f, 0.22f), visual);
                 Part(PrimitiveType.Cube, "Ímã", magnetMat, new Vector3(0.02f, 0.012f, 0f), new Vector3(0.12f, 0.012f, 0.12f), visual);
             }
-            var model = models != null && (int)Body < models.Length ? models[(int)Body] : null;
+            var model = Model == 0 && models != null && (int)Body < models.Length ? models[(int)Body] : null;
             if (model != null) { UseModel(model); return; }
 
             var cube = PrimitiveType.Cube;
             float wheelZ = 0.145f;
-            if (Body == CarBody.Asa)
+            if (Model != 0) wheelZ = BuildModel();
+            else if (Body == CarBody.Asa)
             {
                 // Asa: cunha baixa de rodas descobertas, lâmina na frente e aerofólio alto e largo.
                 Shape("Casco", bodyMat, P(-0.29f, 0.035f, 0.115f), P(0.29f, 0.035f, 0.085f), P(0.29f, 0.055f, 0.085f),
@@ -253,6 +267,96 @@ namespace Autorama
                     Part(PrimitiveType.Cylinder, "Miolo do pneu", darkMat, new Vector3(0f, 0.029f * side, 0f), new Vector3(0.056f, 0.0012f, 0.056f), hub);
                     wheels[k++] = hub;
                 }
+        }
+
+        // Os modelos 1 e 2 de cada bolha (seção 80), desenhados pelo que a bolha faz. Devolve o z das rodas.
+        float BuildModel()
+        {
+            var cube = PrimitiveType.Cube;
+            switch ((int)Body * 3 + Model)
+            {
+                case 1:
+                    // Padrão · Coupé GT: fastback de turismo, faixas duplas no capô, faróis e rabeta levantada.
+                    Shape("Casco", bodyMat, P(-0.29f, 0.035f, 0.125f), P(0.29f, 0.035f, 0.11f), P(0.295f, 0.065f, 0.105f),
+                                            P(0.20f, 0.095f, 0.12f), P(-0.20f, 0.11f, 0.125f), P(-0.29f, 0.095f, 0.12f));
+                    Shape("Cabine", darkMat, P(0.12f, 0.095f, 0.085f), P(0.02f, 0.16f, 0.08f), P(-0.06f, 0.16f, 0.08f), P(-0.24f, 0.105f, 0.09f));
+                    Part(cube, "Teto", bodyMat, new Vector3(-0.02f, 0.162f, 0f), new Vector3(0.09f, 0.008f, 0.15f), visual);
+                    foreach (float z in new[] { -0.03f, 0.03f })
+                        Part(cube, "Faixa", trimMat, new Vector3(0.12f, 0.1f, z), new Vector3(0.18f, 0.006f, 0.025f), visual);
+                    foreach (float z in new[] { -0.075f, 0.075f })
+                        Part(cube, "Farol", trimMat, new Vector3(0.288f, 0.058f, z), new Vector3(0.016f, 0.018f, 0.04f), visual);
+                    Part(cube, "Rabeta", trimMat, new Vector3(-0.282f, 0.108f, 0f), new Vector3(0.025f, 0.018f, 0.24f), visual);
+                    return 0.145f;
+                case 2:
+                    // Padrão · Rali: hatch alto e quadrado, tomada no teto, barra de faróis, número na porta e para-lamas.
+                    Part(cube, "Assoalho", bodyMat, new Vector3(0f, 0.068f, 0f), new Vector3(0.56f, 0.062f, 0.25f), visual);
+                    Part(cube, "Capô", bodyMat, new Vector3(0.18f, 0.104f, 0f), new Vector3(0.2f, 0.022f, 0.23f), visual);
+                    Part(cube, "Cabine", darkMat, new Vector3(-0.05f, 0.14f, 0f), new Vector3(0.3f, 0.082f, 0.21f), visual);
+                    Part(cube, "Teto", bodyMat, new Vector3(-0.05f, 0.184f, 0f), new Vector3(0.27f, 0.012f, 0.2f), visual);
+                    Part(cube, "Tomada de ar", trimMat, new Vector3(0.02f, 0.196f, 0f), new Vector3(0.07f, 0.016f, 0.05f), visual);
+                    Part(cube, "Barra de faróis", darkMat, new Vector3(0.085f, 0.2f, 0f), new Vector3(0.018f, 0.018f, 0.18f), visual);
+                    foreach (float z in new[] { -0.06f, -0.02f, 0.02f, 0.06f })
+                        Part(cube, "Farol", trimMat, new Vector3(0.096f, 0.2f, z), new Vector3(0.008f, 0.022f, 0.03f), visual);
+                    Part(cube, "Aerofólio", bodyMat, new Vector3(-0.205f, 0.19f, 0f), new Vector3(0.04f, 0.01f, 0.22f), visual);
+                    foreach (float z in new[] { -1f, 1f })
+                    {
+                        Part(cube, "Número", trimMat, new Vector3(-0.02f, 0.078f, 0.126f * z), new Vector3(0.07f, 0.042f, 0.003f), visual);
+                        Part(cube, "Para-lama", darkMat, new Vector3(-0.238f, 0.042f, 0.14f * z), new Vector3(0.006f, 0.05f, 0.04f), visual);
+                    }
+                    return 0.145f;
+                case 4:
+                    // Asa · Protótipo: carro fechado de endurance, rodas cobertas, bolha de cabine, barbatana e asa larga.
+                    Shape("Casco", bodyMat, P(-0.30f, 0.035f, 0.15f), P(0.27f, 0.03f, 0.15f), P(0.30f, 0.045f, 0.12f),
+                                            P(0.22f, 0.085f, 0.15f), P(-0.30f, 0.095f, 0.15f));
+                    Shape("Cabine", darkMat, P(0.12f, 0.085f, 0.06f), P(0.04f, 0.135f, 0.065f), P(-0.06f, 0.14f, 0.06f), P(-0.14f, 0.095f, 0.05f));
+                    Shape("Barbatana", bodyMat, P(-0.10f, 0.1f, 0.005f), P(-0.25f, 0.19f, 0.005f), P(-0.29f, 0.19f, 0.005f), P(-0.29f, 0.09f, 0.005f));
+                    Part(cube, "Aerofólio", trimMat, new Vector3(-0.265f, 0.2f, 0f), new Vector3(0.07f, 0.012f, 0.31f), visual);
+                    foreach (float z in new[] { -1f, 1f })
+                    {
+                        Part(cube, "Aleta", bodyMat, new Vector3(-0.26f, 0.165f, 0.152f * z), new Vector3(0.09f, 0.08f, 0.008f), visual);
+                        Part(cube, "Farol", trimMat, new Vector3(0.262f, 0.062f, 0.1f * z), new Vector3(0.04f, 0.012f, 0.04f), visual);
+                        Part(cube, "Entrada de ar", darkMat, new Vector3(-0.02f, 0.07f, 0.151f * z), new Vector3(0.1f, 0.03f, 0.003f), visual);
+                    }
+                    Part(cube, "Lâmina", trimMat, new Vector3(0.285f, 0.028f, 0f), new Vector3(0.04f, 0.008f, 0.3f), visual);
+                    return 0.115f;
+                case 5:
+                    // Asa · Asa dupla: rodas descobertas, casco fino e uma asa enorme sobre a cabine, mais duas lâminas na frente.
+                    Shape("Casco", bodyMat, P(-0.26f, 0.035f, 0.08f), P(0.29f, 0.035f, 0.05f), P(0.29f, 0.055f, 0.05f),
+                                            P(0.05f, 0.09f, 0.08f), P(-0.26f, 0.1f, 0.085f));
+                    Shape("Cabine", darkMat, P(0.06f, 0.09f, 0.05f), P(-0.02f, 0.14f, 0.055f), P(-0.10f, 0.14f, 0.055f), P(-0.16f, 0.1f, 0.06f));
+                    Part(cube, "Asa alta", trimMat, new Vector3(-0.05f, 0.24f, 0f), new Vector3(0.21f, 0.012f, 0.27f), visual);
+                    foreach (float z in new[] { -1f, 1f })
+                    {
+                        Part(cube, "Aleta", bodyMat, new Vector3(-0.05f, 0.22f, 0.137f * z), new Vector3(0.23f, 0.06f, 0.008f), visual);
+                        Part(cube, "Apoio", darkMat, new Vector3(0.01f, 0.19f, 0.05f * z), new Vector3(0.012f, 0.1f, 0.012f), visual);
+                        Part(cube, "Apoio", darkMat, new Vector3(-0.11f, 0.19f, 0.05f * z), new Vector3(0.012f, 0.1f, 0.012f), visual);
+                    }
+                    Part(cube, "Lâmina", trimMat, new Vector3(0.275f, 0.03f, 0f), new Vector3(0.05f, 0.01f, 0.31f), visual);
+                    Part(cube, "Lâmina alta", trimMat, new Vector3(0.255f, 0.052f, 0f), new Vector3(0.035f, 0.008f, 0.26f), visual);
+                    Part(cube, "Aerofólio", trimMat, new Vector3(-0.27f, 0.12f, 0f), new Vector3(0.05f, 0.01f, 0.26f), visual);
+                    foreach (float x in new[] { 0.185f, -0.185f })
+                        Part(cube, "Eixo", darkMat, new Vector3(x, WheelR, 0f), new Vector3(0.02f, 0.015f, 0.27f), visual);
+                    return 0.145f;
+                case 7:
+                    // Lisa · Flecha: cunha baixa de bico fino, rodas cobertas, duas barbatanas pequenas e difusor atrás.
+                    Shape("Casco", bodyMat, P(-0.30f, 0.03f, 0.15f), P(0.30f, 0.03f, 0.1f), P(0.30f, 0.04f, 0.09f), P(-0.30f, 0.1f, 0.15f));
+                    Shape("Cabine", darkMat, P(0.10f, 0.065f, 0.06f), P(0.0f, 0.11f, 0.065f), P(-0.12f, 0.11f, 0.06f), P(-0.2f, 0.09f, 0.06f));
+                    Part(cube, "Saia", trimMat, new Vector3(0.01f, 0.034f, 0f), new Vector3(0.5f, 0.012f, 0.31f), visual);
+                    Part(cube, "Difusor", darkMat, new Vector3(-0.296f, 0.06f, 0f), new Vector3(0.01f, 0.05f, 0.26f), visual);
+                    foreach (float z in new[] { -1f, 1f })
+                        Part(cube, "Barbatana", trimMat, new Vector3(-0.255f, 0.115f, 0.1f * z), new Vector3(0.07f, 0.04f, 0.006f), visual);
+                    return 0.115f;
+                default:
+                    // Lisa · Bala: charuto de recorde, bico redondo, bolha da cabine lá na frente e barbatana alta.
+                    Shape("Casco", bodyMat, P(-0.30f, 0.05f, 0.07f), P(-0.22f, 0.03f, 0.12f), P(0.18f, 0.03f, 0.12f), P(0.30f, 0.06f, 0.03f),
+                                            P(0.22f, 0.09f, 0.09f), P(0.0f, 0.12f, 0.12f), P(-0.22f, 0.11f, 0.11f), P(-0.30f, 0.08f, 0.07f));
+                    Shape("Cabine", darkMat, P(0.17f, 0.1f, 0.04f), P(0.12f, 0.135f, 0.045f), P(0.05f, 0.135f, 0.045f), P(0.02f, 0.115f, 0.04f));
+                    Shape("Barbatana", trimMat, P(-0.05f, 0.115f, 0.005f), P(-0.27f, 0.22f, 0.005f), P(-0.30f, 0.22f, 0.005f), P(-0.30f, 0.09f, 0.005f));
+                    foreach (float z in new[] { -1f, 1f })
+                        Part(cube, "Faixa", trimMat, new Vector3(-0.02f, 0.075f, 0.121f * z), new Vector3(0.36f, 0.015f, 0.003f), visual);
+                    Part(cube, "Bico", trimMat, new Vector3(0.288f, 0.06f, 0f), new Vector3(0.02f, 0.02f, 0.04f), visual);
+                    return 0.105f;
+            }
         }
 
         // Modelo importado: frente em +X, chão em y = 0, dentro da caixa de 0,60 × 0,32. Os materiais com nome começando

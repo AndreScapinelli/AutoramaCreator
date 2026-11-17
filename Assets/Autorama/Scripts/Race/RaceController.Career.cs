@@ -494,7 +494,12 @@ namespace Autorama
             int before = Career.Stars(kSave, KNode.id);
             kGot = Career.Avaliar(KNode, kRes);
             kNew = Career.Record(kSave, KNode, kRes);
-            kCoins = CareerCoins(KNode, before, Career.Stars(kSave, KNode.id), r.terminou ? Mathf.Max(0, r.carros - r.posicao) : 0);
+            int after = Career.Stars(kSave, KNode.id);
+            kCoins = CareerCoins(KNode, before, after, r.terminou ? Mathf.Max(0, r.carros - r.posicao) : 0);
+            // Modelo de bolha novo (seção 80): só na primeira vez que o nó chega às estrelas que ele pede.
+            kModelsNew.Clear();
+            foreach (var x in Progresso.ModelsOf(KNode.id, after)) kModelsNew.Add(x);
+            foreach (var x in Progresso.ModelsOf(KNode.id, before)) kModelsNew.Remove(x);
             if (KNode.tipo == "construtor" && kBuilt != null)
             {
                 var ns = Career.Of(kSave, KNode.id);
@@ -608,6 +613,7 @@ namespace Autorama
                 Text($"{(ok ? "<color=#3DBE74>✓</color>" : "<color=#F07A3A>✗</color>")}  {Career.Texto(n.estrelas[i])}", "k-goal", box);
             }
             foreach (var x in NewlyOpened()) Text($"Abriu: {x}", "k-open", box);
+            foreach (var x in kModelsNew) Text($"Modelo novo: {x}. Vale em todos os modos (cartão Carro).", "k-open", box);
             if (IsChamp && kFinalTable != null)
             {
                 ChampTable(box, kFinalChamp, kFinalTable);
@@ -697,6 +703,7 @@ namespace Autorama
 
         bool kBuilding, kRunBuilt, kRunNext, kBackToMap;
         int kCoins;
+        readonly List<string> kModelsNew = new List<string>();
         TrackSave kUserTrack, kBuilt;
         VisualElement kBuildBox;
         Label kBuildTitle, kBuildRules, kBuildInfo;

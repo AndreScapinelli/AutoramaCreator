@@ -39,6 +39,45 @@ namespace Autorama
             new PieceUnlock("salto-grande", "Saltos grandes", "salto de vão 2 e 3", "nacional-2"),
         };
 
+        // Modelos de bolha (seção 80): vencer o rival ou ser campeão da região abre um modelo em todos os modos.
+        // O rival corre com o modelo que ele entrega. estrelas: 1 = vencer o nó; 2 = campeão (campeonato).
+        public class ModelUnlock { public int bolha, modelo, estrelas; public string no; }
+        public static readonly ModelUnlock[] Modelos =
+        {
+            new ModelUnlock { bolha = 0, modelo = 1, no = "garagem-9", estrelas = 1 },           // Coupé GT · Tio Beto
+            new ModelUnlock { bolha = 0, modelo = 2, no = "garagem-copa", estrelas = 2 },        // Rali · Copa Garagem
+            new ModelUnlock { bolha = 2, modelo = 1, no = "clube-marina", estrelas = 1 },        // Flecha · Marina Faísca
+            new ModelUnlock { bolha = 1, modelo = 1, no = "regional-drcurva", estrelas = 1 },    // Protótipo · Dr. Curva
+            new ModelUnlock { bolha = 2, modelo = 2, no = "regional-copa", estrelas = 2 },       // Bala · Copa Regional
+            new ModelUnlock { bolha = 1, modelo = 2, no = "nacional-campeao", estrelas = 1 },    // Asa dupla · O Campeão
+        };
+        static ModelUnlock UnlockOf(int bolha, int modelo) { foreach (var u in Modelos) if (u.bolha == bolha && u.modelo == modelo) return u; return null; }
+
+        public static bool ModelOk(int bolha, int modelo)
+        {
+            if (modelo <= 0 || All) return true;
+            var u = UnlockOf(bolha, modelo);
+            if (u == null) return true;
+            if (open == null) Scan();
+            return models.Contains(u);
+        }
+
+        // "Vença Tio Beto (Garagem) na carreira" / "Seja campeão da Copa Garagem na carreira".
+        public static string ModelWhere(int bolha, int modelo)
+        {
+            var u = UnlockOf(bolha, modelo);
+            if (u == null) return "";
+            foreach (var R in Career.Def.regioes) foreach (var n in R.nos)
+                if (n.id == u.no) return n.tipo == "campeonato" ? $"Seja campeão da {n.nome} na carreira." : $"Vença {n.nome} ({R.nome}) na carreira.";
+            return "Abre na carreira.";
+        }
+
+        // Modelos que o nó entrega (para o resultado da prova).
+        public static IEnumerable<string> ModelsOf(string no, int estrelas)
+        {
+            foreach (var u in Modelos) if (u.no == no && estrelas >= u.estrelas) yield return $"{CarView.ModelName(u.bolha, u.modelo)} (bolha {CarSetup.BolhaNames[u.bolha].ToLowerInvariant()})";
+        }
+
         // Peça → grupo que a libera ("" = grátis).
         public static string ItemOf(string pieceId) => pieceId switch
         {
@@ -74,17 +113,20 @@ namespace Autorama
 
         // Grupos abertos em algum save (lidos dos saves e guardados; Refresh depois de salvar a carreira).
         static HashSet<string> open;
+        static readonly HashSet<ModelUnlock> models = new HashSet<ModelUnlock>();
         static int reached = -1;
         public static void Refresh() { open = null; reached = -1; Changed?.Invoke(); }
         static void Scan()
         {
             open = new HashSet<string>();
+            models.Clear();
             reached = 0;
             int n = Career.Def.regioes.Length;
             for (int slot = 1; slot <= Career.Slots; slot++)
             {
                 var s = Career.Load(slot);
                 foreach (var u in Pecas) if (Career.Stars(s, u.no) > 0) open.Add(u.id);
+                foreach (var u in Modelos) if (Career.Stars(s, u.no) >= u.estrelas) models.Add(u);
                 for (int i = 0; i < n; i++) if (Career.RegionOpen(s, i)) reached = Mathf.Max(reached, i);
             }
         }

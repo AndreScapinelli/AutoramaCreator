@@ -298,7 +298,8 @@
             "motor": 0,
             "bolha": 0,
             "pneu": 2,
-            "chassi": 2
+            "chassi": 2,
+            "modelo": 1
           },
           "baterias": 3,
           "rivalFrase": "Monto autorama desde antes de você nascer. Mostra o que sabe.",
@@ -367,7 +368,8 @@
                 "motor": 0,
                 "bolha": 0,
                 "pneu": 2,
-                "chassi": 2
+                "chassi": 2,
+                "modelo": 1
               }
             }
           ],
@@ -658,7 +660,8 @@
             "motor": 1,
             "bolha": 2,
             "pneu": 0,
-            "chassi": 1
+            "chassi": 1,
+            "modelo": 1
           },
           "baterias": 3,
           "rivalFrase": "Turbo é para usar. Vem que eu largo na sua frente.",
@@ -729,7 +732,8 @@
                 "motor": 1,
                 "bolha": 2,
                 "pneu": 0,
-                "chassi": 1
+                "chassi": 1,
+                "modelo": 1
               }
             }
           ],
@@ -1036,7 +1040,8 @@
             "motor": 0,
             "bolha": 1,
             "pneu": 1,
-            "chassi": 0
+            "chassi": 0,
+            "modelo": 1
           },
           "baterias": 3,
           "rivalFrase": "Curva inclinada não é sorte, é geometria.",
@@ -1107,7 +1112,8 @@
                 "motor": 1,
                 "bolha": 2,
                 "pneu": 0,
-                "chassi": 1
+                "chassi": 1,
+                "modelo": 1
               }
             },
             {
@@ -1118,7 +1124,8 @@
                 "motor": 0,
                 "bolha": 0,
                 "pneu": 2,
-                "chassi": 2
+                "chassi": 2,
+                "modelo": 1
               }
             },
             {
@@ -1129,7 +1136,8 @@
                 "motor": 0,
                 "bolha": 1,
                 "pneu": 1,
-                "chassi": 0
+                "chassi": 0,
+                "modelo": 1
               }
             }
           ],
@@ -1422,7 +1430,8 @@
             "motor": 1,
             "bolha": 1,
             "pneu": 1,
-            "chassi": 2
+            "chassi": 2,
+            "modelo": 2
           },
           "baterias": 3,
           "rivalFrase": "Muitos chegaram até aqui. Nenhum passou.",
@@ -1494,7 +1503,8 @@
                 "motor": 1,
                 "bolha": 2,
                 "pneu": 0,
-                "chassi": 1
+                "chassi": 1,
+                "modelo": 1
               }
             },
             {
@@ -1505,7 +1515,8 @@
                 "motor": 0,
                 "bolha": 0,
                 "pneu": 2,
-                "chassi": 2
+                "chassi": 2,
+                "modelo": 1
               }
             },
             {
@@ -1516,7 +1527,8 @@
                 "motor": 0,
                 "bolha": 1,
                 "pneu": 1,
-                "chassi": 0
+                "chassi": 0,
+                "modelo": 1
               }
             },
             {
@@ -1538,7 +1550,8 @@
                 "motor": 1,
                 "bolha": 1,
                 "pneu": 1,
-                "chassi": 2
+                "chassi": 2,
+                "modelo": 2
               }
             }
           ],

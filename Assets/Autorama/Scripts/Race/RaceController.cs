@@ -463,7 +463,7 @@ namespace Autorama
                 // Frente para +X: gira para o rumo, inclina na rampa e deita na curva inclinada.
                 cars[k].rotation = Quaternion.Euler(0f, -p.heading, 0f) * Quaternion.Euler(0f, 0f, pitch) * Quaternion.Euler(sim.CarBank(k), 0f, 0f);
                 var st = sim.cars[k];
-                carViews[k].SetBody((CarBody)sim.setup[k].bolha);
+                carViews[k].SetBody((CarBody)sim.setup[k].bolha, sim.setup[k].modelo);
                 carViews[k].SetTire(sim.setup[k].pneu);
                 carViews[k].SetChassi(sim.setup[k].chassi);
                 carViews[k].SetCockpit(cam.InFirstPersonOf(k));
@@ -958,6 +958,22 @@ namespace Autorama
 
         int openCar = -1;      // qual cartão de piloto está com o ajuste do carro aberto
 
+        // Modelo da bolha (seção 80): os 3 da bolha escolhida; os que a carreira ainda não abriu ficam travados.
+        void ModelRow(VisualElement box, CarSetup su, System.Action<CarSetup> change)
+        {
+            var row = El("segmented car-row", box);
+            Text("Modelo", "seg-label", row);
+            for (int m = 0; m < 3; m++)
+            {
+                int mm = m;
+                bool ok = Progresso.ModelOk(su.bolha, m);
+                var b = Btn(ok ? CarView.ModelName(su.bolha, m) : "🔒 " + CarView.ModelName(su.bolha, m),
+                            () => { var n = su; n.modelo = mm; change(n); }, su.modelo == m ? "btn btn--on" : "btn", row);
+                b.SetEnabled(ok);
+                b.tooltip = ok ? "" : Progresso.ModelWhere(su.bolha, m);
+            }
+        }
+
         // O cartão "Carro": as quatro peças (cada uma com as três opções), o que o ajuste dá e tira contra o padrão e o
         // limite da curva plana para este carro nesta pista. `change` recebe o ajuste novo a cada clique.
         void DrawCarCard(VisualElement parent, CarSetup su, System.Action<CarSetup> change, bool full = true, bool rows = true)
@@ -976,7 +992,8 @@ namespace Autorama
             if (rows)
             {
                 Row("Motor", CarSetup.MotorNames, su.motor, o => { var n = su; n.motor = o; return n; });
-                Row("Bolha", CarSetup.BolhaNames, su.bolha, o => { var n = su; n.bolha = o; return n; });
+                Row("Bolha", CarSetup.BolhaNames, su.bolha, o => { var n = su; n.bolha = o; if (!Progresso.ModelOk(o, n.modelo)) n.modelo = 0; return n; });
+                ModelRow(box, su, change);
                 Row("Pneu", CarSetup.PneuNames, su.pneu, o => { var n = su; n.pneu = o; return n; });
                 Row("Chassi", CarSetup.ChassiNames, su.chassi, o => { var n = su; n.chassi = o; return n; });
                 Row("Turbo", CarSetup.NitroNames, su.nitro, o => { var n = su; n.nitro = o; return n; });

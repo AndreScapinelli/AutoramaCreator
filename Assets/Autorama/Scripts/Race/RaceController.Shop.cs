@@ -195,6 +195,7 @@ namespace Autorama
                         b.tooltip = why == "" ? "Comprar" : why;
                     }
                 }
+                if (pc == "bolha") ModelRow(garList, g.carro, v => { g.carro.modelo = v.modelo; GarageSave(); });
                 // Trilha da opção escolhida.
                 int lv = CarShop.Level(g, pc, cur);
                 var lr = El("k-shop-row k-gar-lv", garList);

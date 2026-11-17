@@ -86,6 +86,7 @@ namespace Autorama
         public int bolha;   // CarBody: 0 padrão, 1 asa (mais aderência em alta, final menor), 2 lisa (o contrário)
         public int pneu;    // 0 médio, 1 macio (mais aderência, final menor), 2 duro (o contrário)
         public int chassi;  // 0 padrão, 1 leve (responde rápido, escapa na hora), 2 pesado (segura no trilho, mais inércia)
+        public int modelo;  // só visual (seção 80): 0–2, o modelo da bolha (CarView.ModelNames); física igual
         public int nitro;   // turbo: 0 padrão, 1 explosivo (mais explosão, menos volume), 2 eficiente (menos explosão, mais volume)
         // Níveis da carreira (seção 78): o nível 0–10 da opção escolhida em cada peça, comprado na garagem. Cada nível
         // reforça o ponto forte da opção (o padrão, metade de cada lado). Não vão no JSON nem no código online (só a
@@ -140,7 +141,7 @@ namespace Autorama
                 return string.Join(" · ", l);
             }
         }
-        public CarSetup Clamped => new CarSetup { motor = Mathf.Clamp(motor, 0, 2), bolha = Mathf.Clamp(bolha, 0, 2), pneu = Mathf.Clamp(pneu, 0, 2), chassi = Mathf.Clamp(chassi, 0, 2), nitro = Mathf.Clamp(nitro, 0, 2) };
+        public CarSetup Clamped => new CarSetup { motor = Mathf.Clamp(motor, 0, 2), bolha = Mathf.Clamp(bolha, 0, 2), pneu = Mathf.Clamp(pneu, 0, 2), chassi = Mathf.Clamp(chassi, 0, 2), nitro = Mathf.Clamp(nitro, 0, 2), modelo = Mathf.Clamp(modelo, 0, 2) };
 
         // Velocidade-limite numa curva: v² × k = G × (1 + Aero × v² / V²), com G a aderência (sem a aerodinâmica),
         // k a curvatura e V a velocidade máxima da pista. Sem aerodinâmica é √(G / k), a conta de sempre.

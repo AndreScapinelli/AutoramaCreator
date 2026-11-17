@@ -136,7 +136,7 @@ namespace Autorama
                 var f = ghostTape.At(gt);
                 gv.transform.position = new Vector3(f.x, f.y, f.z);
                 gv.transform.rotation = Quaternion.Euler(0f, -f.heading, 0f) * Quaternion.Euler(0f, 0f, f.pitch) * Quaternion.Euler(f.bank, 0f, 0f);
-                gv.SetBody((CarBody)ghost.carro.bolha);
+                gv.SetBody((CarBody)ghost.carro.bolha, ghost.carro.modelo);
                 gv.SetChassi(ghost.carro.chassi);
                 gv.Tick(f.off ? 0f : f.v, f.off, Paused ? 0f : Time.deltaTime);
             }

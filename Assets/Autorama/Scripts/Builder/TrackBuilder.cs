@@ -227,7 +227,7 @@ namespace Autorama
             if (vao != pieces[Selected].vao) Commit(() => pieces[Selected].vao = vao);
         }
 
-        // Tamanho da curva em C selecionada: raio raio·0,5, saída raio fileiras ao lado (seção 50.5).
+        // Tamanho da curva em C selecionada: raio raio·0,5, saída raio fileiras ao lado (seção 50.4).
         public void SetHairpin(int raio)
         {
             if (Selected <= 0 || !pieces[Selected].Def.IsHairpin) return;

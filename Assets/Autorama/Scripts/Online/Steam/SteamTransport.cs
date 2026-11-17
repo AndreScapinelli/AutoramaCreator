@@ -33,11 +33,14 @@ namespace Autorama
         bool queuing, mmPending;                     // mmPending: procurando ou entrando no lobby da fila
         int mmSize;
         string mmLast;
+        bool mmMerging;                              // sozinho no próprio lobby: procurando outra fila do mesmo tamanho
+        int mmMergeAt;
         string mmTrack, mmHash, mmJson;
         ulong mmSentTo;
         bool countAsk;
         readonly Dictionary<ulong, string> mmJsons = new Dictionary<ulong, string>();
         static readonly int[] MmSizes = { 2, 4, 6, 8 };
+        public static int MergeEveryMs = 4000;      // os testes baixam para 0
         ulong raceHost, lastOwner;
         float lobbyFlipSince = -1f;
         HashSet<ulong> known = new HashSet<ulong>();
@@ -242,7 +245,7 @@ namespace Autorama
         void EnterQueue()
         {
             if (joined || !mmPending) return;
-            queuing = true; mmPending = false; mmSentTo = 0; mmLast = null; mmJsons.Clear();
+            queuing = true; mmPending = false; mmSentTo = 0; mmLast = null; mmJsons.Clear(); mmMerging = false; mmMergeAt = Environment.TickCount;
             known = new HashSet<ulong>(); foreach (var m in b.Members()) { known.Add(m.id); names[m.id] = m.name; }
             b.SetMyData("mmt", mmTrack); b.SetMyData("mmh", mmHash);
             b.SetMyData("ready", "0"); b.SetMyData("g2", "0");
@@ -264,6 +267,28 @@ namespace Autorama
             string sig = members.Count + "|" + string.Join("|", m.tracks);
             if (sig != mmLast) { mmLast = sig; Emit(m); }
             if (b.Owner == b.MyId && members.Count >= mmSize) MatchLaunch(members);
+            else if (b.Owner == b.MyId && members.Count == 1) MatchMerge();
+        }
+
+        // Dois entram na fila juntos, nenhum acha lobby e cada um cria o seu: sem isto ficam sozinhos para sempre.
+        // Sozinho no próprio lobby, procura de novo a cada 4 s e vai para outra fila do mesmo tamanho que tenha mais gente
+        // ou, empatando em 1, a de código menor (os dois decidem igual: só um muda).
+        void MatchMerge()
+        {
+            int now = Environment.TickCount;
+            if (mmMerging || unchecked(now - mmMergeAt) < MergeEveryMs) return;
+            mmMergeAt = now; mmMerging = true;
+            string mine = b.Data("code");
+            b.SearchMatch(mmSize, list =>
+            {
+                mmMerging = false;
+                if (!queuing || b.Owner != b.MyId || b.Members().Count != 1) return;
+                var other = list.Find(x => x.code != mine && x.players > 0 && x.players < x.max && (x.players > 1 || string.CompareOrdinal(x.code, mine) < 0));
+                if (other == null) return;
+                b.Leave();
+                queuing = false; mmPending = true; mmLast = null; mmJsons.Clear();
+                TryJoinMatch(new List<LobbyRoomInfo> { other }, 0);     // não deu para entrar: cria outra fila
+            });
         }
 
         string TrackName(ulong id) { string t = Clean(b.MemberData(id, "mmt"), 60); return t.Length > 0 ? t : "Pista"; }
