@@ -86,6 +86,12 @@ namespace Autorama
         public List<NodeSave> nos = new List<NodeSave>();
         public Championship campeonato;   // o campeonato da região em andamento (seção 73); sem baterias = nenhum
         public string campNo;             // o nó dele
+        // Moedas e garagem do carro (seção 78): cada save tem as suas.
+        public int moedas;
+        public CarGarage garagem = new CarGarage();
+        public string ultimoNo;           // contra farm: a mesma prova várias vezes seguidas paga menos
+        public int seguidas;
+        public int versao;                // 1: moedas no save (os antigos recebem as moedas das estrelas que já têm); 2: níveis por opção
     }
 
     public static class Career
@@ -236,15 +242,55 @@ namespace Autorama
 
         public static string PathOf(int slot) => Path.Combine(TrackLibrary.Root, $"carreira-{Mathf.Clamp(slot, 1, Slots)}.json");
 
+        // Prêmios em moedas (seção 78): cada estrela nova de um nó paga uma vez; rival vencido e campeão da região, uma
+        // vez; a corrida em si, 10 + 5 por carro que ficou atrás (metade a partir da 4ª vez seguida na mesma prova).
+        public static readonly int[] StarPrize = { 50, 75, 100 };
+        public const int RivalPrize = 300, RacePrize = 10, PlacePrize = 5, Streak = 3;
+        public static readonly int[] ChampPrize = { 500, 800, 1200, 2000 };
+        static readonly int[] OldPrep = { 300, 600, 1000 };
+
+        // Save de antes das moedas no save: as estrelas, rivais e títulos que ele já tem, pagos de uma vez.
+        static void Upgrade(CareerSave s)
+        {
+            s.garagem ??= new CarGarage();
+            CarShop.Fix(s.garagem);
+            if (s.versao == 1)
+            {
+                // A preparação de 3 níveis (300, 600, 1000 por sistema) virou níveis por opção: devolve o que foi gasto.
+                var g = s.garagem;
+                foreach (int lv in new[] { g.motor, g.pneu, g.bolha, g.nitro })
+                    for (int i = 0; i < lv && i < OldPrep.Length; i++) s.moedas += OldPrep[i];
+                g.motor = g.pneu = g.bolha = g.nitro = 0;
+            }
+            if (s.versao >= 1) { s.versao = 2; return; }
+            s.versao = 2;
+            var R = Def.regioes;
+            for (int r = 0; r < R.Length; r++)
+                foreach (var n in R[r].nos)
+                {
+                    int st = Stars(s, n.id);
+                    for (int i = 0; i < st && i < StarPrize.Length; i++) s.moedas += StarPrize[i];
+                    if (n.tipo == "rival" && st > 0) s.moedas += RivalPrize;
+                    if (n.tipo == "campeonato" && st >= 2) s.moedas += ChampPrize[Mathf.Clamp(r, 0, ChampPrize.Length - 1)];
+                }
+        }
+
         public static CareerSave Load(int slot)
         {
-            try { var p = PathOf(slot); return File.Exists(p) ? JsonUtility.FromJson<CareerSave>(File.ReadAllText(p)) ?? new CareerSave() : new CareerSave(); }
+            try
+            {
+                var p = PathOf(slot);
+                if (!File.Exists(p)) return new CareerSave { versao = 2 };
+                var s = JsonUtility.FromJson<CareerSave>(File.ReadAllText(p)) ?? new CareerSave();
+                Upgrade(s);
+                return s;
+            }
             catch { return new CareerSave(); }
         }
 
         public static bool Save(int slot, CareerSave s)
         {
-            try { Directory.CreateDirectory(TrackLibrary.Root); File.WriteAllText(PathOf(slot), JsonUtility.ToJson(s, true)); return true; }
+            try { Directory.CreateDirectory(TrackLibrary.Root); File.WriteAllText(PathOf(slot), JsonUtility.ToJson(s, true)); Progresso.Refresh(); return true; }
             catch (Exception e) { Debug.LogWarning("Carreira não salva: " + e.Message); return false; }
         }
     }

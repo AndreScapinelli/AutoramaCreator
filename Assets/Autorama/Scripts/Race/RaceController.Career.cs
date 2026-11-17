@@ -61,7 +61,9 @@ namespace Autorama
             Btn("◀", () => CareerRegion(-1), "btn icon-btn", reg);
             kRegionLabel = Text("", "k-region", reg);
             Btn("▶", () => CareerRegion(1), "btn icon-btn", reg);
-            kStarsLabel = Text("", "k-stars", top);
+            var tr = El("k-top-right", top);
+            Btn("Garagem do carro (G)", () => ShowGarage(true), "btn", tr);
+            kStarsLabel = Text("", "k-stars", tr);
             kCardBox = El("k-panel k-card", kMap);
             Text("← → escolhe a prova · Enter abre e corre · Esc volta", "k-hint", kMap).pickingMode = PickingMode.Ignore;
 
@@ -111,6 +113,7 @@ namespace Autorama
             if (kLayer == null || kLayer.style.display == DisplayStyle.None) return;
             kLayer.style.display = DisplayStyle.None;
             kPause = false;
+            ShowGarage(false);
             ClearPins();
             cam.SetTilted(kTiltWas);
             panel.HideChrome(false);
@@ -124,6 +127,7 @@ namespace Autorama
 
         void CareerScreen(KScreen s)
         {
+            if (s != KScreen.Map && GarageOpen) garLayer.style.display = DisplayStyle.None;
             kScreen = s;
             kCard = false;
             kPause = false;
@@ -160,7 +164,7 @@ namespace Autorama
                 b.AddToClassList("k-save");
                 Text($"Carreira {slot}", "k-save-title", b).pickingMode = PickingMode.Ignore;
                 Text(sv.nos.Count == 0 ? "Nova carreira" : Career.Def.regioes[last].nome, "k-save-sub", b).pickingMode = PickingMode.Ignore;
-                Text($"★ {stars} / {total}", "k-save-stars", b).pickingMode = PickingMode.Ignore;
+                Text($"★ {stars} / {total}  ·  ◎ {sv.moedas}", "k-save-stars", b).pickingMode = PickingMode.Ignore;
                 rows.Add(b);
             }
         }
@@ -323,6 +327,9 @@ namespace Autorama
             if (n.tipo == "campeonato") Text(ChampCard(n), "k-rival", kCardBox);
             for (int i = 0; i < n.estrelas.Length; i++) Text($"{new string('★', i + 1)}  {Career.Texto(n.estrelas[i])}", "k-goal", kCardBox);
             var ns = Career.Of(kSave, n.id);
+            string prep = CarShop.LevelResumo(CarShop.RaceCar(kSave, n));
+            Text(n.Has("carro") ? $"Carro imposto: {n.carro.Resumo}" + (prep != "" ? $" · {prep}" : "")
+                                : $"Seu carro: {CarShop.RaceCar(kSave, n).Resumo}" + (prep != "" ? $" · {prep}" : "") + " · garagem no G", "k-sub", kCardBox);
             Text(ns == null ? "Ainda não correu aqui." : $"Seu melhor: {Stars(ns.estrelas)}" + (ns.melhorPos > 0 && n.tipo != "relogio" ? $" · {ns.melhorPos}º" : "") + (ns.melhorVolta >= 0f ? $" · volta {Fmt(ns.melhorVolta)}" : ""), "k-sub", kCardBox);
             var row = El("row", kCardBox);
             if (n.tipo == "construtor")
@@ -409,7 +416,7 @@ namespace Autorama
             {
                 sim.present[k] = k <= ais;
                 sim.aiSkill[k] = k > 0 && k <= ais ? Mathf.Clamp(n.ia, 1, RaceSim.AiMaxSkill) : 0;
-                sim.setup[k] = k == 0 && n.Has("carro") ? n.carro.Clamped : k == 1 && IsRival ? n.rivalCarro.Clamped : default;
+                sim.setup[k] = k == 0 ? CarShop.RaceCar(kSave, n) : k == 1 && IsRival ? n.rivalCarro.Clamped : default;
             }
             var t = n.tipo == "construtor" ? kBuilt : Career.Track(n.pista);
             if (t != null) builder.ShowTrack(t);
@@ -487,7 +494,7 @@ namespace Autorama
             int before = Career.Stars(kSave, KNode.id);
             kGot = Career.Avaliar(KNode, kRes);
             kNew = Career.Record(kSave, KNode, kRes);
-            kCoins = CareerCoins(KNode, before, Career.Stars(kSave, KNode.id));
+            kCoins = CareerCoins(KNode, before, Career.Stars(kSave, KNode.id), r.terminou ? Mathf.Max(0, r.carros - r.posicao) : 0);
             if (KNode.tipo == "construtor" && kBuilt != null)
             {
                 var ns = Career.Of(kSave, KNode.id);
@@ -594,7 +601,7 @@ namespace Autorama
                 if (!string.IsNullOrEmpty(fala)) Text($"{n.rival}: “{fala}”", "k-sub", box);
             }
             Text(kGot == 0 ? "Não foi desta vez." : kNew > 0 ? $"+{kNew} {(kNew == 1 ? "estrela nova" : "estrelas novas")}" : "Sem estrela nova.", "k-sub", box);
-            Text($"+{kCoins} moedas  ·  ◎ {Progresso.P.moedas}", "k-coins", box);
+            Text($"+{kCoins} moedas  ·  ◎ {kSave.moedas}  ·  gaste na garagem do carro (G no mapa)", "k-coins", box);
             for (int i = 0; i < n.estrelas.Length; i++)
             {
                 bool ok = kGot > 0 && Career.Cumpre(n.estrelas[i], kRes);
@@ -634,6 +641,7 @@ namespace Autorama
         {
             var list = new List<string>();
             if (kGot == 0 || kNew != kGot) return list;
+            foreach (var u in Progresso.Pecas) if (u.no == KNode.id) list.Add($"peça nova no construtor: {u.nome}");
             foreach (var x in KRegion.nos)
             {
                 if (x.depois == null || System.Array.IndexOf(x.depois, KNode.id) < 0) continue;
@@ -659,6 +667,8 @@ namespace Autorama
             var kb = Keyboard.current;
             if (kb == null || IsTyping || keysOpen) return;
             bool esc = kb.escapeKey.wasPressedThisFrame, enter = kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame || AnyPadStart();
+            if (GarageOpen) { if (esc || kb.gKey.wasPressedThisFrame) ShowGarage(false); return; }
+            if (kScreen == KScreen.Map && kb.gKey.wasPressedThisFrame) { ShowGarage(true); return; }
             switch (kScreen)
             {
                 case KScreen.Map:

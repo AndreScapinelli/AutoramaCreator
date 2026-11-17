@@ -4,13 +4,13 @@ using UnityEngine;
 namespace Autorama
 {
     // Teste de uma região inteira no Play (seção 75): cada prova com a IA `pilot` no lugar do jogador, num save de
-    // teste (slot 3, apagado no fim). Pula a oficina (precisa montar). As moedas do perfil voltam ao que eram.
+    // teste (slot 3, apagado no fim). Pula a oficina (precisa montar). `prep`: nível de todas as opções do carro (0–10, seção 78; o carro é o padrão).
     // script eval 'return Autorama.CareerPlaytest.Run(2, 150);'
     public static class CareerPlaytest
     {
         const System.Reflection.BindingFlags B = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
 
-        public static string Run(int region, int pilot)
+        public static string Run(int region, int pilot, int prep = 0)
         {
             var sb = new StringBuilder();
             var rc = Object.FindFirstObjectByType<RaceController>();
@@ -21,12 +21,12 @@ namespace Autorama
             void Set(string n, object v) => T.GetField(n, B).SetValue(rc, v);
             void Call(string n) => T.GetMethod(n, B).Invoke(rc, null);
             var sim = (RaceSim)F("sim");
-            int coins = Progresso.P.moedas;
             UnityEditor.AssetDatabase.Refresh();      // o carreira.json mudou no disco: sem isso o Resources devolve o antigo
             Career.Reload();
             var R = Career.Def.regioes[region];
             bp.ShowMenu(false); bp.SetMode(BuilderPanel.Mode.Career);
             var sv = new CareerSave();
+            for (int t = 0; t < CarShop.Trilhas; t++) sv.garagem.niveis[t] = prep;
             for (int r = 0; r < region; r++) foreach (var x in Career.Def.regioes[r].nos) sv.nos.Add(new NodeSave { id = x.id, estrelas = 3 });
             foreach (var x in R.nos) sv.nos.Add(new NodeSave { id = x.id, estrelas = 1 });       // abre tudo da região
             Set("kSlot", 3); Set("kSave", sv); Set("kRegion", region);
@@ -59,8 +59,8 @@ namespace Autorama
                 }
             }
             catch (System.Exception e) { sb.Append("ERRO " + (e.InnerException ?? e).ToString().Substring(0, 500)); }
-            Progresso.P.moedas = coins; Progresso.Save();
             var p = Career.PathOf(3); if (System.IO.File.Exists(p)) System.IO.File.Delete(p);
+            Progresso.Refresh();
             return sb.ToString();
         }
     }

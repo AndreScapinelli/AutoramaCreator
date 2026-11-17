@@ -5,13 +5,15 @@ using static Autorama.BuilderPanel;
 
 namespace Autorama
 {
-    // Moedas e Loja (seção 74 do guia): a tela da Loja, as travas no construtor e as moedas de cada corrida.
+    // Peças, moedas e garagem do carro (seção 78 do guia). As peças do construtor abrem pela carreira (tela Peças no
+    // menu inicial, com as travas no construtor); as moedas são do save da carreira e compram a garagem do carro.
     public partial class RaceController
     {
-        VisualElement shopLayer, shopList, coinChip;
-        Label coinText, coinPop;
+        VisualElement shopLayer, shopList, coinChip, garLayer, garList;
+        Label coinText, coinPop, garCoins;
         float coinShown, coinPopT, coinPulseT;
         const float CoinPopTime = 2.2f, CoinCountRate = 3f;
+        Button shopAll;
 
         void OnEarned(int n)
         {
@@ -20,16 +22,19 @@ namespace Autorama
             coinPulseT = 0.5f;
         }
 
-        // A cada quadro: quando aparece, conta até o total e anima o "+N".
+        int CoinsNow => kSave != null ? kSave.moedas : 0;
+
+        // A cada quadro: o selo só existe na carreira, fora da tela de saves; na prova só aparece com o "+N".
         void CoinTick()
         {
             if (coinChip == null) return;
-            // Nas telas de corrida (aba Corrida, Campeonato, Online, a prova da carreira) só aparece com o "+N", abaixo do menu da câmera.
-            bool raceScreen = panel.RaceMode && RaceUI && !ShopOpen && !panel.MenuOpen;
-            bool show = !raceScreen || coinPopT > 0f;
+            bool career = panel.CareerMode && kSave != null && kScreen != KScreen.Saves && !panel.MenuOpen;
+            bool raceScreen = kScreen == KScreen.Race || kScreen == KScreen.Result;
+            bool show = career && (!raceScreen || coinPopT > 0f);
             coinChip.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+            if (!career) { coinShown = CoinsNow; coinPopT = 0f; return; }
             coinChip.style.top = raceScreen ? 52f : 12f;
-            float target = Progresso.P.moedas, dt = Time.unscaledDeltaTime;
+            float target = CoinsNow, dt = Time.unscaledDeltaTime;
             if (coinShown != target) coinShown = Mathf.Abs(target - coinShown) < 1f ? target : Mathf.Lerp(coinShown, target, 1f - Mathf.Exp(-CoinCountRate * dt * 3f));
             string t = Mathf.RoundToInt(coinShown).ToString("N0", new System.Globalization.CultureInfo("pt-BR"));
             if (coinText.text != t) coinText.text = t;
@@ -46,39 +51,46 @@ namespace Autorama
             }
             else coinPop.style.display = DisplayStyle.None;
         }
-        Label shopCoins;
-        Button shopAll;
 
         void BuildShopUI()
         {
+            // Peças (menu inicial): o que já abriu e em que prova abre o resto.
             shopLayer = El("k-full k-dim", panel.Root);
             shopLayer.style.display = DisplayStyle.None;
             var card = El("k-panel k-shop", shopLayer);
-            var head = El("k-shop-head", card);
-            Text("LOJA", "k-title", head);
-            shopCoins = Text("", "k-stars", head);
-            Text("Peças novas para o construtor. Ganhe moedas correndo; a carreira abre cada peça para compra. Correr numa pista com peça que você não tem sempre pode — só não dá para colocar a peça.", "k-sub", card);
+            Text("PEÇAS", "k-title", card);
+            Text("Peças novas para o construtor. Cada uma abre quando você termina, com pelo menos ★, a prova da carreira que a apresenta. Correr numa pista com peça fechada sempre pode — só não dá para colocar a peça.", "k-sub", card);
             shopList = El(null, card);
             if (Progresso.Teste)
-            {
                 shopAll = Btn("", () => { Progresso.P.tudo = !Progresso.P.tudo; Progresso.Save(); }, "btn start-btn", card);
-            }
             Btn("Fechar (Esc)", () => ShowShop(false), "btn start-btn", card);
 
-            // Selo das moedas (seção 74.1): canto de cima, à direita; anima ao ganhar.
+            // Garagem do carro (carreira).
+            garLayer = El("k-full k-dim", panel.Root);
+            garLayer.style.display = DisplayStyle.None;
+            var gc = El("k-panel k-shop k-garage", garLayer);
+            var head = El("k-shop-head", gc);
+            Text("GARAGEM DO CARRO", "k-title", head);
+            garCoins = Text("", "k-stars", head);
+            Text("Seu carro na carreira. Compre opções do ajuste e preparação com as moedas das provas. Fora da carreira o ajuste é livre e sem preparação.", "k-sub", gc);
+            var scroll = new ScrollView(ScrollViewMode.Vertical);
+            scroll.AddToClassList("k-garage-scroll");
+            gc.Add(scroll);
+            garList = scroll.contentContainer;
+            Btn("Fechar (G · Esc)", () => ShowGarage(false), "btn start-btn", gc);
+
+            // Selo das moedas (seção 74.1): canto de cima, à direita; anima ao ganhar. Clique abre a garagem.
             coinChip = El("coin-chip", panel.Root);
             coinChip.pickingMode = PickingMode.Position;
-            coinChip.RegisterCallback<ClickEvent>(_ => { if (!Racing) ShowShop(true); });
-            coinChip.tooltip = "Moedas · clique para abrir a Loja";
+            coinChip.RegisterCallback<ClickEvent>(_ => { if (kScreen == KScreen.Map) ShowGarage(true); });
+            coinChip.tooltip = "Moedas da carreira · clique para abrir a garagem do carro";
             El("coin-disc", coinChip).Add(new Label("$") { pickingMode = PickingMode.Ignore });
             coinText = Text("0", "coin-text", coinChip);
             coinPop = Text("", "coin-pop", coinChip);
             coinPop.pickingMode = PickingMode.Ignore;
-            coinShown = Progresso.P.moedas;
 
             panel.ShopRequested += () => ShowShop(true);
             Progresso.Changed += OnProfileChanged;
-            Progresso.Earned += OnEarned;
             OnProfileChanged();
         }
 
@@ -89,86 +101,136 @@ namespace Autorama
         }
 
         bool ShopOpen => shopLayer != null && shopLayer.style.display == DisplayStyle.Flex;
+        bool GarageOpen => garLayer != null && garLayer.style.display == DisplayStyle.Flex;
 
         void ShopKeys()
         {
             var kb = Keyboard.current;
-            if (ShopOpen && kb != null && kb.escapeKey.wasPressedThisFrame) ShowShop(false);
+            if (kb == null) return;
+            if (ShopOpen && kb.escapeKey.wasPressedThisFrame) ShowShop(false);
         }
 
         void DrawShop()
         {
-            shopCoins.text = $"◎ {Progresso.P.moedas}";
             shopList.Clear();
-            foreach (var it in Progresso.Loja)
+            foreach (var u in Progresso.Pecas)
             {
-                var item = it;
                 var row = El("k-shop-row", shopList);
                 var texts = El("k-shop-texts", row);
-                Text(it.nome, "k-save-title", texts);
-                Text(it.pecas, "k-sub", texts);
-                string why = Progresso.CanBuy(it);
-                if (Progresso.Owns(it.id)) Text(Progresso.All && !Progresso.P.compras.Contains(it.id) ? "liberada (teste)" : "✓ sua", "k-shop-own", row);
-                else
-                {
-                    var b = Btn($"◎ {it.preco}", () => { if (Progresso.Buy(item)) panel.Toast($"{item.nome}: é sua!"); }, "btn btn--primary", row);
-                    b.SetEnabled(why == "");
-                    if (why != "") Text(why, "k-shop-why", row);
-                }
+                Text(u.nome, "k-save-title", texts);
+                Text(u.pecas, "k-sub", texts);
+                if (Progresso.Owns(u.id)) Text(Progresso.All && !ReallyOpen(u) ? "liberada (teste)" : "✓ aberta", "k-shop-own", row);
+                else Text("Abre em " + Progresso.WhereText(u), "k-shop-why", row);
             }
         }
 
-        // Perfil mudou (compra, moedas, "Desbloquear tudo"): travas, botões e telas.
+        static bool ReallyOpen(PieceUnlock u)
+        {
+            for (int slot = 1; slot <= Career.Slots; slot++) if (Career.Stars(Career.Load(slot), u.no) > 0) return true;
+            return false;
+        }
+
+        // Perfil ou carreira mudou ("Desbloquear tudo", peça aberta): travas, botões e telas.
         void OnProfileChanged()
         {
             if (!kBuilding) { Progresso.ApplyGate(); TrackBuilder.LockTip = e => Progresso.LockText(e.def.Id); }
             panel.RefreshAllowed();
-            panel.SetShopCoins(Progresso.P.moedas);
             if (shopAll != null)
             {
                 shopAll.text = Progresso.P.tudo ? "Desbloquear tudo: LIGADO (teste, até o jogo sair)" : "Desbloquear tudo: desligado (teste, até o jogo sair)";
                 shopAll.EnableInClassList("btn--on", Progresso.P.tudo);
             }
             if (ShopOpen) DrawShop();
+            if (GarageOpen) DrawGarage();
             if (kStarsLabel != null && kScreen == KScreen.Map) DrawMapUI();
         }
 
-        RaceSim.Phase coinPhase;
-        // Chamado em todo quadro (offline e online): a passagem para Done paga a corrida.
-        void CoinsTick()
+        // ---------- garagem do carro ----------
+
+        void ShowGarage(bool on)
         {
-            if (sim == null || sim.phase == coinPhase) return;
-            coinPhase = sim.phase;
-            if (coinPhase == RaceSim.Phase.Done) RaceCoins();
+            if (on && (kSave == null || kScreen != KScreen.Map)) return;
+            garLayer.style.display = on ? DisplayStyle.Flex : DisplayStyle.None;
+            if (on) DrawGarage();
+            else if (kScreen == KScreen.Map) DrawMapUI();
         }
 
-        // Fim de uma corrida fora da carreira (livre, campeonato, online): moedas para o melhor carro de gente desta máquina.
-        void RaceCoins()
+        void GarageSave() { Career.Save(kSlot, kSave); DrawGarage(); }
+
+        // Cada peça: as três opções (comprada seleciona; não comprada mostra o preço) e, embaixo, a trilha de níveis da
+        // opção escolhida.
+        void DrawGarage()
         {
-            if (panel.CareerMode || !panel.RaceMode || testing) return;
-            var ord = Order();
-            int best = -1;
-            for (int i = 0; i < ord.Count; i++)
+            var g = kSave.garagem;
+            CarShop.Fix(g);
+            garCoins.text = $"◎ {kSave.moedas}";
+            garList.Clear();
+            Text($"Níveis à venda até o {CarShop.Cap(kSave)} (Garagem 3 · Clube 6 · Regional 8 · Nacional 10). O nível n custa {CarShop.LevelStep} × n.", "k-sub", garList);
+            foreach (var peca in CarShop.Pecas)
             {
-                int k = ord[i];
-                bool mine = OnlineRun ? IsLocalLane(k) : sim.aiSkill[k] == 0;
-                if (mine) { best = i; break; }
+                string pc = peca;
+                var names = CarShop.Names(pc);
+                int cur = CarShop.Get(g.carro, pc);
+                var row = El("segmented car-row", garList);
+                Text(CarShop.Title(pc), "seg-label", row);
+                foreach (int o in new[] { 1, 0, 2 })
+                {
+                    int oo = o;
+                    if (CarShop.HasOpt(g, pc, o))
+                    {
+                        int lvo = CarShop.Level(g, pc, o);
+                        Btn(lvo > 0 ? $"{names[o]} · {lvo}" : names[o], () => { g.carro = CarShop.With(g.carro, pc, oo); GarageSave(); }, cur == o ? "btn btn--on" : "btn", row);
+                    }
+                    else
+                    {
+                        string why = CarShop.CanBuyOpt(kSave, pc, o);
+                        var b = Btn($"{names[o]} ◎{CarShop.OptPrice(pc)}", () =>
+                        {
+                            if (!CarShop.BuyOpt(kSave, pc, oo)) return;
+                            g.carro = CarShop.With(g.carro, pc, oo);
+                            panel.Toast($"{CarShop.Title(pc)} {names[oo].ToLowerInvariant()}: é seu!");
+                            GarageSave();
+                        }, "btn k-gar-buy", row);
+                        b.SetEnabled(why == "");
+                        b.tooltip = why == "" ? "Comprar" : why;
+                    }
+                }
+                // Trilha da opção escolhida.
+                int lv = CarShop.Level(g, pc, cur);
+                var lr = El("k-shop-row k-gar-lv", garList);
+                var texts = El("k-shop-texts", lr);
+                Text($"{names[cur]}  {new string('●', lv)}{new string('○', CarShop.MaxNivel - lv)}  {lv}/{CarShop.MaxNivel}", "k-gar-track", texts);
+                Text(CarShop.LevelText(pc, cur), "k-sub", texts);
+                if (lv >= CarShop.MaxNivel) { Text("✓ máximo", "k-shop-own", lr); continue; }
+                string whyL = CarShop.CanBuyLevel(kSave, pc, cur);
+                var bl = Btn($"Nível {lv + 1} · ◎ {CarShop.LevelPrice(lv + 1)}", () =>
+                {
+                    if (!CarShop.BuyLevel(kSave, pc, cur)) return;
+                    GarageSave();
+                }, "btn btn--primary", lr);
+                bl.SetEnabled(whyL == "");
+                if (whyL != "") Text(whyL, "k-shop-why", lr);
             }
-            if (best < 0) return;
-            int got = Progresso.RacePay(Champ.TrackHash(builder.ToSave()), ord.Count - 1 - best, OnlineRun);
-            panel.Toast($"+{got} moedas (◎ {Progresso.P.moedas})");
+            Text("COMO FICA", "k-gar-head", garList);
+            DrawCarCard(garList, CarShop.RaceCar(kSave, null), null, false, false);
         }
 
-        // Prêmio de um nó da carreira: cada estrela nova paga uma vez (50, 75, 100); rival vencido e campeão, uma vez;
-        // e a corrida em si, como fora da carreira (sem carros batidos).
-        int CareerCoins(NodeDef n, int before, int after)
+        // ---------- moedas da carreira ----------
+
+        // Prêmio de um nó (Career.StarPrize e companhia, seção 78), somado às moedas do save.
+        int CareerCoins(NodeDef n, int before, int after, int beaten)
         {
             int c = 0;
-            for (int s = before; s < after && s < Progresso.StarPrize.Length; s++) c += Progresso.StarPrize[s];
-            if (n.tipo == "rival" && before == 0 && after > 0) c += Progresso.RivalPrize;
-            if (n.tipo == "campeonato" && before < 2 && after >= 2) c += Progresso.ChampPrize[Mathf.Clamp(kRegion, 0, Progresso.ChampPrize.Length - 1)];
-            Progresso.Earn(c);
-            return c + Progresso.RacePay("carreira:" + n.id, 0, false);
+            for (int s = before; s < after && s < Career.StarPrize.Length; s++) c += Career.StarPrize[s];
+            if (n.tipo == "rival" && before == 0 && after > 0) c += Career.RivalPrize;
+            if (n.tipo == "campeonato" && before < 2 && after >= 2) c += Career.ChampPrize[Mathf.Clamp(kRegion, 0, Career.ChampPrize.Length - 1)];
+            if (kSave.ultimoNo == n.id) kSave.seguidas++; else { kSave.ultimoNo = n.id; kSave.seguidas = 1; }
+            float race = Career.RacePrize + Career.PlacePrize * Mathf.Max(0, beaten);
+            if (kSave.seguidas > Career.Streak) race *= 0.5f;
+            c += Mathf.RoundToInt(race);
+            kSave.moedas += c;
+            if (c > 0) OnEarned(c);
+            return c;
         }
     }
 }

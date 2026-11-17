@@ -466,7 +466,7 @@ namespace Autorama
             Opt("Campeonato", "Pilotos, etapas, tabela e recordes", "★", Mode.Champ);
             Opt("Online", "Campeonato com amigos pela Steam", "◉", Mode.Online);
             var extra = El("start-extra", card);
-            shopBtn = Btn("Loja", () => ShopRequested?.Invoke(), "btn start-btn", extra);
+            Btn("Peças", () => ShopRequested?.Invoke(), "btn start-btn", extra);
             Btn("Opções", () => OptionsRequested?.Invoke(), "btn start-btn", extra);
             Btn("Sair", QuitGame, "btn start-btn", extra);
             Text("O botão ⌂ no painel volta para esta tela.", "start-foot", card);
@@ -474,10 +474,8 @@ namespace Autorama
 
         // Pedido do botão Opções da tela inicial: quem tem as opções (a RaceController, com as teclas) abre a tela.
         public event System.Action OptionsRequested;
-        // Loja (seção 74): o RaceController abre a tela; o botão mostra as moedas.
+        // Peças (seção 78): o RaceController abre a tela com o que a carreira já abriu.
         public event System.Action ShopRequested;
-        Button shopBtn;
-        public void SetShopCoins(int coins) { if (shopBtn != null) shopBtn.text = $"Loja · ◎ {coins}"; }
         // Testar a pista no construtor (seção 61): o RaceController liga e desliga o carro IA de teste.
         public event System.Action TestRequested;
         Button barTest;

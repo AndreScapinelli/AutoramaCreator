@@ -117,7 +117,7 @@ namespace Autorama
                 int p = k < L ? kPilotOf[k] : -1;
                 sim.present[k] = p >= 0;
                 sim.aiSkill[k] = p > 0 ? Mathf.Clamp(C.pilots[p].skill, 1, RaceSim.AiMaxSkill) : 0;
-                sim.setup[k] = p > 0 ? C.pilots[p].carro : default;
+                sim.setup[k] = p > 0 ? C.pilots[p].carro : p == 0 ? CarShop.RaceCar(kSave, n) : default;
             }
             ApplyCameraSettings();
             sim.Reset();

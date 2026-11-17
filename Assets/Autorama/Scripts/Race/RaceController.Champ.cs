@@ -897,8 +897,7 @@ namespace Autorama
                         if (best == heatBest && best < prevLap)
                         {
                             R.lap = Make(best); r.rec = true;
-                            if (!online) Progresso.Earn(Progresso.RecordPrize);       // seção 74: recorde da pista paga (só offline)
-                            news.Add($"recorde de volta de {p.name} ({Fmt(best)}){(online ? "" : $", +{Progresso.RecordPrize} moedas")}");
+                            news.Add($"recorde de volta de {p.name} ({Fmt(best)})");
                         }
                         // Com cruzamentos em número ímpar o carrinho passa pelos dois trilhos: recorde por trilho não faz sentido.
                         // Por tempo o carrinho passa por todos os trilhos: também não há recorde por trilho.

@@ -4519,6 +4519,8 @@ Nó `tipo: "campeonato"` (`Race/RaceController.CareerChamp.cs`): o mesmo modelo 
 
 ## 74. Moedas e Loja (fase M)
 
+> **Substituída pela seção 78:** as moedas agora ficam no save da carreira e compram a garagem do carro. As peças de pista abrem direto pela carreira, e a Loja virou a tela Peças. O texto abaixo é histórico.
+
 **Perfil** (`Scripts/Profile/PlayerProfile.cs`, `persistentDataPath/autorama/perfil.json`, um por computador, vale para os 3 saves): `moedas`, `compras` (ids dos itens), `tudo` ("Desbloquear tudo"), `ultimaPista`/`seguidas` (contra farm). Tudo em `Progresso` (estático): `P`, `Save`, `Changed`, `Owns`, `CanBuy`, `Buy`, `Earn`, `RacePay`, as travas e os preços.
 
 **Desbloquear tudo:** `Progresso.Teste = true` mostra o botão na Loja; `All = Teste && P.tudo` libera todas as peças e tamanhos sem gastar nem apagar compras. No lançamento: `Teste = false` (o botão some e o desbloqueio deixa de valer).
@@ -4595,3 +4597,203 @@ Só visual (`Race/RaceController.Wet.cs`); a aderência menor continua vindo da 
 - **Colisão no loop:** a checagem de altura usava o nível da pista (`CarZ`), que não muda no loop; o carro subindo no loop "batia" no vizinho que deslizava ao lado (`LoopShift`). Agora vale a altura real: diferença > 0,18 (o carrinho) e não há toque (já era assim para quem está no ar). 8 carros, 3 corridas: nacional-1 de 8 saídas e 18 toques para 0 e 0; nacional-c2, c5 e 8: 0–1 saída. A curva inclinada dá 0,13 entre trilhos vizinhos: não muda.
 - **Ajustes:** Largada Pesada (IA 105, atraso 1,5 s, só pneu duro e chassi pesado); Dr. Curva IA 118; Nacional começa em 115 (Estádio 115, Looping 120, oficina 120, Abismo 125, Serra 115 com 5 adversários e ★ até o 4º, Troca Final 130 só com largada atrasada e 5 adversários, O Campeão 142); pilotos do Grande Prêmio −8 (O Campeão 142).
 - **Resultado final (mestre 150):** Clube ★★★ em tudo menos os relógios (★★ e ★), Marina 2×0, Taça campeão 3/3. Regional ★★★ nas corridas e desafios, Dr. Curva 0×2, Copa 2º. Nacional: Estádio 2º, Looping e Abismo 1º, Troca Final 3º, O Campeão 0×2, Grande Prêmio campeão. Os dois rivais finais (com carro melhor que o padrão) ainda vencem o mestre; o jogador bom é mais rápido que o mestre nas curvas — falta jogar.
+
+## 77. Tipo de turbo no ajuste do carro
+
+Quinta peça do `CarSetup` (seção 47): o tipo de turbo, no campo `nitro`, com 0 padrão, 1 explosivo e 2 eficiente. Explosivo: mais explosão, menos volume. Eficiente: menos explosão, mais volume. Os nomes da tela estão em `CarSetup.NitroNames`; os ids e o JSON usam `nitro`. Muda só o turbo (seção 37): quanto ele soma à velocidade máxima e quanto dura o tanque cheio. O tanque enche igual nos três.
+
+| Turbo | Velocidade a mais | Tanque cheio dura | boost × tempo |
+|---|---|---|---|
+| Padrão | +25% (`RaceSim.TurboBoost`) | 3 s (`RaceSim.TurboTime`) | 0,75 |
+| Explosivo | +35% (`CarSetup.NitroForteBoost`) | 2,2 s (`NitroForteTime`) | 0,77 |
+| Eficiente | +17% (`NitroLongoBoost`) | 4,5 s (`NitroLongoTime`) | 0,765 |
+
+```csharp
+public float Boost => nitro == 1 ? NitroForteBoost : nitro == 2 ? NitroLongoBoost : RaceSim.TurboBoost;
+public float BurnTime => nitro == 1 ? NitroForteTime : nitro == 2 ? NitroLongoTime : RaceSim.TurboTime;
+// RaceSim.Step
+float top = set.vmax * Speed * su.Top * (tb ? 1f + su.Boost : 1f);
+if (tb) { c.turbo = Mathf.Max(0f, c.turbo - dt / su.BurnTime); c.turboLap = true; }
+// IA: só usa onde nem a velocidade com o nitro dela pede freio
+c.boost = set.turbo && c.turbo > 0f && need > set.vmax * Speed * setup[k].Top * (1f + setup[k].Boost);
+```
+
+- **Por que boost × tempo.** O motor busca a velocidade-alvo em exponencial (`Accel · (T·top − v)`), que é linear: numa reta sem fim, o tanque inteiro rende `v · boost · tempo` de distância, somando a subida e a volta ao normal. Com os três perto de 0,75, nenhum é melhor sempre. O explosivo rende nas retas compridas e para ultrapassar; o eficiente, nas pistas de reta curta, onde +35% não cabe antes da curva.
+- **Cartão "Carro":** linha Turbo (Explosivo · Padrão · Eficiente) e o texto "+35% de velocidade máxima por 2,2 s de tanque cheio (mais explosão, menos volume)". `Resumo` mostra "turbo explosivo"; `Padrao` e `Clamped` contam o nitro.
+- **Online e campeonato:** o código do ajuste (`CarCode`, seção 48) soma `162 × nitro`. Com o nitro padrão, o código é o mesmo de antes (1–162). `Same` compara o nitro. O JSON (`Pilot.carro`, `PilotSlot.carro`) ganha `nitro`, que é 0 nos arquivos antigos.
+- **Sem mudança:** o nitro padrão usa as constantes de antes, então a física fica bit a bit igual. A IA continua no padrão (`AiCar`), e a `SetupCalib` segue nas 81 combinações sem nitro.
+- **Teste** (`script eval`; IA 100 sozinha, 2 voltas, tanque cheio na largada; tempo de prova):
+
+  | Pista | Padrão | Explosivo | Eficiente |
+  |---|---|---|---|
+  | garagem-1 | 6,85 | 6,77 | 6,77 |
+  | clube-3 | 11,97 | 11,82 | 12,05 |
+  | regional-1 | 16,27 (1 saída) | 14,97 | 15,45 |
+  | regional-4 | 18,97 | 18,95 | 19,00 |
+  | nacional-1 | 22,65 | 22,63 | 22,65 |
+  | nacional-7 | 23,70 | 23,43 | 23,47 |
+
+  As diferenças ficam abaixo de 1,5%, menos onde o padrão saiu da pista. A IA guarda tanque com o eficiente (sobra 0,36 a 0,73 em pista curva), porque só aciona onde a curva à frente aguenta.
+
+## 78. Garagem do carro: moedas da carreira compram upgrades (fase U)
+
+A moeda deixou de comprar peça de pista. Agora ela é do save da carreira (cada slot tem as suas) e compra o carro da carreira. Fora da carreira (corrida livre, campeonato, online) o ajuste continua todo livre, sem preparação, e nada paga moeda.
+
+### Peças de pista: abertas pela carreira
+
+`Progresso.Pecas` (`Profile/PlayerProfile.cs`) diz que prova abre cada grupo: a primeira em que a peça aparece. Terminar essa prova com pelo menos ★, em qualquer save, abre a peça no construtor e no Q.
+
+| Grupo | Prova que abre |
+|---|---|
+| Reta curtinha | `garagem-oficina` |
+| Curvas inclinadas | `clube-1` |
+| Troca de faixa | `clube-2` |
+| Subida e descida | `clube-3` |
+| Salto vão 1 | `regional-1` |
+| Curva em C | `regional-3` |
+| Loop | `nacional-1` |
+| Saltos de vão 2 e 3 | `nacional-2` |
+
+- `Progresso.Owns` lê os 3 saves uma vez e guarda o resultado. `Career.Save` chama `Progresso.Refresh()`, que limpa o resultado e avisa (`Changed`), e as travas se refazem.
+- O botão Loja do menu inicial virou **Peças**: a lista com "✓ aberta" ou "Abre em Clube › Troca de Faixa", mais o "Desbloquear tudo" de teste.
+- Cadeado e aviso: "Troca de faixa: abre na carreira (Clube › Troca de Faixa)". O resultado da prova mostra "Abriu: peça nova no construtor: …".
+- `PlayerProfile` ficou só com `tudo`; os campos antigos do `perfil.json` (`moedas`, `compras`…) são ignorados.
+
+### Moedas no save
+
+Campos novos do `CareerSave`: `moedas`, `garagem`, `ultimoNo`, `seguidas` e `versao`.
+
+Prêmios (em `Career`, `CareerData.cs`):
+- estrela nova: 50 / 75 / 100;
+- rival vencido: 300;
+- campeão da região: 500 / 800 / 1200 / 2000;
+- a corrida em si: 10 + 5 por carro que ficou atrás, e metade a partir da 4ª vez seguida na mesma prova.
+
+O recorde de volta e as corridas fora da carreira não pagam mais.
+
+**Save antigo** (`versao` 0): ao carregar, recebe de uma vez o que as estrelas, rivais e títulos dele valem (`Career.Upgrade`). O slot 1 do teste, com 20 nós, ficou com 5.600 moedas.
+
+### O que se compra (`Career/CarShop.cs`)
+
+Cada opção de cada peça (5 peças × 3 opções = 15 trilhas) tem a **sua própria trilha de 10 níveis**. O motor curto e o motor longo evoluem separados. Trocar de opção não perde nada: cada uma guarda os seus níveis, só que eles não vão junto para a outra.
+
+```csharp
+[Serializable] public class CarGarage { public CarSetup carro; public List<string> opcoes; public int[] niveis /* 15: peça × 3 + opção */; }
+```
+
+- **Abrir a opção** fora do padrão (o padrão já vem aberto):
+
+  | Opção | Preço | Abre na região |
+  |---|---|---|
+  | Pneu macio · duro | 150 cada | Garagem |
+  | Motor curto · longo | 200 cada | Garagem |
+  | Bolha asa · lisa | 250 cada | Clube |
+  | Chassi leve · pesado | 250 cada | Clube |
+  | Turbo explosivo · eficiente | 400 cada | Regional |
+
+- **Níveis:** o nível n custa 50 × n, então a trilha inteira custa 2.750. O nível máximo à venda depende da região mais adiantada aberta no save (`CarShop.LevelCap`):
+
+  | Região | Nível máximo |
+  |---|---|
+  | Garagem | 3 |
+  | Clube | 6 |
+  | Regional | 8 |
+  | Nacional | 10 |
+
+- **Economia:** uma carreira com ★★★ rende cerca de 14.000 moedas, o bastante para levar umas 5 trilhas ao 10 (uma por peça). Ninguém compra tudo: é preciso escolher onde investir.
+
+**O que cada nível dá.** Cada nível reforça o ponto forte da opção; o padrão leva metade de cada lado. São campos `[NonSerialized]` no `CarSetup` (`lvMotor`, `lvBolha`, `lvPneu`, `lvChassi`, `lvNitro`, o nível da opção escolhida), fora do JSON e do código online. Em 0, todo multiplicador dá exatamente 1, então a física fica bit a bit igual.
+
+| Peça | Opção | Por nível |
+|---|---|---|
+| Motor | Curto | +1% de aceleração (`LvAccel 0.01`) |
+| | Longo | +0,4% de final (`LvTop 0.004`) |
+| Pneu | Macio | +0,25% de aderência (`LvGrip 0.0025`) |
+| | Duro | +0,4% de final |
+| Bolha | Asa | +0,3 ponto de aerodinâmica (`LvAero 0.003`) |
+| | Lisa | +0,4% de final |
+| Chassi | Leve | +1,2% de resposta no gatilho e no freio (`LvResp 0.012`) |
+| | Pesado | −1,5% na derrapagem, que demora mais a encher (`LvSlip 0.015`) |
+| Turbo | Explosivo | +1 ponto de velocidade do turbo (`LvBoost 0.01`) |
+| | Eficiente | +3% de tanque (`LvTank 0.03`) |
+
+```csharp
+static float Lv(int lv, int opt, int want) => opt == want ? lv : opt == 0 ? lv * 0.5f : 0f;
+Top   = (...) * (1f + LvTop * (Lv(lvMotor, motor, 2) + Lv(lvPneu, pneu, 2) + Lv(lvBolha, bolha, 2)));
+Accel = (...) * (1f + LvAccel * Lv(lvMotor, motor, 1));
+Grip  = (...) * (1f + LvGrip * Lv(lvPneu, pneu, 1));
+Aero  = BodyAero * Sign(bolha, 1) + LvAero * Lv(lvBolha, bolha, 1);
+Resp  = (...) * (1f + LvResp * Lv(lvChassi, chassi, 1));
+Slip  = (...) * (1f - LvSlip * Lv(lvChassi, chassi, 2));
+Boost = (...) + LvBoost * Lv(lvNitro, nitro, 1);
+BurnTime = (...) * (1f + LvTank * Lv(lvNitro, nitro, 2));
+```
+
+**Carro na prova.** `CarShop.RaceCar(save, nó)` monta o carro assim:
+- usa o ajuste da garagem; uma opção que não foi comprada volta ao padrão;
+- na prova com a regra "carro", usa o carro imposto;
+- põe os níveis que a garagem tem para as opções que o carro usa (`CarShop.Levels`).
+
+Vale na corrida, no desafio, no rival, na oficina e nas baterias do campeonato da região (`RunChampHeat`, piloto 0).
+
+**Saves de antes.**
+- `versao` 0: recebe de uma vez as moedas das estrelas, rivais e títulos (`Career.Upgrade`).
+- `versao` 1: tinha a preparação de 3 níveis (300 / 600 / 1000 por sistema), que recebe as moedas de volta. O slot 1 tinha comprado motor 3, pneu 3, bolha 2 e turbo 2, e voltou para 5.600 moedas.
+- Saves novos começam na `versao` 2.
+
+### Tela
+
+- **Garagem do carro**: botão no topo do mapa, tecla **G** ou clique no selo das moedas.
+  - **Por peça:** as três opções. A opção comprada seleciona e mostra o nível ("Curto · 4"); a que não foi comprada mostra o preço.
+  - **Embaixo de cada peça:** a trilha da opção escolhida, com ●●●○○○○○○○ 3/10, o que cada nível dá e "Nível 4 · ◎ 200", ou o motivo quando não dá para comprar.
+  - **No fim:** as barras do cartão "Carro" (`DrawCarCard(..., rows: false)`).
+  - Esc ou G fecha.
+- O cartão da prova mostra "Seu carro: macio · níveis: macio 4 · padrão 2" ou "Carro imposto: …".
+- O selo das moedas só aparece na carreira, fora da tela de saves. A tela de saves mostra as moedas de cada slot.
+
+### Teste
+
+- **Compra** (`script eval`):
+  - Com a Garagem aberta, o nível máximo à venda é 3.
+  - Níveis 1, 2 e 3 do motor padrão custam 50, 100 e 150. O 4º recusa com "Nível 4 abre na região Clube".
+  - Nível de opção não aberta recusa com "Abra a opção primeiro".
+  - O carro curto vai para a prova com `lvMotor` 1.
+- **Cada opção no nível 10 contra a mesma opção no 0** (IA 150, média de 3 sementes; 6 pistas: garagem-1, clube-3, regional-1, regional-6, nacional-1, nacional-3). Ganho médio na prova:
+
+  | Peça | Opções | Ganho |
+  |---|---|---|
+  | Motor | padrão · curto · longo | 0,4 · 0,3 · 0,9% |
+  | Pneu | médio · macio · duro | 1,0 · 1,0 · 0,1% |
+  | Bolha | padrão · asa · lisa | 1,0 · 0,65 · 0,4% |
+  | Chassi | padrão · leve · pesado | 1,2 · 0,8 · 0,6% |
+
+  A medida é ruidosa: em pista curta (garagem-1, clube-3), mais velocidade final às vezes atrapalha a IA, com até −3%, mas não a física. Na primeira rodada (final 0,2%, aceleração 0,4%, aderência 0,3%, derrapagem 1%), o motor quase não rendia e o pneu macio rendia demais; daí os valores atuais. O piloto ótimo do `SetupCalib` não serve aqui: dá 0 nas pistas com salto e loop.
+- **Região inteira** (`CareerPlaytest.Run(região, 150, nível)`, carro padrão com todas as trilhas no nível):
+  - Regional, nível 8: ★★★ em tudo, menos Largada Pesada (★★). Dr. Curva 2×0, Copa campeão com 3/3.
+  - Nacional, nível 10: ★★★ nas corridas e nos dois relógios. O Campeão 2×0 e GP campeão com 4/4.
+  - A Serra Molhada continua com 0★ (o mestre sai da pista no molhado; isso já acontecia antes).
+- **Tela:** a garagem nova foi vista no Play.
+
+## 79. Turbo ganho por volta completa (handicap)
+
+O tanque do turbo (seção 37) deixou de encher nas saídas de pista. Agora enche **a cada volta completa** (`RaceSim.CountLap`), com o mesmo `TurboGain(k)`: metade pela posição, metade pela distância até o líder. Assim, quem está atrás ganha mais (handicap) e sair da pista não dá mais prêmio.
+
+```csharp
+public const float TurboGainMin = 0.1f, TurboGainMax = 0.4f, TurboBoost = 0.25f, TurboTime = 3f;   // eram 0.2 e 0.5 por saída
+// CountLap, ao contar a volta (mesmo a volta com troca de trilho):
+if (set.turbo) c.turbo = Mathf.Min(1f, c.turbo + TurboGain(k));
+```
+
+- **Valores.** As saídas eram raras e as voltas são frequentes, por isso o ganho caiu: o líder recebe 0,1 de tanque por volta e o último, longe, 0,4.
+- **Som.** O "power-up" do tanque (`turboFillClip`) toca quando o tanque sobe, então passou a tocar no fim da volta.
+- **Ajuda.** O texto de ajuda da corrida foi atualizado.
+- **Online.** A lógica fica no `RaceSim` do host; os dois lados precisam da mesma versão.
+- **Teste** (`script eval`; IA 100, 90, 80… juntas, 8 voltas, com batida; tempo do 1º ao último):
+
+  | Pista | Sem turbo | Com turbo por volta | Tanque ganho na prova |
+  |---|---|---|---|
+  | clube-1 (4 carros) | 36,3 → 39,1 s (2,8 s) | 35,7 → 37,7 s (2,0 s) | IA 100: 1,0 · IA 70: 2,6 |
+  | regional-1 (6 carros) | 61,9 → 67,6 s (5,7 s) | 62,5 → 66,6 s (4,1 s) | IA 100: 0,8 · IA 50: 2,5 |
+
+  O pelotão fica mais junto e todos ainda fazem pelo menos uma volta limpa (sem turbo), que vale para melhor volta e recorde.
+

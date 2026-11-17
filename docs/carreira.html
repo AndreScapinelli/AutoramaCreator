@@ -164,8 +164,26 @@ th { color:var(--mut); font-weight:600; }
 <li class="f">Loja (aba Garagem): grátis reta/curva longa/meia · 150 curtinha e ponte · 250 troca de faixa · 400 inclinadas · 500 curva em C · 600 salto 1 · 1000 loop · 1200 salto 2 e 3</li>
 <li class="f">Botão "Desbloquear tudo" nas Opções, atrás de <code>Progresso.Teste</code> (sai no lançamento)</li>
 <li class="f">Cadeado no <code>BuilderPanel</code> e filtro no <code>TrackCloser.MovesOf</code></li>
-<li>Depois: ajustes do carro, pinturas e tema da mesa na loja</li>
+<li class="f">Substituída pela fase U: a moeda compra o carro e as peças abrem pela carreira</li>
 <li class="f">Loja no menu inicial; travas no construtor, no Q, na rampa, no vão do salto e nos tamanhos de pista</li>
+</ul>
+</div>
+
+<div class="fase">
+<h3>U · Moedas para upgrades do carro <span class="tag ok">pronta</span></h3>
+<p>A moeda deixa de comprar peça de pista e passa a comprar melhorias do carro, e só vale na carreira. Fora dela (corrida livre, campeonato, online) o ajuste continua livre e igual para todos, sem upgrade.</p>
+<ul class="chk">
+<li class="f">Tipo de turbo como quinta peça do ajuste: padrão (+25% por 3 s), explosivo (+35% por 2,2 s: mais explosão, menos volume) e eficiente (+17% por 4,5 s: menos explosão, mais volume). Seção 77 do guia.</li>
+<li class="f">Turbo ganho a cada volta completa, mais para os últimos (handicap), no lugar da saída de pista. Seção 79 do guia.</li>
+<li class="f"><b>1 · Peças de pista sem moeda.</b> A carreira abre a peça direto, ao terminar a prova que a apresenta (a lista de <code>Progresso.Loja</code> vira só "qual prova abre"). Tirar a compra de peças da Loja; o cadeado e o filtro do Q ficam.</li>
+<li class="f"><b>2 · Moedas na carreira.</b> As moedas passam do <code>perfil.json</code> para o save da carreira (cada slot com as suas). Corrida livre e online param de pagar; o recorde de volta paga só na carreira.</li>
+<li class="f"><b>3 · O carro da carreira.</b> <code>CareerSave.carro</code> (o ajuste escolhido) e <code>CareerSave.garagem</code> (opções compradas e níveis). Começa só com o padrão. Antes de cada prova, o cartão mostra o "Carro" com as opções compradas; prova com regra "carro" usa o carro imposto.</li>
+<li class="f"><b>4 · O que se compra.</b> (a) As opções do ajuste: curto, longo, asa, lisa, macio, duro, leve, pesado, turbo explosivo e eficiente, cada uma comprada uma vez. (b) Feito assim: cada opção de cada peça tem a sua trilha de 10 níveis (15 trilhas), e cada nível reforça o ponto forte da opção (o padrão, metade de cada lado). O nível n custa 50 × n; o máximo à venda é 3 na Garagem, 6 no Clube, 8 no Regional e 10 no Nacional. No plano eram 3 níveis por sistema.</li>
+<li class="f"><b>5 · Física.</b> Os níveis entram como campos <code>[NonSerialized]</code> do <code>CarSetup</code> (<code>prepMotor</code>…), fora do JSON e do código online: o código do ajuste online, os recordes e a física fora da carreira ficam iguais. Com tudo em 0, bit a bit igual.</li>
+<li class="f"><b>6 · Tela.</b> Uma "Garagem do carro" na carreira (no mapa, ao lado do cartão): o carro girando, as opções e os níveis com preço e as barras do cartão "Carro". A Loja do menu inicial sai (ou fica só com o "Desbloquear tudo" de teste).</li>
+<li class="f"><b>7 · Preços e calibração.</b> Feito: opções de 150 a 400; níveis 300, 600 e 1000, que abrem no Clube, no Regional e no Nacional. Com nível 2, o mestre faz ★★★ no Regional e vence o Dr. Curva. Com nível 3, vence O Campeão e o GP. Plano original: Preço por região, pago com o que a região dá (Garagem rende ~1.500 se fizer ★★★ em tudo; Nacional ~4.000). Os rivais e campeonatos já têm carro melhor: recalibrar o <code>CareerPlaytest</code> com o mestre usando o carro comprado, e o rival ganha preparação na região seguinte.</li>
+<li class="f"><b>8 · Migração.</b> Feito: o save antigo recebe as moedas das estrelas, rivais e títulos que já tem. Plano original: Sem jogadores lançados: o <code>perfil.json</code> perde <code>compras</code>; saves antigos começam com o carro padrão e zero moedas no slot (ou recebem as estrelas já feitas convertidas em moedas).</li>
+<li class="f"><b>9 · Guia e testes.</b> Seção nova no guia; teste por <code>script eval</code> da compra, do carro na prova e do mestre com e sem preparação.</li>
 </ul>
 </div>
 
@@ -183,6 +201,9 @@ th { color:var(--mut); font-weight:600; }
 
 <h2>Diário</h2>
 <ul class="log">
+<li><b>17/11/2026</b> · Garagem: no lugar da preparação de 3 níveis, 10 níveis por opção (motor curto e longo evoluem separados), níveis abertos por região, 50 × n moedas. A preparação antiga volta em moedas. Seção 78 do guia.</li>
+<li><b>17/11/2026</b> · Fase U pronta: peças abertas pela carreira (tela Peças), moedas no save, garagem do carro (opções e preparação em 3 níveis), save antigo convertido. Turbo explosivo ou eficiente, ganho a cada volta (mais para os últimos). Seções 78 e 79 do guia.</li>
+<li><b>17/11/2026</b> · Nitro no ajuste do carro (padrão, forte, longo). Plano da fase U: a moeda compra upgrades do carro, só na carreira; as peças de pista abrem direto pela carreira.</li>
 <li><b>16/11/2026</b> · Fase 7: Clube, Regional e Nacional (30 provas novas), campeonatos por tempo nas pistas largas. Selo das moedas sempre à vista. Correção do botão do painel na carreira. Seções 74.1 e 75 do guia.</li>
 <li><b>16/11/2026</b> · Fase M: perfil com moedas, Loja com 8 itens, travas no construtor, moedas na carreira e nas corridas, "Desbloquear tudo" de teste. Seção 74 do guia.</li>
 <li><b>16/11/2026</b> · Fase 6: campeonato da região (Copa Garagem), campeão abre a próxima região. A Garagem tem os 11 nós. Seção 73 do guia.</li>

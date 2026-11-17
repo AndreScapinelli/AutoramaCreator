@@ -36,7 +36,7 @@ namespace Autorama
         public bool miniOpen;           // aba Pilotos do minimapa aberta
         public int carTagMode = 1;      // em cima de cada carrinho (F1; seção 54): 0 desligada, 1 posição, nome e tempo (só no carro do jogador)
         public bool narra = true;       // narração da corrida na faixa do topo (F2; seção 60)
-        public bool turbo = true;       // turbo ligado (seção 37): tanque que enche a cada saída de pista
+        public bool turbo = true;       // turbo ligado (seção 37): tanque que enche a cada volta completa (seção 79)
         public bool ghost;              // corrida livre: correr contra o fantasma da melhor volta da pista (seção 55)
         public bool byTime;             // corrida por tempo (seção 26): dura "secs" e se divide em uma manche por trilho
         public int secs = 120;          // duração total da corrida por tempo, em segundos
@@ -86,26 +86,45 @@ namespace Autorama
         public int bolha;   // CarBody: 0 padrão, 1 asa (mais aderência em alta, final menor), 2 lisa (o contrário)
         public int pneu;    // 0 médio, 1 macio (mais aderência, final menor), 2 duro (o contrário)
         public int chassi;  // 0 padrão, 1 leve (responde rápido, escapa na hora), 2 pesado (segura no trilho, mais inércia)
+        public int nitro;   // turbo: 0 padrão, 1 explosivo (mais explosão, menos volume), 2 eficiente (menos explosão, mais volume)
+        // Níveis da carreira (seção 78): o nível 0–10 da opção escolhida em cada peça, comprado na garagem. Cada nível
+        // reforça o ponto forte da opção (o padrão, metade de cada lado). Não vão no JSON nem no código online (só a
+        // carreira põe); em 0 os multiplicadores dão exatamente 1.
+        [NonSerialized] public int lvMotor, lvBolha, lvPneu, lvChassi, lvNitro;
 
         // Quanto cada peça dá e tira (calibrado na seção 52; não são const para a calibração poder variar).
         public static float MotorAccel = 0.025f, MotorTop = 0.0125f;
         public static float TireGrip = 0.03f, TireTop = 0.015f;
         public static float BodyAero = 0.035f, BodyTop = 0.008f;
         public static float ChassiResp = 0.12f, ChassiSlip = 0.1f, ChassiDecay = 0.4f;
+        // Tipo de turbo (seção 77): o ganho de distância numa reta sem fim é v × boost × tempo do tanque cheio, então os
+        // três ficam perto de 0,75 (padrão 0,25 × 3 s). O explosivo rende nas retas compridas; o eficiente, nas de reta curta.
+        public static float NitroForteBoost = 0.35f, NitroForteTime = 2.2f, NitroLongoBoost = 0.17f, NitroLongoTime = 4.5f;
+        // Por nível (seção 78), no ponto forte da opção: final (motor longo, pneu duro, bolha lisa), aceleração (curto),
+        // aderência (macio), aerodinâmica (asa), resposta (chassi leve), derrapagem que demora a encher (pesado),
+        // velocidade do turbo (explosivo) e duração do tanque (eficiente).
+        public static float LvTop = 0.004f, LvAccel = 0.01f, LvGrip = 0.0025f, LvAero = 0.003f, LvResp = 0.012f, LvSlip = 0.015f,
+                            LvBoost = 0.01f, LvTank = 0.03f;
 
         static int Sign(int v, int plus) => v == plus ? 1 : v == 0 ? 0 : -1;
-        public float Top => (1f + MotorTop * Sign(motor, 2)) * (1f + TireTop * Sign(pneu, 2)) * (1f + BodyTop * Sign(bolha, 2));   // × velocidade final
-        public float Accel => 1f + MotorAccel * Sign(motor, 1);                 // × Accel (o empurrão do motor)
-        public float Grip => 1f + TireGrip * Sign(pneu, 1);                     // × aderência, em qualquer velocidade
-        public float Aero => BodyAero * Sign(bolha, 1);                         // aderência × (1 + Aero × (v / vmax)²)
-        public float Resp => 1f + ChassiResp * Sign(chassi, 1);                 // × ritmo do acelerador e × freio
-        public float Slip => 1f + ChassiSlip * Sign(chassi, 1);                 // × SlipGain (o quanto a derrapagem enche)
+        // Níveis que valem para o lado `want` da peça: a opção dele, inteiros; o padrão, metade; a outra, nada.
+        static float Lv(int lv, int opt, int want) => opt == want ? lv : opt == 0 ? lv * 0.5f : 0f;
+        public float Top => (1f + MotorTop * Sign(motor, 2)) * (1f + TireTop * Sign(pneu, 2)) * (1f + BodyTop * Sign(bolha, 2))
+                            * (1f + LvTop * (Lv(lvMotor, motor, 2) + Lv(lvPneu, pneu, 2) + Lv(lvBolha, bolha, 2)));          // × velocidade final
+        public float Accel => (1f + MotorAccel * Sign(motor, 1)) * (1f + LvAccel * Lv(lvMotor, motor, 1));   // × Accel (o empurrão do motor)
+        public float Grip => (1f + TireGrip * Sign(pneu, 1)) * (1f + LvGrip * Lv(lvPneu, pneu, 1));          // × aderência, em qualquer velocidade
+        public float Aero => BodyAero * Sign(bolha, 1) + LvAero * Lv(lvBolha, bolha, 1);                     // aderência × (1 + Aero × (v / vmax)²)
+        public float Resp => (1f + ChassiResp * Sign(chassi, 1)) * (1f + LvResp * Lv(lvChassi, chassi, 1));  // × ritmo do acelerador e × freio
+        public float Slip => (1f + ChassiSlip * Sign(chassi, 1)) * (1f - LvSlip * Lv(lvChassi, chassi, 2));  // × SlipGain (o quanto a derrapagem enche)
         public float Decay => 1f - ChassiDecay * Sign(chassi, 1);               // × SlipDecay (o quanto ela esvazia)
         public float Ramp => Accel * Resp;                                      // ÷ tempo do acelerador ("ramp")
+        public float Boost => (nitro == 1 ? NitroForteBoost : nitro == 2 ? NitroLongoBoost : RaceSim.TurboBoost) + LvBoost * Lv(lvNitro, nitro, 1);   // + velocidade máxima
+        public float BurnTime => (nitro == 1 ? NitroForteTime : nitro == 2 ? NitroLongoTime : RaceSim.TurboTime) * (1f + LvTank * Lv(lvNitro, nitro, 2));   // s de tanque cheio
 
         public static readonly string[] MotorNames = { "Padrão", "Curto", "Longo" }, BolhaNames = { "Padrão", "Asa", "Lisa" },
-                                        PneuNames = { "Médio", "Macio", "Duro" }, ChassiNames = { "Padrão", "Leve", "Pesado" };
-        public bool Padrao => motor == 0 && bolha == 0 && pneu == 0 && chassi == 0;
+                                        PneuNames = { "Médio", "Macio", "Duro" }, ChassiNames = { "Padrão", "Leve", "Pesado" },
+                                        NitroNames = { "Padrão", "Explosivo", "Eficiente" };
+        public bool Padrao => motor == 0 && bolha == 0 && pneu == 0 && chassi == 0 && nitro == 0;
         // "curto · asa · macio · leve": só as peças fora do padrão.
         public string Resumo
         {
@@ -117,10 +136,11 @@ namespace Autorama
                 if (bolha != 0) l.Add(BolhaNames[bolha].ToLowerInvariant());
                 if (pneu != 0) l.Add(PneuNames[pneu].ToLowerInvariant());
                 if (chassi != 0) l.Add(ChassiNames[chassi].ToLowerInvariant());
+                if (nitro != 0) l.Add("turbo " + NitroNames[nitro].ToLowerInvariant());
                 return string.Join(" · ", l);
             }
         }
-        public CarSetup Clamped => new CarSetup { motor = Mathf.Clamp(motor, 0, 2), bolha = Mathf.Clamp(bolha, 0, 2), pneu = Mathf.Clamp(pneu, 0, 2), chassi = Mathf.Clamp(chassi, 0, 2) };
+        public CarSetup Clamped => new CarSetup { motor = Mathf.Clamp(motor, 0, 2), bolha = Mathf.Clamp(bolha, 0, 2), pneu = Mathf.Clamp(pneu, 0, 2), chassi = Mathf.Clamp(chassi, 0, 2), nitro = Mathf.Clamp(nitro, 0, 2) };
 
         // Velocidade-limite numa curva: v² × k = G × (1 + Aero × v² / V²), com G a aderência (sem a aerodinâmica),
         // k a curvatura e V a velocidade máxima da pista. Sem aerodinâmica é √(G / k), a conta de sempre.
@@ -328,7 +348,7 @@ namespace Autorama
         public float s = RaceSim.GridS, v, hold, T, slip;
         public bool held;
         public float gas = 1f;   // até onde o acelerador vai enquanto está segurando (0–1): gatilho do controle ou tecla de meia
-        // Turbo (seção 37): tanque de 0 a 1 (começa vazio, enche a cada saída de pista), botão apertado e "esta volta usou turbo".
+        // Turbo (seção 37): tanque de 0 a 1 (começa vazio, enche a cada volta completa), botão apertado e "esta volta usou turbo".
         public float turbo;
         public bool boost, turboLap;
         public int side = 1;
@@ -368,9 +388,10 @@ namespace Autorama
         const float Accel = 3.5f, Brake = 1.8f, Brake0 = 0.5f, SlopeG = 8f, Fall = 3f;
         const float SlipGain = 3f, SlipDecay = 3f, YawMax = 38f;
         const float CarHL = 0.3f, CarHW = 0.16f, Restitution = 0.35f;
-        // Turbo: cada saída de pista enche o tanque, de TurboGainMin (quem lidera) a TurboGainMax (o último). Apertado, o
-        // carrinho busca (1 + TurboBoost) × a velocidade máxima e o tanque cheio dura TurboTime segundos.
-        public const float TurboGainMin = 0.2f, TurboGainMax = 0.5f, TurboBoost = 0.25f, TurboTime = 3f;
+        // Turbo: cada volta completa enche o tanque, de TurboGainMin (quem lidera) a TurboGainMax (o último e longe):
+        // handicap para quem ficou para trás (seção 79). Apertado, o carrinho busca (1 + TurboBoost) × a velocidade
+        // máxima e o tanque cheio dura TurboTime segundos (o tipo de turbo do ajuste muda os dois, seção 77).
+        public const float TurboGainMin = 0.1f, TurboGainMax = 0.4f, TurboBoost = 0.25f, TurboTime = 3f;
         // O ganho olha também a distância até o líder: TurboGap voltas atrás já conta como "longe"; TurboGapWeight é o
         // peso da distância na conta (o resto é a posição).
         public const float TurboGap = 0.5f, TurboGapWeight = 0.5f;
@@ -542,8 +563,8 @@ namespace Autorama
                     bool tb = set.turbo && c.boost && c.turbo > 0f && c.T > 0f && phase == Phase.Running;
                     // Distâncias × Scale, velocidades × Speed, acelerações × G (seção 25.5 do guia).
                     var su = setup[k];
-                    float top = set.vmax * Speed * su.Top * (tb ? 1f + TurboBoost : 1f);
-                    if (tb) { c.turbo = Mathf.Max(0f, c.turbo - dt / TurboTime); c.turboLap = true; }
+                    float top = set.vmax * Speed * su.Top * (tb ? 1f + su.Boost : 1f);
+                    if (tb) { c.turbo = Mathf.Max(0f, c.turbo - dt / su.BurnTime); c.turboLap = true; }
                     float a = (c.T == 0f ? -(Brake * c.v + Brake0 * Speed) * su.Resp : Accel * su.Accel * (c.T * top - c.v)) - SlopeG * G * here.slope;
                     c.v = Mathf.Max(0f, c.v + a * dt);
                     c.s += c.v * dt;
@@ -695,11 +716,10 @@ namespace Autorama
             c.flyW = -c.side * (220f + c.v * 30f);                           // gira no sentido da curva
             c.mode = CarMode.Off; c.load = 0f;
             c.exitS = c.s; c.v = 0f; c.slip = 0f; c.offs++;
-            if (set.turbo && phase == Phase.Running) c.turbo = Mathf.Min(1f, c.turbo + TurboGain(k));
             ScoreChanged?.Invoke();
         }
 
-        // Quanto o tanque enche numa saída: quem está mais atrás ganha mais (como os itens do Mario Kart).
+        // Quanto o tanque enche numa volta completa: quem está mais atrás ganha mais (como os itens do Mario Kart).
         // Metade pela posição (líder 0, último 1, os do meio em linha reta) e metade pela distância até o líder
         // (0 colado nele, 1 a partir de TurboGap voltas atrás). Assim o último que vem colado no líder ganha menos do
         // que o último que ficou longe. Líder TurboGainMin; último e longe, TurboGainMax; sozinho na pista, o meio.
@@ -741,6 +761,7 @@ namespace Autorama
             if (cr < 1 || c.finish != null || phase != Phase.Running) return;
             float lap = t - c.lapStart;
             c.lapStart = t; c.laps = cr;
+            if (set.turbo) c.turbo = Mathf.Min(1f, c.turbo + TurboGain(k));     // turbo por volta (seção 79)
             // A volta que pegou a troca de trilho é metade num trilho e metade no outro: conta, mas não vale como tempo.
             if (c.lapDirty) { c.lapDirty = false; ScoreChanged?.Invoke(); return; }
             c.lastLap = lap;
@@ -1010,7 +1031,7 @@ namespace Autorama
                 if (jumpNear) c.held = true;
             }
             // Turbo da IA: só quando nenhuma curva à frente pede freio nem na velocidade com turbo (retas longas).
-            c.boost = set.turbo && c.turbo > 0f && need > set.vmax * Speed * setup[k].Top * (1f + TurboBoost);
+            c.boost = set.turbo && c.turbo > 0f && need > set.vmax * Speed * setup[k].Top * (1f + setup[k].Boost);
         }
 
         // Melhor volta da bateria só entre gente: piloto IA não bate recorde da pista.

@@ -5,45 +5,41 @@ using UnityEngine;
 
 namespace Autorama
 {
-    // Perfil do jogador (seção 74 do guia): moedas e o que já comprou na Loja. Um por computador, em
-    // persistentDataPath/autorama/perfil.json; vale para todos os saves da carreira.
+    // Perfil do jogador (seção 78 do guia): por enquanto só o "Desbloquear tudo" de teste. Um por computador, em
+    // persistentDataPath/autorama/perfil.json. As moedas ficam no save da carreira (CareerSave.moedas).
     [Serializable]
     public class PlayerProfile
     {
-        public int moedas;
-        public List<string> compras = new List<string>();
         public bool tudo;                 // "Desbloquear tudo" (só enquanto Progresso.Teste)
-        public string ultimaPista;        // contra farm: a mesma pista várias vezes seguidas paga menos
-        public int seguidas;
     }
 
-    // Um item da Loja: um grupo de peças com preço e a região da carreira que o abre para compra.
-    public class ShopItem
+    // Um grupo de peças do construtor e a prova da carreira que o abre (terminar com ★ em qualquer save).
+    public class PieceUnlock
     {
-        public string id, nome, pecas;
-        public int preco, regiao;         // regiao: índice em carreira.json (0 = desde o começo)
-        public ShopItem(string id, string nome, string pecas, int preco, int regiao) { this.id = id; this.nome = nome; this.pecas = pecas; this.preco = preco; this.regiao = regiao; }
+        public string id, nome, pecas, no;
+        public PieceUnlock(string id, string nome, string pecas, string no) { this.id = id; this.nome = nome; this.pecas = pecas; this.no = no; }
     }
 
     public static class Progresso
     {
-        // Enquanto o jogo não sai: mostra o "Desbloquear tudo" nas Opções da Loja. No lançamento, false (o botão some
+        // Enquanto o jogo não sai: mostra o "Desbloquear tudo" na tela de Peças. No lançamento, false (o botão some
         // e o desbloqueio deixa de valer).
         public const bool Teste = true;
 
-        public static readonly ShopItem[] Loja =
+        // A prova que apresenta a peça abre a peça (seção 78): a primeira em que ela aparece.
+        public static readonly PieceUnlock[] Pecas =
         {
-            new ShopItem("curtinha", "Reta curtinha", "reta-curtinha", 150, 0),
-            new ShopItem("rampas", "Subida e descida", "rampas para ponte", 150, 0),
-            new ShopItem("troca", "Troca de faixa", "cruzamento e cruzamento curto", 250, 1),
-            new ShopItem("inclinadas", "Curvas inclinadas", "curva longa e curta inclinadas", 400, 1),
-            new ShopItem("curva-c", "Curva em C", "curva em C (1 a 3 fileiras)", 500, 2),
-            new ShopItem("salto", "Rampa de salto", "salto de vão 1", 600, 2),
-            new ShopItem("loop", "Loop", "loop", 1000, 3),
-            new ShopItem("salto-grande", "Saltos grandes", "salto de vão 2 e 3", 1200, 3),
+            new PieceUnlock("curtinha", "Reta curtinha", "reta-curtinha", "garagem-oficina"),
+            new PieceUnlock("inclinadas", "Curvas inclinadas", "curva longa e curta inclinadas", "clube-1"),
+            new PieceUnlock("troca", "Troca de faixa", "cruzamento e cruzamento curto", "clube-2"),
+            new PieceUnlock("rampas", "Subida e descida", "rampas para ponte", "clube-3"),
+            new PieceUnlock("salto", "Rampa de salto", "salto de vão 1", "regional-1"),
+            new PieceUnlock("curva-c", "Curva em C", "curva em C (1 a 3 fileiras)", "regional-3"),
+            new PieceUnlock("loop", "Loop", "loop", "nacional-1"),
+            new PieceUnlock("salto-grande", "Saltos grandes", "salto de vão 2 e 3", "nacional-2"),
         };
 
-        // Peça → item da Loja que a libera ("" = grátis).
+        // Peça → grupo que a libera ("" = grátis).
         public static string ItemOf(string pieceId) => pieceId switch
         {
             "reta-curtinha" => "curtinha",
@@ -55,17 +51,9 @@ namespace Autorama
             _ => "",
         };
 
-        // Prêmios (seção 74).
-        public static readonly int[] StarPrize = { 50, 75, 100 };            // 1ª, 2ª e 3ª estrela de um nó, só da 1ª vez
-        public const int RivalPrize = 300;                                    // rival vencido, 1ª vez
-        public static readonly int[] ChampPrize = { 500, 800, 1200, 2000 };   // campeão da região, 1ª vez
-        public const int RacePrize = 10, PlacePrize = 5, RecordPrize = 50, Streak = 3;
-        public const float OnlineBonus = 1.5f;
-
         static PlayerProfile p;
         public static PlayerProfile P => p ??= Load();
         public static event Action Changed;
-        public static event Action<int> Earned;     // moedas ganhas agora (o selo anima)
 
         static string PathOf => Path.Combine(TrackLibrary.Root, "perfil.json");
 
@@ -83,64 +71,42 @@ namespace Autorama
         }
 
         public static bool All => Teste && P.tudo;
-        public static bool Owns(string item) => string.IsNullOrEmpty(item) || All || P.compras.Contains(item);
 
-        // A maior região aberta em algum save da carreira. Região que ainda não existe no carreira.json conta como aberta
-        // (senão nada dela daria para comprar até ela ficar pronta).
-        public static int RegionReached()
+        // Grupos abertos em algum save (lidos dos saves e guardados; Refresh depois de salvar a carreira).
+        static HashSet<string> open;
+        static int reached = -1;
+        public static void Refresh() { open = null; reached = -1; Changed?.Invoke(); }
+        static void Scan()
         {
-            int n = Career.Def.regioes.Length, best = 0;
+            open = new HashSet<string>();
+            reached = 0;
+            int n = Career.Def.regioes.Length;
             for (int slot = 1; slot <= Career.Slots; slot++)
             {
                 var s = Career.Load(slot);
-                for (int i = 0; i < n; i++) if (Career.RegionOpen(s, i)) best = Mathf.Max(best, i);
+                foreach (var u in Pecas) if (Career.Stars(s, u.no) > 0) open.Add(u.id);
+                for (int i = 0; i < n; i++) if (Career.RegionOpen(s, i)) reached = Mathf.Max(reached, i);
             }
-            return best;
         }
+        public static bool Owns(string item) { if (string.IsNullOrEmpty(item) || All) return true; if (open == null) Scan(); return open.Contains(item); }
 
+        // A maior região aberta em algum save da carreira.
+        public static int RegionReached() { if (open == null) Scan(); return reached; }
+        // Região que ainda não existe no carreira.json conta como aberta.
         public static bool RegionOk(int regiao) => All || regiao >= Career.Def.regioes.Length || regiao <= RegionReached();
 
-        // Pode comprar? "" se pode; senão o motivo.
-        public static string CanBuy(ShopItem it)
-        {
-            if (Owns(it.id)) return "Já é seu.";
-            if (!RegionOk(it.regiao)) return $"Abre ao chegar na região {Career.Def.regioes[it.regiao].nome} da carreira.";
-            if (P.moedas < it.preco) return $"Faltam {it.preco - P.moedas} moedas.";
-            return "";
-        }
+        public static PieceUnlock UnlockOf(string item) { foreach (var u in Pecas) if (u.id == item) return u; return null; }
 
-        public static bool Buy(ShopItem it)
+        // "Clube › Troca de Faixa": a prova que abre o grupo.
+        public static string WhereText(PieceUnlock u)
         {
-            if (CanBuy(it) != "") return false;
-            P.moedas -= it.preco;
-            P.compras.Add(it.id);
-            Save();
-            return true;
-        }
-
-        public static int Earn(int coins)
-        {
-            if (coins <= 0) return 0;
-            P.moedas += coins;
-            Save();
-            Earned?.Invoke(coins);
-            return coins;
-        }
-
-        // Corrida fora da carreira (livre, campeonato, online): 10 + 5 por carro que ficou atrás. A partir da 4ª corrida
-        // seguida na mesma pista, metade.
-        public static int RacePay(string trackHash, int beaten, bool online)
-        {
-            if (P.ultimaPista == trackHash) P.seguidas++; else { P.ultimaPista = trackHash; P.seguidas = 1; }
-            float c = RacePrize + PlacePrize * Mathf.Max(0, beaten);
-            if (P.seguidas > Streak) c *= 0.5f;
-            if (online) c *= OnlineBonus;
-            return Earn(Mathf.RoundToInt(c));
+            foreach (var R in Career.Def.regioes) foreach (var n in R.nos) if (n.id == u.no) return $"{R.nome} › {n.nome}";
+            return u.no;
         }
 
         // ----- travas -----
 
-        // Peça da paleta: grátis, comprada, ou "Desbloquear tudo". Rampa precisa de "rampas"; salto de vão 2 e 3, de "salto-grande".
+        // Peça da paleta: grátis, aberta pela carreira, ou "Desbloquear tudo". Rampa precisa de "rampas"; salto de vão 2 e 3, de "salto-grande".
         public static bool EntryOk(PaletteEntry e) => Owns(ItemOf(e.def.Id)) && (e.rise == 0 || Owns("rampas"));
         public static bool PieceOk(string id) => Owns(ItemOf(id));
 
@@ -155,16 +121,15 @@ namespace Autorama
 
         public static string LockText(string pieceId)
         {
-            string id = ItemOf(pieceId);
-            foreach (var it in Loja) if (it.id == id) return $"{it.nome}: compre na Loja ({it.preco} moedas).";
-            return "Compre na Loja.";
+            var u = UnlockOf(ItemOf(pieceId));
+            return u != null ? $"{u.nome}: abre na carreira ({WhereText(u)})." : "Abre na carreira.";
         }
 
-        // Liga as travas da Loja no construtor e no Q (fora do construtor da carreira, que tem as regras da prova).
+        // Liga as travas da carreira no construtor e no Q (fora do construtor da carreira, que tem as regras da prova).
         public static void ApplyGate()
         {
             TrackBuilder.AllowedEntry = All ? null : EntryOk;
-            TrackBuilder.RuleNotice = "Esta peça é da Loja: compre com moedas (menu inicial › Loja).";
+            TrackBuilder.RuleNotice = "Esta peça abre na carreira (menu inicial › Peças mostra em que prova).";
             TrackBuilder.MaxPieces = 0;
             TrackBuilder.GapOk = v => v <= 1 || Owns("salto-grande");
             TrackBuilder.RiseOk = () => Owns("rampas");

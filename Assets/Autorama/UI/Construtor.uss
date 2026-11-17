@@ -685,3 +685,13 @@
 .coin-disc > Label { font-size: 14px; -unity-font-style: bold; color: rgb(110, 75, 0); margin: 0; padding: 0; -unity-text-align: middle-center; }
 .coin-text { font-size: 20px; -unity-font-style: bold; color: rgb(245, 194, 27); margin: 0; padding: 0; }
 .coin-pop { position: absolute; right: 10px; top: 100%; font-size: 18px; -unity-font-style: bold; color: rgb(61, 190, 116); -unity-text-outline-width: 1px; -unity-text-outline-color: rgb(10, 12, 11); margin: 0; padding: 0; display: none; }
+
+/* Garagem do carro (seção 78). */
+.k-top-right { flex-direction: row; align-items: center; }
+.k-top-right > .btn { margin-right: 10px; }
+.k-garage { width: 660px; max-height: 92%; }
+.k-garage-scroll { flex-shrink: 1; flex-grow: 1; margin: 4px 0; }
+.k-gar-head { font-size: 12px; -unity-font-style: bold; color: var(--texto-fraco); margin: 10px 0 2px 0; padding: 0; letter-spacing: 1px; }
+.k-gar-buy { color: rgb(245, 194, 27); }
+.k-gar-lv { margin: 0 0 8px 0; padding: 4px 10px; }
+.k-gar-track { font-size: 13px; -unity-font-style: bold; color: var(--destaque); margin: 0; padding: 0; }

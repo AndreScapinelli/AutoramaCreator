@@ -20,16 +20,18 @@ namespace Autorama
         const float CarPickWait = 45f;                              // online: o host fecha a escolha sozinho depois disso
         float CarPickWaitNow => MmRoom ? MmCarWait : CarPickWait;  // partida rápida: 20 s
 
-        // O ajuste numa mensagem: 1–81 (o ajuste) mais 81 se o piloto já confirmou. 0 = não é escolha (protocolo 4).
+        // O ajuste numa mensagem: 1–81 (o ajuste) mais 81 se o piloto já confirmou, mais 162 × nitro. 0 = não é escolha
+        // (protocolo 4). Com o nitro padrão o código é o mesmo de antes.
         public const int CarCodes = 81;
-        static int CarCode(CarSetup c, bool ok) => 1 + c.motor * 27 + c.bolha * 9 + c.pneu * 3 + c.chassi + (ok ? CarCodes : 0);
+        static int CarCode(CarSetup c, bool ok) => 1 + c.motor * 27 + c.bolha * 9 + c.pneu * 3 + c.chassi + (ok ? CarCodes : 0) + c.nitro * 2 * CarCodes;
         static CarSetup CarOf(int code, out bool ok)
         {
-            int v = Mathf.Clamp(code, 1, 2 * CarCodes) - 1;
+            int v = Mathf.Clamp(code, 1, 6 * CarCodes) - 1;
+            int nitro = v / (2 * CarCodes); v %= 2 * CarCodes;
             ok = v >= CarCodes; v %= CarCodes;
-            return new CarSetup { motor = v / 27, bolha = v / 9 % 3, pneu = v / 3 % 3, chassi = v % 3 };
+            return new CarSetup { motor = v / 27, bolha = v / 9 % 3, pneu = v / 3 % 3, chassi = v % 3, nitro = nitro };
         }
-        static bool Same(CarSetup a, CarSetup b) => a.motor == b.motor && a.bolha == b.bolha && a.pneu == b.pneu && a.chassi == b.chassi;
+        static bool Same(CarSetup a, CarSetup b) => a.motor == b.motor && a.bolha == b.bolha && a.pneu == b.pneu && a.chassi == b.chassi && a.nitro == b.nitro;
 
         // Robô: pista de muita curva, carro de curva (curto · asa · macio); de reta, carro de reta (longo · lisa · duro).
         // Chassi pesado nos dois: a IA freia pelo limite da curva e não arrisca, então o leve só tiraria a margem (seção 52).

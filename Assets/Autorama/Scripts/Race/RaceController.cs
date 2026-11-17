@@ -210,7 +210,6 @@ namespace Autorama
             TagsDestroy();
             CareerDestroy();
             Progresso.Changed -= OnProfileChanged;
-            Progresso.Earned -= OnEarned;
             if (builder) builder.Changed -= OnTrackChanged;
             if (panel) { panel.ModeChanged -= OnMode; panel.OptionsRequested -= ShowKeys; panel.TestRequested -= ToggleTest; }
             OnlineDestroy();
@@ -405,7 +404,6 @@ namespace Autorama
             AudioTick();
             KeysUpdate();
             ShopKeys();
-            CoinsTick();
             CoinTick();
             WetTick();                                        // a tela de teclas captura a próxima tecla (e some com Esc)
             CamKeys();
@@ -865,7 +863,7 @@ namespace Autorama
                 helpLabel.text = "<b>Segure</b> Acelerar e o acelerador sobe de 0 a 100%. <b>Soltou, zerou</b>: o carrinho freia.\n" +
                     "Rápido demais na curva, a traseira escorrega e a barra de <b>derrapagem</b> enche. Cheia, o carrinho sai da pista.\n" +
                     "<b>Recolocar</b> devolve o carrinho ao trilho, um pouco antes de onde ele saiu.\n" +
-                    "<b>Turbo</b>: começa vazio e enche um pouco a cada saída de pista (mais para quem está atrás). Segure para andar acima da velocidade máxima até o tanque acabar. Volta com turbo não vale como melhor volta.\n" +
+                    "<b>Turbo</b>: começa vazio e enche um pouco a cada volta completa (mais para quem está atrás). O tipo de turbo fica no ajuste do carro: explosivo ou eficiente. Segure para andar acima da velocidade máxima até o tanque acabar. Volta com turbo não vale como melhor volta.\n" +
                     $"<b>Teclas</b> (acelerar 100% · meia {set?.halfGas ?? 60}% · recolocar · turbo): " +
                     $"jogador 1 {KeyText(GasKeyAt(0))} · {KeyText(HalfKeyAt(0))} · {KeyText(ReslotKeyAt(0))} · {KeyText(TurboKeyAt(0))}; " +
                     $"jogador 2 {KeyText(GasKeyAt(1))} · {KeyText(HalfKeyAt(1))} · {KeyText(ReslotKeyAt(1))} · {KeyText(TurboKeyAt(1))}; " +
@@ -962,7 +960,7 @@ namespace Autorama
 
         // O cartão "Carro": as quatro peças (cada uma com as três opções), o que o ajuste dá e tira contra o padrão e o
         // limite da curva plana para este carro nesta pista. `change` recebe o ajuste novo a cada clique.
-        void DrawCarCard(VisualElement parent, CarSetup su, System.Action<CarSetup> change, bool full = true)
+        void DrawCarCard(VisualElement parent, CarSetup su, System.Action<CarSetup> change, bool full = true, bool rows = true)
         {
             var box = El("car-card", parent);
             void Row(string title, string[] names, int cur, System.Func<int, CarSetup> with)
@@ -975,10 +973,14 @@ namespace Autorama
                     Btn(names[o], () => change(with(oo)), cur == o ? "btn btn--on" : "btn", row);
                 }
             }
-            Row("Motor", CarSetup.MotorNames, su.motor, o => { var n = su; n.motor = o; return n; });
-            Row("Bolha", CarSetup.BolhaNames, su.bolha, o => { var n = su; n.bolha = o; return n; });
-            Row("Pneu", CarSetup.PneuNames, su.pneu, o => { var n = su; n.pneu = o; return n; });
-            Row("Chassi", CarSetup.ChassiNames, su.chassi, o => { var n = su; n.chassi = o; return n; });
+            if (rows)
+            {
+                Row("Motor", CarSetup.MotorNames, su.motor, o => { var n = su; n.motor = o; return n; });
+                Row("Bolha", CarSetup.BolhaNames, su.bolha, o => { var n = su; n.bolha = o; return n; });
+                Row("Pneu", CarSetup.PneuNames, su.pneu, o => { var n = su; n.pneu = o; return n; });
+                Row("Chassi", CarSetup.ChassiNames, su.chassi, o => { var n = su; n.chassi = o; return n; });
+                Row("Turbo", CarSetup.NitroNames, su.nitro, o => { var n = su; n.nitro = o; return n; });
+            }
             // Barra a partir do meio: verde para mais, laranja para menos. "range" é a variação que enche meia barra.
             void Stat(string name, float m, float range)
             {
@@ -1002,6 +1004,8 @@ namespace Autorama
             if (su.chassi != 0)
                 Text(su.chassi == 1 ? "Chassi leve: responde rápido, mas escapa fácil no limite da curva."
                                     : "Chassi pesado: mais lento no gatilho, perdoa o exagero na curva.", "small", box);
+            Text($"Turbo {CarSetup.NitroNames[su.nitro].ToLowerInvariant()}: +{su.Boost * 100f:0}% de velocidade máxima por {su.BurnTime:0.#} s de tanque cheio"
+                 + (su.nitro == 1 ? " (mais explosão, menos volume)." : su.nitro == 2 ? " (menos explosão, mais volume)." : "."), "small", box);
             if (!full) return;
             float sc = sim.Scale;
             var lanes = TrackMath.LanesOf(builder.Faixas);

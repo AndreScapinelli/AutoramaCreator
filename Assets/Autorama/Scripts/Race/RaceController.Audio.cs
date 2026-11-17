@@ -163,7 +163,7 @@ namespace Autorama
 
             // Turbo. Sopro contínuo: ar forte que pulsa (o chiado do motor, mais cheio) com duas notas quase iguais por
             // dentro; 1 s que emenda sem costura. Ligar: um "vuush" que sobe de 300 a 1500 Hz em 0,35 s.
-            // Tanque enchendo (saída de pista): três notas subindo, um "power-up" curto.
+            // Tanque enchendo (volta completa): três notas subindo, um "power-up" curto.
             var jetClip = Clip("Turbo: sopro", 1f, (t, i) => 0.55f * hiss[i] * (0.75f + 0.25f * Sin(14f, t)) + 0.14f * Sin(930f, t) + 0.1f * Sin(941f, t) + 0.06f * Sin(1860f, t));
             turboOnClip = Clip("Turbo: ligar", 0.35f, (t, i) =>
                 (0.45f * Mathf.Sin(2f * Mathf.PI * (300f * t + 1714f * t * t)) + 0.25f * Noise() * (t / 0.35f)) * Mathf.Min(1f, t / 0.01f) * Mathf.Min(1f, (0.35f - t) / 0.08f));
