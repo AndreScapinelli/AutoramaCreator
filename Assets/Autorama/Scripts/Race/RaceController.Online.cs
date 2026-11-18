@@ -933,7 +933,8 @@ namespace Autorama
                     thumb.tooltip = texts.tooltip = "Clique para ver a pista na mesa";
                 }
                 Text($"{i + 1}. {Safe(s.name)}", "lib-name", texts);
-                Text(local != null ? TrackLine(local.data) : s.tempo ? Dur(s.secs > 0 ? s.secs : 120) : $"{s.laps} {(s.laps == 1 ? "volta" : "voltas")}", "small", texts);
+                string fmt = s.tempo ? Dur(s.secs > 0 ? s.secs : 120) : $"{s.laps} {(s.laps == 1 ? "volta" : "voltas")}";
+                Text(local != null ? TrackLine(local.data) : draw != null ? fmt + " · " + TrackLine(draw) : fmt, "small", texts);
                 if (!host || local == null) continue;
                 var ctl = El("stage-ctl", item);
                 var step = El("stepper", ctl);

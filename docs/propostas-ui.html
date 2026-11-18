@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Autorama · propostas de interface</title>
+<style>
+  :root {
+    --sup-0: #0d110f; --sup-1: #161c19; --sup-2: #1f2723; --sup-3: #2a3430;
+    --linha: rgba(255,255,255,.08); --texto: #eef2ec; --fraco: #93a198;
+    --acao: #f5c21b; --sobre-acao: #1b1600; --ok: #3dbe74; --alerta: #f07a3a; --roxo: #c478ff; --ouro: #e8b54a;
+    --a: #f04a3f; --b: #5089f2; --c: #38ba62; --d: #f2b728;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #0a0d0c; color: var(--texto); font: 14px/1.4 "Segoe UI", system-ui, sans-serif; }
+  .page { max-width: 1040px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 28px; margin: 0 0 4px; }
+  .lead { color: var(--fraco); margin: 0 0 32px; }
+  h2 { font-size: 18px; margin: 40px 0 6px; }
+  .note { color: var(--fraco); margin: 0 0 12px; max-width: 760px; }
+  .note b { color: var(--texto); }
+  .frame { position: relative; width: 100%; aspect-ratio: 16/9; border-radius: 10px; overflow: hidden; border: 1px solid var(--linha); background: #26302b; }
+  .disp { font-family: "Bahnschrift", "Arial Narrow", sans-serif; font-stretch: condensed; font-style: italic; font-weight: 700; letter-spacing: .5px; font-variant-numeric: tabular-nums; }
+  .cap { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--fraco); font-weight: 600; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 18px; border-radius: 8px; background: var(--sup-3); color: var(--texto); font-weight: 600; border: 1px solid var(--linha); transition: transform .12s, background .12s; cursor: pointer; }
+  .btn:hover { transform: scale(1.03); background: #34403b; }
+  .btn.go { background: var(--acao); color: var(--sobre-acao); border-color: var(--acao); }
+  .ico { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* Mesa: madeira escura com a pista desfocada atrás */
+  .mesa { position: absolute; inset: 0; background:
+      radial-gradient(ellipse at 50% 60%, rgba(0,0,0,0) 30%, rgba(0,0,0,.65) 100%),
+      repeating-linear-gradient(90deg, #3a2a1d 0 2px, #33251a 2px 38px), #33251a; }
+  .pista { position: absolute; left: 14%; top: 18%; width: 72%; height: 64%; border: 34px solid #2a2d31; border-radius: 160px; box-shadow: inset 0 0 0 3px #555b62, 0 0 0 3px #555b62, 0 18px 30px rgba(0,0,0,.5); }
+  .pista::after { content: ""; position: absolute; inset: -20px; border: 2px dashed rgba(255,255,255,.12); border-radius: 160px; }
+  .blur .pista { filter: blur(3px); opacity: .7; }
+
+  /* 1 · Menu */
+  .menu { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1.25fr; align-items: center; padding: 0 6%; gap: 5%; }
+  .logo { font-size: 64px; line-height: .9; color: var(--acao); text-shadow: 0 4px 0 #8a6a00; }
+  .logo small { display: block; font-size: 16px; color: var(--texto); font-style: normal; letter-spacing: 4px; margin-top: 12px; text-shadow: none; }
+  .flag { height: 10px; width: 140px; margin: 18px 0; background: repeating-conic-gradient(#fff 0 25%, #111 0 50%) 0 0/10px 10px; }
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .card { background: rgba(22,28,25,.92); border: 1px solid var(--linha); border-radius: 12px; padding: 16px; display: flex; gap: 14px; align-items: center; transition: transform .12s, border-color .12s; }
+  .card:hover, .card.foco { transform: translateY(-2px) scale(1.02); border-color: var(--acao); }
+  .card .ico { width: 30px; height: 30px; color: var(--acao); flex: none; }
+  .card b { display: block; font-size: 18px; }
+  .card span { color: var(--fraco); font-size: 12px; }
+  .card.big { grid-column: span 2; padding: 20px; background: linear-gradient(100deg, rgba(245,194,27,.18), rgba(22,28,25,.92) 60%); }
+  .card.big b { font-size: 24px; }
+  .rodape { position: absolute; left: 6%; bottom: 18px; right: 6%; display: flex; justify-content: space-between; color: var(--fraco); font-size: 12px; }
+  .kbd { display: inline-block; padding: 1px 6px; border: 1px solid var(--linha); border-radius: 4px; background: var(--sup-2); color: var(--texto); font-size: 11px; }
+
+  /* 2 · Preparação */
+  .prep { position: absolute; inset: 0; display: grid; grid-template-columns: 200px 1fr 250px; background: rgba(13,17,15,.9); }
+  .passos { padding: 22px 16px; border-right: 1px solid var(--linha); }
+  .passos h3 { margin: 6px 0 18px; font-size: 22px; }
+  .passo { display: flex; gap: 10px; align-items: center; padding: 10px; border-radius: 8px; margin-bottom: 4px; color: var(--fraco); font-weight: 600; }
+  .passo i { width: 24px; height: 24px; border-radius: 12px; border: 2px solid currentColor; display: grid; place-items: center; font-style: normal; font-size: 12px; }
+  .passo.feito { color: var(--ok); }
+  .passo.on { background: var(--sup-2); color: var(--texto); }
+  .passo.on i { border-color: var(--acao); color: var(--acao); }
+  .centro { padding: 22px 24px; overflow: hidden; }
+  .centro h4 { margin: 0 0 4px; font-size: 20px; }
+  .q { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 9px; background: var(--sup-3); color: var(--fraco); font-size: 11px; margin-left: 6px; vertical-align: 2px; }
+  .pilotos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+  .pil { background: var(--sup-1); border-radius: 10px; padding: 12px; border-left: 5px solid var(--cor); }
+  .pil .top { display: flex; justify-content: space-between; align-items: center; }
+  .pil .nome { font-size: 18px; }
+  .seg { display: inline-flex; background: var(--sup-0); border-radius: 8px; padding: 3px; margin-top: 10px; }
+  .seg span { padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; color: var(--fraco); }
+  .seg span.on { background: var(--acao); color: var(--sobre-acao); }
+  .carro { display: flex; gap: 8px; margin-top: 10px; font-size: 12px; color: var(--fraco); }
+  .carro { flex-wrap: wrap; align-items: center; }
+  .carro em { white-space: nowrap; font-style: normal; background: var(--sup-2); padding: 2px 8px; border-radius: 10px; color: var(--texto); }
+  .add { display: grid; place-items: center; border: 2px dashed var(--sup-3); border-radius: 10px; color: var(--fraco); font-weight: 600; min-height: 110px; }
+  .resumo { padding: 22px 18px; border-left: 1px solid var(--linha); display: flex; flex-direction: column; background: var(--sup-1); }
+  .mini { height: 110px; border-radius: 10px; background: var(--sup-0); position: relative; margin: 8px 0 14px; }
+  .mini::after { content: ""; position: absolute; inset: 22px 30px; border: 6px solid #4b5157; border-radius: 40px; }
+  .kv { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--linha); font-size: 13px; }
+  .kv span { color: var(--fraco); }
+  .resumo .btn.go { margin-top: auto; height: 52px; font-size: 20px; }
+
+  /* 3 · HUD */
+  .hud .cena { position: absolute; inset: 0; background: linear-gradient(#cfd6cc 0 42%, #b9c1b6 42%); }
+  .hud .cena::before { content: ""; position: absolute; left: 30%; right: 30%; top: 42%; bottom: 0; background: #2a2d31; clip-path: polygon(45% 0, 55% 0, 100% 100%, 0 100%); }
+  .torre { position: absolute; left: 14px; top: 14px; width: 190px; background: rgba(13,17,15,.88); border-radius: 10px; overflow: hidden; }
+  .torre .head { padding: 8px 10px; display: flex; justify-content: space-between; background: var(--sup-2); }
+  .lin { display: grid; grid-template-columns: 22px 6px 1fr auto; gap: 8px; align-items: center; padding: 6px 10px; font-size: 14px; border-top: 1px solid var(--linha); }
+  .lin .c { height: 18px; border-radius: 2px; background: var(--cor); }
+  .lin.eu { background: rgba(245,194,27,.12); }
+  .lin .gap { color: var(--fraco); font-size: 13px; }
+  .volta { position: absolute; left: 50%; top: 14px; transform: translateX(-50%); text-align: center; }
+  .volta .big { font-size: 40px; line-height: 1; padding: 6px 18px; background: rgba(13,17,15,.88); border-radius: 10px; }
+  .volta .big small { font-size: 18px; color: var(--fraco); }
+  .narra { margin-top: 8px; padding: 6px 14px; background: rgba(13,17,15,.85); border-left: 4px solid var(--acao); border-radius: 6px; font-weight: 600; font-size: 14px; }
+  .mapa { position: absolute; right: 14px; top: 14px; width: 170px; height: 100px; background: rgba(13,17,15,.88); border-radius: 10px; }
+  .mapa::after { content: ""; position: absolute; inset: 18px 22px; border: 4px solid #6b737a; border-radius: 30px; }
+  .ponto { position: absolute; width: 12px; height: 12px; border-radius: 6px; border: 2px solid #fff; background: var(--cor); z-index: 1; }
+  .meu { position: absolute; left: 14px; bottom: 14px; display: flex; gap: 12px; align-items: flex-end; padding: 12px; background: rgba(13,17,15,.88); border-radius: 12px; border-top: 4px solid var(--a); }
+  .gas { width: 28px; height: 110px; border-radius: 6px; background: var(--sup-0); position: relative; overflow: hidden; }
+  .gas::before { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 72%; background: linear-gradient(var(--a), #a52a22); }
+  .gas::after { content: ""; position: absolute; left: -2px; right: -2px; bottom: 60%; height: 2px; background: var(--alerta); }
+  .vel { font-size: 46px; line-height: .9; }
+  .vel small { display: block; font-size: 12px; color: var(--fraco); font-style: normal; }
+  .turbo { margin-top: 8px; width: 150px; height: 10px; border-radius: 5px; background: var(--sup-0); overflow: hidden; }
+  .turbo div { width: 65%; height: 100%; background: linear-gradient(90deg, #2878c8, #5ac0ff); }
+  .outro { position: absolute; right: 14px; bottom: 14px; padding: 10px 12px; background: rgba(13,17,15,.75); border-radius: 10px; border-top: 4px solid var(--b); font-size: 13px; }
+
+  .antes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
+  .antes div { background: var(--sup-1); border-radius: 10px; padding: 12px 14px; font-size: 13px; }
+  .antes b { display: block; margin-bottom: 4px; }
+  .antes .x b { color: var(--alerta); } .antes .v b { color: var(--ok); }
+  .paleta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .sw { width: 110px; border-radius: 8px; overflow: hidden; background: var(--sup-1); font-size: 12px; }
+  .sw div { height: 40px; }
+  .sw p { margin: 0; padding: 6px 8px; }
+  .sw p span { color: var(--fraco); display: block; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="i-build" viewBox="0 0 24 24"><path d="M3 17h6v4H3zM9 13h6v8H9zM15 9h6v12h-6zM3 7l6-4 6 4 6-4"/></symbol>
+  <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H4a3 3 0 0 0 4 4M16 6h4a3 3 0 0 1-4 4M12 13v4M8 21h8M9 17h6"/></symbol>
+  <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4M5 4h12l-2 4 2 4H5"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></symbol>
+  <symbol id="i-net" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></symbol>
+  <symbol id="i-car" viewBox="0 0 24 24"><path d="M4 15l2-6h12l2 6v3H4zM4 15h16M7 18v2M17 18v2"/><circle cx="8" cy="15" r="1"/><circle cx="16" cy="15" r="1"/></symbol>
+</svg>
+<div class="page">
+  <h1>Autorama · propostas de interface</h1>
+  <p class="lead">Protótipos das propostas B, C e F de <code>docs/PROPOSTAS-UI.md</code>. As cores e as medidas são as sugeridas; o layout ainda não está desenhado na Unity.</p>
+
+  <h2>1 · Menu inicial em tela cheia</h2>
+  <p class="note">Sem o construtor atrás. A pista atual desfocada sobre a mesa de madeira, a <b>Carreira em destaque</b> (o caminho principal) e seis cartões com ícone de verdade. O foco do teclado e do controle aparece com a borda amarela.</p>
+  <div class="frame blur">
+    <div class="mesa"></div><div class="pista"></div>
+    <div class="menu">
+      <div>
+        <div class="logo disp">AUTO<br>RAMA<small>MONTE · CHAME · ACELERE</small></div>
+        <div class="flag"></div>
+      </div>
+      <div class="cards">
+        <div class="card big foco"><svg class="ico"><use href="#i-flag"/></svg><div><b>Carreira</b><span>Continuar · Regional · ★ 62/123</span></div></div>
+        <div class="card"><svg class="ico"><use href="#i-play"/></svg><div><b>Corrida rápida</b><span>Você contra amigos ou o robô</span></div></div>
+        <div class="card"><svg class="ico"><use href="#i-trophy"/></svg><div><b>Campeonato</b><span>Etapas, tabela e recordes</span></div></div>
+        <div class="card"><svg class="ico"><use href="#i-net"/></svg><div><b>Online</b><span>Partida rápida ou sala</span></div></div>
+        <div class="card"><svg class="ico"><use href="#i-build"/></svg><div><b>Construtor</b><span>Monte e teste sua pista</span></div></div>
+      </div>
+    </div>
+    <div class="rodape"><span><span class="kbd">Peças</span> <span class="kbd">Opções</span> <span class="kbd">Sair</span></span><span><span class="kbd">Enter</span> escolher · <span class="kbd">Esc</span> voltar</span></div>
+  </div>
+
+  <h2>2 · Preparação da corrida (sai da barra lateral)</h2>
+  <p class="note">Mesmo molde para Corrida, Campeonato e Online. <b>Passos à esquerda, o passo aberto no centro, o resumo e o LARGAR fixos à direita.</b> As explicações longas vão para o "?" de cada título. Os blocos de hoje (<code>raceBox</code>, <code>champBox</code>) mudam de lugar sem refazer a lógica.</p>
+  <div class="frame">
+    <div class="mesa"></div>
+    <div class="prep">
+      <div class="passos">
+        <div class="cap">Corrida rápida</div>
+        <h3 class="disp">PREPARAR</h3>
+        <div class="passo feito"><i>✓</i>Pista</div>
+        <div class="passo on"><i>2</i>Pilotos e carros</div>
+        <div class="passo"><i>3</i>Regras</div>
+      </div>
+      <div class="centro">
+        <h4>Pilotos e carros <span class="q">?</span></h4>
+        <div class="cap">2 de 2 trilhos</div>
+        <div class="pilotos">
+          <div class="pil" style="--cor:var(--a)">
+            <div class="top"><b class="nome disp">JOGADOR 1</b><span class="cap">Trilho 1</span></div>
+            <div class="seg"><span class="on">Pessoa</span><span>Robô</span></div>
+            <div class="carro"><svg class="ico"><use href="#i-car"/></svg><em>Motor curto</em><em>Pneu médio</em><em>Asa</em></div>
+          </div>
+          <div class="pil" style="--cor:var(--b)">
+            <div class="top"><b class="nome disp">ROBÔ</b><span class="cap">Trilho 2</span></div>
+            <div class="seg"><span>Pessoa</span><span class="on">Robô · 60</span></div>
+            <div class="carro"><svg class="ico"><use href="#i-car"/></svg><em>Padrão</em></div>
+          </div>
+          <div class="add">+ Pista de 4 trilhos para mais carros</div>
+        </div>
+      </div>
+      <div class="resumo">
+        <div class="cap">Resumo</div>
+        <div class="mini"></div>
+        <div class="kv"><span>Pista</span><b>Oval 2.0</b></div>
+        <div class="kv"><span>Formato</span><b>5 voltas</b></div>
+        <div class="kv"><span>Turbo</span><b>Ligado</b></div>
+        <div class="kv"><span>Recorde</span><b class="disp">7,412 s</b></div>
+        <div class="btn go disp">LARGAR ▸</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>3 · HUD da corrida</h2>
+  <p class="note"><b>Torre de posições à esquerda</b> (substitui as fichas do topo e a lista do minimapa), volta grande no centro com a narração embaixo, minimapa no tamanho da pista e o <b>painel do jogador compacto no canto</b>: acelerador vertical com a marca da meia, velocidade e turbo. A tecla só aparece no grid. Sem as réguas do construtor.</p>
+  <div class="frame hud">
+    <div class="cena"></div>
+    <div class="torre">
+      <div class="head"><span class="cap">Volta 3/5</span><span class="cap">Dif.</span></div>
+      <div class="lin eu disp" style="--cor:var(--a)"><span>1</span><span class="c"></span><span>JOG</span><span class="gap">líder</span></div>
+      <div class="lin disp" style="--cor:var(--b)"><span>2</span><span class="c"></span><span>ROB</span><span class="gap">+0,84</span></div>
+      <div class="lin disp" style="--cor:var(--c)"><span>3</span><span class="c"></span><span>ANA</span><span class="gap">+2,10</span></div>
+      <div class="lin disp" style="--cor:var(--d)"><span>4</span><span class="c"></span><span>LEO</span><span class="gap">+1 v</span></div>
+    </div>
+    <div class="volta">
+      <div class="big disp">3<small>/5</small></div>
+      <div class="narra">Jogador 1 abre vantagem na curva inclinada!</div>
+    </div>
+    <div class="mapa">
+      <span class="ponto" style="--cor:var(--a); left:40px; top:12px"></span>
+      <span class="ponto" style="--cor:var(--b); left:70px; top:12px"></span>
+      <span class="ponto" style="--cor:var(--c); right:16px; top:44px"></span>
+    </div>
+    <div class="meu">
+      <div class="gas"></div>
+      <div>
+        <div class="cap">Jogador 1</div>
+        <div class="vel disp">14,2<small>cél/s</small></div>
+        <div class="turbo"><div></div></div>
+        <div class="cap" style="margin-top:4px">Turbo 65%</div>
+      </div>
+    </div>
+    <div class="outro"><b class="disp">ROBÔ · 60</b><br><span style="color:var(--fraco)">Trilho 2</span></div>
+  </div>
+
+  <h2>4 · Papéis de cor</h2>
+  <p class="note">Cada cor com uma função só. O amarelo deixa de ser título, estrela e moeda ao mesmo tempo.</p>
+  <div class="paleta">
+    <div class="sw"><div style="background:var(--acao)"></div><p>Ação e foco<span>LARGAR, escolhido</span></p></div>
+    <div class="sw"><div style="background:var(--texto)"></div><p>Títulos<span>texto principal</span></p></div>
+    <div class="sw"><div style="background:var(--ok)"></div><p>Ok<span>fechado, melhor pessoal</span></p></div>
+    <div class="sw"><div style="background:var(--alerta)"></div><p>Alerta<span>saiu, erro, apagar</span></p></div>
+    <div class="sw"><div style="background:var(--roxo)"></div><p>Melhor volta<span>da prova</span></p></div>
+    <div class="sw"><div style="background:var(--ouro)"></div><p>Prêmio<span>estrela, moeda, recorde</span></p></div>
+    <div class="sw"><div style="background:linear-gradient(90deg,var(--sup-0),var(--sup-1),var(--sup-2),var(--sup-3))"></div><p>Superfícies<span>4 níveis, mais nada</span></p></div>
+  </div>
+
+  <h2>5 · Antes e depois, em resumo</h2>
+  <div class="antes">
+    <div class="x"><b>Hoje</b>Tudo na barra "Construtor de pista" com 4 abas de 10 px · parágrafos em toda seção · amarelo em tudo · lista suspensa e caixa de seleção brancas da Unity · ícones em Unicode (⚑ vira quadrado) · dicas que não aparecem no jogo · régua do construtor na corrida.</div>
+    <div class="v"><b>Proposta</b>Menu e preparação em tela cheia · barra lateral só no construtor · texto de 13 px no mínimo e "?" para explicar · uma cor por função · kit de componentes com controles estilizados · ícones SVG e dica própria · HUD em torre, acelerador compacto.</div>
+  </div>
+</div>
+</body>
+</html>

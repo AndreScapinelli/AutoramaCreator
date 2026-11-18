@@ -140,6 +140,7 @@ namespace Autorama
         }
         readonly List<Label> colLabels = new List<Label>(), rowLabels = new List<Label>();
         List<TrackLibrary.Entry> library = new List<TrackLibrary.Entry>();
+        int libRatings; float libRatingsAt;
         string armed;
         float armedUntil, toastUntil;
         bool sideVisible = true, framed;
@@ -751,6 +752,7 @@ namespace Autorama
         void SaveTrack()
         {
             if (string.IsNullOrWhiteSpace(builder.TrackName)) builder.TrackName = $"Pista {library.Count + 1}";
+            if (string.IsNullOrWhiteSpace(builder.Author)) builder.Author = LocalAuthor;      // a pista é de quem a salvou primeiro
             TrackLibrary.Save(builder.ToSave());
             RefreshLibrary();
             Say($"“{builder.TrackName}” salva.");
@@ -843,6 +845,9 @@ namespace Autorama
                 if (kb.qKey.wasPressedThisFrame && !Locked) AutoClose();
             }
             if (toast.style.display == DisplayStyle.Flex && Time.unscaledTime > toastUntil) toast.style.display = DisplayStyle.None;
+            // Notas das pistas chegando da Steam (seção 83): redesenha a biblioteca, no máximo uma vez por segundo.
+            if (libRatings != TrackRatings.Version && Time.unscaledTime - libRatingsAt > 1f && libList != null && builder.Info != null)
+            { libRatings = TrackRatings.Version; libRatingsAt = Time.unscaledTime; DrawLibrary(); }
 
             // Célula sob o mouse (só sobre a mesa e fora do painel).
             Vector2Int? cell = null;
@@ -960,9 +965,21 @@ namespace Autorama
                 var o = s.Origin;
                 var segs = TrackLayout.Build(o, s.Pieces(), s.Tail, s.StartZ);
                 var a = TrackLayout.Analyze(o, segs, s.Tail, s.Faixas);
-                return $"{s.Faixas} trilhos · {segs.Count} peças · {Num(a.centerLength * s.escalaCm * TrackMath.Scale(s.Faixas) / 100f)} m · " + (a.closed ? "fechada" : "<color=#F07A3A>aberta</color>");
+                string by = string.IsNullOrWhiteSpace(s.autor) ? "" : $" · de {s.autor.Replace("<", "<​")}";
+                return $"{s.Faixas} trilhos · {segs.Count} peças · {Num(a.centerLength * s.escalaCm * TrackMath.Scale(s.Faixas) / 100f)} m · " + (a.closed ? "fechada" : "<color=#F07A3A>aberta</color>") + by + TrackRatings.Line(s);
             }
             catch { return "não deu para ler"; }
+        }
+
+        // O nome de quem está jogando aqui: o da Steam, ou o que foi digitado no online (seção 83).
+        internal static string LocalAuthor
+        {
+            get
+            {
+                string n = SteamBoot.Ready ? SteamBoot.PersonaName : PlayerPrefs.GetString("autorama.online.nome", "");
+                n = (n ?? "").Trim();
+                return n.Length > 20 ? n.Substring(0, 20) : n;
+            }
         }
 
         internal static string LaneSwatch(int l) => "swatch--" + (char)('a' + l);

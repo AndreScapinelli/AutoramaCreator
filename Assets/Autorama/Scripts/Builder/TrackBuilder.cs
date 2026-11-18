@@ -48,6 +48,7 @@ namespace Autorama
         };
 
         public string TrackName { get; set; } = "";
+        public string Author { get; set; } = "";           // quem criou a pista (seção 83); vazio: ainda ninguém salvou
         // 2 ou 4 carros. A geometria em células é a mesma; na pista de 4, a raiz das peças e a mesa ficam com escala 2
         // (1 célula = 2 unidades do mundo). Converta com CellToWorld/WorldToCell (seção 25 do guia).
         public int Faixas { get; private set; } = 2;
@@ -272,12 +273,13 @@ namespace Autorama
             Tail = 0;
             StartZ = 0;
             TrackName = "";
+            Author = "";
             Selected = -1;
         });
 
         public void Load(TrackSave s) => Commit(() => { Apply(s); Selected = -1; });
 
-        public TrackSave ToSave() => TrackSave.From(TrackName, boardSize, cellCm, Origin, pieces, Tail, Faixas, StartZ);
+        public TrackSave ToSave() { var s = TrackSave.From(TrackName, boardSize, cellCm, Origin, pieces, Tail, Faixas, StartZ); s.autor = Author ?? ""; return s; }
 
         // Adapta a pista aberta para 2, 4 ou 6 carros (seção 32 do guia). Sem perda: as peças, a forma em células, a
         // largada e a mesa são as mesmas; só mudam a largura da pista, o número de trilhos e a escala no mundo.
@@ -380,6 +382,7 @@ namespace Autorama
             cellCm = s.escalaCm > 0 ? s.escalaCm : 15f;
             Faixas = s.Faixas;
             TrackName = s.nome ?? "";
+            Author = s.autor ?? "";
             if (Selected >= pieces.Count) Selected = -1;
         }
 

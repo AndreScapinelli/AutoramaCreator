@@ -168,7 +168,8 @@ namespace Autorama
 
         class PadUI { public VisualElement root, gas, fill, speed, slip, turbo, turboFill; public Label turboText; public Label name, state, gasText; public VisualElement half; public Label halfTri; public Button reslot; public string flash; public bool flashRec; public float flashT; }
         readonly PadUI[] pads = new PadUI[RaceSim.MaxCars];
-        VisualElement pickList, scoreBox, padsBox, topBox, lights, banner;
+        VisualElement pickList, scoreBox, padsBox, topBox, lights, banner, raceClock;
+        Label raceClockBig, raceClockSub;
         Label raceHint, clock, gripHint, bannerTitle, bannerSub, bannerRec;
         Button startBtn;
         // Menu da câmera: botão no canto superior direito da mesa que abre a lista de modos.
@@ -417,6 +418,8 @@ namespace Autorama
 
         void Update()
         {
+            TrackRatings.Tick();
+            RatingsRedraw();
             OnlineTick();
             AudioTick();
             KeysUpdate();
@@ -658,6 +661,11 @@ namespace Autorama
             // Sobre a mesa: luzes e aviso de vitória no topo; os dois jogadores embaixo.
             var root = panel.Root;
             topBox = El("race-top", root); topBox.pickingMode = PickingMode.Ignore;
+            // Volta e relógio da prova, grandes, em cima das fichas (sem precisar abrir o painel com Tab).
+            raceClock = El("race-clock", topBox); raceClock.pickingMode = PickingMode.Ignore;
+            raceClockBig = Text("", "race-clock-big", raceClock); raceClockBig.pickingMode = PickingMode.Ignore;
+            raceClockSub = Text("", "race-clock-sub", raceClock); raceClockSub.pickingMode = PickingMode.Ignore;
+            raceClock.style.display = DisplayStyle.None;
             hudBox = El("hud", topBox); hudBox.pickingMode = PickingMode.Ignore;
             for (int k = 0; k < RaceSim.MaxCars; k++)
             {
@@ -685,6 +693,8 @@ namespace Autorama
             carPick.style.display = DisplayStyle.None;
             BuildPauseUI();                                // pausa no P (RaceController.Pause.cs)
             resTable = El("res-table", banner);
+            rateBox = El("rate-box", banner);                // nota da pista no fim de cada corrida online (seção 83)
+            rateBox.style.display = DisplayStyle.None;
             resBtns = El("res-btns", banner);
             resAgain = Btn("Correr de novo  (Enter)", () => { if (ChampLike) ChampEnter(); else StartRace(); }, "btn btn--accent res-btn", resBtns);
             resNext = Btn("Trocar pista", () => { sideAutoHidden = false; panel.SetSideFromRace(true); }, "btn res-btn", resBtns);
@@ -1511,6 +1521,7 @@ namespace Autorama
         {
             resTable.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
             resBtns.style.display = show && !OnlineRun ? DisplayStyle.Flex : DisplayStyle.None;
+            DrawRate(show);
             banner.pickingMode = show && !OnlineRun ? PickingMode.Position : PickingMode.Ignore;
             if (!show) return;
             resTable.Clear();
@@ -1546,10 +1557,48 @@ namespace Autorama
             }
         }
 
+        // ---------- Nota da pista (seção 83) ----------
+
+        VisualElement rateBox;
+        string rateHash;
+        int ratingsSeen; float ratingsAt;
+
+        // No resultado de cada corrida online (campeonato e partida rápida), embaixo da classificação: 1 a 5 estrelas
+        // para a pista, com a média de todos. Só com a Steam (a nota fica no placar dela).
+        void DrawRate(bool show)
+        {
+            string hash = show && OnlineRun && TrackRatings.Available && HeatNow(out _, out _, out _, out var st, out _) ? st.hash : null;
+            rateHash = hash;
+            rateBox.style.display = hash != null ? DisplayStyle.Flex : DisplayStyle.None;
+            if (hash == null) return;
+            rateBox.Clear();
+            var i = TrackRatings.Get(hash);
+            Text(i.mine > 0 ? "Sua nota para esta pista (clique para trocar)" : "Que nota você dá para esta pista?", "rate-title", rateBox);
+            var row = El("rate-stars", rateBox);
+            for (int n = 1; n <= TrackRatings.Max; n++)
+            {
+                int v = n;
+                var b = Btn(n <= i.mine ? "★" : "☆", () => { TrackRatings.Rate(hash, v); DrawRate(true); panel.Toast($"Nota {v} enviada."); }, "rate-star", row);
+                b.EnableInClassList("rate-star--on", n <= i.mine);
+                b.tooltip = $"{v} {(v == 1 ? "estrela" : "estrelas")}";
+            }
+            Text(!i.done ? "lendo as notas…" : i.count > 0 ? $"média ★ {Num(i.avg)} · {i.count} {(i.count == 1 ? "nota" : "notas")}" : "ainda sem notas: a sua é a primeira", "rate-sub", rateBox);
+        }
+
+        // As notas chegam aos poucos: refaz o cartão do resultado e o lobby online, no máximo uma vez por segundo.
+        void RatingsRedraw()
+        {
+            if (ratingsSeen == TrackRatings.Version || Time.unscaledTime - ratingsAt < 1f || panel == null) return;
+            ratingsSeen = TrackRatings.Version; ratingsAt = Time.unscaledTime;
+            if (rateHash != null) DrawRate(true);
+            if (room != null && !OnlineRun) DrawLobby();
+        }
+
         void UpdateTop()
         {
             topBox.style.left = panel.SideWidth;
             UpdateHud();
+            UpdateRaceClock();
             UpdateCountdown();
             bool showLights = sim.phase == RaceSim.Phase.Countdown || (sim.phase == RaceSim.Phase.Running && sim.t - sim.Manche * (sim.ByTime ? sim.MancheLen : 0f) < 1f);
             lights.style.display = showLights ? DisplayStyle.Flex : DisplayStyle.None;
@@ -1623,6 +1672,39 @@ namespace Autorama
         {
             if (sim.ByTime) return sim.phase == RaceSim.Phase.Idle ? Fmt(sim.set.secs) : Fmt(sim.TimeLeft);
             return Fmt(sim.phase == RaceSim.Phase.Idle || sim.phase == RaceSim.Phase.Countdown ? 0f : sim.t);
+        }
+
+        // Placar do topo: por voltas, a volta (a do jogador, se só um corre neste computador; senão a do líder) e o tempo
+        // de prova; por tempo, quanto falta (vermelho nos últimos 10 s) e a manche.
+        void UpdateRaceClock()
+        {
+            bool show = sim.closed && RaceUI && (sim.phase == RaceSim.Phase.Countdown || sim.phase == RaceSim.Phase.Running || sim.phase == RaceSim.Phase.Switch);
+            raceClock.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+            if (!show) return;
+            bool cd = sim.phase == RaceSim.Phase.Countdown;
+            if (sim.ByTime)
+            {
+                float left = cd ? sim.set.secs : sim.TimeLeft;
+                raceClockBig.text = Clock(left);
+                raceClockSub.text = sim.N > 1 ? $"faltam · {MancheText}" : "faltam";
+                raceClock.EnableInClassList("race-clock--fim", !cd && left <= 10f);
+                return;
+            }
+            int L = sim.set.laps, me = -1, mine = 0;
+            for (int k = 0; k < sim.N; k++) if (sim.present[k] && TagMine(k)) { me = k; mine++; }
+            int who = mine == 1 ? me : Order()[0];
+            int lap = Mathf.Clamp(sim.cars[who].laps + 1, 1, L);
+            bool last = !cd && lap == L && sim.cars[who].finish == null;
+            raceClockBig.text = last ? "ÚLTIMA VOLTA" : $"VOLTA {lap}/{L}";
+            raceClockSub.text = Clock(cd ? 0f : sim.t) + (mine == 1 ? "" : " · líder");
+            raceClock.EnableInClassList("race-clock--fim", last);
+        }
+
+        // 1:05 · 0:09 (relógio do placar do topo).
+        static string Clock(float s)
+        {
+            int t = Mathf.CeilToInt(Mathf.Max(0f, s) - 0.001f);
+            return $"{t / 60}:{t % 60:00}";
         }
 
         // Distância em voltas com uma casa (por tempo) ou "voltas/total" (por voltas).

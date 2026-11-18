@@ -48,7 +48,7 @@ namespace Autorama
                 q.c[k] = new NarraCarro
                 {
                     presente = sim.present[k], fora = c.mode != CarMode.OnSlot, turbo = c.boost && c.turbo > 0f, chegou = c.finish.HasValue,
-                    pos = ord.IndexOf(k), voltas = c.laps, saidas = c.offs, onde = lp.loop ? 1 : lp.jump || lp.gap ? 2 : 0,
+                    pos = ord.IndexOf(k), voltas = c.laps, saidas = c.offs, batidas = c.hits, onde = lp.loop ? 1 : lp.jump || lp.gap ? 2 : 0,
                     dist = sim.Dist(k), melhor = c.best, aviso = pads[k].flashT > 0f ? pads[k].flash : null, nome = ShortName(hud[k].name.text),
                 };
             }

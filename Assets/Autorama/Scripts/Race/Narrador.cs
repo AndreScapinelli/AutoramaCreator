@@ -6,7 +6,7 @@ namespace Autorama
     public struct NarraCarro
     {
         public bool presente, fora, turbo, chegou;
-        public int pos, voltas, saidas;
+        public int pos, voltas, saidas, batidas;   // batidas: toques em outro carro (CarState.hits)
         public int onde;          // onde saiu da pista: 0 pista, 1 loop, 2 salto
         public float dist;        // voltas andadas com a fração da volta (RaceSim.Dist)
         public float? melhor;     // melhor volta da prova
@@ -48,6 +48,9 @@ namespace Autorama
         public const float DisputaTempo = 15f;    // segundos colados para narrar a disputa
         public const float TurboIntervalo = 15f;  // por carro
         public const float LiderForaTempo = 20f;  // segundos de prova antes de reparar no líder do campeonato fora do pódio
+        public const float BatidaJanela = 1.5f;   // toque em outro carro até isso antes da saída: a saída foi por batida
+        public const float RepeteJanela = 12f;    // saiu de novo antes disso: "de novo?"
+        public const int PerdeuMin = 2;           // posições perdidas na saída para narrar a volta à pista
 
         public string Atual { get; private set; } = "";
         public int AtualPrio { get; private set; }
@@ -55,11 +58,14 @@ namespace Autorama
         struct Fala { public string txt; public int prio; public float t; }
         readonly List<Fala> fila = new List<Fala>();
         readonly System.Random rng;
-        readonly Dictionary<string, int[]> usadas = new Dictionary<string, int[]>();
+        readonly Dictionary<string, List<int>> usadas = new Dictionary<string, List<int>>();
         float relogio, mostra, espera, inicio;
         RaceSim.Phase faseAnt = RaceSim.Phase.Idle;
+        readonly int[] firme0 = new int[RaceSim.MaxCars];   // firme no começo do quadro
         readonly int[] firme = new int[RaceSim.MaxCars], posAnt = new int[RaceSim.MaxCars];
         readonly float[] desde = new float[RaceSim.MaxCars], turboT = new float[RaceSim.MaxCars];
+        readonly float[] batidaT = new float[RaceSim.MaxCars], saidaT = new float[RaceSim.MaxCars];
+        readonly int[] batidasAnt = new int[RaceSim.MaxCars], posSaida = new int[RaceSim.MaxCars];
         readonly bool[] foraAnt = new bool[RaceSim.MaxCars], turboAnt = new bool[RaceSim.MaxCars], chegouAnt = new bool[RaceSim.MaxCars];
         readonly float?[] melhorAnt = new float?[RaceSim.MaxCars];
         readonly string[] avisoAnt = new string[RaceSim.MaxCars];
@@ -83,6 +89,7 @@ namespace Autorama
             for (int k = 0; k < RaceSim.MaxCars; k++)
             {
                 firme[k] = posAnt[k] = -1; desde[k] = 0f; turboT[k] = -99f;
+                batidaT[k] = saidaT[k] = -99f; batidasAnt[k] = 0; posSaida[k] = -1;
                 foraAnt[k] = turboAnt[k] = chegouAnt[k] = false; melhorAnt[k] = null; avisoAnt[k] = null;
             }
             colados.Clear(); disputaT.Clear();
@@ -118,17 +125,18 @@ namespace Autorama
             bool cedo = relogio - inicio < Largada;
             int lider = -1;
             for (int k = 0; k < q.n; k++) if (q.c[k].presente && q.c[k].pos == 0) lider = k;
+            saiuJa = -1; pendente = null;
+            System.Array.Copy(firme, firme0, firme.Length);
 
             for (int k = 0; k < q.n; k++)
             {
                 var c = q.c[k];
                 if (!c.presente) continue;
-                // Saída de pista.
-                if (c.fora && !foraAnt[k] && !c.chegou)
-                {
-                    string chave = c.onde == 1 ? "loop" : c.onde == 2 ? "salto" : c.saidas >= 5 ? "saida5" : c.saidas == 3 ? "saida3" : "saida";
-                    Diz(chave, c.onde > 0 || c.pos == 0 ? 2 : 1, Nm(c));
-                }
+                if (c.batidas > batidasAnt[k]) batidaT[k] = relogio;
+                batidasAnt[k] = c.batidas;
+                // Saída de pista e a volta para o trilho.
+                if (c.fora && !foraAnt[k] && !c.chegou) Saida(q, k);
+                if (!c.fora && foraAnt[k] && !c.chegou && q.fase == RaceSim.Phase.Running) Voltou(q, k);
                 // Turbo.
                 if (c.turbo && !turboAnt[k] && relogio - turboT[k] > TurboIntervalo) { turboT[k] = relogio; Diz("turbo", 1, Nm(c)); }
                 // Recorde e melhor volta.
@@ -147,8 +155,16 @@ namespace Autorama
                 {
                     if (c.pos < firme[k] && !c.fora && q.fase == RaceSim.Phase.Running)
                     {
-                        int atras = PorPos(q, c.pos + 1);
-                        if (atras >= 0 && !q.c[atras].fora)
+                        // Quem foi passado: estava firme na frente e agora está atrás. Se algum deles está fora da
+                        // pista, a posição veio da saída dele (a volta conta em Voltou), não de ultrapassagem.
+                        int atras = -1; bool deFora = false;
+                        for (int j = 0; j < q.n; j++)
+                            if (j != k && q.c[j].presente && firme0[j] >= 0 && firme0[j] < firme0[k] && q.c[j].pos > c.pos)
+                            {
+                                if (q.c[j].fora) deFora = true;
+                                else if (atras < 0 || q.c[j].pos < q.c[atras].pos) atras = j;
+                            }
+                        if (atras >= 0 && !deFora)
                             Diz(c.pos == 0 ? "lider" : "passa", c.pos == 0 ? 3 : 2, Nm(c), Nm(q.c[atras]));
                     }
                     firme[k] = c.pos;
@@ -156,6 +172,8 @@ namespace Autorama
                 posAnt[k] = c.pos;
                 foraAnt[k] = c.fora; turboAnt[k] = c.turbo; melhorAnt[k] = c.melhor; avisoAnt[k] = c.aviso;
             }
+
+            if (pendente.HasValue) { Enfila(pendente.Value); pendente = null; }
 
             // Disputa: dois carros seguidos colados por DisputaTempo segundos.
             if (q.fase == RaceSim.Phase.Running && !cedo)
@@ -204,6 +222,47 @@ namespace Autorama
             }
 
             Campeonato(q);
+        }
+
+        int saiuJa;      // quem já saiu da pista neste quadro (-2: a dupla já foi dita)
+        Fala? pendente;  // a saída fica para o fim do quadro: se outro sair junto, vira a fala da dupla
+
+        // Saída de pista com o contexto: onde, por quê, quem e quando. Do mais especial para o comum.
+        void Saida(NarraQuadro q, int k)
+        {
+            var c = q.c[k];
+            posSaida[k] = c.pos;
+            bool repete = relogio - saidaT[k] < RepeteJanela;
+            saidaT[k] = relogio;
+            if (saiuJa == -2) return;
+            if (saiuJa >= 0) { pendente = null; saiuJa = -2; Diz("saidadupla", 2, Nm(q.c[saiuJa0]), Nm(c)); return; }
+            saiuJa = saiuJa0 = k;
+            bool final = q.porTempo ? q.tempoFalta > 0f && q.tempoFalta <= 15f : ultimaDita;
+            string chave, b = ""; int prio = 1;
+            if (c.onde == 1) { chave = "loop"; prio = 2; }
+            else if (c.onde == 2) { chave = "salto"; prio = 2; }
+            else if (relogio - batidaT[k] < BatidaJanela) { chave = "batida"; prio = 2; }
+            else if (c.pos == 0 && q.n > 1) { chave = "saidalider"; prio = 3; }
+            else if (final) { chave = "saidafinal"; prio = 2; }
+            else if (c.turbo) chave = "saidaturbo";
+            else if (repete) chave = "saidarepete";
+            else if (c.saidas == 3) chave = "saida3";
+            else if (c.saidas == 5) chave = "saida5";
+            else if (c.saidas >= 7 && c.saidas % 3 == 1) { chave = "saidamuitas"; b = c.saidas.ToString(); }
+            else chave = "saida";
+            pendente = new Fala { txt = Texto(chave, Nm(c), b, ""), prio = prio, t = relogio };
+        }
+        int saiuJa0;
+
+        // De volta ao trilho: se a saída custou posições, conta quantas (e, se era o líder, quem herdou a ponta).
+        void Voltou(NarraQuadro q, int k)
+        {
+            var c = q.c[k];
+            int antes = posSaida[k]; posSaida[k] = -1;
+            if (antes < 0) return;
+            int novo = PorPos(q, 0);
+            if (antes == 0 && c.pos > 0 && novo >= 0) { firme[novo] = 0; Diz("perdeulider", 3, Nm(c), Nm(q.c[novo])); }   // a ponta herdada não vira "líder novo"
+            else if (c.pos - antes >= PerdeuMin) Diz("perdeu", 1, Nm(c), Ordinal(c.pos + 1), (c.pos - antes).ToString());
         }
 
         // A cada Marco voltas: o líder é exaltado ao completar e o último a completar é zoado (com 3 carros ou mais).
@@ -278,10 +337,16 @@ namespace Autorama
             Atual = Sorteia(chave, lista); AtualPrio = 3; mostra = dur; espera = 0f;
         }
 
-        void Diz(string chave, int prio, string a = "", string b = "", string t = "")
+        string Texto(string chave, string a, string b, string t) =>
+            Frases.TryGetValue(chave, out var lista) ? Sorteia(chave, lista).Replace("{A}", Pinta(a)).Replace("{B}", Pinta(b)).Replace("{T}", t) : null;
+
+        void Diz(string chave, int prio, string a = "", string b = "", string t = "") =>
+            Enfila(new Fala { txt = Texto(chave, a, b, t), prio = prio, t = relogio });
+
+        void Enfila(Fala f)
         {
-            if (!Frases.TryGetValue(chave, out var lista)) return;
-            string txt = Sorteia(chave, lista).Replace("{A}", Pinta(a)).Replace("{B}", Pinta(b)).Replace("{T}", t);
+            if (f.txt == null) return;
+            int prio = f.prio;
             if (fila.Count >= FilaMax)
             {
                 int pior = 0;
@@ -289,20 +354,21 @@ namespace Autorama
                 if (fila[pior].prio > prio) return;
                 fila.RemoveAt(pior);
             }
-            fila.Add(new Fala { txt = txt, prio = prio, t = relogio });
+            fila.Add(f);
         }
 
         static string Nm(NarraCarro c) => string.IsNullOrEmpty(c.cor) ? c.nome : $"<color={c.cor}>{c.nome}</color>";
         string Pinta(string nome) => nome.StartsWith("<color") ? nome : cores != null && !string.IsNullOrEmpty(nome) && cores.TryGetValue(nome, out var c) ? $"<color={c}>{nome}</color>" : nome;
 
-        // Sorteia sem repetir as duas últimas desta chave.
+        // Sorteia sem repetir as mais recentes desta chave: uma frase só volta depois de sair mais da metade da lista.
         string Sorteia(string chave, string[] lista)
         {
-            if (!usadas.TryGetValue(chave, out var u)) usadas[chave] = u = new[] { -1, -1 };
-            int i;
-            int tent = 0;
-            do i = rng.Next(lista.Length); while ((i == u[0] || i == u[1]) && lista.Length > 2 && ++tent < 20);
-            u[1] = u[0]; u[0] = i;
+            if (!usadas.TryGetValue(chave, out var u)) usadas[chave] = u = new List<int>();
+            int guarda = System.Math.Min(lista.Length - 1, (lista.Length + 1) / 2);
+            while (u.Count > guarda) u.RemoveAt(0);
+            int i, tent = 0;
+            do i = rng.Next(lista.Length); while (u.Contains(i) && ++tent < 50);
+            u.Add(i);
             return lista[i];
         }
 
@@ -322,34 +388,43 @@ namespace Autorama
         // {A}: o piloto do evento; {B}: o outro (quem foi passado, o líder anterior, a posição, o número de voltas); {T}: o tempo da volta.
         public static readonly Dictionary<string, string[]> Frases = new Dictionary<string, string[]>
         {
-            ["largada"] = new[] { "Apagaram as luzes! E lá vão eles!", "Largada! Todo mundo de pé no fundo!", "Valendo! Que vença o melhor... ou o mais sortudo.", "Largada limpa... por enquanto.", "E foi dada a largada! O carpete que se cuide." },
-            ["passa"] = new[] { "{A} passa {B}! Não pediu licença, não!", "{A} por dentro, e {B} só viu a placa do chassi.", "Ultrapassagem! {A} deixa {B} para trás.", "{A} pra cima de {B}... e passou!", "{B} piscou e {A} foi embora." },
-            ["lider"] = new[] { "{A} assume a liderança! {B} fica olhando a traseira.", "Tem líder novo: {A}!", "{A} passa {B} e pula para a ponta!", "Mudou tudo! {A} é o novo líder." },
-            ["saida"] = new[] { "{A} saiu da pista! O trilho estava ali, viu?", "Lá vai {A} conhecer o carpete da sala.", "{A} voou! Alguém chama o fiscal.", "Escapou! {A} foi dar uma volta fora da pista.", "{A} errou o ponto de freada. Acontece nas melhores famílias." },
-            ["saida3"] = new[] { "Terceira vez, {A}. O fiscal já sabe seu nome.", "{A} sai de novo! Já é freguês do carpete.", "Três saídas para {A}. Coleção bonita." },
-            ["saida5"] = new[] { "{A} fora outra vez! A essa altura é estratégia.", "Mais uma de {A}. Alguém segura esse acelerador!", "{A} já conhece cada canto da mesa." },
-            ["loop"] = new[] { "{A} não segurou no loop! A gravidade manda lembranças.", "Caiu no loop! {A} esqueceu de acelerar lá em cima.", "{A} deu meia volta no loop... e despencou." },
-            ["salto"] = new[] { "{A} pulou e não chegou! Faltou coragem!", "{A} ficou no vão do salto. Aterrissagem cancelada.", "Saltou, voou... e caiu! {A} fora." },
-            ["turbo"] = new[] { "{A} soltou o turbo! Segura!", "Turbo ligado para {A}!", "{A} apertou o botão mágico!", "Lá vai {A} de turbo. Cuidado na curva!" },
-            ["recorde"] = new[] { "RECORDE DA PISTA! {A} escreve o nome na história... desta mesa. {T}!", "Recorde! {A} faz {T}, a volta mais rápida que essa pista já viu!", "Que volta, {A}! {T}, recorde da pista!", "Segura essa: {T}! {A} quebra o recorde da pista!", "Podem emoldurar: {A}, {T}, novo recorde da pista!" },
-            ["pessoal"] = new[] { "Melhor volta pessoal de {A}!", "{A} se superou nessa volta.", "Volta caprichada de {A}: a melhor da carreira nesta pista." },
-            ["melhorvolta"] = new[] { "{A} crava {T}, a volta mais rápida da prova!", "Melhor volta da corrida para {A}: {T}!", "{A} acelerou forte: {T}, ninguém andou tão rápido hoje.", "Cronômetro em chamas! {T} para {A}.", "{A} baixa o tempo para {T}. Que mão!" },
-            ["disputa"] = new[] { "{A} e {B} colados há um tempão. Ninguém respira!", "Que briga entre {A} e {B}!", "{B} está no cangote de {A}!", "{A} e {B} dividem até o mesmo pensamento." },
-            ["ultima"] = new[] { "Última volta!", "Sino tocando: última volta!", "É agora ou nunca: última volta!" },
+            ["largada"] = new[] { "Apagaram as luzes! E lá vão eles!", "Largada! Todo mundo de pé no fundo!", "Valendo! Que vença o melhor... ou o mais sortudo.", "Largada limpa... por enquanto.", "E foi dada a largada! O carpete que se cuide.", "Bandeira verde! Os trilhos estão quentes!", "Saíram! Agora é gatilho e coragem.", "Começou! Quem frear primeiro perde.", "E lá se vão eles, cheios de esperança e de pilha." },
+            ["passa"] = new[] { "{A} passa {B}! Não pediu licença, não!", "{A} por dentro, e {B} só viu a placa do chassi.", "Ultrapassagem! {A} deixa {B} para trás.", "{A} pra cima de {B}... e passou!", "{B} piscou e {A} foi embora.", "{A} mergulha e engole {B}!", "Tchau, {B}! {A} sobe uma posição.", "{A} passou {B} como se fosse cone de treino.", "Manobra bonita de {A} em cima de {B}!", "{B} abriu a porta e {A} entrou sem bater." },
+            ["lider"] = new[] { "{A} assume a liderança! {B} fica olhando a traseira.", "Tem líder novo: {A}!", "{A} passa {B} e pula para a ponta!", "Mudou tudo! {A} é o novo líder.", "{A} toma a ponta de {B}! A mesa vai abaixo!", "Liderança trocada! {A} na frente, {B} no prejuízo.", "{A} chega lá na frente. {B}, a vista agora é outra." },
+            ["saida"] = new[] { "{A} saiu da pista! O trilho estava ali, viu?", "Lá vai {A} conhecer o carpete da sala.", "{A} voou! Alguém chama o fiscal.", "Escapou! {A} foi dar uma volta fora da pista.", "{A} errou o ponto de freada. Acontece nas melhores famílias.", "{A} rodou! O carrinho foi parar longe.", "Rodopio de {A}! Bonito de ver, péssimo para o cronômetro.", "{A} entrou rápido demais e a curva não perdoou.", "Fiscal! {A} está deitado no carpete.", "{A} decolou! Ainda bem que não tem multa por voo baixo.", "{A} confundiu a curva com uma reta.", "Que pião de {A}! Faltou só a música.", "{A} perdeu o trilho. O trilho não perdeu {A}: ele está ali esperando.", "Lá se foi {A}! A física cobrou a conta.", "{A} sai da pista e vai fazer turismo na mesa." },
+            ["saida3"] = new[] { "Terceira vez, {A}. O fiscal já sabe seu nome.", "{A} sai de novo! Já é freguês do carpete.", "Três saídas para {A}. Coleção bonita.", "Terceira escapada de {A}. Já pode pedir música no Fantástico.", "{A} completa o trio de saídas. Ganha brinde?" },
+            ["saida5"] = new[] { "{A} fora outra vez! A essa altura é estratégia.", "Mais uma de {A}. Alguém segura esse acelerador!", "{A} já conhece cada canto da mesa.", "Quinta saída de {A}! O fiscal pediu aumento.", "{A} de novo no carpete. Cinco vezes! Já tem cadeira cativa." },
+            ["saidamuitas"] = new[] { "{A} sai pela {B}ª vez! A gente já parou de contar... não, não parou: {B}.", "{B} saídas para {A}. Isso já é um recorde, só que do tipo errado.", "{A}, {B} saídas! O carpete vai cobrar aluguel.", "Saída número {B} de {A}. O fiscal já está almoçando ali do lado.", "{A} chega a {B} saídas. Alguém dá um manual para esse piloto!" },
+            ["saidarepete"] = new[] { "De novo, {A}?! Mal voltou e já saiu!", "{A} voltou para a pista só para sair outra vez.", "Nem esquentou o trilho e {A} já está fora de novo!", "{A} gostou tanto do carpete que voltou lá.", "O fiscal nem largou o carrinho e {A} já saiu de novo.", "{A} repete a dose! Calma nesse gatilho!" },
+            ["saidalider"] = new[] { "O líder rodou! {A} sai da pista!", "Que susto! {A}, na ponta, vai para o carpete!", "{A} jogou fora a liderança na curva!", "Liderança no chão! {A} saiu da pista!", "Abriu a corrida! O líder {A} escapou!", "{A} estava voando na frente... e voou mesmo. Fora da pista!" },
+            ["saidafinal"] = new[] { "Agora não, {A}! Saída na hora mais cara!", "{A} sai da pista na reta final! Que drama!", "Logo agora! {A} vai para o carpete no fim da prova!", "{A} escolheu o pior momento para rodar.", "Pressão demais! {A} escapa no finalzinho!" },
+            ["saidaturbo"] = new[] { "{A} ligou o turbo e esqueceu de fazer a curva!", "Turbo demais, curva de menos! {A} fora!", "{A} foi de turbo direto para o carpete!", "O turbo levou {A} para fora da pista. Tinha que tirar o pé!", "{A} usou o turbo para voar. Literalmente." },
+            ["saidadupla"] = new[] { "{A} e {B} saem juntos! Que confusão!", "Dois de uma vez! {A} e {B} no carpete!", "Saída dupla: {A} e {B} foram passear juntos.", "{A} e {B} se enroscaram e foram os dois para fora!", "Strike! {A} e {B} fora da pista!" },
+            ["batida"] = new[] { "Encostou e voou! {A} sai da pista depois do toque!", "Batida! {A} levou a pior e foi para fora!", "Teve contato e {A} rodou!", "{A} tomou uma pancada e saiu da pista!", "Toque, rodada, carpete! {A} fora!", "Ninguém quis tirar o pé, e {A} pagou o pato." },
+            ["perdeu"] = new[] { "{A} volta à pista em {B}. Foram {T} posições no carpete.", "A saída custou caro: {A} cai para {B}.", "{A} volta, mas agora em {B}. Perdeu {T} posições.", "{A} está de volta, só que em {B}. Hora de recuperar!", "{T} posições a menos para {A}, que volta em {B}." },
+            ["perdeulider"] = new[] { "{A} volta à pista, mas a ponta agora é de {B}!", "{B} herda a liderança da saída de {A}!", "Presente para {B}: a liderança caiu no colo depois do erro de {A}.", "{A} perdeu a ponta no carpete. {B} agradece!", "{B} não precisou passar ninguém: {A} saiu e {B} assumiu." },
+            ["loop"] = new[] { "{A} não segurou no loop! A gravidade manda lembranças.", "Caiu no loop! {A} esqueceu de acelerar lá em cima.", "{A} deu meia volta no loop... e despencou.", "{A} ficou de cabeça para baixo e a gravidade venceu.", "Loop sem fôlego! {A} despenca lá de cima.", "{A} subiu o loop devagar demais. Newton agradece." },
+            ["salto"] = new[] { "{A} pulou e não chegou! Faltou coragem!", "{A} ficou no vão do salto. Aterrissagem cancelada.", "Saltou, voou... e caiu! {A} fora.", "{A} achou que sabia voar. Não sabia.", "Faltou embalo! {A} cai no vão.", "{A} pulou com o freio de mão puxado!" },
+            ["turbo"] = new[] { "{A} soltou o turbo! Segura!", "Turbo ligado para {A}!", "{A} apertou o botão mágico!", "Lá vai {A} de turbo. Cuidado na curva!", "{A} acende o turbo! Lá vai foguete!", "Turbo de {A}! Quem está na frente que se cuide.", "{A} no turbo! Agora é segurar o carrinho no trilho." },
+            ["recorde"] = new[] { "RECORDE DA PISTA! {A} escreve o nome na história... desta mesa. {T}!", "Recorde! {A} faz {T}, a volta mais rápida que essa pista já viu!", "Que volta, {A}! {T}, recorde da pista!", "Segura essa: {T}! {A} quebra o recorde da pista!", "Podem emoldurar: {A}, {T}, novo recorde da pista!", "Inacreditável! {T}! {A} é o dono do recorde!" },
+            ["pessoal"] = new[] { "Melhor volta pessoal de {A}!", "{A} se superou nessa volta.", "Volta caprichada de {A}: a melhor da carreira nesta pista.", "{A} bate o próprio tempo. Evolução!", "{A} nunca andou tão rápido aqui." },
+            ["melhorvolta"] = new[] { "{A} crava {T}, a volta mais rápida da prova!", "Melhor volta da corrida para {A}: {T}!", "{A} acelerou forte: {T}, ninguém andou tão rápido hoje.", "Cronômetro em chamas! {T} para {A}.", "{A} baixa o tempo para {T}. Que mão!", "{T}! {A} manda a volta mais rápida da corrida.", "{A} acha mais um décimo: {T}, a melhor da prova!" },
+            ["disputa"] = new[] { "{A} e {B} colados há um tempão. Ninguém respira!", "Que briga entre {A} e {B}!", "{B} está no cangote de {A}!", "{A} e {B} dividem até o mesmo pensamento.", "{B} não desgruda de {A}! Vai ter troca?", "{A} olha o retrovisor e só vê {B}.", "Duelo! {A} segura, {B} pressiona." },
+            ["ultima"] = new[] { "Última volta!", "Sino tocando: última volta!", "É agora ou nunca: última volta!", "Última volta! Quem guardou turbo, a hora é essa!", "Última volta! Coração na mão!" },
             ["dez"] = new[] { "Dez segundos! Quem quer, vai agora!", "Faltam dez! Ninguém tira o pé!", "Dez segundinhos e acabou!" },
             ["cinco"] = new[] { "Cinco segundos!", "Cinco! Segura o coração!", "Cinco segundos e é bandeira!" },
             ["3"] = new[] { "3!" },
             ["2"] = new[] { "2!" },
             ["1"] = new[] { "1!" },
             ["quinze"] = new[] { "Quinze segundos! Tudo ou nada!", "Faltam quinze segundos! Pé no fundo!", "Reta final: quinze segundos!" },
-            ["vitoria"] = new[] { "Bandeirada! {A} vence!", "{A} cruza na frente! Que corrida!", "Vitória de {A}! Pode chamar a família!", "É de {A}! Bandeira quadriculada!" },
-            ["marcolider"] = new[] { "{A} completa {B} voltas na frente de todo mundo!", "{B} voltas e {A} segue mandando na corrida!", "{A} na ponta depois de {B} voltas. Que pilotagem!", "Passadas {B} voltas, quem dita o ritmo é {A}!", "{B} voltas, e {A} ainda não viu ninguém pelo retrovisor." },
-            ["marcoultimo"] = new[] { "{A} fecha a volta {B} em último. Está apreciando a paisagem?", "{B} voltas e {A} lá atrás. Alguém avisa que já começou!", "{A} completa {B} voltas por último. Sem pressa, a mesa não vai fugir.", "Volta {B}: {A} na lanterna. Pelo menos o carro está limpinho.", "{A} chega à volta {B} por último. Tá de passeio, {A}?" },
-            ["ultimo"] = new[] { "E {A} chega em último, mas chega!", "{A} fecha o pelotão. O importante é competir.", "{A} chegou! Atrasado, mas com estilo." },
-            ["campassume"] = new[] { "Se terminar assim, {A} assume a liderança do campeonato!", "Do jeito que está, {A} vira líder do campeonato!", "Atenção na tabela: {A} passa {B} no campeonato!" },
-            ["camprecupera"] = new[] { "{A} recupera a liderança do campeonato!", "Do jeito que está, {A} volta para a ponta do campeonato.", "{A} reage e retoma o topo da tabela!" },
-            ["liderfora"] = new[] { "{A}, líder do campeonato, está em {B}. Hoje não está fácil.", "O líder do campeonato, {A}, só em {B}! A tabela está tremendo.", "{A} lidera o campeonato, mas aqui está em {B}." },
-            ["titulo"] = new[] { "O título é de {A} se terminar assim!", "O título está nas mãos de {A}! Só não pode errar.", "Uma volta separa {A} da taça!" },
+            ["vitoria"] = new[] { "Bandeirada! {A} vence!", "{A} cruza na frente! Que corrida!", "Vitória de {A}! Pode chamar a família!", "É de {A}! Bandeira quadriculada!", "{A} vence! Pode estourar o refrigerante!", "Acabou! {A} é o grande vencedor!", "Quadriculada para {A}! Vitória com sabor de pódio!" },
+            ["marcolider"] = new[] { "{A} completa {B} voltas na frente de todo mundo!", "{B} voltas e {A} segue mandando na corrida!", "{A} na ponta depois de {B} voltas. Que pilotagem!", "Passadas {B} voltas, quem dita o ritmo é {A}!", "{B} voltas, e {A} ainda não viu ninguém pelo retrovisor.", "{A} lidera com {B} voltas. Os outros que corram atrás.", "Volta {B}: {A} continua com o nariz na frente." },
+            ["marcoultimo"] = new[] { "{A} fecha a volta {B} em último. Está apreciando a paisagem?", "{B} voltas e {A} lá atrás. Alguém avisa que já começou!", "{A} completa {B} voltas por último. Sem pressa, a mesa não vai fugir.", "Volta {B}: {A} na lanterna. Pelo menos o carro está limpinho.", "{A} chega à volta {B} por último. Tá de passeio, {A}?", "{A} na lanterna depois de {B} voltas. Ainda dá tempo... talvez." },
+            ["ultimo"] = new[] { "E {A} chega em último, mas chega!", "{A} fecha o pelotão. O importante é competir.", "{A} chegou! Atrasado, mas com estilo.", "{A} cruza por último. Na próxima vai!", "Lá vem {A}, fechando a porta e apagando a luz." },
+            ["campassume"] = new[] { "Se terminar assim, {A} assume a liderança do campeonato!", "Do jeito que está, {A} vira líder do campeonato!", "Atenção na tabela: {A} passa {B} no campeonato!", "A tabela está virando: {A} na frente de {B}!" },
+            ["camprecupera"] = new[] { "{A} recupera a liderança do campeonato!", "Do jeito que está, {A} volta para a ponta do campeonato.", "{A} reage e retoma o topo da tabela!", "{A} devolve o troco e volta ao topo do campeonato!" },
+            ["liderfora"] = new[] { "{A}, líder do campeonato, está em {B}. Hoje não está fácil.", "O líder do campeonato, {A}, só em {B}! A tabela está tremendo.", "{A} lidera o campeonato, mas aqui está em {B}.", "Dia difícil para {A}: líder do campeonato e só em {B}." },
+            ["titulo"] = new[] { "O título é de {A} se terminar assim!", "O título está nas mãos de {A}! Só não pode errar.", "Uma volta separa {A} da taça!", "{A} já sente o cheiro da taça!" },
         };
     }
 }
