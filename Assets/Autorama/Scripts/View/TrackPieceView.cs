@@ -271,8 +271,10 @@ namespace Autorama
             overlay.enabled = true;
         }
 
-        // Pista de 2: dois pilares redondos por fileira. Pista de 4: três pilares quadrados e finos de aço escuro
-        // (bordas e meio), com uma travessa embaixo do tabuleiro.
+        // Um pilar por peça, no meio dela (t = 0,5) e no eixo da pista. Pista de 2: redondo. Pista de 4 ou mais:
+        // quadrado de aço escuro, com uma travessa embaixo do tabuleiro. Sobre outra pista, vira pórtico.
+        const float PillarT = 0.5f;
+
         void BuildPillars(Segment s, TrackTheme theme, int faixas = 2)
         {
             foreach (var p in pillars)
@@ -285,28 +287,20 @@ namespace Autorama
             portals.Clear();
             if (theme == null || !s.High) return;
             if (faixas >= 4) { BuildPillars4(s, theme, faixas); return; }
-            int count = Mathf.Max(1, Mathf.RoundToInt(s.def.CenterLength / 1.25f));
-            for (int j = 0; j <= count; j++)
-            {
-                float t = j / (float)count, h = s.ZSmooth(t) * TrackMath.LevelHeight;
-                if (s.ZAt(t) < 0.25f) continue;
-                var q = TrackMath.PoseAt(s.a, s.def, s.piece.dir, t);
-                if (Portal(s, q, new[] { -0.4f, 0.4f }, h - Thickness, theme.support, 1f, 0.05f)) continue;
-                foreach (float side in new[] { -0.4f, 0.4f })
-                {
-                    var go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-                    go.name = "Pilar";
-                    go.hideFlags = HideFlags.DontSave;
-                    Kill(go.GetComponent<Collider>());
-                    go.transform.SetParent(transform, false);
-                    var o = TrackMath.Offset(q, side);
-                    // Do tampo da mesa (que fica Thickness abaixo do nível 0) até a pista.
-                    go.transform.localPosition = new Vector3(o.x, (h - Thickness) / 2f, o.y);
-                    go.transform.localScale = new Vector3(0.1f, (h + Thickness) / 2f, 0.1f);
-                    go.GetComponent<MeshRenderer>().sharedMaterial = theme.support;
-                    pillars.Add(go);
-                }
-            }
+            float t = PillarT, h = s.ZSmooth(t) * TrackMath.LevelHeight, d = 0.16f;
+            if (s.ZAt(t) < 0.25f) return;
+            var q = TrackMath.PoseAt(s.a, s.def, s.piece.dir, t);
+            if (Portal(s, q, new[] { 0f }, h - Thickness, theme.support, 1f, d / 2f)) return;
+            var go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            go.name = "Pilar";
+            go.hideFlags = HideFlags.DontSave;
+            Kill(go.GetComponent<Collider>());
+            go.transform.SetParent(transform, false);
+            // Do tampo da mesa (que fica Thickness abaixo do nível 0) até a pista.
+            go.transform.localPosition = new Vector3(q.pos.x, (h - Thickness) / 2f, q.pos.y);
+            go.transform.localScale = new Vector3(d, (h + Thickness) / 2f, d);
+            go.GetComponent<MeshRenderer>().sharedMaterial = theme.support;
+            pillars.Add(go);
         }
 
         // Pista de 4 e de 6: a malha é em células (raiz com escala 2 ou 3), então espessura e espaçamento dos pilares
@@ -314,29 +308,20 @@ namespace Autorama
         void BuildPillars4(Segment s, TrackTheme theme, int faixas)
         {
             var mat = theme.Support(faixas);
-            float k = TrackMath.Scale(faixas), thin = 0.05f * 2f / k;
-            int count = Mathf.Max(1, Mathf.RoundToInt(s.def.CenterLength * k / 2f));
-            for (int j = 0; j <= count; j++)
-            {
-                float t = j / (float)count;
-                if (s.ZAt(t) < 0.25f) continue;
-                var q = TrackMath.PoseAt(s.a, s.def, s.piece.dir, t);
-                var rot = Quaternion.Euler(0f, -q.heading, 0f);
-                if (!s.def.IsLoop && !s.def.IsJump && Portal(s, q, new[] { -0.44f, 0f, 0.44f }, TrackLayout.SurfaceY(s, t, 0f) - 0.06f, mat, k, thin / 2f)) continue;
-                foreach (float side in new[] { -0.44f, 0f, 0.44f })
-                {
-                    var o = TrackMath.Offset(q, side);
-                    // No loop o pilar vai até a base da volta, não até a volta; no salto, até a base maciça.
-                    float top = (s.def.IsLoop || s.def.IsJump ? s.zIn * TrackMath.LevelHeight : TrackLayout.SurfaceY(s, t, side)) - 0.06f;
-                    float foot = Thickness / k;      // a mesa fica Thickness (mundo) abaixo do nível 0
-                    pillars.Add(Box("Pilar", mat, new Vector3(o.x, (top - foot) / 2f, o.y), new Vector3(thin, top + foot, thin), rot));
-                }
-                // Travessa logo abaixo da pista, de borda a borda, seguindo a inclinação da curva inclinada.
-                var ea = TrackMath.Offset(q, -0.475f); var eb = TrackMath.Offset(q, 0.475f);
-                var pa = new Vector3(ea.x, TrackLayout.SurfaceY(s, t, -0.475f) - 0.035f, ea.y);
-                var pb = new Vector3(eb.x, TrackLayout.SurfaceY(s, t, 0.475f) - 0.035f, eb.y);
-                pillars.Add(Box("Travessa", mat, (pa + pb) / 2f, new Vector3(0.06f * 2f / k, 0.05f * 2f / k, Vector3.Distance(pa, pb)), Quaternion.LookRotation(pb - pa)));
-            }
+            float k = TrackMath.Scale(faixas), thin = 0.09f * 2f / k, t = PillarT;
+            if (s.ZAt(t) < 0.25f) return;
+            var q = TrackMath.PoseAt(s.a, s.def, s.piece.dir, t);
+            var rot = Quaternion.Euler(0f, -q.heading, 0f);
+            if (!s.def.IsLoop && !s.def.IsJump && Portal(s, q, new[] { 0f }, TrackLayout.SurfaceY(s, t, 0f) - 0.06f, mat, k, thin / 2f)) return;
+            // No loop o pilar vai até a base da volta, não até a volta; no salto, até a base maciça.
+            float top = (s.def.IsLoop || s.def.IsJump ? s.zIn * TrackMath.LevelHeight : TrackLayout.SurfaceY(s, t, 0f)) - 0.06f;
+            float foot = Thickness / k;      // a mesa fica Thickness (mundo) abaixo do nível 0
+            pillars.Add(Box("Pilar", mat, new Vector3(q.pos.x, (top - foot) / 2f, q.pos.y), new Vector3(thin, top + foot, thin), rot));
+            // Travessa logo abaixo da pista, de borda a borda, seguindo a inclinação da curva inclinada.
+            var ea = TrackMath.Offset(q, -0.475f); var eb = TrackMath.Offset(q, 0.475f);
+            var pa = new Vector3(ea.x, TrackLayout.SurfaceY(s, t, -0.475f) - 0.035f, ea.y);
+            var pb = new Vector3(eb.x, TrackLayout.SurfaceY(s, t, 0.475f) - 0.035f, eb.y);
+            pillars.Add(Box("Travessa", mat, (pa + pb) / 2f, new Vector3(0.06f * 2f / k, 0.05f * 2f / k, Vector3.Distance(pa, pb)), Quaternion.LookRotation(pb - pa)));
         }
 
         // Pista sobre pista (seção 58 do guia): se algum pilar da fileira q cairia sobre uma peça mais baixa, a fileira

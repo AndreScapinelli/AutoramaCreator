@@ -1731,7 +1731,7 @@ float BankWeight(Segment s, float t) => Mathf.Clamp01(Mathf.Min(t, 1f - t) / 0.2
 
 Some ao `PieceDefinition` os campos `public bool banked;` e `public float bankAngle = 15f;`. Crie os assets **Curva longa inclinada** (90°) e **Curva curta inclinada** (45°), os dois com raio 2,5.
 
-**Pilares:** a cada 1,25 célula ao longo de uma peça com `z(t) > 0,25`, ponha um cilindro fino do chão até a pista (`altura = z(t) × LevelHeight`). Ponha também uma **mureta** dos dois lados das peças no alto: uma faixa vertical da malha, de `y` até `y + 0,08`.
+**Pilares:** a cada 1,25 célula ao longo de uma peça com `z(t) > 0,25`, ponha um cilindro fino do chão até a pista (`altura = z(t) × LevelHeight`). (Hoje é um pilar só por peça, no meio: seção 87.) Ponha também uma **mureta** dos dois lados das peças no alto: uma faixa vertical da malha, de `y` até `y + 0,08`.
 
 **Carrinho na rampa:** a rotação passa a incluir a inclinação. Guarde a altura de cada ponto no `LanePath` e use a tangente 3D:
 
@@ -5158,3 +5158,13 @@ Nenhuma saída, com qualidade 30, 60 e 90 e os três chassis.
 ### 86.5 Salto
 
 Mesmo teste da 82.3 (gatilho em 100%, turbo o tempo todo), longo · lisa · duro · explosivo: chega a 20,42 no vão 1 (era 19,79) e voa 23,0 células no vão 3 (era 21,6); nível 10: 24,44 e 32,9. Nenhuma saída; o pouso segue a 42.
+
+## 87. Um pilar por peça, no meio
+
+As peças no alto tinham uma fileira de pilares a cada 1,25 célula (pista de 2: dois cilindros por fileira) ou a cada 1 célula (pista larga: três caixas e uma travessa), o que enchia a mesa de pilares. Agora cada peça no alto tem **um pilar só, no meio** (`TrackPieceView.PillarT = 0,5`) e no eixo da pista.
+
+- **Pista de 2** (`BuildPillars`): cilindro de 0,16 de diâmetro (era 0,1), do tampo da mesa (`−Thickness`) até `ZSmooth(0,5) × LevelHeight − Thickness`.
+- **Pista de 4, 6 e 8** (`BuildPillars4`): caixa de aço de `0,09 × 2 / k` (era 0,05) até `SurfaceY(0,5; 0) − 0,06` (loop e salto: até a base, `zIn × LevelHeight`), com a mesma travessa de borda a borda logo abaixo da pista.
+- **Sem pilar** se `ZAt(0,5) < 0,25` (como antes, só que medido no meio da peça).
+- **Sobre outra pista** (seção 58): `Portal` recebe só o lado 0 e o meio-diâmetro do pilar novo. Se o pilar cairia sobre uma peça mais baixa, vira pórtico como antes; se não cabe a viga, a peça fica sem pilar.
+- **Teste** (`script eval`, "8 com ponte" na pista de 2 e de 4): 3 pilares em cada uma (reta curtinha e curva inclinada da subida, reta comprida da ponte), 3 travessas na de 4, 0 pórticos. O pilar da ponte fica a 1,74 célula da pista de baixo (antes havia 1 pórtico, de uma fileira que caía sobre ela). Compila sem erro. **O resultado não foi visto na tela.**
