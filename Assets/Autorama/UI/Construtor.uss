@@ -1,9 +1,16 @@
-/* Painel do construtor — mesma família visual do construtor em HTML (tema escuro da barra lateral). */
-
-/* Paleta do jogo: todas as cores repetidas vêm daqui. Mude uma vez e vale para a interface inteira. */
+/* Interface do Autorama Mania (revisão de docs/PROPOSTAS-UI.md, seção 3 C).
+   Papéis de cor: amarelo (--destaque) só para a ação principal, o escolhido e o foco; branco para títulos;
+   verde ok, laranja alerta, roxo melhor volta, dourado (--premio) estrela, moeda e recorde.
+   Superfícies em 4 níveis (--sup-0 a --sup-3). Letra: 12 no mínimo, 14 no corpo. */
 :root {
-    --texto: rgb(229, 235, 227);
-    --texto-fraco: rgb(148, 161, 151);
+    --sup-0: rgb(13, 17, 15);
+    --sup-1: rgb(22, 28, 25);
+    --sup-2: rgb(31, 39, 35);
+    --sup-3: rgb(42, 52, 48);
+    --premio: rgb(232, 181, 74);
+    --roxo: rgb(196, 120, 255);
+    --texto: rgb(238, 242, 236);
+    --texto-fraco: rgb(152, 165, 156);
     --destaque: rgb(245, 194, 27);
     --sobre-destaque: rgb(27, 22, 0);
     --alerta: rgb(240, 122, 58);
@@ -35,7 +42,7 @@
 
 /* ---------- Barra lateral ---------- */
 .side {
-    position: absolute; left: 0; top: 0; bottom: 0; width: 340px;
+    position: absolute; left: 0; top: 0; bottom: 0; width: 360px;
     background-color: var(--fundo-painel);
     border-right-width: 1px; border-color: var(--borda);
 }
@@ -44,8 +51,8 @@
 
 .title-row { flex-direction: row; align-items: center; justify-content: space-between; }
 .titles { flex-shrink: 1; flex-grow: 1; margin-right: 8px; }
-.title { font-size: 18px; -unity-font-style: bold; color: var(--texto); margin: 0; padding: 0; white-space: normal; }
-.subtitle { font-size: 10px; color: var(--texto-fraco); letter-spacing: 1px; margin: 0; padding: 0; }
+.title { font-size: 22px; -unity-font-style: bold-and-italic; letter-spacing: 1px; color: var(--texto); margin: 0; padding: 0; white-space: nowrap; }
+.subtitle { font-size: 11px; color: var(--texto-fraco); letter-spacing: 1px; margin: 2px 0 0 0; padding: 0; white-space: normal; }
 
 .status {
     flex-direction: row; align-items: center; align-self: flex-start;
@@ -53,31 +60,33 @@
     background-color: rgb(31, 39, 35); border-width: 1px; border-color: var(--botao);
 }
 .status-dot { width: 9px; height: 9px; border-radius: 5px; margin-right: 8px; background-color: var(--destaque); }
-.status-text { font-size: 13px; -unity-font-style: bold; color: var(--texto); white-space: normal; margin: 0; padding: 0; }
+.status { max-width: 100%; }
+.status-text { flex-shrink: 1; font-size: 13px; -unity-font-style: bold; color: var(--texto); white-space: normal; margin: 0; padding: 0; }
 .status--ok .status-dot { background-color: var(--ok); }
 .status--ok .status-text { color: var(--ok); }
 .status--warn .status-dot { background-color: var(--alerta); }
 .status--warn .status-text { color: var(--alerta); }
 
-.section { margin-top: 16px; padding-top: 12px; border-top-width: 1px; border-color: var(--borda); }
-.h2 { font-size: 13px; -unity-font-style: bold; color: var(--destaque); letter-spacing: 2px; margin: 0 0 8px 0; padding: 0; }
-.hint { font-size: 12px; color: var(--texto-fraco); white-space: normal; margin: 0 0 8px 0; padding: 0; }
-.body { font-size: 13px; color: var(--texto); white-space: normal; margin: 0; padding: 0; }
-.small { font-size: 11px; color: var(--texto-fraco); white-space: normal; margin: 0; padding: 0; }
+.section { margin-top: 12px; padding: 12px; border-radius: 10px; background-color: var(--sup-2); border-width: 1px; border-color: var(--borda); }
+.h2 { font-size: 14px; -unity-font-style: bold; color: var(--texto); letter-spacing: 1.5px; margin: 0 0 10px 0; padding: 0 0 0 8px; border-left-width: 3px; border-color: var(--destaque); }
+.hint { font-size: 12px; color: var(--texto-fraco); white-space: normal; margin: 0 0 10px 0; padding: 0; }
+.body { font-size: 14px; color: var(--texto); white-space: normal; margin: 0; padding: 0; }
+.small { font-size: 12px; color: var(--texto-fraco); white-space: normal; margin: 0; padding: 0; }
 .row { flex-direction: row; flex-wrap: wrap; }
 
 /* ---------- Paleta ---------- */
 .palette { flex-direction: row; flex-wrap: wrap; justify-content: space-between; }
 .tile {
-    width: 49%; height: 54px; flex-direction: row; align-items: center;
+    width: 49%; height: 58px; transition-property: background-color, border-color, scale; transition-duration: 0.12s; flex-direction: row; align-items: center;
     margin: 0 0 6px 0; padding: 4px 6px;
     background-color: var(--fundo-campo); border-width: 1px; border-color: var(--botao); border-radius: 8px;
 }
-.tile:hover { border-color: var(--destaque); background-color: rgb(42, 43, 28); }
+.tile:hover { border-color: var(--destaque); background-color: var(--sup-3); scale: 1.03 1.03; }
 .tile-icon { width: 40px; height: 40px; flex-shrink: 0; }
-.tile-texts { flex-grow: 1; flex-shrink: 1; margin-left: 6px; }
-.tile-name { font-size: 11px; -unity-font-style: bold; color: var(--texto); white-space: normal; margin: 0; padding: 0; }
-.tile-sub { font-size: 11px; color: var(--texto-fraco); margin: 0; padding: 0; }
+.tile-texts { flex-grow: 1; flex-shrink: 1; margin-left: 8px; }
+.tile-texts > Label { -unity-text-align: middle-left; }
+.tile-name { font-size: 12px; -unity-font-style: bold; color: var(--texto); white-space: normal; margin: 0; padding: 0; }
+.tile-sub { font-size: 12px; color: var(--texto-fraco); margin: 0; padding: 0; }
 .key {
     position: absolute; right: 5px; top: 4px; font-size: 10px; color: var(--texto-fraco);
     border-width: 1px; border-color: rgb(58, 71, 64); border-radius: 4px; padding: 0 4px; margin: 0;
@@ -85,30 +94,37 @@
 
 /* ---------- Botões ---------- */
 .btn {
-    height: 28px; padding: 0 10px; margin: 0 6px 6px 0; font-size: 12px; -unity-font-style: bold;
-    color: var(--texto); background-color: rgb(34, 43, 39);
-    border-width: 1px; border-color: var(--borda-media); border-radius: 6px;
+    height: 32px; padding: 0 12px; margin: 0 6px 6px 0; font-size: 13px; -unity-font-style: bold;
+    color: var(--texto); background-color: var(--sup-3);
+    border-width: 1px; border-color: var(--borda-media); border-radius: 8px;
+    transition-property: background-color, border-color, color; transition-duration: 0.12s;
 }
-.btn:hover { border-color: var(--borda-hover); background-color: rgb(40, 50, 45); }
+.btn:hover { border-color: var(--borda-hover); background-color: rgb(52, 64, 59); }
+.btn:focus { border-color: var(--destaque); }
+.btn:active { background-color: var(--sup-1); }
 .btn:disabled { opacity: 0.4; }
-.btn--primary { background-color: var(--texto); color: var(--fundo); border-color: var(--texto); }
-.btn--primary:hover { background-color: rgb(255, 255, 255); }
+/* Um primário só: o amarelo (o branco de antes virou o mesmo). */
+.btn--primary { background-color: var(--destaque); color: var(--sobre-destaque); border-color: var(--destaque); }
+.btn--primary:hover { background-color: rgb(255, 210, 60); }
+.btn--icon { flex-direction: row; align-items: center; justify-content: center; }
+.btn-ico { width: 18px; height: 18px; flex-shrink: 0; }
+.btn-label { margin: 0 0 0 6px; padding: 0; -unity-text-align: middle-left; }
 .btn--danger { color: var(--alerta); }
 .btn--on { background-color: var(--destaque); color: var(--sobre-destaque); border-color: var(--destaque); }
-.icon-btn { width: 30px; height: 28px; padding: 0; margin: 0; }
+.icon-btn { width: 34px; height: 32px; padding: 0; margin: 0 0 0 4px; }
 
 /* ---------- Peça selecionada ---------- */
 .sel-head { flex-direction: row; align-items: center; margin-bottom: 8px; }
 .sel-icon { width: 42px; height: 42px; margin-right: 10px; flex-shrink: 0; }
 .sel-texts { flex-shrink: 1; flex-grow: 1; }
 .segmented { flex-direction: row; align-items: center; margin-top: 2px; }
-.segmented .btn { margin-right: 4px; }
-.seg-label { font-size: 11px; color: var(--texto-fraco); width: 48px; margin: 0; padding: 0; }
+.segmented .btn { margin-right: 4px; flex-grow: 1; flex-shrink: 1; min-width: 0; padding: 0 4px; }
+.seg-label { font-size: 12px; color: var(--texto-fraco); width: 48px; margin: 0; padding: 0; }
 
 /* ---------- Resumo ---------- */
 .stats-row { flex-direction: row; justify-content: space-between; margin-bottom: 3px; }
-.stats-key { font-size: 12px; color: var(--texto-fraco); margin: 0; padding: 0; }
-.stats-val { font-size: 12px; color: var(--texto); -unity-text-align: middle-right; margin: 0; padding: 0; }
+.stats-key { font-size: 13px; color: var(--texto-fraco); margin: 0; padding: 0; }
+.stats-val { font-size: 13px; color: var(--texto); -unity-text-align: middle-right; margin: 0; padding: 0; }
 .swatch { width: 9px; height: 9px; border-radius: 2px; margin-right: 6px; }
 .swatch--a { background-color: var(--trilho-a); }
 .swatch--b { background-color: var(--trilho-b); }
@@ -122,11 +138,12 @@
 /* ---------- Sequência ---------- */
 .seq { flex-direction: row; flex-wrap: wrap; }
 .chip {
+    transition-property: border-color, scale; transition-duration: 0.12s;
     width: 38px; height: 44px; margin: 0 4px 4px 0; padding: 2px;
     background-color: var(--fundo-campo); border-width: 1px; border-color: var(--botao); border-radius: 6px;
     align-items: center; justify-content: center;
 }
-.chip:hover { border-color: var(--borda-hover); }
+.chip:hover { border-color: var(--borda-hover); scale: 1.06 1.06; }
 .chip--on { border-color: var(--destaque); background-color: rgb(58, 53, 23); }
 .chip--bad { border-color: var(--alerta); }
 .chip-icon { width: 22px; height: 22px; }
@@ -140,14 +157,16 @@
     border-radius: 6px; font-size: 13px; padding: 4px 8px; min-height: 28px;
 }
 .lib-item {
+    transition-property: border-color, background-color; transition-duration: 0.12s;
     flex-direction: row; align-items: center; padding: 6px; margin-bottom: 6px;
     background-color: var(--fundo-campo); border-width: 1px; border-color: var(--botao); border-radius: 8px;
 }
+.lib-item:hover { border-color: var(--borda-hover); }
 .lib-item--on { border-color: var(--destaque); }
 .thumb { width: 56px; height: 42px; margin-right: 8px; background-color: var(--fundo-fundo); border-radius: 5px; flex-shrink: 0; }
 .lib-texts { flex-grow: 1; flex-shrink: 1; }
-.lib-name { font-size: 13px; -unity-font-style: bold; color: var(--texto); overflow: hidden; text-overflow: ellipsis; margin: 0; padding: 0; }
-.lib-item .btn { margin: 0 0 0 4px; height: 24px; padding: 0 8px; font-size: 11px; }
+.lib-name { font-size: 14px; -unity-font-style: bold; color: var(--texto); overflow: hidden; text-overflow: ellipsis; margin: 0; padding: 0; }
+.lib-item .btn { margin: 0 0 0 4px; height: 26px; padding: 0 8px; font-size: 12px; }
 .bad { color: var(--alerta); }
 
 /* ---------- Sobre a mesa ---------- */
@@ -176,13 +195,19 @@
 .scale-bar { height: 6px; border-left-width: 2px; border-right-width: 2px; border-bottom-width: 2px; border-color: var(--tinta-mesa); margin-right: 6px; }
 .scale-text { font-size: 12px; color: var(--tinta-mesa); margin: 0; padding: 0; }
 
-.view-badge {
+.view-badge { font-size: 13px;
     position: absolute; top: 54px; right: 12px; padding: 5px 10px; border-radius: 6px;
     background-color: rgba(22, 28, 25, 0.9); color: var(--texto); font-size: 12px;
 }
 .toast {
-    position: absolute; bottom: 12px; right: 16px; padding: 8px 14px; border-radius: 8px;
-    background-color: var(--fundo); color: var(--texto); font-size: 13px;
+    position: absolute; bottom: 64px; right: 16px; padding: 10px 16px; border-radius: 10px;
+    background-color: var(--sup-1); color: var(--texto); font-size: 14px;
+    border-width: 1px; border-left-width: 4px; border-color: var(--borda-clara); border-left-color: var(--destaque);
+}
+/* Dica própria (BuilderPanel.BuildTip): o tooltip do UI Toolkit não aparece no jogo. */
+.tip {
+    position: absolute; max-width: 320px; padding: 6px 10px; border-radius: 6px; white-space: normal;
+    font-size: 13px; color: var(--texto); background-color: rgba(13, 17, 15, 0.96); border-width: 1px; border-color: var(--borda-clara);
 }
 
 /* ---------- Abas ---------- */
@@ -202,9 +227,9 @@
 .score { margin-top: 8px; }
 .score-row { flex-direction: row; padding: 5px 0; border-top-width: 1px; border-color: var(--borda); }
 .score-head { border-top-width: 0; }
-.score-cell { width: 15%; font-size: 12px; color: var(--texto); -unity-text-align: middle-right; margin: 0; padding: 0; }
+.score-cell { width: 15%; font-size: 13px; color: var(--texto); -unity-text-align: middle-right; margin: 0; padding: 0; }
 .score-cell--name { width: 25%; -unity-text-align: middle-left; }
-.score-head .score-cell { font-size: 10px; color: var(--texto-fraco); letter-spacing: 1px; }
+.score-head .score-cell { font-size: 11px; color: var(--texto-fraco); letter-spacing: 1px; }
 .score-a .score-cell--name { color: var(--trilho-a); -unity-font-style: bold; }
 .score-b .score-cell--name { color: var(--trilho-b); -unity-font-style: bold; }
 .score-c .score-cell--name { color: var(--trilho-c); -unity-font-style: bold; }
@@ -215,7 +240,7 @@
 .score-h .score-cell--name { color: var(--trilho-h); -unity-font-style: bold; }
 .score-win .score-cell { -unity-font-style: bold; }
 .setting { margin: 0 0 8px 0; }
-.setting .unity-label { color: var(--texto); font-size: 12px; min-width: 150px; }
+.setting .unity-label { color: var(--texto); font-size: 13px; min-width: 150px; }
 .setting .unity-base-slider__dragger { background-color: var(--destaque); border-color: var(--destaque); }
 
 /* ---------- Corrida: sobre a mesa ---------- */
@@ -224,8 +249,8 @@
 .light { width: 26px; height: 26px; margin: 0 4px; border-radius: 13px; background-color: rgb(42, 47, 45); }
 .light--red { background-color: rgb(224, 55, 44); }
 .light--green { background-color: var(--verde-luz); }
-.banner { align-items: center; padding: 10px 20px; border-radius: 12px; background-color: var(--fundo-vidro); }
-.banner-title { font-size: 24px; -unity-font-style: bold; color: var(--texto); letter-spacing: 1px; margin: 0; padding: 0; }
+.banner { align-items: center; padding: 14px 24px; border-radius: 14px; background-color: rgba(13, 17, 15, 0.94); border-width: 1px; border-color: var(--borda-clara); }
+.banner-title { font-size: 30px; -unity-font-style: bold-and-italic; color: var(--texto); letter-spacing: 1px; margin: 0; padding: 0; }
 .banner-title--a { color: var(--trilho-a); }
 .banner-title--b { color: var(--trilho-b); }
 .banner-title--c { color: var(--trilho-c); }
@@ -236,7 +261,10 @@
 .banner-title--h { color: var(--trilho-h); }
 .banner-sub { font-size: 13px; color: var(--texto-fraco); margin: 4px 0 0 0; padding: 0; }
 
-.pads { position: absolute; bottom: 12px; right: 12px; flex-direction: row; }
+/* Painéis dos jogadores mais baixos e centrados, até 440 px cada (proposta F); a mesa aparece mais. */
+.pads { position: absolute; bottom: 12px; right: 12px; flex-direction: row; justify-content: center; }
+.pad { max-width: 440px; }
+.pads--split .pad { max-width: none; }
 .pad {
     flex-grow: 1; flex-basis: 0; margin-right: 12px; padding: 8px 10px 10px 10px; border-radius: 12px;
     background-color: var(--fundo-vidro); border-top-width: 4px; border-color: var(--trilho-a);
@@ -255,7 +283,7 @@
 .pad-state--alert { color: var(--alerta); -unity-font-style: bold; }
 .pad-body { flex-direction: row; }
 .gas {
-    flex-grow: 1; height: 84px; margin-right: 10px; border-radius: 10px; overflow: hidden;
+    flex-grow: 1; height: 64px; margin-right: 10px; border-radius: 10px; overflow: hidden;
     background-color: var(--fundo-fundo); border-width: 2px; border-color: var(--trilho-a); justify-content: center; align-items: center;
 }
 /* Marcador da meia aceleração (seção 66): arrasta para os lados; Z · X no jogador 1. */
@@ -311,10 +339,10 @@
 .hud--8 .hud-pos { width: 18px; font-size: 12px; }
 .hud--8 .hud-lap { margin-right: 3px; }
 .pad--held .gas { background-color: rgb(30, 36, 33); }
-.gas-text { font-size: 18px; -unity-font-style: bold; letter-spacing: 2px; color: var(--texto); margin: 0; padding: 0; }
-.pad-side { width: 150px; }
-.meter-label { font-size: 11px; color: var(--texto-fraco); margin: 0 0 2px 0; padding: 0; }
-.meter { height: 8px; margin-bottom: 6px; border-radius: 4px; background-color: var(--fundo-fundo); border-width: 1px; border-color: var(--borda-media); overflow: hidden; }
+.gas-text { font-size: 16px; -unity-font-style: bold-and-italic; letter-spacing: 1px; color: var(--texto); margin: 0; padding: 0; }
+.pad-side { width: 132px; }
+.meter-label { font-size: 11px; color: var(--texto-fraco); margin: 0 0 1px 0; padding: 0; }
+.meter { height: 6px; margin-bottom: 4px; border-radius: 4px; background-color: var(--fundo-fundo); border-width: 1px; border-color: var(--borda-media); overflow: hidden; }
 .meter-fill { height: 100%; width: 0; background-color: var(--texto); }
 .reslot { margin: 2px 0 0 0; }
 .reslot--ready { background-color: var(--destaque); color: var(--sobre-destaque); border-color: var(--destaque); }
@@ -329,7 +357,7 @@
 .toast { max-width: 520px; white-space: normal; }
 
 /* ---------- Campeonato ---------- */
-.h3 { font-size: 11px; -unity-font-style: bold; color: var(--texto-fraco); letter-spacing: 1px; margin: 10px 0 6px 0; padding: 0; }
+.h3 { font-size: 12px; -unity-font-style: bold; color: var(--texto-fraco); letter-spacing: 1px; margin: 10px 0 6px 0; padding: 0; }
 .plan { margin: 10px 0 8px 0; }
 .ok { color: var(--ok); }
 .ptag {
@@ -351,7 +379,7 @@
 .prow-info .small { margin-right: 4px; }
 .prow-name { font-size: 13px; -unity-font-style: bold; color: var(--texto); margin: 0 6px 0 0; padding: 0; }
 .prow-acts { flex-direction: row; flex-shrink: 0; }
-.prow-acts .btn { height: 22px; padding: 0 6px; margin: 0 0 0 4px; font-size: 11px; }
+.prow-acts .btn { height: 26px; padding: 0 8px; margin: 0 0 0 4px; font-size: 12px; }
 .pform { padding: 2px 10px 10px 10px; border-width: 1px; border-color: var(--borda-media); border-radius: 8px; }
 .pf-row { flex-direction: row; margin-bottom: 8px; }
 .pf-name { flex-grow: 1; }
@@ -384,13 +412,13 @@
 .stand { margin-top: 2px; }
 .st-row { flex-direction: row; align-items: center; padding: 4px 0; border-top-width: 1px; border-color: var(--borda); }
 .st-head { border-top-width: 0; }
-.st-cell { width: 34px; font-size: 12px; color: var(--texto); -unity-text-align: middle-right; margin: 0; padding: 0; flex-shrink: 0; }
-.st-head .st-cell { font-size: 10px; color: var(--texto-fraco); letter-spacing: 1px; }
+.st-cell { width: 34px; font-size: 13px; color: var(--texto); -unity-text-align: middle-right; margin: 0; padding: 0; flex-shrink: 0; }
+.st-head .st-cell { font-size: 11px; color: var(--texto-fraco); letter-spacing: 1px; }
 .st-cell--name { flex-grow: 1; flex-shrink: 1; width: auto; flex-direction: row; align-items: center; -unity-text-align: middle-left; overflow: hidden; }
 .st-pos { width: 18px; -unity-text-align: middle-left; }
 .st-time { width: 58px; }
 .st-pts { -unity-font-style: bold; }
-.st-star { color: var(--destaque); }
+.st-star { color: var(--premio); }
 .st-label { width: 62px; -unity-text-align: middle-left; color: var(--texto-fraco); }
 .st-name { font-size: 12px; color: var(--texto); margin: 0 4px 0 0; padding: 0; overflow: hidden; text-overflow: ellipsis; }
 .st-lead { background-color: rgba(245, 194, 27, 0.10); }
@@ -405,17 +433,17 @@
 .award { flex-direction: row; align-items: center; flex-wrap: wrap; margin-bottom: 4px; }
 .award-label { font-size: 12px; color: var(--texto-fraco); width: 116px; margin: 0; padding: 0; }
 /* Corrida: cartões de piloto (um por carro), contagem de carros e seções recolhidas (seção 33 do guia). */
-.pcard { margin: 0 0 6px 0; padding: 6px 8px; background-color: var(--fundo); border-left-width: 4px; border-color: var(--borda-media); }
+.pcard { margin: 0 0 8px 0; padding: 8px 10px; border-radius: 8px; background-color: var(--sup-1); border-left-width: 4px; border-color: var(--borda-media); }
 .pcard-head { flex-direction: row; align-items: center; justify-content: space-between; }
-.pcard-name { font-size: 13px; -unity-font-style: bold; color: var(--texto); margin: 0; padding: 0; }
+.pcard-name { font-size: 14px; -unity-font-style: bold; color: var(--texto); margin: 0; padding: 0; }
 .pcard-seg { margin-top: 0; }
-.pcard-seg .btn { height: 24px; font-size: 11px; margin-bottom: 0; }
+.pcard-seg .btn { height: 26px; font-size: 12px; margin-bottom: 0; }
 .pcard-skill { margin: 6px 0 2px 0; }
 .pcard .small { margin-top: 4px; }
 /* Ajuste do carro (seção 47): botão que abre o cartão, as três peças e as barras contra o padrão. */
-.pcard-car { height: 24px; font-size: 11px; margin: 6px 0 0 0; -unity-text-align: middle-left; }
+.pcard-car { height: 28px; font-size: 12px; margin: 6px 0 0 0; -unity-text-align: middle-left; }
 .car-card { margin-top: 4px; }
-.car-row .btn { height: 22px; font-size: 11px; margin-bottom: 0; flex-grow: 1; flex-basis: 0; min-width: 0; }
+.car-row .btn { height: 26px; font-size: 12px; margin-bottom: 0; flex-grow: 1; flex-basis: 0; min-width: 0; }
 .car-stat { flex-direction: row; align-items: center; margin-top: 4px; }
 .car-stat-name { width: 86px; }
 .car-bar { flex-grow: 1; height: 6px; background-color: rgba(255, 255, 255, 0.08); }
@@ -425,12 +453,12 @@
 .pcard .car-stat-val { width: 52px; margin-top: 0; -unity-text-align: middle-right; }
 .car-count { flex-grow: 1; flex-basis: 0; min-width: 0; }
 .fold > .unity-foldout__toggle { margin: 0; }
-.fold .unity-foldout__text { color: var(--destaque); font-size: 12px; -unity-font-style: bold; letter-spacing: 1px; }
+.fold .unity-foldout__text { color: var(--texto); font-size: 14px; -unity-font-style: bold; letter-spacing: 1.5px; }
 .fold .unity-foldout__content { margin-left: 0; margin-top: 8px; }
 .hist { margin-bottom: 6px; }
-.hist .unity-foldout__text { color: var(--texto); font-size: 12px; }
+.hist .unity-foldout__text { color: var(--texto); font-size: 13px; }
 
-.pad-state--rec { background-color: var(--destaque); color: var(--sobre-destaque); -unity-font-style: bold; font-size: 15px; letter-spacing: 1px; padding: 2px 8px; border-radius: 5px; }
+.pad-state--rec { background-color: var(--premio); color: var(--sobre-destaque); -unity-font-style: bold; font-size: 15px; letter-spacing: 1px; padding: 2px 8px; border-radius: 5px; }
 .pad-state--pb { color: var(--sobre-destaque); background-color: var(--ok); -unity-font-style: bold; font-size: 14px; padding: 2px 8px; border-radius: 5px; }
 .gas--ai { border-color: var(--borda-hover); }
 .gas--ai .gas-text { font-size: 14px; color: var(--texto-fraco); }
@@ -439,15 +467,15 @@
 .chat-log {
     height: 180px; padding: 4px 6px; background-color: var(--fundo-fundo); border-width: 1px; border-color: var(--borda-media); border-radius: 6px;
 }
-.chat-line { font-size: 12px; color: var(--texto); white-space: normal; margin: 0 0 3px 0; padding: 0; }
+.chat-line { font-size: 13px; color: var(--texto); white-space: normal; margin: 0 0 3px 0; padding: 0; }
 
 /* Menu da câmera (corrida): botão no canto superior direito, a lista abre embaixo */
 .cam-menu { position: absolute; top: 10px; right: 12px; align-items: flex-end; }
 /* Minimapa da corrida: janela solta sobre a mesa (posição e tamanho são calculados em RaceMinimap). */
 .minimap { position: absolute; background-color: var(--fundo-vidro); border-radius: 12px; border-width: 1px; border-color: var(--borda); overflow: hidden; }
 .minimap-head { flex-direction: row; justify-content: space-between; align-items: center; height: 24px; padding: 0 10px; background-color: rgba(255, 255, 255, 0.05); cursor: move; }
-.minimap-title { font-size: 10px; letter-spacing: 1px; -unity-font-style: bold; color: var(--texto-fraco); margin: 0; padding: 0; }
-.minimap-hint { font-size: 10px; color: var(--texto-fraco); margin: 0; padding: 0; }
+.minimap-title { font-size: 11px; letter-spacing: 1px; -unity-font-style: bold; color: var(--texto-fraco); margin: 0; padding: 0; }
+.minimap-hint { font-size: 11px; color: var(--texto-fraco); margin: 0; padding: 0; }
 .minimap-canvas { position: relative; }
 .minimap-grip { position: absolute; right: 0; bottom: 0; width: 16px; height: 16px; background-color: rgba(255, 255, 255, 0.18); border-radius: 4px; }
 .minimap-toggle { height: 26px; padding: 0 12px; font-size: 12px; -unity-font-style: bold; color: var(--texto); -unity-text-align: middle-left; border-top-width: 1px; border-color: var(--borda); }
@@ -465,7 +493,7 @@
     margin-top: 6px; width: 240px; padding: 10px; border-radius: 10px;
     background-color: var(--fundo-painel); border-width: 1px; border-color: var(--borda-clara);
 }
-.cam-title { font-size: 10px; letter-spacing: 1px; color: var(--texto-fraco); margin: 0 0 6px 2px; padding: 0; -unity-font-style: bold; }
+.cam-title { font-size: 11px; letter-spacing: 1px; color: var(--texto-fraco); margin: 0 0 6px 2px; padding: 0; -unity-font-style: bold; }
 .cam-opt { height: auto; padding: 6px 10px; margin: 0 0 4px 0; -unity-text-align: middle-left; white-space: normal; }
 .cam-opt--on { border-color: var(--destaque); background-color: rgb(52, 48, 22); }
 .cam-sub { margin: 6px 0 4px 0; }
@@ -474,14 +502,14 @@
 /* Turbo no painel do jogador: a barra é o tanque e o botão */
 .turbo { height: 22px; margin: 2px 0 6px 0; border-radius: 6px; border-width: 1px; border-color: var(--borda-media); background-color: rgb(14, 17, 16); overflow: hidden; justify-content: center; }
 .turbo-fill { position: absolute; left: 0; top: 0; bottom: 0; background-color: rgb(40, 120, 200); }
-.turbo-text { font-size: 10px; -unity-font-style: bold; color: var(--texto); -unity-text-align: middle-center; margin: 0; padding: 0; }
+.turbo-text { font-size: 11px; -unity-font-style: bold; color: var(--texto); -unity-text-align: middle-center; margin: 0; padding: 0; }
 .turbo--on { border-color: rgb(140, 220, 255); }
 .turbo--on .turbo-fill { background-color: rgb(90, 190, 255); }
 .turbo--empty .turbo-text { color: var(--texto-fraco); }
 
-/* Menu inicial: Opções e Sair */
-.start-extra { flex-direction: row; justify-content: center; margin-top: 12px; }
-.start-btn { height: 34px; min-width: 120px; margin: 0 6px; font-size: 13px; }
+/* Menu inicial: Peças, Opções e Sair, no pé da tela */
+.start-extra { position: absolute; left: 6%; bottom: 28px; flex-direction: row; }
+.start-btn { height: 38px; min-width: 120px; margin: 0 10px 0 0; padding: 0 16px; font-size: 14px; background-color: rgba(31, 39, 35, 0.9); }
 
 /* Teclas dos jogadores: tela de Opções, por cima do menu inicial (RaceController.BuildKeysUI) */
 .keys-screen { position: absolute; left: 0; right: 0; top: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.6); align-items: center; justify-content: center; }
@@ -490,25 +518,26 @@
 .keys-scroll { flex-shrink: 1; }
 .keys-row { flex-direction: row; align-items: center; margin-bottom: 6px; }
 .keys-who { width: 80px; flex-grow: 0; margin: 0 8px 0 0; }
-.keys-btn { flex-grow: 1; flex-basis: 0; min-width: 0; height: 32px; margin: 0 6px 0 0; font-size: 11px; }
+.keys-btn { flex-grow: 1; flex-basis: 0; min-width: 0; height: 32px; margin: 0 6px 0 0; font-size: 12px; }
 .keys-btn--wait { border-color: var(--destaque); background-color: rgb(52, 48, 22); }
 
 /* Placar sobre a mesa (corrida): uma ficha por carrinho, o líder destacado */
 .hud { flex-direction: row; margin-bottom: 8px; }
 /* Placar do topo: a volta ou o tempo que falta, grande (seção 54) */
 .race-clock { align-items: center; padding: 4px 16px 5px 16px; margin-bottom: 6px; border-radius: 10px; background-color: var(--fundo-vidro); }
-.race-clock-big { font-size: 22px; -unity-font-style: bold; letter-spacing: 1px; color: var(--texto); margin: 0; padding: 0; }
+.race-clock-big { font-size: 30px; -unity-font-style: bold-and-italic; letter-spacing: 1px; color: var(--texto); margin: 0; padding: 0; }
 .race-clock-sub { font-size: 11px; color: var(--texto-fraco); margin: 0; padding: 0; }
 .race-clock--fim .race-clock-big { color: var(--alerta); }
 .hud-card {
     flex-direction: row; align-items: center; min-width: 170px; margin: 0 4px; padding: 6px 12px 6px 8px;
-    border-radius: 10px; background-color: rgba(22, 28, 25, 0.92); border-width: 1px; border-color: var(--borda);
+    border-radius: 10px; background-color: rgba(13, 17, 15, 0.9); border-width: 1px; border-color: var(--borda);
+    transition-property: border-color, translate; transition-duration: 0.2s;
 }
 .hud-card--lead { border-color: var(--destaque); }
-.hud-pos { font-size: 18px; -unity-font-style: bold; color: var(--texto-fraco); width: 30px; margin: 0; padding: 0; -unity-text-align: middle-center; }
+.hud-pos { font-size: 20px; -unity-font-style: bold-and-italic; color: var(--texto-fraco); width: 30px; margin: 0; padding: 0; -unity-text-align: middle-center; }
 .hud-card--lead .hud-pos { color: var(--destaque); }
 .hud-dot { width: 10px; height: 10px; border-radius: 5px; margin: 0 8px 0 2px; }
-.hud-name { font-size: 12px; -unity-font-style: bold; letter-spacing: 1px; color: var(--texto); margin: 0; padding: 0; }
+.hud-name { font-size: 13px; -unity-font-style: bold-and-italic; letter-spacing: 1px; color: var(--texto); margin: 0; padding: 0; }
 .hud-row { flex-direction: row; }
 .hud-lap { font-size: 12px; color: var(--texto); margin: 0 10px 0 0; padding: 0; }
 .hud-best { font-size: 12px; color: var(--texto-fraco); margin: 0; padding: 0; }
@@ -516,7 +545,7 @@
 /* Contagem grande da largada, no meio da mesa */
 .cd-box { position: absolute; top: 0; bottom: 0; right: 0; left: 0; align-items: center; justify-content: center; }
 .cd-text {
-    font-size: 140px; -unity-font-style: bold; color: rgb(224, 55, 44); margin: 0; padding: 0;
+    font-size: 140px; -unity-font-style: bold-and-italic; color: rgb(224, 55, 44); margin: 0; padding: 0;
     -unity-text-outline-width: 3px; -unity-text-outline-color: rgb(14, 17, 16);
 }
 .cd-text--go { color: var(--verde-luz); }
@@ -536,14 +565,14 @@
 .res-row { flex-direction: row; align-items: center; padding: 6px 8px; margin-bottom: 4px; border-radius: 8px; background-color: rgb(30, 37, 33); }
 .res-row--win { border-width: 1px; border-color: var(--destaque); }
 .res-pos { width: 28px; font-size: 15px; -unity-font-style: bold; color: var(--destaque); margin: 0; padding: 0; }
-.res-name { flex-grow: 1; font-size: 13px; -unity-font-style: bold; color: var(--texto); margin: 0 12px 0 0; padding: 0; }
-.res-cell { font-size: 12px; color: var(--texto); margin: 0 0 0 12px; padding: 0; }
+.res-name { flex-grow: 1; font-size: 14px; -unity-font-style: bold; color: var(--texto); margin: 0 12px 0 0; padding: 0; }
+.res-cell { font-size: 13px; color: var(--texto); margin: 0 0 0 12px; padding: 0; }
 .res-cell--dim { color: var(--texto-fraco); }
 /* Melhor volta da prova (roxo) e recorde da pista (selo dourado) */
-.res-cell--fast { color: rgb(196, 120, 255); -unity-font-style: bold; }
-.res-badge { font-size: 11px; -unity-font-style: bold; letter-spacing: 1px; color: var(--sobre-destaque); background-color: var(--destaque); padding: 1px 6px; border-radius: 4px; margin: 0 0 0 10px; }
-.banner-rec { font-size: 16px; -unity-font-style: bold; letter-spacing: 1px; color: var(--sobre-destaque); background-color: var(--destaque); padding: 4px 14px; border-radius: 6px; margin: 8px 0 0 0; }
-.hud-best--top { color: rgb(196, 120, 255); -unity-font-style: bold; }
+.res-cell--fast { color: var(--roxo); -unity-font-style: bold; }
+.res-badge { font-size: 12px; -unity-font-style: bold; letter-spacing: 1px; color: var(--sobre-destaque); background-color: var(--premio); padding: 1px 6px; border-radius: 4px; margin: 0 0 0 10px; }
+.banner-rec { font-size: 16px; -unity-font-style: bold; letter-spacing: 1px; color: var(--sobre-destaque); background-color: var(--premio); padding: 4px 14px; border-radius: 6px; margin: 8px 0 0 0; }
+.hud-best--top { color: var(--roxo); -unity-font-style: bold; }
 .res-row--small { padding: 3px 8px; margin-bottom: 2px; }
 .res-head { font-size: 11px; -unity-font-style: bold; color: var(--texto-fraco); letter-spacing: 1px; margin: 10px 0 4px 2px; padding: 0; }
 /* Troca de trilho: a lista das distâncias embaixo do aviso */
@@ -564,35 +593,48 @@
 .table-status.status--ok { border-color: var(--verde-luz); }
 .table-status.status--warn { border-color: var(--alerta); }
 .table-status-text { font-size: 13px; color: var(--texto); margin: 0 8px 0 6px; padding: 0; }
-.table-btn { height: 26px; margin: 0 0 0 4px; padding: 0 10px; border-radius: 13px; font-size: 12px; }
+.table-btn { height: 30px; margin: 0 0 0 6px; padding: 0 12px; border-radius: 15px; font-size: 13px; }
+.table-btn .btn-ico { width: 14px; height: 14px; }
 
 /* Barra de ações sobre a mesa (construtor) */
 .action-bar {
     position: absolute; bottom: 10px; right: 12px; flex-direction: row; align-items: center; padding: 4px;
     border-radius: 10px; background-color: var(--fundo-vidro); border-width: 1px; border-color: var(--borda-clara);
 }
-.bar-btn { width: 34px; height: 32px; margin: 0 2px; padding: 0; font-size: 16px; -unity-text-align: middle-center; }
+.bar-btn { width: 38px; height: 36px; margin: 0 2px; padding: 0; font-size: 14px; -unity-text-align: middle-center; }
+.bar-btn .btn-ico { width: 20px; height: 20px; }
 .bar-gap { width: 1px; height: 20px; margin: 0 4px; background-color: var(--borda-clara); }
 
-/* Tela inicial */
+/* Tela inicial em tela cheia (proposta B): sem o construtor atrás; a pista aparece escurecida ao fundo. */
 .start {
     position: absolute; left: 0; top: 0; right: 0; bottom: 0; align-items: center; justify-content: center;
-    background-color: rgba(14, 17, 16, 0.82);
+    background-color: rgba(10, 13, 12, 0.92);
 }
-.start-card { width: 560px; padding: 28px 28px 20px 28px; border-radius: 16px; background-color: var(--fundo-painel); border-width: 1px; border-color: var(--borda-clara); }
-.start-title { font-size: 40px; -unity-font-style: bold; letter-spacing: 6px; color: var(--destaque); margin: 0; padding: 0; -unity-text-align: middle-center; }
-.start-sub { font-size: 14px; color: var(--texto-fraco); margin: 4px 0 20px 0; padding: 0; -unity-text-align: middle-center; }
-.start-grid { flex-direction: row; flex-wrap: wrap; justify-content: space-between; }
+.start-card { width: 88%; max-width: 1180px; flex-direction: row; align-items: center; justify-content: space-between; }
+.start-hero { width: 38%; }
+.start-title { font-size: 72px; -unity-font-style: bold-and-italic; letter-spacing: 2px; color: var(--destaque); margin: 0; padding: 0; -unity-text-outline-width: 0; text-shadow: 0 5px 0 rgb(138, 106, 0); }
+.start-title--2 { margin-top: -14px; color: var(--texto); text-shadow: 0 5px 0 rgb(60, 70, 66); }
+.start-edition { font-size: 15px; -unity-font-style: bold; letter-spacing: 5px; color: var(--texto); margin: 10px 0 0 4px; padding: 0; }
+.start-flag {
+    width: 180px; height: 12px; margin: 18px 0 0 4px; border-radius: 2px;
+    background-image: url("../Texturas/bandeirada.png"); background-size: 48px 12px; background-repeat: repeat-x; background-color: rgb(240, 240, 240);
+    border-left-width: 6px; border-color: var(--destaque);
+}
+.start-sub { font-size: 15px; color: var(--texto-fraco); margin: 16px 0 0 4px; padding: 0; white-space: normal; }
+.start-grid { width: 58%; flex-direction: row; flex-wrap: wrap; justify-content: space-between; }
 .start-opt {
-    width: 49%; height: 84px; margin: 0 0 10px 0; padding: 10px 14px; flex-direction: row; align-items: center;
-    border-radius: 12px; border-width: 1px; border-color: var(--borda-media); background-color: var(--fundo-campo);
+    width: 49%; height: 92px; margin: 0 0 12px 0; padding: 12px 16px; flex-direction: row; align-items: center;
+    border-radius: 14px; border-width: 1px; border-color: var(--borda-media); background-color: rgba(22, 28, 25, 0.94);
+    transition-property: border-color, background-color, scale; transition-duration: 0.14s;
 }
-.start-opt:hover { border-color: var(--destaque); background-color: rgb(42, 43, 28); }
-.start-icon { font-size: 28px; color: var(--destaque); width: 40px; margin: 0 10px 0 0; padding: 0; -unity-text-align: middle-center; }
+.start-opt:hover, .start-opt:focus { border-color: var(--destaque); background-color: var(--sup-2); scale: 1.03 1.03; }
+.start-opt--big { width: 100%; height: 112px; border-color: rgba(245, 194, 27, 0.5); background-color: rgb(43, 40, 20); }
+.start-opt--big .start-opt-title { font-size: 26px; }
+.start-opt--big .start-icon { width: 46px; height: 46px; }
+.start-icon { width: 34px; height: 34px; color: var(--destaque); margin: 0 14px 0 0; flex-shrink: 0; }
 .start-texts { flex-shrink: 1; flex-grow: 1; }
-.start-opt-title { font-size: 17px; -unity-font-style: bold; color: var(--texto); margin: 0; padding: 0; -unity-text-align: middle-left; }
-.start-opt-sub { font-size: 11px; color: var(--texto-fraco); margin: 2px 0 0 0; padding: 0; white-space: normal; -unity-text-align: middle-left; }
-.start-foot { font-size: 11px; color: var(--texto-fraco); margin: 8px 0 0 0; padding: 0; -unity-text-align: middle-center; }
+.start-opt-title { font-size: 19px; -unity-font-style: bold; color: var(--texto); margin: 0; padding: 0; -unity-text-align: middle-left; }
+.start-opt-sub { font-size: 13px; color: var(--texto-fraco); margin: 3px 0 0 0; padding: 0; white-space: normal; -unity-text-align: middle-left; }
 
 /* Listas de pistas e salas (Caixa): altura máxima, rolagem própria e o excedente cortado na borda */
 .lista-pistas {
@@ -648,15 +690,15 @@
 .k-panel { padding: 20px 24px; border-radius: 14px; background-color: var(--fundo-painel); border-width: 1px; border-color: var(--borda-clara); }
 .k-saves { width: 640px; }
 .k-save-row { flex-direction: row; justify-content: space-between; margin-bottom: 16px; }
-.k-save { width: 186px; height: 120px; margin: 0; padding: 12px; border-radius: 10px; flex-direction: column; align-items: flex-start; justify-content: space-between; background-color: var(--fundo-campo); border-width: 1px; border-color: var(--borda-media); }
-.k-save:hover { border-color: var(--destaque); }
+.k-save { transition-property: border-color, scale; transition-duration: 0.12s; width: 186px; height: 120px; margin: 0; padding: 12px; border-radius: 10px; flex-direction: column; align-items: flex-start; justify-content: space-between; background-color: var(--fundo-campo); border-width: 1px; border-color: var(--borda-media); }
+.k-save:hover { border-color: var(--destaque); scale: 1.03 1.03; }
 .k-save-title { font-size: 16px; -unity-font-style: bold; color: var(--texto); margin: 0; padding: 0; }
 .k-save-sub { font-size: 13px; color: var(--texto-fraco); margin: 0; padding: 0; }
-.k-save-stars { font-size: 15px; color: var(--destaque); margin: 0; padding: 0; }
+.k-save-stars { font-size: 15px; color: var(--premio); margin: 0; padding: 0; }
 .k-top { position: absolute; left: 16px; right: 168px; top: 12px; flex-direction: row; align-items: center; justify-content: space-between; }
 .k-top-mid { flex-direction: row; align-items: center; padding: 4px 8px; border-radius: 10px; background-color: var(--fundo-vidro); }
 .k-region { font-size: 18px; -unity-font-style: bold; color: var(--texto); margin: 0 10px; padding: 0; }
-.k-stars { font-size: 18px; -unity-font-style: bold; color: var(--destaque); padding: 6px 12px; border-radius: 10px; background-color: var(--fundo-vidro); margin: 0; }
+.k-stars { font-size: 18px; -unity-font-style: bold; color: var(--premio); padding: 6px 12px; border-radius: 10px; background-color: var(--fundo-vidro); margin: 0; }
 .k-hint { position: absolute; bottom: 12px; left: 0; right: 0; -unity-text-align: middle-center; font-size: 12px; color: var(--texto-fraco); }
 .k-card { position: absolute; right: 16px; top: 64px; width: 320px; }
 .k-title { font-size: 20px; -unity-font-style: bold; color: var(--texto); margin: 6px 0 2px 0; padding: 0; white-space: normal; }
@@ -664,10 +706,11 @@
 .k-goal { font-size: 14px; color: var(--texto); margin: 2px 0; padding: 0; }
 .k-open { font-size: 14px; -unity-font-style: bold; color: var(--ok); margin: 6px 0 0 0; padding: 0; }
 .k-pin {
+    transition-property: border-color, scale; transition-duration: 0.12s;
     position: absolute; translate: -50% -100%; margin: 0; padding: 3px 10px; border-radius: 8px; font-size: 13px; -unity-font-style: bold;
     -unity-text-align: middle-center; white-space: nowrap; color: var(--texto); background-color: var(--fundo-vidro); border-width: 1px; border-color: var(--borda-media);
 }
-.k-pin:hover { border-color: var(--destaque); }
+.k-pin:hover { border-color: var(--destaque); scale: 1.08 1.08; }
 .k-pin--on { border-color: var(--destaque); border-width: 2px; color: var(--destaque); }
 .k-pin--locked { color: var(--texto-fraco); }
 .k-obj { position: absolute; right: 16px; top: 56px; padding: 10px 14px; border-radius: 10px; background-color: var(--fundo-vidro); }
@@ -676,13 +719,13 @@
 .k-small { width: 280px; align-items: stretch; }
 .k-wide { margin: 4px 0; }
 .k-result { width: 540px; align-items: center; }
-.k-res-stars { font-size: 52px; color: var(--destaque); letter-spacing: 8px; margin: 0; padding: 0; }
+.k-res-stars { font-size: 52px; color: var(--premio); letter-spacing: 8px; margin: 0; padding: 0; }
 .k-res-row { margin-top: 14px; }
 .k-rule { font-size: 13px; color: var(--alerta); margin: 2px 0; padding: 0; white-space: normal; }
 .k-rival { font-size: 13px; -unity-font-style: italic; color: var(--texto); margin: 2px 0 6px 0; padding: 0; white-space: normal; }
 .k-res-score { font-size: 32px; -unity-font-style: bold; color: var(--destaque); margin: 4px 0; padding: 0; }
 .k-build { position: absolute; right: 16px; top: 52px; width: 340px; padding: 16px 18px; border-radius: 14px; background-color: var(--fundo-painel); border-width: 2px; border-color: var(--destaque); }
-.k-coins { font-size: 15px; -unity-font-style: bold; color: var(--destaque); margin: 2px 0 6px 0; padding: 0; }
+.k-coins { font-size: 15px; -unity-font-style: bold; color: var(--premio); margin: 2px 0 6px 0; padding: 0; }
 .k-shop { width: 620px; }
 .k-shop-head { flex-direction: row; justify-content: space-between; align-items: center; }
 .k-shop-row { flex-direction: row; align-items: center; justify-content: space-between; padding: 8px 10px; margin: 3px 0; border-radius: 8px; background-color: var(--fundo-campo); }
@@ -710,6 +753,12 @@
 .k-garage { width: 660px; max-height: 92%; }
 .k-garage-scroll { flex-shrink: 1; flex-grow: 1; margin: 4px 0; }
 .k-gar-head { font-size: 12px; -unity-font-style: bold; color: var(--texto-fraco); margin: 10px 0 2px 0; padding: 0; letter-spacing: 1px; }
-.k-gar-buy { color: rgb(245, 194, 27); }
+.k-gar-buy { color: var(--premio); }
 .k-gar-lv { margin: 0 0 8px 0; padding: 4px 10px; }
 .k-gar-track { font-size: 13px; -unity-font-style: bold; color: var(--destaque); margin: 0; padding: 0; }
+
+/* "?" das seções (BuilderPanel.FoldHints): o título e o botão que mostra a explicação. */
+.sec-head { flex-direction: row; align-items: flex-start; justify-content: space-between; }
+.sec-head > .h2 { flex-shrink: 1; }
+.sec-q { width: 22px; height: 22px; padding: 0; margin: -2px 0 0 6px; border-radius: 11px; font-size: 12px; color: var(--texto-fraco); }
+.sec-q--on { color: var(--sobre-destaque); background-color: var(--destaque); border-color: var(--destaque); }

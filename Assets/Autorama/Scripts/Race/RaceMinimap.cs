@@ -128,7 +128,9 @@ namespace Autorama
         {
             style.width = w;
             canvas.style.width = w;
-            canvas.style.height = w;
+            // A altura acompanha a forma da pista (sem a faixa vazia de um mapa quadrado), entre 35% e 100% da largura.
+            float a = box.width > 0f && box.height > 0f ? Mathf.Clamp(box.height / box.width, 0.35f, 1f) : 1f;
+            canvas.style.height = Mathf.Max(80f, (w - Pad * 2f) * a + Pad * 2f);
         }
 
         // Mantém a janela dentro do pai (o cabeçalho sempre visível).
@@ -245,6 +247,7 @@ namespace Autorama
             box = Rect.MinMaxRect(x0 - 0.5f, y0 - 0.5f, x1 + 0.5f, y1 + 0.5f);
             hasFinish = sim.paths[0] != null && sim.paths[0].marks.Count > 0;
             if (hasFinish) finishPos = sim.paths[0].At(sim.paths[0].marks[0]).pos;
+            if (set != null) SetWidth(Mathf.Clamp(set.miniW, MinW, MaxW));
             canvas.MarkDirtyRepaint();
         }
 
@@ -258,8 +261,7 @@ namespace Autorama
         Vector2 ToMap(Vector2 p)
         {
             var r = canvas.contentRect;
-            float inner = Mathf.Max(1f, Mathf.Min(r.width, r.height) - Pad * 2f);
-            float k = inner / Mathf.Max(box.width, box.height);
+            float k = Mathf.Min(Mathf.Max(1f, r.width - Pad * 2f) / box.width, Mathf.Max(1f, r.height - Pad * 2f) / box.height);
             float ox = r.x + (r.width - box.width * k) / 2f, oy = r.y + (r.height - box.height * k) / 2f;
             return new Vector2(ox + (p.x - box.xMin) * k, oy + (box.yMax - p.y) * k);
         }

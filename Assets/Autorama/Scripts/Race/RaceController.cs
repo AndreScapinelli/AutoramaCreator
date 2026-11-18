@@ -218,8 +218,11 @@ namespace Autorama
             panel.ModeChanged += OnMode;
             panel.OptionsRequested += ShowKeys;
             panel.TestRequested += ToggleTest;
+            // "Correr nesta pista" no construtor: abre a corrida com a pista do construtor.
+            panel.RaceHereRequested += () => { set.track = "builder"; set.raceFaixas = 0; set.Save(); panel.SetMode(BuilderPanel.Mode.Race); };
             OnTrackChanged();
             SplitStart();
+            BuilderPanel.FoldHints(panel.Root);         // "?" no lugar dos parágrafos de explicação
         }
 
         void OnDestroy()

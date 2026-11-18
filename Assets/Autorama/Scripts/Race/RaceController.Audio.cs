@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Autorama
 {
@@ -153,6 +154,12 @@ namespace Autorama
             skidClip.SetData(raw, 0);
 
             beepClip = Clip("Bipe", 0.2f, (t, i) => 0.5f * Sin(520f, t) * Env(t, 0.2f, 6f));
+            // Clique da interface (proposta G): um toque curto e seco em qualquer botão, em qualquer tela.
+            var uiClick = Clip("Clique", 0.05f, (t, i) => 0.35f * Sin(1800f, t) * Env(t, 0.05f, 60f));
+            panel.Root.RegisterCallback<ClickEvent>(e =>
+            {
+                if (fx != null && Master > 0f && (e.target as VisualElement)?.GetFirstOfType<Button>() is Button b && b.enabledInHierarchy) fx.PlayOneShot(uiClick, 0.35f * Master);
+            }, TrickleDown.TrickleDown);
             goClip = Clip("Largada", 0.55f, (t, i) => 0.5f * (Sin(1040f, t) + 0.3f * Sin(2080f, t)) * Env(t, 0.55f, 3.5f));
             hitClip = Clip("Batida", 0.22f, (t, i) => (0.7f * Noise() + 0.6f * Sin(140f - 200f * t, t)) * Env(t, 0.22f, 22f));
             offClip = Clip("Saída de pista", 0.6f, (t, i) =>

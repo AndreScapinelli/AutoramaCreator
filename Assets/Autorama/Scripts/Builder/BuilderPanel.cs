@@ -65,10 +65,7 @@ namespace Autorama
             if (m == CurrentMode) return;
             if (OnlineRacing && m != Mode.Online) { Say("Termine o campeonato online (ou saia da sala) antes de trocar de aba."); return; }
             CurrentMode = m;
-            tabBuild.EnableInClassList("tab--on", m == Mode.Build);
-            tabRace.EnableInClassList("tab--on", m == Mode.Race);
-            tabChamp.EnableInClassList("tab--on", m == Mode.Champ);
-            tabOnline.EnableInClassList("tab--on", m == Mode.Online);
+            panelTitle.text = m switch { Mode.Race => "CORRIDA", Mode.Champ => "CAMPEONATO", Mode.Online => "ONLINE", Mode.Career => "CARREIRA", _ => "CONSTRUTOR" };
             buildBox.style.display = m == Mode.Build ? DisplayStyle.Flex : DisplayStyle.None;
             raceBox.style.display = m == Mode.Race ? DisplayStyle.Flex : DisplayStyle.None;
             champBox.style.display = m == Mode.Champ ? DisplayStyle.Flex : DisplayStyle.None;
@@ -92,14 +89,14 @@ namespace Autorama
 
         UIDocument doc;
         VisualElement buildBox, raceBox, champBox, onlineBox, careerBox;
-        Button tabBuild, tabRace, tabChamp, tabOnline;
+        Label panelTitle;
         VisualElement root, side, content, showTab, topRuler, leftRuler, info, scaleBar;
         VisualElement statusBox, statusDot, selectedBox, summaryBox, seqBox, libList;
         Label statusText, hint, cellLabel, scaleText, toast, viewBadge;
         // Sobre a mesa, no construtor: o selo de status (com a ação que resolve) e a barra de ações.
         VisualElement tableWrap, tableStatus, tableDot, actionBar;
         Label tableText;
-        Button tableClose, tableShow, barUndo, barRedo, barFlip, barRemove, bar3D;
+        Button tableClose, tableShow, tableRace, barUndo, barRedo, barFlip, barRemove, bar3D;
         TextField nameField;
         Button undoBtn, redoBtn, viewBtn, saveAsBtn, closeBtn, endFrontBtn, endBackBtn;
 
@@ -217,6 +214,80 @@ namespace Autorama
             return b;
         }
 
+        // Dica própria (proposta D): o UI Toolkit não desenha o tooltip no jogo. Parou o mouse 0,4 s em cima de algo
+        // que tem tooltip (ou dentro dele), aparece um balão perto do ponteiro; mexeu para fora ou clicou, some.
+        Label tip;
+        VisualElement tipOwner;
+        IVisualElementScheduledItem tipJob;
+        Vector2 tipAt;
+        void BuildTip()
+        {
+            tip = Text("", "tip", root);
+            tip.pickingMode = PickingMode.Ignore;
+            tip.style.display = DisplayStyle.None;
+            root.RegisterCallback<PointerMoveEvent>(e =>
+            {
+                tipAt = e.localPosition;
+                VisualElement t = e.target as VisualElement;
+                while (t != null && string.IsNullOrEmpty(t.tooltip)) t = t.parent;
+                if (t == tipOwner) return;
+                tipOwner = t;
+                tip.style.display = DisplayStyle.None;
+                tipJob?.Pause();
+                if (t != null) tipJob = root.schedule.Execute(ShowTip).StartingIn(400);
+            }, TrickleDown.TrickleDown);
+            root.RegisterCallback<PointerDownEvent>(_ => { tipJob?.Pause(); tip.style.display = DisplayStyle.None; }, TrickleDown.TrickleDown);
+        }
+
+        void ShowTip()
+        {
+            if (tipOwner == null || tipOwner.panel == null || string.IsNullOrEmpty(tipOwner.tooltip) || tipOwner.resolvedStyle.display == DisplayStyle.None) return;
+            tip.text = tipOwner.tooltip;
+            tip.style.display = DisplayStyle.Flex;
+            tip.BringToFront();
+            float w = root.layout.width, h = root.layout.height;
+            tip.style.left = Mathf.Min(tipAt.x + 14f, w - 340f);
+            tip.style.top = tipAt.y + 22f > h - 60f ? tipAt.y - 44f : tipAt.y + 22f;
+        }
+
+        // "?" nas seções (proposta D): os parágrafos fixos de explicação (.hint com texto já na montagem) ficam
+        // escondidos e um botão "?" no título mostra e esconde. Os .hint que nascem vazios são avisos que mudam
+        // com o jogo (ex.: "feche o circuito") e continuam sempre à mostra.
+        internal static void FoldHints(VisualElement root)
+        {
+            root.Query(className: "section").ForEach(sec =>
+            {
+                var title = sec.Q<Label>(className: "h2");
+                if (title == null || title.parent != sec || sec.Q(className: "sec-head") != null) return;
+                var fixos = new List<VisualElement>();
+                foreach (var c in sec.Children())
+                    if (c is Label l && l.ClassListContains("hint") && !string.IsNullOrEmpty(l.text)) fixos.Add(c);
+                if (fixos.Count == 0) return;
+                var head = El("sec-head");
+                sec.Insert(sec.IndexOf(title), head);
+                head.Add(title);
+                bool open = false;
+                Button q = null;
+                q = Btn("?", () =>
+                {
+                    open = !open;
+                    foreach (var f in fixos) f.style.display = open ? DisplayStyle.Flex : DisplayStyle.None;
+                    q.EnableInClassList("sec-q--on", open);
+                }, "btn sec-q", head);
+                q.tooltip = "Como funciona";
+                foreach (var f in fixos) f.style.display = DisplayStyle.None;
+            });
+        }
+
+        // Botão com ícone desenhado (UiIcon) e texto; sem texto, só o ícone.
+        internal static Button IconBtn(string text, string icon, System.Action onClick, string cls = "btn", VisualElement parent = null)
+        {
+            var b = Btn("", onClick, cls + " btn--icon", parent);
+            b.Add(new UiIcon(icon, "btn-ico"));
+            if (!string.IsNullOrEmpty(text)) Text(text, "btn-label", b).pickingMode = PickingMode.Ignore;
+            return b;
+        }
+
         VisualElement Section(string title)
         {
             var s = El("section", buildBox);
@@ -269,7 +340,7 @@ namespace Autorama
             kind4Btn.EnableInClassList("btn--on", f == 4);
             kind6Btn.EnableInClassList("btn--on", f == 6);
             kind8Btn.EnableInClassList("btn--on", f == 8);
-            subtitle.text = $"AUTORAMA · {f} TRILHOS";
+            subtitle.text = $"PISTA DE {f} TRILHOS";
             if (iconsFor == f) return;
             iconsFor = f;
             foreach (var (img, name) in paletteIcons) img.image = IconTex(name);
@@ -298,23 +369,18 @@ namespace Autorama
             viewBadge.pickingMode = PickingMode.Ignore;
 
             side = El("side", root);
-            var scroll = new ScrollView(ScrollViewMode.Vertical);
+            var scroll = new ScrollView(ScrollViewMode.Vertical) { horizontalScrollerVisibility = ScrollerVisibility.Hidden };
             scroll.AddToClassList("side-scroll");
             side.Add(scroll);
             content = El("side-content", scroll.contentContainer);
 
             var titleRow = El("title-row", content);
             var titles = El("titles", titleRow);
-            Text("CONSTRUTOR DE PISTA", "title", titles);
-            subtitle = Text("AUTORAMA · 2 TRILHOS", "subtitle", titles);
-            Btn("⌂", () => { if (OnlineRacing) Say("Termine o campeonato online (ou saia da sala) antes de voltar ao menu."); else ShowMenu(true); }, "btn icon-btn", titleRow).tooltip = "Tela inicial";
-            Btn("◀", () => SetSide(false), "btn icon-btn", titleRow).tooltip = "Esconder o painel (Tab)";
+            panelTitle = Text("CONSTRUTOR", "title", titles);
+            subtitle = Text("PISTA DE 2 TRILHOS", "subtitle", titles);
+            IconBtn(null, "inicio", () => { if (OnlineRacing) Say("Termine o campeonato online (ou saia da sala) antes de voltar ao menu."); else ShowMenu(true); }, "btn icon-btn", titleRow).tooltip = "Tela inicial";
+            IconBtn(null, "esconder", () => SetSide(false), "btn icon-btn", titleRow).tooltip = "Esconder o painel (Tab)";
 
-            var tabs = El("tabs", content);
-            tabBuild = Btn("CONSTRUTOR", () => SetMode(Mode.Build), "tab tab--on", tabs);
-            tabRace = Btn("CORRIDA", () => SetMode(Mode.Race), "tab", tabs);
-            tabChamp = Btn("CAMPEONATO", () => SetMode(Mode.Champ), "tab", tabs);
-            tabOnline = Btn("ONLINE", () => SetMode(Mode.Online), "tab", tabs);
 
             statusBox = El("status", content);
             statusDot = El("status-dot", statusBox);
@@ -420,7 +486,9 @@ namespace Autorama
             undoBtn = Btn("Desfazer", () => builder.Undo(), "btn", viewRow);
             redoBtn = Btn("Refazer", () => builder.Redo(), "btn", viewRow);
 
-            var keys = Section("ATALHOS");
+            var keys = new Foldout { text = "ATALHOS", value = false };     // recolhido: a lista completa fica em Opções
+            keys.AddToClassList("section"); keys.AddToClassList("fold");
+            buildBox.Add(keys);
             Text("<b>1–0, T</b> peças · <b>X/B</b> cruzamento · <b>U/D</b> rampa\n" +
                  "<b>Clique</b> seleciona · <b>F</b> inverte a curva · <b>R</b> gira a largada · <b>E</b> ponta: frente/trás\n" +
                  "<b>Del</b> remove a selecionada · <b>⌫</b> remove a última · <b>Esc</b> solta\n" +
@@ -431,10 +499,13 @@ namespace Autorama
 
             BuildTableTools();
 
-            showTab = Btn("☰  Painel (Tab)", () => SetSide(true), "btn show-tab", root);
+            showTab = IconBtn("Painel (Tab)", "painel", () => SetSide(true), "btn show-tab", root);
             showTab.style.display = DisplayStyle.None;
 
             BuildStartMenu();
+            ApplyChrome();
+            BuildTip();
+            FoldHints(buildBox);
 
             toast = Text("", "toast", root);
             toast.pickingMode = PickingMode.Ignore;
@@ -445,32 +516,37 @@ namespace Autorama
 
         void BuildStartMenu()
         {
+            // Tela cheia (proposta B): o nome à esquerda, os modos à direita e, embaixo, Peças · Opções · Sair.
             startMenu = El("start", root);
             MenuOpen = true;
             var card = El("start-card", startMenu);
-            Text("AUTORAMA", "start-title", card);
-            Text("Monte a pista, chame alguém e acelere.", "start-sub", card);
+            var hero = El("start-hero", card);
+            Text("AUTORAMA", "start-title", hero);
+            Text("MANIA", "start-title start-title--2", hero);
+            Text("DEFINITIVE EDITION 1", "start-edition", hero);
+            El("start-flag", hero);
+            Text("Monte a pista, chame alguém e acelere.", "start-sub", hero);
             var grid = El("start-grid", card);
-            void Opt(string title, string sub, string icon, Mode m)
+            void Opt(string title, string sub, string icon, Mode m, string extra = null)
             {
                 var b = new Button(() => { ShowMenu(false); SetMode(m); });
                 b.AddToClassList("start-opt");
-                Text(icon, "start-icon", b).pickingMode = PickingMode.Ignore;
+                if (extra != null) b.AddToClassList(extra);
+                b.Add(new UiIcon(icon, "start-icon"));
                 var t = El("start-texts", b); t.pickingMode = PickingMode.Ignore;
                 Text(title, "start-opt-title", t).pickingMode = PickingMode.Ignore;
                 Text(sub, "start-opt-sub", t).pickingMode = PickingMode.Ignore;
                 grid.Add(b);
             }
-            Opt("Construir", "Encaixe as peças e feche o circuito", "▦", Mode.Build);
-            Opt("Carreira", "Da garagem ao campeonato nacional", "⚑", Mode.Career);
-            Opt("Correr", "Dois jogadores no mesmo teclado ou contra o robô", "▶", Mode.Race);
-            Opt("Campeonato", "Pilotos, etapas, tabela e recordes", "★", Mode.Champ);
-            Opt("Online", "Campeonato com amigos pela Steam", "◉", Mode.Online);
-            var extra = El("start-extra", card);
-            Btn("Peças", () => ShopRequested?.Invoke(), "btn start-btn", extra);
-            Btn("Opções", () => OptionsRequested?.Invoke(), "btn start-btn", extra);
-            Btn("Sair", QuitGame, "btn start-btn", extra);
-            Text("O botão ⌂ no painel volta para esta tela.", "start-foot", card);
+            Opt("Carreira", "Da garagem ao campeonato nacional", "carreira", Mode.Career, "start-opt--big");
+            Opt("Corrida", "Contra amigos no mesmo PC ou contra o robô", "correr", Mode.Race);
+            Opt("Campeonato", "Pilotos, etapas, tabela e recordes", "campeonato", Mode.Champ);
+            Opt("Online", "Partida rápida ou sala com amigos", "online", Mode.Online);
+            Opt("Construtor", "Encaixe as peças e feche o circuito", "construir", Mode.Build);
+            var extra = El("start-extra", startMenu);
+            IconBtn("Peças", "pecas", () => ShopRequested?.Invoke(), "btn start-btn", extra);
+            IconBtn("Opções", "opcoes", () => OptionsRequested?.Invoke(), "btn start-btn", extra);
+            IconBtn("Sair", "sair", QuitGame, "btn start-btn", extra);
         }
 
         // Pedido do botão Opções da tela inicial: quem tem as opções (a RaceController, com as teclas) abre a tela.
@@ -479,10 +555,11 @@ namespace Autorama
         public event System.Action ShopRequested;
         // Testar a pista no construtor (seção 61): o RaceController liga e desliga o carro IA de teste.
         public event System.Action TestRequested;
+        public event System.Action RaceHereRequested;
         Button barTest;
         public void SetTestOn(bool on)
         {
-            barTest.text = on ? "■" : "▶";
+            barTest.Q<UiIcon>().Set(on ? "parar" : "correr");
             barTest.tooltip = on ? "Parar o teste" : "Testar a pista com um carro IA (anda mesmo com a pista aberta)";
             barTest.EnableInClassList("btn--accent", on);
         }
@@ -502,6 +579,7 @@ namespace Autorama
             if (startMenu == null) return;
             MenuOpen = open;
             startMenu.style.display = open ? DisplayStyle.Flex : DisplayStyle.None;
+            if (side != null) { ApplyChrome(); root.schedule.Execute(FrameTrack).ExecuteLater(20); }
             if (open) { builder.CancelAutoClose(); builder.HideGhost(); builder.SetHoverCell(null); hover = null; }
             root.focusController?.focusedElement?.Blur();
         }
@@ -525,25 +603,26 @@ namespace Autorama
             tableClose = Btn("Fechar circuito (Q)", AutoClose, "btn btn--accent table-btn", tableStatus);
             tableShow = Btn("Mostrar", ShowOverlap, "btn table-btn", tableStatus);
             tableShow.tooltip = "Seleciona uma das peças sobrepostas";
+            tableRace = IconBtn("Correr nesta pista", "correr", () => RaceHereRequested?.Invoke(), "btn btn--accent table-btn", tableStatus);
 
             // Barra de ações, no canto de baixo à direita da mesa.
             actionBar = El("action-bar", root);
-            Button B(string t, string tip, System.Action a) { var b = Btn(t, a, "btn bar-btn", actionBar); b.tooltip = tip; return b; }
+            Button B(string icon, string tip, System.Action a) { var b = IconBtn(null, icon, a, "btn bar-btn", actionBar); b.tooltip = tip; return b; }
             void Gap() => El("bar-gap", actionBar);
-            barTest = B("▶", "", () => TestRequested?.Invoke());
+            barTest = B("correr", "", () => TestRequested?.Invoke());
             SetTestOn(false);
             Gap();
-            barUndo = B("↶", "Desfazer (Ctrl+Z)", () => builder.Undo());
-            barRedo = B("↷", "Refazer (Ctrl+Y)", () => builder.Redo());
+            barUndo = B("desfazer", "Desfazer (Ctrl+Z)", () => builder.Undo());
+            barRedo = B("refazer", "Refazer (Ctrl+Y)", () => builder.Redo());
             Gap();
-            barFlip = B("⇄", "Inverter a curva selecionada (F)", () => builder.FlipSelected());
-            B("⟳", "Girar a largada (R)", () => builder.RotateStart());
-            barRemove = B("✕", "Remover a selecionada (Del) ou a última (⌫)", () => { if (builder.Selected >= 0) builder.RemoveSelected(); else builder.RemoveLast(); });
+            barFlip = B("inverter", "Inverter a curva selecionada (F)", () => builder.FlipSelected());
+            B("girar", "Girar a largada (R)", () => builder.RotateStart());
+            barRemove = B("apagar", "Remover a selecionada (Del) ou a última (⌫)", () => { if (builder.Selected >= 0) builder.RemoveSelected(); else builder.RemoveLast(); });
             Gap();
-            B("⌖", "Enquadrar a pista (C)", FrameTrack);
-            bar3D = B("3D", "Vista 3D (V)", () => cam.ToggleTilt());
-            B("−", "Afastar", () => cam.ZoomStep(1.25f));
-            B("+", "Aproximar", () => cam.ZoomStep(0.8f));
+            B("enquadrar", "Enquadrar a pista (C)", FrameTrack);
+            bar3D = Btn("3D", () => cam.ToggleTilt(), "btn bar-btn", actionBar); bar3D.tooltip = "Vista 3D (V)";
+            B("menos", "Afastar", () => cam.ZoomStep(1.25f));
+            B("mais", "Aproximar", () => cam.ZoomStep(0.8f));
         }
 
         void ShowOverlap()
@@ -563,6 +642,7 @@ namespace Autorama
             if (cls != "") tableStatus.AddToClassList(cls);
             tableClose.style.display = !i.closed && builder.pieces.Count > 1 && i.overlaps.Count == 0 ? DisplayStyle.Flex : DisplayStyle.None;
             tableShow.style.display = i.overlaps.Count > 0 ? DisplayStyle.Flex : DisplayStyle.None;
+            tableRace.style.display = i.closed && i.overlaps.Count == 0 && !chromeHidden ? DisplayStyle.Flex : DisplayStyle.None;
             barUndo.SetEnabled(builder.CanUndo);
             barRedo.SetEnabled(builder.CanRedo);
             bool sel = builder.Selected >= 0;
@@ -799,17 +879,22 @@ namespace Autorama
         public void HideChrome(bool hide)
         {
             chromeHidden = hide;
-            side.style.display = !hide && sideVisible ? DisplayStyle.Flex : DisplayStyle.None;
-            showTab.style.display = !hide && !sideVisible ? DisplayStyle.Flex : DisplayStyle.None;
+            ApplyChrome();
             root.schedule.Execute(FrameTrack).ExecuteLater(20);
+        }
+
+        // Com a carreira (HideChrome) ou o menu inicial na tela, o painel e o botão de mostrá-lo somem; o estado volta depois.
+        void ApplyChrome()
+        {
+            bool off = chromeHidden || MenuOpen;
+            side.style.display = sideVisible && !off ? DisplayStyle.Flex : DisplayStyle.None;
+            showTab.style.display = !sideVisible && !off ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
         void SetSide(bool visible)
         {
             sideVisible = visible;
-            // Com a carreira na tela (HideChrome) os dois ficam escondidos; o estado volta quando ela sai.
-            side.style.display = visible && !chromeHidden ? DisplayStyle.Flex : DisplayStyle.None;
-            showTab.style.display = !visible && !chromeHidden ? DisplayStyle.Flex : DisplayStyle.None;
+            ApplyChrome();
             root.focusController?.focusedElement?.Blur();
             root.schedule.Execute(FrameTrack).ExecuteLater(20);
         }
@@ -864,16 +949,16 @@ namespace Autorama
         void LateUpdate()
         {
             if (root?.panel == null || builder.Info == null) return;
-            bool top = cam.IsTopView;
+            bool top = cam.IsTopView && !Locked && !MenuOpen;     // réguas e escala só no construtor
             float left = sideVisible ? side.layout.width : 0f;
             topRuler.style.display = leftRuler.style.display = top && !chromeHidden ? DisplayStyle.Flex : DisplayStyle.None;
             viewBadge.style.display = cam.Tilted && !chromeHidden ? DisplayStyle.Flex : DisplayStyle.None;
             viewBtn.EnableInClassList("btn--on", cam.Tilted);
             info.style.left = left + 34f;
             // Na corrida o canto de baixo é dos controles dos jogadores.
-            info.style.display = RaceMode ? DisplayStyle.None : DisplayStyle.Flex;
+            info.style.display = Locked || MenuOpen ? DisplayStyle.None : DisplayStyle.Flex;
             // Selo e barra só no construtor; o selo fica centrado na mesa (à direita do painel).
-            var buildOnly = Locked ? DisplayStyle.None : DisplayStyle.Flex;
+            var buildOnly = Locked || MenuOpen ? DisplayStyle.None : DisplayStyle.Flex;
             tableWrap.style.display = actionBar.style.display = buildOnly;
             tableWrap.style.left = left;
             bar3D.EnableInClassList("btn--on", cam.Tilted);

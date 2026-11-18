@@ -4998,3 +4998,45 @@ Na garagem da carreira, o nível da asa diz "+0,3% de aerodinâmica" (era "de ad
 - **Onde aparece a média:** em todas as listas, no fim da `TrackLine` ("· ★ 4,2 (12)"): biblioteca, etapas e pistas disponíveis do lobby e sugestões. A nota é por identidade, então a mesma pista em 2 e em 4 trilhos tem notas separadas, como os recordes.
 - **Limites:** com o AppId 480 (Spacewar) os placares são do app de teste da Valve e qualquer um com esse AppId pode mexer: vale só para testar. Com o AppId próprio, as notas passam a ser só do jogo (os placares de teste não vão junto). O voto é preso à conta da Steam. Quem joga pelo servidor Node sem a Steam não vê nem dá nota. A Oficina (Workshop) fica para depois.
 - Teste (`script eval`, sem cena): autor "Ana" volta no JSON e a identidade é a mesma com e sem autor; `TrackLine` dá "6 trilhos · 33 peças · 54,6 m · fechada · de Ana"; JSON sem o campo dá autor vazio. Com a Steam aberta (AppId 480), ler a nota da Oval (`a34f4cb9`) respondeu "sem placar, 0 notas" em menos de 5 s. Não foi gravada nota de teste (criaria um placar no Spacewar), não visto no Play.
+
+## 84. Revisão da interface (Autorama Mania Definitive Edition 1)
+
+Primeira leva das propostas de `docs/PROPOSTAS-UI.md` (branch `melhorias-ui`). A lógica do jogo não muda; só a apresentação.
+
+**Nome.** A tela inicial mostra **AUTORAMA MANIA · DEFINITIVE EDITION 1**. O `productName` do `ProjectSettings` continua `AutoramaMania`: ele dá o nome da pasta de `Application.persistentDataPath`, e trocá-lo esconderia pistas, recordes e carreiras de quem já joga.
+
+**Menu inicial em tela cheia** (`BuilderPanel.BuildStartMenu`, `.start*`): o nome à esquerda (72 px, itálico, sombra), a faixa quadriculada (`Texturas/bandeirada.png`) e, à direita, a Carreira em destaque (cartão largo) e quatro cartões: Corrida, Campeonato, Online e Construtor. Peças, Opções e Sair ficam no pé, à esquerda. Com o menu aberto, a barra lateral, as réguas, o selo de status e a barra de ações somem (`ApplyChrome`, que junta `chromeHidden` da carreira e `MenuOpen`).
+
+**Sem abas.** A barra lateral não tem mais as abas Construtor · Corrida · Campeonato · Online: o título dela é o nome do modo (`panelTitle`) e o caminho é menu → modo → ⌂ volta ao menu. No construtor, com o circuito fechado, o selo de cima ganha **Correr nesta pista** (`RaceHereRequested`): abre a Corrida com `set.track = "builder"`.
+
+**Consertos.** Réguas, célula e escala só no construtor (antes a régua de cima vazava na corrida, porque `cam.IsTopView` valia também ali). A barra lateral não tem rolagem horizontal. O título não quebra; o selo de status quebra a linha em vez de cortar.
+
+**Ícones desenhados** (`View/UiIcon.cs`): `VisualElement` que desenha com o `Painter2D` numa caixa de 24 × 24, na cor do texto, traço 2. Tipos: `construir`, `carreira`, `correr`, `campeonato`, `online`, `pecas`, `opcoes`, `sair`, `inicio`, `esconder`, `painel`, `desfazer`, `refazer`, `inverter`, `girar`, `apagar`, `enquadrar`, `menos`, `mais`, `parar`, `fechar`, `camera`, `carro`, `estrela`. `BuilderPanel.IconBtn(texto, ícone, ação)` monta um botão com ícone (sem texto, só o ícone). A barra de ações da mesa e os botões ⌂ e ◀ usam isso no lugar dos glifos Unicode (o `⚑` saía como quadrado).
+
+**Dica própria** (`BuilderPanel.BuildTip`, `.tip`): o UI Toolkit não desenha o `tooltip` no jogo. Parado 0,4 s em cima de um elemento com `tooltip` (ou dentro dele), aparece um balão perto do ponteiro; sair ou clicar esconde. Vale para os `tooltip` que já existiam.
+
+**"?" nas seções** (`BuilderPanel.FoldHints`, `.sec-head`, `.sec-q`): os parágrafos `.hint` que já têm texto na montagem ficam escondidos atrás de um "?" no título da seção. Os `.hint` que nascem vazios são avisos que mudam com o jogo e ficam sempre à mostra. Roda no `BuilderPanel` (construtor) e no fim do `Start` do `RaceController` (todas as telas montadas até ali). Os Atalhos do construtor viraram uma sanfona fechada.
+
+**Tipo e cor** (topo de `Construtor.uss`):
+- Superfícies em quatro níveis: `--sup-0` (13, 17, 15), `--sup-1` (22, 28, 25), `--sup-2` (31, 39, 35) e `--sup-3` (42, 52, 48).
+- Papéis de cor:
+  - amarelo `--destaque` para ação principal, escolhido e foco;
+  - `--premio` (232, 181, 74) para estrela, moeda e recorde;
+  - `--roxo` (196, 120, 255) para a melhor volta.
+- O botão branco `btn--primary` virou amarelo: um primário só.
+- Seções são cartões (`--sup-2`, borda de 10 px) com título branco e um traço amarelo à esquerda.
+- Letra: 12 px no mínimo e 14 no corpo; títulos e números grandes em negrito itálico.
+- A barra lateral passou de 340 para 360 px. Os botões segmentados dividem a largura (`flex-grow`), então "8 trilhos" não corta mais.
+
+**Controles padrão no tema** (`UI/TemaRuntime.tss`): campo de texto, caixa de seleção (amarela quando marcada), lista suspensa e a lista que abre, slider, sanfona e barra de rolagem fina sem setas. Ficam no tema, e não na `Construtor.uss`, porque a lista da `DropdownField` abre na raiz do painel, fora da folha do jogo.
+
+**Movimento e som:**
+- `transition` de 0,12 s em botões, peças da paleta, cartões, pinos e saves, com `scale` 1,03 no hover dos cartões.
+- Clique curto (1,8 kHz, 50 ms, `RaceController.Audio`, `uiClick`) em qualquer botão habilitado, no volume da corrida.
+
+**HUD:**
+- Painéis dos jogadores com no máximo 440 px cada, centrados, e acelerador de 64 px (antes 84).
+- Relógio da prova com 30 px; contagem e banner em itálico.
+- Minimapa sem a faixa vazia: a altura acompanha a forma da pista, entre 35% e 100% da largura. `RaceMinimap.SetWidth` e `ToMap` usam a escala menor dos dois eixos.
+
+Ficou para a próxima leva: a preparação de cada modo em tela cheia (proposta B), a torre de posições (F) e a paleta do construtor embaixo (E).

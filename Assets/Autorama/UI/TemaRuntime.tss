@@ -1,1 +1,61 @@
 @import url("unity-theme://default");
+
+/* Controles padrão da Unity no estilo do jogo (docs/PROPOSTAS-UI.md, proposta A). Ficam no tema, e não no
+   Construtor.uss, porque a lista que abre da DropdownField vai para a raiz do painel, fora da folha do jogo.
+   Cores iguais às de Construtor.uss: sup-0 (13,17,15), sup-2 (31,39,35), sup-3 (42,52,48), destaque (245,194,27). */
+
+.unity-label { color: rgb(238, 242, 236); }
+
+/* Campo de texto */
+.unity-base-text-field__input {
+    background-color: rgb(13, 17, 15); border-color: rgb(53, 65, 59); border-radius: 6px;
+    color: rgb(238, 242, 236); font-size: 13px; min-height: 30px; padding: 4px 8px;
+}
+.unity-base-text-field__input:focus, .unity-base-text-field:focus > .unity-base-text-field__input { border-color: rgb(245, 194, 27); }
+
+/* Caixa de seleção */
+.unity-toggle__checkmark {
+    width: 20px; height: 20px; border-radius: 5px; border-width: 1px;
+    background-color: rgb(13, 17, 15); border-color: rgb(90, 107, 98);
+    -unity-background-image-tint-color: rgba(0, 0, 0, 0);
+}
+.unity-toggle:hover .unity-toggle__checkmark { border-color: rgb(245, 194, 27); }
+.unity-toggle:checked .unity-toggle__checkmark {
+    background-color: rgb(245, 194, 27); border-color: rgb(245, 194, 27); -unity-background-image-tint-color: rgb(27, 22, 0);
+}
+
+/* Lista suspensa: o campo e a lista que abre */
+.unity-base-popup-field__input, .unity-popup-field__input, .unity-base-dropdown-field__input {
+    background-color: rgb(42, 52, 48); border-color: rgb(53, 65, 59); border-radius: 8px; color: rgb(238, 242, 236);
+    min-height: 30px; padding: 0 8px; font-size: 13px; -unity-font-style: bold;
+}
+.unity-base-popup-field__input:hover { border-color: rgb(90, 107, 98); }
+.unity-base-popup-field__text { color: rgb(238, 242, 236); }
+.unity-base-popup-field__arrow { -unity-background-image-tint-color: rgb(245, 194, 27); }
+.unity-base-dropdown__container-outer { background-color: rgba(0, 0, 0, 0); border-width: 0; }
+.unity-base-dropdown__container-inner {
+    background-color: rgb(31, 39, 35); border-color: rgb(58, 70, 64); border-width: 1px; border-radius: 8px; padding: 4px 0;
+}
+.unity-base-dropdown__item { height: 30px; }
+.unity-base-dropdown__item:hover { background-color: rgb(42, 52, 48); }
+.unity-base-dropdown__label { color: rgb(238, 242, 236); font-size: 13px; }
+.unity-base-dropdown__checkmark { -unity-background-image-tint-color: rgb(245, 194, 27); }
+
+/* Slider */
+.unity-base-slider__tracker { background-color: rgb(13, 17, 15); border-color: rgb(53, 65, 59); border-radius: 3px; height: 6px; margin-top: -3px; }
+.unity-base-slider__dragger { background-color: rgb(245, 194, 27); border-color: rgb(245, 194, 27); border-radius: 8px; width: 16px; height: 16px; margin-top: -8px; }
+.unity-base-slider__dragger-border { display: none; }
+
+/* Sanfona */
+.unity-foldout__checkmark { -unity-background-image-tint-color: rgb(245, 194, 27); }
+.unity-foldout__toggle:hover .unity-foldout__text { color: rgb(245, 194, 27); }
+
+/* Barra de rolagem fina, sem setas; a horizontal não aparece */
+.unity-scroller--vertical { width: 10px; }
+.unity-scroller--vertical .unity-scroller__low-button, .unity-scroller--vertical .unity-scroller__high-button { display: none; }
+.unity-scroller--vertical > .unity-scroller__slider { margin: 2px 0; }
+.unity-scroller .unity-base-slider__tracker { background-color: rgba(0, 0, 0, 0); border-width: 0; height: auto; margin-top: 0; }
+.unity-scroller .unity-base-slider__dragger { background-color: rgb(58, 70, 64); border-width: 0; border-radius: 4px; width: 6px; height: auto; margin: 0 0 0 2px; }
+.unity-scroller .unity-base-slider__dragger:hover { background-color: rgb(90, 107, 98); }
+.unity-scroller--horizontal { display: none; }
+.unity-scroll-view__vertical-scroller { background-color: rgba(0, 0, 0, 0); border-width: 0; }
