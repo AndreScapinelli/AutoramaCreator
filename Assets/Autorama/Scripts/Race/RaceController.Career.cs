@@ -720,7 +720,8 @@ namespace Autorama
         {
             var sb = new System.Text.StringBuilder("Monte a pista: ");
             sb.Append(string.Join(", ", System.Array.ConvertAll(n.pecas ?? new string[0], Career.PieceName)));
-            sb.Append(n.rampas ? " (com rampas)" : " (sem rampas)");
+            sb.Append(" e as peças que você já abriu");
+            sb.Append(Career.RampasOk(n) ? " (com rampas)" : " (sem rampas)");
             if (n.maxPecas > 0) sb.Append($" · no máximo {n.maxPecas} peças");
             if (n.exigir != null && n.exigir.Length > 0) sb.Append(" · use pelo menos: " + string.Join(", ", System.Array.ConvertAll(n.exigir, Career.PieceName)));
             return sb.ToString();
@@ -733,12 +734,12 @@ namespace Autorama
             if (n == null) return;
             kUserTrack = builderStash ?? builder.ToSave();
             kBuilding = true;
-            // As regras da prova valem no lugar das compras da Loja: a peça da prova pode, mesmo sem ser sua.
+            // As peças da prova valem, mesmo sem ser suas, e as que o jogador já abriu também.
             TrackBuilder.AllowedEntry = e => Career.PieceOk(n, e.def.Id, e.rise);
             TrackBuilder.MaxPieces = n.maxPecas;
             TrackBuilder.RuleNotice = "Esta peça não vale nesta prova.";
             TrackBuilder.GapOk = null;
-            TrackBuilder.RiseOk = () => n.rampas;
+            TrackBuilder.RiseOk = () => Career.RampasOk(n);
             TrackBuilder.LockTip = _ => "Não vale nesta prova.";
             TrackCloser.Allowed = id => Career.PieceOk(n, id, 0);
             panel.SetMode(Mode.Build);

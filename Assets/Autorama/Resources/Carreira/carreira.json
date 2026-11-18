@@ -105,7 +105,7 @@
             "meia-curva"
           ],
           "rampas": false,
-          "maxPecas": 16,
+          "maxPecas": 32,
           "exigir": [
             "meia-curva"
           ],
@@ -499,10 +499,9 @@
             "cruzamento-curto"
           ],
           "rampas": true,
-          "maxPecas": 20,
+          "maxPecas": 40,
           "exigir": [
-            "curva-longa-inclinada",
-            "cruzamento"
+            "curva-longa-inclinada"
           ],
           "estrelas": [
             {
@@ -865,10 +864,9 @@
             "salto"
           ],
           "rampas": true,
-          "maxPecas": 24,
+          "maxPecas": 48,
           "exigir": [
-            "curva-c",
-            "salto"
+            "curva-c"
           ],
           "estrelas": [
             {
@@ -1270,10 +1268,9 @@
             "loop"
           ],
           "rampas": true,
-          "maxPecas": 28,
+          "maxPecas": 56,
           "exigir": [
-            "loop",
-            "salto"
+            "loop"
           ],
           "estrelas": [
             {

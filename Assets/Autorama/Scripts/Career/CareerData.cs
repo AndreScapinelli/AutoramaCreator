@@ -168,8 +168,10 @@ namespace Autorama
 
         // ----- construtor (seção 72) -----
 
+        // Vale a peça da prova ou qualquer peça que o jogador já abriu (Progresso); rampa, se a prova deixa ou se já abriu as rampas.
         public static bool PieceOk(NodeDef n, string id, int rise) =>
-            id == PieceCatalog.Start.Id || (n.pecas != null && Array.IndexOf(n.pecas, id) >= 0 && (rise == 0 || n.rampas));
+            id == PieceCatalog.Start.Id || ((n.pecas != null && Array.IndexOf(n.pecas, id) >= 0 || Progresso.PieceOk(id)) && (rise == 0 || RampasOk(n)));
+        public static bool RampasOk(NodeDef n) => n.rampas || Progresso.Owns("rampas");
 
         public static string PieceName(string id) => PieceCatalog.ById(id)?.Name ?? id;
 

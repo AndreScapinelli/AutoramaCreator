@@ -4537,9 +4537,25 @@ Nó `tipo: "construtor"`: o jogador monta a pista no Construtor, com as regras d
 - **Correr nesta pista** (`BuildDone`): checa; se vale, guarda em `kBuilt` (com as faixas da região e o nome "Carreira · <prova>"), `EndBuild` (solta as travas, devolve a pista do jogador ao construtor e ao rascunho) e volta para `Mode.Career`, que larga no **quadro seguinte** (`kRunNext`: o `OnMode` dá `sim.Reset()` depois de entrar na carreira). **Cancelar** volta ao mapa com o cartão aberto. Trocar de aba no meio também solta as travas e devolve a pista do jogador.
 - No fim da prova a pista vai para `NodeSave.pista` (JSON) e para a biblioteca (`TrackLibrary.Save`, arquivo `carreira---<prova>.json`). Trocar de prova no mapa esquece a `kBuilt` (cada nó usa a sua).
 
-**Garagem:** nó **Oficina** (`garagem-oficina`, depois da Reta da Bancada, ao lado do Feijão): retas (curta, comprida, curtinha), curva longa e meia curva, sem rampas, no máximo 16 peças, use pelo menos uma meia curva; 4 voltas contra a IA 55; ★ terminar · ★★ vencer · ★★★ sem sair. A Garagem tem agora 10 nós (30 estrelas; o rival continua com 12).
+**Garagem:** nó **Oficina** (`garagem-oficina`, depois da Reta da Bancada, ao lado do Feijão): retas (curta, comprida, curtinha), curva longa e meia curva, sem rampas, no máximo 32 peças, use pelo menos uma meia curva; 4 voltas contra a IA 55; ★ terminar · ★★ vencer · ★★★ sem sair. A Garagem tem agora 10 nós (30 estrelas; o rival continua com 12).
 
 **Teste (Play, save 3 de teste apagado depois):** a carreira foi ao Construtor com 1 peça; a curva inclinada foi recusada, a reta aceita; com a garagem-3 carregada a caixa mostrou "Peças: 9 de 16 · ✓"; os botões das peças proibidas apagados. "Correr nesta pista" → Carreira, contagem; com o mestre 150 no lugar do jogador, ★★★, pista no save; a pista do construtor do jogador voltou igual (mesmo JSON). O teste gravou a pista na biblioteca com o nome dela ("Feijão", `feijao.json`); o arquivo foi apagado e o nome passou a ser sempre "Carreira · <prova>".
+
+### 72.1 Oficinas mais livres
+
+As oficinas travavam demais: lista fixa de peças, limite baixo (16 · 20 · 24 · 28) e duas peças obrigatórias. Agora:
+
+- **Peças:** valem as de `pecas` **e** todas as que o jogador já abriu (`Career.PieceOk` pergunta também `Progresso.PieceOk`). Rampa vale se a prova deixa (`rampas`) ou se as rampas já estão abertas (`Career.RampasOk`, também no `TrackBuilder.RiseOk`). O Q usa a mesma regra (`TrackCloser.Allowed`). O cartão diz "… e as peças que você já abriu".
+- **Limite** dobrado: Garagem 32, Clube 40, Regional 48, Nacional 56.
+- **Obrigatória:** uma só, a peça da região: meia curva, curva longa inclinada, curva em C, loop.
+
+```csharp
+public static bool PieceOk(NodeDef n, string id, int rise) =>
+    id == PieceCatalog.Start.Id || ((n.pecas != null && Array.IndexOf(n.pecas, id) >= 0 || Progresso.PieceOk(id)) && (rise == 0 || RampasOk(n)));
+public static bool RampasOk(NodeDef n) => n.rampas || Progresso.Owns("rampas");
+```
+
+**Teste (`script eval`, saves do jogador com inclinadas, troca e rampas abertas; sem salto nem loop):** na Oficina da Garagem a inclinada e a reta com rampa passaram a valer; o loop não. `CheckBuild`: garagem-3 vale na Garagem; clube-1 vale no Clube (antes faltava o cruzamento); nacional-c5 vale na Nacional (22 de 56); regional-1 na Garagem → "Rampa de salto não vale nesta prova.". Q com as 5 últimas peças tiradas: garagem-3 fecha com 3 peças, clube-1 com 5, nacional-c5 com 5.
 
 ## 73. Carreira: campeonato da região (fase 6)
 
@@ -4611,7 +4627,7 @@ A região conta aberta se está aberta em **algum** save (`RegionReached`). Regi
 | Nacional | 8 | 125 → 140 | O Campeão (IA 150, `#F2B705`, curto, asa, macio, pesado) na nacional-8 | Grande Prêmio Nacional: nacional-c1, c2, c4, c5; 7 IA de 125 a 150 |
 
 - **Estrelas para o rival:** Clube 14, Regional 16, Nacional 18 (de 30).
-- **Oficinas:** Clube (inclinadas e troca de faixa, 20 peças, exige inclinada e cruzamento); Regional (+ curva em C e salto, 24, exige os dois); Nacional (+ loop, 28, exige loop e salto). Todas com rampas.
+- **Oficinas:** Clube (inclinadas e troca de faixa, 40 peças, exige a inclinada); Regional (+ curva em C e salto, 48, exige a curva em C); Nacional (+ loop, 56, exige o loop). Todas com rampas e com as peças já abertas (seção 72.1).
 - **Desafios:** Noite de Chuva (molhada), Último de Pé (sobrevivência 2 + turbo livre), Largada do Fundo (atrasada 2 s); Ziguezague Molhado (molhada + pneu macio e chassi pesado), Mirante (turbo livre + sobrevivência 3), Largada Pesada (atrasada + motor longo, pneu duro, chassi pesado); Abismo (sobrevivência 2), Serra Molhada (molhada, 7 adversários), Troca Final (atrasada + turbo livre, 7 adversários).
 - **Relógios** (bronze · prata · ouro, s): clube-2 5,43 · 5,06 · 4,59; clube-6 5,34 · 4,88 · 4,68; regional-2 10,36 · 9,97 · 9,32; regional-6 7,29 · 7,00 · 6,86; nacional-2 8,35 · 8,02 · 7,80; nacional-6 8,26 · 7,80 · 7,52. Com salto ou loop o piloto ótimo do `SetupCalib` não anda (não sabe saltar): o ouro é a melhor volta média do mestre 150 − 3% (regional-2 9,61; regional-6 7,07; nacional-2 8,55; nacional-6 7,75); onde a prata (mestre 125) saiu igual ou pior que o bronze (IA 90), a prata é bronze − 4%. O mestre 150 ainda cai às vezes nos saltos das pistas largas (1,9 e 2,0 por prova na regional-2 e nacional-2).
 - **Campeonato por tempo** (`NodeDef.porTempo`, `segundos`): nas pistas largas, por voltas o jogador correria uma bateria por trilho (4, 6 ou 8 por etapa). Por tempo (as regras da seção 26) é **uma bateria por etapa** com todos, em manches de `segundos / trilhos`, cada um passando por todos os trilhos: Clube 90 s, Regional 120 s, Nacional 160 s. `Championship.byTime`, `Stage.secs`, `MakeHeats(…, byTime)`, sem corte; a linha da bateria e a posição usam a distância.
