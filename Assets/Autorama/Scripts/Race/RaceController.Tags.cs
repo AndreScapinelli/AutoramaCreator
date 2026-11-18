@@ -83,10 +83,11 @@ namespace Autorama
         string TagText(int k, int pos, List<int> ord)
         {
             string t = $"{pos + 1}º <size=75%>{hud[k].name.text}</size>";
-            if (TagMine(k) && pos > 0 && sim.cars[k].finish == null && sim.phase == RaceSim.Phase.Running)
+            if (TagMine(k) && sim.cars[k].finish == null && sim.phase == RaceSim.Phase.Running)
             {
-                float g = TagGap(ord[pos - 1], k);
-                if (g >= 0f) t += $"\n<size=70%>+{Num(g, 1)} s</size>";
+                // Atrás: quanto falta para o da frente. Na frente: quanto o 2º está atrás (desde que o líder passou por onde o 2º está).
+                float g = pos > 0 ? TagGap(ord[pos - 1], k) : ord.Count > 1 ? TagGap(k, ord[1]) : -1f;
+                if (g >= 0f) t += pos > 0 ? $"\n<size=70%>+{Num(g, 1)} s</size>" : $"\n<size=70%><color=#7CE38B>−{Num(g, 1)} s</color></size>";
             }
             if (pos == 0) t += "\n▼";
             return t;

@@ -81,7 +81,7 @@ namespace Autorama
         public NetRoom room = new NetRoom();              // joined, room
         public List<NetListed> rooms = new List<NetListed>();
         public List<NetChat> chat = new List<NetChat>();  // joined: as últimas mensagens da sala
-        // started: o campeonato (pilotos na ordem do rodízio, regras e as pistas com o JSON)
+        // started: o campeonato (pilotos na ordem do rodízio, regras e as pistas com o JSON) · pistas: o desenho das etapas no lobby (só stages)
         public string title;
         public NetRules rules = new NetRules();
         public List<NetPlayer> pilots = new List<NetPlayer>();

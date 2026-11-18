@@ -29,6 +29,9 @@ namespace Autorama
         const int RejoinMax = 5;
         List<NetListed> listed = new List<NetListed>();
         readonly List<Stage> onlineStages = new List<Stage>();    // do host: com os dados completos (o servidor guarda e devolve só o resumo)
+        // Visitante: o desenho das etapas por identidade (seção 23.4). Vem da biblioteca daqui ou do pedido "pistas".
+        readonly Dictionary<string, TrackSave> stageTracks = new Dictionary<string, TrackSave>();
+        string pistasAsked; float pistasAt = -10f;
 
         // Pistas que os visitantes sugeriram ao host (seção 30 do guia). Só o host as guarda, e só no lobby.
         class Suggestion { public string from, name, track, hash; public TrackSave save; }
@@ -108,7 +111,7 @@ namespace Autorama
 
             var pubs = Section(oEntry, "SALAS PÚBLICAS");
             Btn("Atualizar lista", RefreshRooms, "btn", pubs);
-            oRooms = El(null, pubs);
+            oRooms = El(null, Caixa(pubs));
             oRooms.style.marginTop = 8;
             mmHide.Add(create); mmHide.Add(join); mmHide.Add(pubs);
 
@@ -181,7 +184,7 @@ namespace Autorama
             oSendBox = El(null, st);
             Text("SUGERIR UMA PISTA AO HOST", "h3", oSendBox);
             Text("Escolha uma das suas pistas (fechada) para o host incluir. Até 3 por minuto.", "hint", oSendBox);
-            oSend = El(null, oSendBox);
+            oSend = El(null, Caixa(oSendBox));
 
             var chat = Section(oLobby, "CHAT");
             BuildChatBox(chat, out oChat, out oChatInput);
@@ -531,6 +534,7 @@ namespace Autorama
                     break;
                 case "in": OnlineInput(m); break;
                 case "suggested": OnSuggested(m); break;
+                case "pistas": OnPistas(m); break;
                 case "snap": if (OnlineRun && !IsHost) OnlineApplySnap(m.b); break;
                 case "ev": if (m.k == "sync") OnlineApplySync(m); else OnlineEvent(m); break;
                 case "sync": OnlineSyncRequest(m.from); break;
@@ -649,6 +653,7 @@ namespace Autorama
             var C = onlineChamp; if (C == null) return;
             Text("PISTAS DO CAMPEONATO", "h2", oRunTracks);
             Text("As pistas da corrida ficam guardadas na sua biblioteca.", "hint", oRunTracks);
+            var box = El(null, Caixa(oRunTracks));
             var lib = TrackLibrary.List();
             var seen = new HashSet<string>();
             int novas = 0;
@@ -659,7 +664,7 @@ namespace Autorama
                 bool nova = i < 0;
                 string nome = nova ? null : lib[i].save.nome;
                 if (nova) { nome = SaveRunTrack(st, lib); novas++; lib = TrackLibrary.List(); }
-                var row = El("lib-item", oRunTracks);
+                var row = El("lib-item", box);
                 var texts = El("lib-texts", row);
                 Text(nome, "lib-name", texts);
                 Text(nova ? "guardada agora na sua biblioteca" : "já estava na sua biblioteca", "small", texts);
@@ -737,6 +742,58 @@ namespace Autorama
                 shown++;
             }
             if (shown == 0) Text(want != 0 ? $"Você não tem pistas fechadas de {want} carros." : "Você não tem pistas fechadas para sugerir.", "small", oSend);
+        }
+
+        // ---------- Desenho das etapas (visitante, seção 23.4) ----------
+
+        // A pista da etapa: a do host, a do cache ou a da biblioteca daqui com a mesma identidade no tamanho da etapa.
+        TrackSave StageTrack(NetStage s, List<Option> opts)
+        {
+            if (s.hash == null) return null;
+            if (stageTracks.TryGetValue(s.hash, out var t)) return t;
+            int f = TrackMath.Faixas(s.faixas);
+            var o = opts.Find(x => x.closed && Champ.TrackHash(Adapted(x.save, f)) == s.hash);
+            if (o.save == null) return null;
+            return stageTracks[s.hash] = Adapted(o.save, f);
+        }
+
+        // Pede ao host (ou ao servidor) as pistas que faltam: de novo só se a falta mudou ou depois de 5 s.
+        void AskPistas(string missing)
+        {
+            if (missing == "" || IsHost || room == null || room.state != "lobby") return;
+            if (missing == pistasAsked && Time.realtimeSinceStartup - pistasAt < 5f) return;
+            pistasAsked = missing; pistasAt = Time.realtimeSinceStartup;
+            net.Send(new NetOut { t = "pistas" });
+        }
+
+        // Chegou o desenho: nada que veio da rede é confiado, a identidade tem que bater com a pista.
+        void OnPistas(NetMsg m)
+        {
+            if (room == null || IsHost) return;
+            bool any = false;
+            foreach (var st in m.stages)
+            {
+                if (st == null || string.IsNullOrEmpty(st.json) || st.hash == null || stageTracks.ContainsKey(st.hash)) continue;
+                try
+                {
+                    var save = TrackSave.FromJson(st.json);
+                    if (Champ.TrackHash(save) != st.hash) continue;
+                    stageTracks[st.hash] = save; any = true;
+                }
+                catch { }
+            }
+            if (any && !OnlineRun) DrawLobby();
+        }
+
+        // Clicar numa etapa no lobby abre a pista na mesa (Ctrl+Z volta o que estava lá).
+        void OpenStageOnTable(TrackSave save, string name)
+        {
+            if (OnlineRun || save == null) return;
+            var data = TrackSave.FromJson(save.ToJson(false));
+            data.nome = name.Replace("​", "").Trim();
+            builder.Load(data);
+            panel.FrameTrack();
+            panel.Toast($"“{data.nome}” na mesa. Ctrl+Z volta a pista de antes.");
         }
 
         void SendStages()
@@ -854,14 +911,27 @@ namespace Autorama
             oStages.Clear();
             var list = room.stages;
             if (list.Count == 0) Text(host ? "Nenhuma etapa ainda. Clique numa pista abaixo." : "O host ainda não escolheu as pistas.", "small", oStages);
+            var opts = host ? null : Options();
+            string missing = "";
             for (int i = 0; i < list.Count; i++)
             {
                 int idx = i;
                 var s = list[i];
                 var item = El("lib-item", oStages);
                 var local = host && i < onlineStages.Count && onlineStages[i].hash == s.hash ? onlineStages[i] : null;
-                if (local != null) item.Add(new TrackThumb(local.data));
+                var draw = local != null ? local.data : host ? null : StageTrack(s, opts);
+                if (draw == null && !host) missing += s.hash;
                 var texts = El("lib-texts", item);
+                if (draw != null)
+                {
+                    // O desenho e o nome abrem a pista na mesa (os botões do host ficam fora disso).
+                    var thumb = new TrackThumb(draw);
+                    item.Insert(0, thumb);
+                    string nm = s.name;
+                    EventCallback<ClickEvent> open = _ => OpenStageOnTable(draw, nm);
+                    thumb.RegisterCallback(open); texts.RegisterCallback(open);
+                    thumb.tooltip = texts.tooltip = "Clique para ver a pista na mesa";
+                }
                 Text($"{i + 1}. {Safe(s.name)}", "lib-name", texts);
                 Text(local != null ? TrackLine(local.data) : s.tempo ? Dur(s.secs > 0 ? s.secs : 120) : $"{s.laps} {(s.laps == 1 ? "volta" : "voltas")}", "small", texts);
                 if (!host || local == null) continue;
@@ -885,6 +955,7 @@ namespace Autorama
                 Btn("▼", () => { (onlineStages[idx + 1], onlineStages[idx]) = (onlineStages[idx], onlineStages[idx + 1]); SendStages(); }, "btn step-btn", mv).SetEnabled(i < list.Count - 1);
                 Btn("✕", () => { onlineStages.RemoveAt(idx); SendStages(); }, "btn step-btn", mv).tooltip = "Tirar etapa";
             }
+            AskPistas(missing);
 
             oHostPick.style.display = host ? DisplayStyle.Flex : DisplayStyle.None;
             oPick.Clear();

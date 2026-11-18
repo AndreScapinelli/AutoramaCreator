@@ -5,7 +5,7 @@
 const http = require('http');
 const { WebSocketServer } = require('ws');
 
-const PROTOCOL = 5;                    // muda quando as mensagens deixam de combinar com o cliente (OnlineClient.Protocol)
+const PROTOCOL = 6;                    // muda quando as mensagens deixam de combinar com o cliente (OnlineClient.Protocol)
 const MAX_PLAYERS = 8;                 // o mesmo limite do campeonato
 const MAX_STAGES = 12;
 const MAX_TRACK_JSON = 100 * 1024;     // por pista
@@ -350,6 +350,13 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
       c.syncAt = now;
       const host = r.players.find(p => p.id === r.host);
       if (host) send(host, { t: 'sync', from: c.id });
+    },
+    // Visitante no lobby: pede o desenho das etapas (o snapshot da sala só leva o resumo; seção 23). Um por segundo.
+    pistas(c) {
+      const r = c.room; if (!r || r.state !== 'lobby' || r.host === c.id) return;
+      const now = Date.now(); if (now - (c.pistasAt || 0) < SYNC_MS) return;
+      c.pistasAt = now;
+      send(c, { t: 'pistas', stages: r.stages.map(s => ({ name: s.name, faixas: s.faixas, hash: s.hash, json: s.json })) });
     },
     ping(c) { send(c, { t: 'pong' }); },
     snap(c, m, raw) { forward(c, raw, MAX_RELAY); },

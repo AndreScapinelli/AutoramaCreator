@@ -126,6 +126,15 @@ const trilha = (n, extra = {}) => ({ name: 'Pista ' + n, laps: 3, hash: 'a34f4cb
   host.send({ t: 'stages', stages: Array.from({ length: 13 }, (_, i) => trilha(i)) });
   assert.strictEqual((await host.next('error')).code, 'etapas'); ok('pistas inválidas são recusadas');
 
+  // desenho das etapas: o visitante pede, o servidor responde com o JSON (um pedido por segundo; o host não pede)
+  host.drain(); g1.drain();
+  g1.send({ t: 'pistas' });
+  const pz = await g1.next('pistas');
+  assert.deepStrictEqual(pz.stages.map(s => [s.name, s.hash, typeof s.json]), [['Pista 1', trilha(1).hash, 'string'], ['Pista 2', trilha(2).hash, 'string']]);
+  ok('o visitante recebe o desenho das etapas');
+  g1.send({ t: 'pistas' }); await g1.quiet('pistas'); ok('pedido do desenho limita o ritmo (um por segundo)');
+  host.send({ t: 'pistas' }); await host.quiet('pistas'); ok('o host não pede o desenho');
+
   // sugestão de pista: visitante → host
   host.drain(); g1.drain();
   const sug = (extra = {}) => ({ t: 'suggest', track: '  Minha   pista ', hash: 'a34f4cb9', faixas: 4, json: '{"nome":"x"}', ...extra });

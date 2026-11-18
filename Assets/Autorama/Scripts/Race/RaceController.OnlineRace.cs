@@ -72,11 +72,15 @@ namespace Autorama
             return OnlinePresent(p.id) ? "online" : "saiu da sala";
         }
 
+        // Até onde a meia vai é do jogador, não do trilho: o rodízio troca o trilho a cada bateria e o valor vai junto.
+        readonly int[] localHalf = new int[2], localLane = { -1, -1 };
+
         // Acelerador e turbo de um jogador deste computador no trilho lane.
         void LocalInput(int j, int lane, Keyboard kb, bool keys, out float gas, out bool boost)
         {
             gas = 0f; boost = false;
             if (lane < 0) return;
+            if (lane != localLane[j]) { localLane[j] = lane; if (localHalf[j] > 0) SetHalf(lane, localHalf[j]); }
             bool two = TwoLocal;
             bool Pressed(Controles.Acao a) => keys && (two ? KeyPressed(kb, Controles.Get(j, a)) : AnySetPressed(kb, a));
             if (uiHeld[lane] || Pressed(Controles.Acao.Acelerar)) gas = 1f;
@@ -86,6 +90,8 @@ namespace Autorama
                 if (two) HalfKeys(lane, kb, Controles.Get(j, Controles.Acao.MeiaMenos), Controles.Get(j, Controles.Acao.MeiaMais));
                 else for (int s = 0; s < Controles.Jogadores; s++) HalfKeys(lane, kb, Controles.Get(s, Controles.Acao.MeiaMenos), Controles.Get(s, Controles.Acao.MeiaMais));
             }
+            if (two) HalfPad(lane, PadOf(j)); else foreach (var gp in Gamepad.all) HalfPad(lane, gp);
+            if (halfPct[lane] > 0) localHalf[j] = halfPct[lane];
             if (two) gas = Mathf.Max(gas, Trigger(PadOf(j))); else foreach (var gp in Gamepad.all) gas = Mathf.Max(gas, Trigger(gp));
             if (!sim.set.turbo) return;
             boost = uiTurbo[lane] || Pressed(Controles.Acao.Turbo);

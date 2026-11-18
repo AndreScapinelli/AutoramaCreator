@@ -19,7 +19,7 @@ namespace Autorama
 
         public const int ConnectTimeoutMs = 8000;
         // Versão das mensagens (servidor/servidor.js, PROTOCOL): sobe junto nos dois quando o formato muda.
-        public const int Protocol = 5;                  // 2: snapshot binário, eco do relógio, sync, entrar no meio do campeonato · 3: segundo jogador no mesmo computador · 4: chassi no ajuste do carro e pausa · 5: partida rápida (fila e sorteio)
+        public const int Protocol = 6;                  // 2: snapshot binário, eco do relógio, sync, entrar no meio do campeonato · 3: segundo jogador no mesmo computador · 4: chassi no ajuste do carro e pausa · 5: partida rápida (fila e sorteio) · 6: desenho das etapas no lobby (pistas)
         // O servidor de verdade (wss://…). Vazio até o deploy: aí o padrão é o servidor local, e o campo da aba continua editável.
         public const string ProductionServer = "";
         public static string DefaultServer => Application.isEditor || ProductionServer == "" ? "ws://localhost:8080" : ProductionServer;

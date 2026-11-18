@@ -48,6 +48,7 @@ namespace Autorama
         readonly List<NetStage> stageData = new List<NetStage>();     // do host: com o JSON (o lobby guarda só o resumo)
         readonly List<float> chatTimes = new List<float>();
         readonly Dictionary<ulong, float> syncAt = new Dictionary<ulong, float>();   // host: último pedido de sync de cada um
+        readonly Dictionary<ulong, float> pistasAt = new Dictionary<ulong, float>(); // host: último pedido do desenho das etapas de cada um
 
         public SteamTransport(ILobbyBackend backend = null)
         {
@@ -187,6 +188,7 @@ namespace Autorama
                 case "in": if (joined && racing && !IsHost) b.SendTo(b.Owner, Encoding.UTF8.GetBytes(JsonUtility.ToJson(o)), true); break;
                 case "suggest": Suggest(o); break;
                 case "sync": if (joined && racing && !IsHost) b.SendTo(b.Owner, Encoding.UTF8.GetBytes(JsonUtility.ToJson(o)), true); break;
+                case "pistas": if (joined && !racing && !IsHost) b.SendTo(b.Owner, Encoding.UTF8.GetBytes(JsonUtility.ToJson(new NetOut { t = "pistas" })), true); break;
             }
         }
 
@@ -594,6 +596,20 @@ namespace Autorama
                     if (syncAt.TryGetValue(from, out float last) && Time.realtimeSinceStartup - last < 1f) break;
                     syncAt[from] = Time.realtimeSinceStartup;
                     Emit(new NetMsg { t = "sync", from = from.ToString() }); break;
+                case "pistas":
+                    if (fromHost && !racing) { Emit(m); break; }                              // o desenho das etapas chegou
+                    if (!IsHost || racing) break;                                             // pedido de um visitante (um por segundo)
+                    if (pistasAt.TryGetValue(from, out float pa) && Time.realtimeSinceStartup - pa < 1f) break;
+                    pistasAt[from] = Time.realtimeSinceStartup;
+                    // Uma mensagem por etapa, para nenhuma passar do limite da Steam.
+                    foreach (var st in stageData)
+                    {
+                        var one = new NetMsg { t = "pistas" };
+                        one.stages.Add(new NetStage { name = st.name, faixas = st.faixas, hash = st.hash, json = st.json });
+                        var bytes = Encoding.UTF8.GetBytes(JsonUtility.ToJson(one));
+                        if (bytes.Length <= MaxReliable) b.SendTo(from, bytes, true);
+                    }
+                    break;
                 case "started": if (fromHost && !racing) { racing = true; raceHost = from; lobbyFlipSince = -1f; Emit(m); } break;
                 case "lobby": if (fromHost && racing) { racing = false; lobbyFlipSince = -1f; Emit(m); EmitRoom(); } break;
                 case "snap": case "ev": if (fromHost && racing) Emit(m); break;

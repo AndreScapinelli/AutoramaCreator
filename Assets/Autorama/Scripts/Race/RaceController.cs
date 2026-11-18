@@ -72,6 +72,7 @@ namespace Autorama
                 else if (KeyPressed(kb, HalfKeyAt(ks))) g = Mathf.Max(g, HalfOf(k) / 100f);
                 HalfKeys(k, kb, Controles.Get(ks, Controles.Acao.MeiaMenos), Controles.Get(ks, Controles.Acao.MeiaMais));
             }
+            HalfPad(k, PadOf(ks));
             return Mathf.Max(g, Trigger(PadOf(ks)));
         }
 
@@ -96,6 +97,21 @@ namespace Autorama
         {
             if (KeyWasPressed(kb, less)) SetHalf(k, HalfOf(k) - HalfStep);
             if (KeyWasPressed(kb, more)) SetHalf(k, HalfOf(k) + HalfStep);
+        }
+        // No controle, ◀ ▶ do direcional fazem meia − e meia + (o teclado pode não ler S e a seta juntos).
+        void HalfPad(int k, Gamepad g)
+        {
+            if (g == null) return;
+            if (g.dpad.left.wasPressedThisFrame) SetHalf(k, HalfOf(k) - HalfStep);
+            if (g.dpad.right.wasPressedThisFrame) SetHalf(k, HalfOf(k) + HalfStep);
+        }
+        // Na prova, as setas são de meia −/+: nenhum controle da tela fica com o foco, senão a navegação do UI Toolkit
+        // também usa as setas (o slider "Meia aceleração" mudava junto e desfazia a seta). Campo de texto (chat) fica.
+        void HalfFocusGuard()
+        {
+            if (sim == null || !sim.Ready || !(OnlineRun || panel.RaceMode) || IsTyping) return;
+            if (sim.phase != RaceSim.Phase.Countdown && sim.phase != RaceSim.Phase.Running) return;
+            (panel.Root?.focusController?.focusedElement as VisualElement)?.Blur();
         }
 
         // Turbo (seção 37): a tecla de turbo do jogador, X/□ ou RB do controle dele, ou a barra TURBO da tela.
@@ -180,6 +196,7 @@ namespace Autorama
         void Start()
         {
             set = RaceSettings.Load();
+            set.carTagMode = 1; set.narra = true;            // o jogo sempre abre com a etiqueta (F1) e a narração (F2) ligadas
             sim = new RaceSim(set);
             sim.ScoreChanged += () => scoreDirty = true;
             sim.LapDone += OnLapDone;
@@ -411,6 +428,7 @@ namespace Autorama
             NarraKeys();
             NarraTick();
             if (kBuilding) BuildTick();
+            HalfFocusGuard();
             if (OnlineRun) { OnlineRunUpdate(); return; }
             if (sim == null || !sim.Ready) return;
             if (!panel.RaceMode) { if (testing) sim.Step(Mathf.Min(Time.deltaTime, 0.05f)); PlaceCars(); return; }       // no construtor, os carrinhos ficam no grid
@@ -421,7 +439,8 @@ namespace Autorama
             {
                 if (sim.aiSkill[k] > 0) { sim.cars[k].gas = 1f; continue; }   // o piloto IA segura e solta sozinho, sempre no fundo
                 bool tb = sim.set.turbo && TurboHeld(k, keys);
-                float g = tb ? 1f : GasLevel(k, keys);
+                float g = GasLevel(k, keys);                  // sempre: as teclas de meia −/+ valem com o turbo apertado
+                if (tb) g = 1f;
                 sim.cars[k].boost = tb;
                 sim.cars[k].held = g > 0f;
                 if (g > 0f) sim.cars[k].gas = g;
@@ -869,7 +888,7 @@ namespace Autorama
                     $"jogador 2 {KeyText(GasKeyAt(1))} · {KeyText(HalfKeyAt(1))} · {KeyText(ReslotKeyAt(1))} · {KeyText(TurboKeyAt(1))}; " +
                     $"jogador 3 {KeyText(GasKeyAt(2))} · {KeyText(HalfKeyAt(2))} · {KeyText(ReslotKeyAt(2))} · {KeyText(TurboKeyAt(2))}; " +
                     $"jogador 4 {KeyText(GasKeyAt(3))} · {KeyText(HalfKeyAt(3))} · {KeyText(ReslotKeyAt(3))} · {KeyText(TurboKeyAt(3))}. " +
-                    $"Até onde a meia acelera: arraste o marcador na barra ACELERAR ou use meia − · meia + ({KeyText(Controles.Get(0, Controles.Acao.MeiaMenos))} · {KeyText(Controles.Get(0, Controles.Acao.MeiaMais))} no jogador 1). " +
+                    $"Até onde a meia acelera: arraste o marcador na barra ACELERAR ou use meia − · meia + ({KeyText(Controles.Get(0, Controles.Acao.MeiaMenos))} · {KeyText(Controles.Get(0, Controles.Acao.MeiaMais))} no jogador 1; ◀ ▶ do direcional no controle). " +
                     "Mude no menu inicial, em <b>Opções</b>.";
             DrawRaceSetup();                                // os cartões mostram as teclas novas
         }

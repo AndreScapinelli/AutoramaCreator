@@ -2509,6 +2509,7 @@ JSON de uma linha por mensagem WebSocket, com o tipo em `t`. Classes em `Online/
 | `snap` | `b`: o snapshot em binário, base64 (`NetSync.Encode`; seção 41) | **só o host**; repassado a todos os outros (até 16 KB) |
 | `ev` | `k` (`res`, `reset` ou `sync`), `hi`, `heatRes[2]`; no `sync`: `to`, `heats`, e `title`/`rules`/`pilots`/`stages` | **só o host**; repassado a todos os outros, ou só a `to` |
 | `sync` | | visitantes, no campeonato; vai só ao host com `from`, um por segundo |
+| `pistas` | | visitantes, só no lobby; o servidor responde com o desenho das etapas, um por segundo (protocolo 6, seção 23.4) |
 | `leave`, `ping` | | |
 
 | Servidor → cliente | Campos |
@@ -2522,6 +2523,7 @@ JSON de uma linha por mensagem WebSocket, com o tipo em `t`. Classes em `Online/
 | `lobby` | `text`: o campeonato acabou ou foi interrompido; todos voltam ao lobby |
 | `in` | `from` (id de quem mandou), `held`, `re`, `gp`, `tb`, `ts` (só o host recebe) |
 | `sync` | `from`: quem pediu o campeonato (só o host recebe) |
+| `pistas` | `stages[{name,faixas,hash,json}]`: o desenho das etapas, para quem pediu |
 | `snap`, `ev` | os do host, como foram mandados |
 | `error` | `code`, `text` (em português, para mostrar ao jogador) |
 
@@ -2555,6 +2557,10 @@ npm test           # 36 verificações com vários clientes simulados
 - **`RaceSim.Mirror(fase, tempo, vencedor)`:** o visitante copia esses três valores (que têm `set` privado) do host.
 - **Rich text:** nomes e mensagens dos outros passam por `Safe` (`<` vira `<` + espaço de largura zero), para ninguém mudar o visual do chat com `<b>`, `<size>` etc. Vale também para o nome dos pilotos, do campeonato e das etapas que chegam em `started`.
 - **USS:** `.chat-log`, `.chat-line`; as abas ficaram com `font-size: 10px`.
+- **Desenho das etapas no lobby (protocolo 6):** o resumo da sala não leva o JSON das pistas, então o visitante via só os nomes. Agora cada etapa do visitante tem a miniatura (`TrackThumb`), que vem de `StageTrack`: primeiro o cache `stageTracks` (por identidade), depois a biblioteca daqui (`Options()` com `Champ.TrackHash(Adapted(pista, faixas))` igual ao hash da etapa, como no `AdoptStages`). As que faltam são pedidas com `pistas` (`AskPistas`: de novo só se a falta mudou ou depois de 5 s). No Node o servidor responde com o que guarda das etapas (um pedido por segundo; só no lobby; o host não pede). Na Steam o visitante manda o pedido ao dono do lobby, e o `SteamTransport` do host responde com uma mensagem `pistas` por etapa (para nenhuma passar do `MaxReliable`), um pedido por segundo por visitante (`pistasAt`). Nada vindo da rede é confiado: `OnPistas` só guarda a pista se `Champ.TrackHash` dela bater com o hash.
+- **Clicar na miniatura ou no nome de uma etapa** (host e visitante, só no lobby) abre a pista na mesa (`OpenStageOnTable`: `builder.Load` + `FrameTrack`, com aviso). O `Load` passa pelo desfazer, então Ctrl+Z volta a pista de antes. Os botões do host (voltas, ▲ ▼ ✕) ficam fora da área do clique.
+- **Listas com rolagem:** além de etapas, pistas disponíveis e sugestões, agora também a lista "Sugerir uma pista ao host" (a biblioteca inteira do visitante, a que mais crescia), as salas públicas e as pistas do campeonato na corrida ficam numa `Caixa` (`ScrollView` `.lista-pistas`, até 300 px). A `.lista-pistas` ganhou borda, cantos, fundo e `overflow: hidden`, como a lista de amigos: o que passa é cortado na borda. Vale para todas as `Caixa` (também a biblioteca e o campeonato offline).
+- Teste: `npm test` com os casos novos ("o visitante recebe o desenho das etapas", "pedido do desenho limita o ritmo", "o host não pede o desenho"), tudo certo; `OnlineSmokeTest` com o protocolo 6, tudo ok; a identidade sobrevive à ida e volta pelo JSON (`TrackHash(FromJson(ToJson))`) nas 43 pistas da biblioteca, com 2, 4 e 8 trilhos. Recompilado sem erros. Não visto no Play nem testado na Steam.
 
 ```csharp
 // OnlineClient: o que o jogo usa
@@ -4205,7 +4211,8 @@ Robôs de qualidade 100, 5 voltas, colisão e turbo ligados, `Random.InitState(7
 ## 54. Posição em cima dos carros (F1) e número no minimapa
 
 - **Etiquetas** (`Race/RaceController.Tags.cs`): "1º", "2º"… na cor do painel de cada carro, acima dele (`TagUp` = 0,25 célula × `Scale`); o líder maior e com a setinha ▼. Mesma ordem do HUD (`Order()`). Uma etiqueta por carro em cada quadro da tela dividida; some fora do quadro, atrás da câmera, com o carro fora da pista e no carro da câmera em primeira pessoa. São posicionadas no evento `TopDownCamera.Moved` (depois de cada câmera se mover no `LateUpdate`), para não ficarem um quadro atrás.
-- **F1** liga e desliga, com aviso: **ligada** (o padrão) mostra a posição, o nome curto do HUD (a 75%) e, só no carro do jogador (humano na corrida livre e no campeonato, trilho local no online: `TagMine`), embaixo, "+0,8 s" até o carro da frente (a 70%); **desligada** não mostra nada. Fica salvo em `RaceSettings.carTagMode` (0 desligada, 1 ligada; os antigos 2 e 3 contam como ligada). F1 é tecla reservada.
+- **F1** liga e desliga, com aviso: **ligada** (o padrão) mostra a posição, o nome curto do HUD (a 75%) e, só no carro do jogador (humano na corrida livre e no campeonato, trilho local no online: `TagMine`), embaixo, "+0,8 s" até o carro da frente (a 70%); **desligada** não mostra nada. Fica em `RaceSettings.carTagMode` (0 desligada, 1 ligada; os antigos 2 e 3 contam como ligada), mas **o jogo sempre abre com ela ligada** (`RaceController.Start` põe 1 depois do `Load`). F1 é tecla reservada.
+- **Líder:** no carro do jogador que está em 1º aparece, em verde, "−0,8 s": quanto o 2º está atrás (`TagGap(líder, 2º)`, o tempo desde que o líder passou por onde o 2º está agora). Recompilado; não visto no Play.
 - **Tempo até o da frente** (`TagRecord`, `TagGap`): sempre (ligada ou não, para o tempo já aparecer quando liga no meio da prova), a cada `TagSample` = 0,05 s de prova guarda o `Dist` de cada carro (bandeiradas + fração da volta, o mesmo da ordem). O tempo de um carro é quanto faz que o da frente passou pelo `Dist` dele agora (busca binária e interpolação no histórico do da frente); vale também com volta de diferença. Só com a prova andando; não aparece no líder, em quem já chegou nem antes de o da frente ter histórico. O histórico zera quando o relógio da prova volta (nova largada). O `Dist` guardado nunca desce (quem sai da pista volta antes da peça): a busca binária precisa dele crescendo. Bugs de o tempo sumir: antes o histórico só gravava no modo 3, então ao ligar no meio da prova o da frente não tinha passado pelo ponto ainda no histórico (−1, sem tempo) até alcançar; e uma saída de pista do da frente deixava o histórico com a distância voltando, e a busca errava. Teste (Oval, robôs 100 e 55, 5 voltas, sem colisão nem turbo): o tempo calculado na linha de chegada contra a diferença real de passagem, volta a volta, 0,061/0,050 · 0,327/0,333 · 0,621/0,617 · 0,945/0,950 · 1,180/1,183 s (diferença de até 0,011 s; a passagem real é medida no quadro de 1/60 s). Não visto no Play.
 - **Minimapa:** o ponto de cada carro passou de raio 4,5 para **8** (`DotR`), com o número da posição no meio: um `Label` por carro (`minimap-num`) posto em cima do ponto (`ToMap`), com letra escura nas cores claras e clara nas escuras.
 - Estilos: `car-tags`, `car-tag`, `car-tag--lider`, `minimap-num`.
@@ -4268,7 +4275,7 @@ Vale para a corrida livre, o campeonato offline e o online (o mesmo `RaceControl
 
 ## 60. Narração da corrida (F2)
 
-Uma faixa no topo da mesa, embaixo das fichas dos pilotos, narra a prova em tom de TV com bom humor. **F2** liga e desliga (`RaceSettings.narra`, salvo, começa ligada); F2 virou tecla reservada (`Controles.Reservada`). Vale na corrida livre, no campeonato e no online (cada computador narra o que vê no próprio `RaceSim`, inclusive o espelho do snapshot; o protocolo não mudou).
+Uma faixa no topo da mesa, embaixo das fichas dos pilotos, narra a prova em tom de TV com bom humor. **F2** liga e desliga (`RaceSettings.narra`; o jogo sempre abre com ela ligada, como o F1); F2 virou tecla reservada (`Controles.Reservada`). Vale na corrida livre, no campeonato e no online (cada computador narra o que vê no próprio `RaceSim`, inclusive o espelho do snapshot; o protocolo não mudou).
 
 - **`Race/Narrador.cs`** (puro, sem cena): recebe um `NarraQuadro` por quadro (fase, cada carro em `NarraCarro`: posição, voltas, fora, turbo, chegou, saídas, onde saiu, distância, melhor volta, aviso da ficha, nome) e compara com o anterior. As falas vão para uma fila com prioridade (1 a 3) e aparecem uma por vez em `Atual`; a prioridade 3 usa `.narra--forte` (maior, na cor de destaque).
 - **`Race/RaceController.Narra.cs`**: monta o quadro (`NarraTick`, chamado no `Update` antes do online), a tecla (`NarraKeys`) e o rótulo `.narra` (logo depois de `.hud` dentro de `.race-top`).
@@ -4385,6 +4392,12 @@ A tecla de meia (S no jogador 1) acelerava sempre até `RaceSettings.halfGas` (6
 - `Controles.Acoes` passou de 4 para 6. Teclas salvas com 3 ou 4 ações continuam; as novas entram com o padrão (ficam sem tecla se a padrão já estava em uso).
 - O texto da barra mostra o limite no lugar do ½ (`ACELERAR A · 60% S`) e muda junto (`SetHalf` refaz o `GasLabel`); o marcador fica atrás do texto, meio transparente. Dos lados do ▲ ficam as teclas de meia − e meia + do jogador (`← ▲ →`, `HalfTri`).
 - O limite não é salvo entre sessões; não mexe na física (só no nível pedido pelo jogador).
+- **Setas que não respondiam** (relato dos jogadores, no online). Não foi reproduzido. Foram corrigidas as causas possíveis:
+  - **Foco da interface:** com um controle da tela focado (o slider "Meia aceleração", por exemplo), a navegação do UI Toolkit também usava as setas, e o callback do slider desfazia o valor. Agora, com a prova na contagem ou andando, `HalfFocusGuard` tira o foco a cada quadro (menos de campo de texto, para o chat).
+  - **Online, o valor era do trilho:** o rodízio troca o trilho a cada bateria e o marcador voltava ao padrão. Agora o valor é de cada jogador deste computador (`localHalf`, `localLane` em `RaceController.OnlineRace.cs`) e vai junto para o trilho novo.
+  - **Corrida livre e campeonato, com o turbo apertado:** o `GasLevel` não era chamado, e meia −/+ não respondia. Agora ele é sempre chamado.
+  - **Teclado que não lê S e a seta juntos** (ghosting, comum em teclado barato): no controle, ◀ ▶ do direcional fazem meia − e meia + (`HalfPad`). No teclado, a saída é trocar a tecla nas Opções.
+  - Recompilado sem erros; não visto no Play.
 
 ## 67. Pistas da carreira (gerador)
 
