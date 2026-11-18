@@ -57,34 +57,7 @@ namespace Autorama
         public VisualElement OnlineBox => onlineBox;      // conteúdo da aba Online
         public VisualElement CareerBox => careerBox;      // conteúdo da aba Carreira (seção 68)
         public VisualElement Root => root;                // camada por cima da mesa (controles dos jogadores, luzes)
-        public float SideWidth => sideVisible && side != null && !Prep ? side.layout.width : 0f;
-
-        // Preparação em tela cheia (proposta B): na Corrida, no Campeonato e no Online, com os carros no grid, o painel
-        // ocupa a tela toda e as seções viram cartões em 2 ou 3 colunas. Quem decide é o RaceController (SetPrep).
-        public bool Prep { get; private set; }
-        public void SetPrep(bool on)
-        {
-            if (side == null) return;
-            if (on != Prep)
-            {
-                Prep = on;
-                side.EnableInClassList("side--prep", on);
-                // A grade vale para quem tem seções como filhos: a caixa do modo ou os blocos de dentro dela.
-                if (on) content.Query(className: "section").ForEach(sec =>
-                {
-                    var p = sec.parent;
-                    if (p == null || p == content || p.ClassListContains("mode-box")) return;
-                    for (var up = p; up != null && up != content; up = up.parent) if (up.ClassListContains("section")) return;   // seção dentro de seção: não
-                    p.AddToClassList("prep-grid");
-                });
-                root.schedule.Execute(FrameTrack).ExecuteLater(20);
-            }
-            if (on) content.EnableInClassList("prep--3", root.layout.width >= 1200f);
-        }
-
-        // Botão no cabeçalho do painel, antes do ⌂ (ex.: LARGAR da preparação da corrida).
-        public void AddHeader(VisualElement e) => titleRow.Insert(1, e);
-        VisualElement titleRow;
+        public float SideWidth => sideVisible && side != null ? side.layout.width : 0f;
 
         public void SetMode(Mode m)
         {
@@ -401,7 +374,7 @@ namespace Autorama
             side.Add(scroll);
             content = El("side-content", scroll.contentContainer);
 
-            titleRow = El("title-row", content);
+            var titleRow = El("title-row", content);
             var titles = El("titles", titleRow);
             panelTitle = Text("CONSTRUTOR", "title", titles);
             subtitle = Text("PISTA DE 2 TRILHOS", "subtitle", titles);
@@ -422,11 +395,11 @@ namespace Autorama
             closeBox.style.display = DisplayStyle.None;
 
             buildBox = El(null, content);
-            raceBox = El("mode-box", content);
+            raceBox = El(null, content);
             raceBox.style.display = DisplayStyle.None;
-            champBox = El("mode-box", content);
+            champBox = El(null, content);
             champBox.style.display = DisplayStyle.None;
-            onlineBox = El("mode-box", content);
+            onlineBox = El(null, content);
             onlineBox.style.display = DisplayStyle.None;
             careerBox = El(null, content);
             careerBox.style.display = DisplayStyle.None;

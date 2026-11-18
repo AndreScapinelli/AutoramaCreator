@@ -768,18 +768,6 @@
 .sec-q { width: 22px; height: 22px; padding: 0; margin: -2px 0 0 6px; border-radius: 11px; font-size: 12px; color: var(--texto-fraco); }
 .sec-q--on { color: var(--sobre-destaque); background-color: var(--destaque); border-color: var(--destaque); }
 
-/* Preparação em tela cheia (proposta B, BuilderPanel.SetPrep): Corrida, Campeonato e Online com os carros no grid.
-   O painel cobre a mesa, o conteúdo fica centrado (até 1400 px) e as seções viram cartões em 2 colunas (3 em tela larga). */
-.side--prep { width: auto; right: 0; background-color: rgba(10, 13, 12, 0.93); border-right-width: 0; }
-.side--prep .side-scroll > .unity-scroll-view__content-viewport > .unity-scroll-view__content-container { align-items: center; }
-.side--prep .side-content { width: 100%; max-width: 1400px; align-self: center; padding: 24px 32px 40px 32px; }
-.side--prep .title { font-size: 34px; }
-.side--prep .title-row { margin-bottom: 4px; }
-.side--prep .mode-box, .side--prep .prep-grid { flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; }
-.side--prep .mode-box > .section, .side--prep .prep-grid > .section { width: 49.2%; margin-top: 14px; }
-.side--prep .prep--3 .mode-box > .section, .side--prep .prep--3 .prep-grid > .section { width: 32.6%; }
-.side--prep .prep-grid { width: 100%; }
-.prep-go { height: 44px; padding: 0 26px; margin: 0 6px 0 0; font-size: 18px; -unity-font-style: bold-and-italic; }
 
 /* Paleta embaixo da mesa (proposta E, BuilderPanel.BuildLayout): abas dos grupos e as peças do grupo aberto. */
 .pal-bar {

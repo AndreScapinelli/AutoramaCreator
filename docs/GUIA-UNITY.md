@@ -5039,13 +5039,7 @@ Primeira leva das propostas de `docs/PROPOSTAS-UI.md` (branch `melhorias-ui`). A
 - Relógio da prova com 30 px; contagem e banner em itálico.
 - Minimapa sem a faixa vazia: a altura acompanha a forma da pista, entre 35% e 100% da largura. `RaceMinimap.SetWidth` e `ToMap` usam a escala menor dos dois eixos.
 
-**Preparação em tela cheia** (proposta B):
-- Quando vale: na Corrida, no Campeonato e no Online, com os carros no grid (`sim.phase == Idle`), o painel visível e nem o menu nem a tela de teclas abertos. `RaceController.UpdateMinimap` chama `BuilderPanel.SetPrep` a cada quadro.
-- O painel ganha `.side--prep`: cobre a mesa com fundo escuro e conteúdo centrado (até 1400 px). As seções viram cartões em 2 colunas, ou 3 com a tela de 1200 px ou mais (`.prep--3`).
-- Quem tem seções como filhos ganha `.prep-grid` na entrada (a caixa do modo, `.mode-box`, ou os blocos de dentro dela). Seção dentro de seção fica de fora.
-- Na Corrida, o cabeçalho ganha **LARGAR (Enter)** (`prepGo`, `BuilderPanel.AddHeader`).
-- Na largada o painel some, como antes (`SideForPhase`). Na chegada ele volta estreito, ao lado do resultado. "Voltar ao grid" traz a tela cheia de novo.
-- Durante a preparação, `SideWidth` vale 0 e `RaceUI` é falso (placar, painéis, minimapa e etiquetas escondidos). Quando `RaceUI` muda, `DrawPadHeads` redesenha os painéis dos jogadores.
+**Preparação em tela cheia: testada e desfeita.** Corrida, Campeonato e Online chegaram a virar uma tela cheia com as seções em cartões de 2 ou 3 colunas, enquanto os carros estavam no grid. No teste, o resultado ficou pior que o painel lateral, e as três telas voltaram para o painel (com o visual novo dos cartões). Ficou a correção que nasceu ali: quando `RaceUI` muda (menu aberto e fechado), `DrawPadHeads` redesenha os painéis dos jogadores.
 
 **Torre de posições** (proposta F, `UpdateHud`, `.hud`):
 - As fichas saíram do topo e formam uma coluna de 230 px no canto de cima, à esquerda da mesa (`top` 52, abaixo do botão do painel).
