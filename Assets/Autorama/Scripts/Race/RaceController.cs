@@ -181,7 +181,7 @@ namespace Autorama
         SliderInt cameraDistanceSlider;
         readonly List<VisualElement> lightDots = new List<VisualElement>();
         // Placar sobre a mesa: uma ficha por carrinho (posição, nome, volta, melhor volta).
-        class HudCard { public VisualElement root, dot; public Label pos, name, lap, best; }
+        class HudCard { public VisualElement root, dot; public Label pos, name, lap, best, cur; }
         readonly HudCard[] hud = new HudCard[RaceSim.MaxCars];
         VisualElement hudBox;
         bool lastRaceUI;
@@ -694,6 +694,7 @@ namespace Autorama
                 var hudRow = El("hud-row", info);
                 h.lap = Text("", "hud-lap", hudRow);
                 h.best = Text("", "hud-best", hudRow);
+                h.cur = Text("", "hud-cur", h.root);          // volta atual correndo (ou a que acabou, por 3 s)
                 foreach (var e in h.root.Query<VisualElement>().ToList()) e.pickingMode = PickingMode.Ignore;
                 hud[k] = h;
             }
@@ -1072,12 +1073,13 @@ namespace Autorama
                 El("car-mid", bar);
                 Text(Mathf.Abs(m - 1f) < 0.0005f ? "padrão" : ((m - 1f) * 100f).ToString("+0.#;−0.#") + "%", "small car-stat-val", row);
             }
-            Stat("Final", su.Top, 0.04f, "Velocidade máxima na reta. Motor longo, pneu duro e, mais que todos, a bolha lisa.");
-            Stat("Aceleração", su.Accel, 0.05f, "Quanto o carro embala ao sair da curva. Motor curto.");
+            Stat("Final", su.Top, 0.08f, "Velocidade máxima na reta. Motor longo, bolha lisa e pneu duro.");
+            Stat("Aceleração", su.Accel, 0.1f, "Quanto o carro embala ao sair da curva. Motor curto.");
             Stat("Aderência", su.Grip, 0.06f, "Pneu: segura o carro em qualquer curva, devagar ou rápido. Macio segura mais.");
             Stat("Aerodinâmica", 1f + su.Aero, 0.05f, "Bolha com asa: segura o carro na curva, e mais quanto mais rápido ele vai. Não ajuda na curva feita devagar.");
-            Stat("Agilidade", su.Resp, 0.15f, "Chassi leve: o gatilho e o freio respondem mais rápido.");
+            Stat("Agilidade", su.Resp, 0.2f, "Chassi leve: o gatilho e o freio respondem mais rápido.");
             Stat("Estabilidade", 1f / su.Slip, 0.15f, "Chassi pesado: demora mais para escapar quando você passa do limite na curva.");
+            Text($"Do zero a 95% da final em {RaceSim.Time95(su, set.ramp):0.00} s (padrão {RaceSim.Time95(default, set.ramp):0.00} s).", "small", box);
             if (su.chassi != 0)
                 Text(su.chassi == 1 ? "Chassi leve: responde rápido, mas escapa fácil no limite da curva."
                                     : "Chassi pesado: mais lento no gatilho, perdoa o exagero na curva.", "small", box);
@@ -1474,6 +1476,15 @@ namespace Autorama
                 h.lap.text = sim.ByTime ? $"{LapsCell(k)} v · T{c.lane + 1}" : c.finish != null ? "Chegou" : $"Volta {Mathf.Clamp(c.laps + 1, 1, L)}/{L}";
                 h.best.text = c.best != null ? (k == fast ? $"★ {Fmt(c.best)}" : $"Melhor {Fmt(c.best)}") : "";
                 h.best.EnableInClassList("hud-best--top", k == fast);
+                h.root.EnableInClassList("hud-card--fast", k == fast);
+                // Volta atual: o tempo correndo. Nos 3 s depois de fechar uma volta, mostra a que acabou:
+                // roxa se é a melhor da prova, verde se é a melhor dele. Volta da troca de trilho não tem tempo.
+                float run = sim.t - c.lapStart;
+                bool going = sim.phase == RaceSim.Phase.Running && c.finish == null && c.cross >= 0;
+                bool just = going && c.lastLap != null && c.cross >= 1 && run < 3f;
+                h.cur.text = !going ? "" : just ? Fmt(c.lastLap) : c.lapDirty || run < 0f ? "—" : Fmt(run);
+                h.cur.EnableInClassList("hud-cur--top", just && sim.bestT != null && Mathf.Approximately(c.lastLap.Value, sim.bestT.Value));
+                h.cur.EnableInClassList("hud-cur--pb", just && c.best != null && Mathf.Approximately(c.lastLap.Value, c.best.Value));
                 // Torre: cada ficha na altura da posição; a transição de "top" (USS) anima as ultrapassagens.
                 h.root.style.top = ord.IndexOf(k) * HudRow(h);
             }

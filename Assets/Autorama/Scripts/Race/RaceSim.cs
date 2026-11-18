@@ -95,11 +95,11 @@ namespace Autorama
         [NonSerialized] public int lvMotor, lvBolha, lvPneu, lvChassi, lvNitro;
 
         // Quanto cada peça dá e tira (calibrado na seção 52; não são const para a calibração poder variar).
-        public static float MotorAccel = 0.025f, MotorTop = 0.0125f;
+        public static float MotorAccel = 0.08f, MotorTop = 0.045f;          // seção 86
         public static float TireGrip = 0.03f, TireTop = 0.015f;
         // Bolha (seção 82): a asa ganha aerodinâmica e perde final (o arrasto); a lisa só ganha final, sem perder aderência.
         public static float BodyAero = 0.035f, BodyTop = 0.008f, BodySlick = 0.03f;
-        public static float ChassiResp = 0.12f, ChassiSlip = 0.1f, ChassiDecay = 0.4f;
+        public static float ChassiResp = 0.2f, ChassiSlip = 0.1f, ChassiDecay = 0.4f;   // resposta: seção 86
         // Tipo de turbo (seção 77): o ganho de distância numa reta sem fim é v × boost × tempo do tanque cheio, então os
         // três ficam perto de 0,75 (padrão 0,25 × 3 s). O explosivo rende nas retas compridas; o eficiente, nas de reta curta.
         public static float NitroForteBoost = 0.35f, NitroForteTime = 2.2f, NitroLongoBoost = 0.17f, NitroLongoTime = 4.5f;
@@ -390,6 +390,15 @@ namespace Autorama
         public const float Count = 2.4f;       // três luzes vermelhas
         const float Accel = 3.5f, Brake = 1.8f, Brake0 = 0.5f, SlopeG = 8f, Fall = 3f;
         const float SlipGain = 3f, SlipDecay = 3f, YawMax = 38f;
+        // Segundos do zero até 95% da final, com o gatilho todo apertado e na reta plana (cartão "Carro", seção 86).
+        // A conta não depende da final nem da escala: v' = Accel × su.Accel × (T − v), com T subindo em ramp / Ramp.
+        public static float Time95(CarSetup su, float ramp)
+        {
+            const float dt = 1f / 240f;
+            float v = 0f, t = 0f;
+            while (v < 0.95f && t < 10f) { t += dt; float T = Mathf.Min(1f, t * su.Ramp / ramp); v += Accel * su.Accel * (T - v) * dt; }
+            return t;
+        }
         const float CarHL = 0.3f, CarHW = 0.16f, Restitution = 0.35f;
         // Turbo: cada volta completa enche o tanque (a saída de pista dá um pouco, seção 81), de TurboGainMin (quem lidera) a TurboGainMax (o último e longe):
         // handicap para quem ficou para trás (seção 79). Apertado, o carrinho busca (1 + TurboBoost) × a velocidade

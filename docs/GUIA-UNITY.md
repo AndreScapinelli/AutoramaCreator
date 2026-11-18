@@ -4131,12 +4131,12 @@ Feedback dos testes: cada peça com um papel só dela. O **pneu** diz onde fica 
 
 | Peça | 1 | 0 (padrão) | 2 |
 |---|---|---|---|
-| `motor` | **curto**: aceleração +2,5%, final −1,25% | padrão | **longo**: aceleração −2,5%, final +1,25% |
+| `motor` | **curto**: aceleração +8%, final −4,5% | padrão | **longo**: aceleração −8%, final +4,5% (seção 86; antes ±2,5% e ±1,25%) |
 | `pneu` | **macio**: aderência +3%, final −1,5% | médio | **duro**: aderência −3%, final +1,5% |
 | `bolha` (`CarBody`) | **asa**: aerodinâmica +3,5%, final −0,8% | padrão | **lisa**: final +3%, aerodinâmica igual à do padrão (seção 82; antes: aerodinâmica −3,5%, final +0,8%) |
-| `chassi` (novo) | **leve**: resposta +12%, a derrapagem enche 10% mais rápido e esvazia 40% mais devagar | padrão | **pesado**: resposta −12%, a derrapagem enche 10% mais devagar e esvazia 40% mais rápido |
+| `chassi` (novo) | **leve**: resposta +20% (seção 86; antes 12%), a derrapagem enche 10% mais rápido e esvazia 40% mais devagar | padrão | **pesado**: resposta −20%, a derrapagem enche 10% mais devagar e esvazia 40% mais rápido |
 
-Constantes (estáticas, para a calibração variar): `MotorAccel 0.025`, `MotorTop 0.0125`, `TireGrip 0.03`, `TireTop 0.015`, `BodyAero 0.035`, `BodyTop 0.008`, `BodySlick 0.03` (seção 82), `ChassiResp 0.12`, `ChassiSlip 0.1`, `ChassiDecay 0.4`. Arquivo antigo sem `chassi` abre com o chassi padrão; `Clamped` prende as quatro em 0–2.
+Constantes (estáticas, para a calibração variar): `MotorAccel 0.08`, `MotorTop 0.045` (seção 86), `TireGrip 0.03`, `TireTop 0.015`, `BodyAero 0.035`, `BodyTop 0.008`, `BodySlick 0.03` (seção 82), `ChassiResp 0.2` (seção 86), `ChassiSlip 0.1`, `ChassiDecay 0.4`. Arquivo antigo sem `chassi` abre com o chassi padrão; `Clamped` prende as quatro em 0–2.
 
 ### 52.2 Onde entra no passo
 
@@ -5050,6 +5050,13 @@ Primeira leva das propostas de `docs/PROPOSTAS-UI.md` (branch `melhorias-ui`). A
 - A narração fica embaixo do relógio.
 - O minimapa volta uma vez para o canto de cima, à direita (`RaceSettings.miniV`), para não cair em cima da torre.
 
+**Tempos na torre** (`UpdateHud`, `.hud-cur`): a torre tem 270 px.
+- À direita de cada ficha, o tempo da volta atual, correndo (`sim.t - lapStart`).
+- Nos 3 s depois de fechar uma volta, a ficha mostra a volta que acabou: roxa se é a melhor da prova (`sim.bestT`), verde se é a melhor dele.
+- Na volta da troca de trilho (`lapDirty`) aparece "—"; no grid e depois da chegada, nada.
+- Embaixo do nome, a melhor volta de cada um aparece sempre, também com 6 e 8 carros (antes sumia).
+- Quem tem a melhor volta da prova ganha a borda roxa (`.hud-card--fast`) e "★" no tempo. Se também for o líder, a borda fica amarela com o lado direito roxo.
+
 **Paleta embaixo da mesa** (proposta E, `.pal-bar`):
 - Os grupos (Retas, Curvas, Curvas inclinadas, Cruzamentos e rampas, Loop e salto) viraram abas. A barra mostra as peças do grupo aberto em quadrados de 88 px, com a tecla no canto.
 - As teclas valem para todas as peças, com qualquer aba aberta.
@@ -5093,3 +5100,54 @@ Primeira leva das propostas de `docs/PROPOSTAS-UI.md` (branch `melhorias-ui`). A
 - Os cinco modos ficam numa faixa só (`.start-grid` em linha): cartões de 128 px, com o ícone em cima, o título e a explicação. A Carreira cresce 1,45 vez e é amarela. Peças, Opções e Sair ficam centrados no pé.
 
 **Teste:** compila; no Play, o logo mede 496 × 191 no menu, e o logo e o brilho acham as texturas.
+
+## 86. Aceleração e agilidade que fazem diferença
+
+Feedback dos testes: "Aceleração e Agilidade são status que você não perde nada por sacrificar; mesmo com tudo no mínimo, o carro chega na velocidade máxima muito rápido". Confere: com `ACCEL 3.5` o carro vai do zero a 95% da final em 1,12 s (8,7 células, duas retas compridas), e do melhor ajuste (curto · leve, 1,05 s) para o pior (longo · pesado, 1,20 s) eram 0,15 s. Na calibração o motor mexia 0,07 a 0,47% na volta. O `ACCEL` não mudou (mudaria todos os carros e os recordes); mudaram as peças.
+
+### 86.1 Valores (`CarSetup`)
+
+| Constante | Antes | Agora |
+|---|---|---|
+| `MotorAccel` | 0,025 | **0,08** |
+| `MotorTop` | 0,0125 | **0,045** |
+| `ChassiResp` | 0,12 | **0,2** |
+
+Derrapagem do chassi (`ChassiSlip 0.1`, `ChassiDecay 0.4`) e os níveis da carreira (`LvAccel`, `LvResp`, `LvTop`) iguais. Carro padrão igual: Oval, robô 100, 5 voltas, `Random.InitState(7)`: 23,73314 s.
+
+### 86.2 Calibração
+
+`SetupCalib.Run(0, 5)` com motor 8/3 · 8/4,5 · 10/5 (aceleração/final, %) e resposta 12 · 20 · 25%. Ficou 8/4,5 e 20%. Média das 27 combinações com a opção contra a média geral (negativo = mais rápido):
+
+| Pista | Motor curto / longo: antes → agora | Chassi leve / pesado: antes → agora | Melhor combinação agora |
+|---|---|---|---|
+| Oval | −0,32 / +0,31 → **−0,94** / +0,80 | +3,27 / −2,56 → +2,21 / **−1,22** | curto/asa/macio/padrão −6,42% |
+| Retas longas | +0,35 / −0,35 → +1,45 / **−1,26** | −1,46 / +1,58 → **−2,43** / +2,84 | longo/lisa/duro/leve −5,72% |
+| Retas longas inclinada | −0,45 / +0,33 → **−1,21** / +1,36 | +1,50 / −1,92 → +0,89 / **−1,07** | longo/asa/macio/pesado −10,41% |
+| Quadrado | −0,18 / +0,09 → **−0,35** / +0,25 | +2,69 / −1,34 → +2,62 / −0,40 (padrão −2,22) | curto/asa/macio/pesado −3,95% |
+| Oval curto | −0,10 / +0,12 → −0,04 / +0,11 | −2,01 / +2,41 → **−2,96** / +3,93 | longo/lisa/macio/leve −4,26% |
+
+- O motor agora vale cerca de 1% na volta: curto nas pistas de curva, longo nas de reta.
+- O pesado deixou de ganhar em todas as pistas de curva (no Quadrado o chassi padrão é o melhor). O piloto de teste aproveita a folga da derrapagem; para gente o pesado vale mais que a tabela (52.3), por isso o leve ficou um pouco à frente no teste.
+- Resposta 25% deixava o leve forte demais nas de reta (−3,07 e −3,41%) e o pesado quase sem vantagem (−0,7%).
+
+### 86.3 Do zero a 95% da final
+
+`RaceSim.Time95(su, ramp)`: v' = `Accel × su.Accel × (T − v)`, com T subindo em `ramp / Ramp`, passo de 1/240 s (não depende da final nem da escala). Com `ramp 0.5`: curto · leve **1,00 s** · padrão 1,14 s · longo · pesado **1,33 s** (antes 1,05 · 1,12 · 1,20). O cartão "Carro" mostra a linha "Do zero a 95% da final em X s (padrão Y s)". Meia barra: Final 8% (era 4%), Aceleração 10% (era 5%), Agilidade 20% (era 15%).
+
+### 86.4 Robôs
+
+`AiCar` continua com o chassi pesado. Para a IA o leve agora é o mais rápido (ela freia pelo limite e não sofre com a derrapagem), mas a deixaria até 1,2 s mais rápida por prova, e a carreira e o campeonato ficariam mais difíceis. Robô de qualidade 60 e 100, 5 voltas, média de 4 sementes, com o ajuste da IA (antes · agora com pesado · agora com leve):
+
+| Pista | q60 | q100 |
+|---|---|---|
+| Oval | 24,81 · 25,40 · 23,71 | 23,08 · 23,27 · 21,85 |
+| Retas longas | 23,49 · 23,12 · 23,05 | 22,60 · 22,81 · 21,40 |
+| Quadrado | 15,31 · 15,65 · 15,82 | 14,53 · 14,94 · 14,02 |
+| Oval curto | 13,35 · 13,53 · 13,11 | 12,51 · 12,91 · 11,71 |
+
+Nenhuma saída, com qualidade 30, 60 e 90 e os três chassis.
+
+### 86.5 Salto
+
+Mesmo teste da 82.3 (gatilho em 100%, turbo o tempo todo), longo · lisa · duro · explosivo: chega a 20,42 no vão 1 (era 19,79) e voa 23,0 células no vão 3 (era 21,6); nível 10: 24,44 e 32,9. Nenhuma saída; o pouso segue a 42.
