@@ -5039,4 +5039,30 @@ Primeira leva das propostas de `docs/PROPOSTAS-UI.md` (branch `melhorias-ui`). A
 - Relógio da prova com 30 px; contagem e banner em itálico.
 - Minimapa sem a faixa vazia: a altura acompanha a forma da pista, entre 35% e 100% da largura. `RaceMinimap.SetWidth` e `ToMap` usam a escala menor dos dois eixos.
 
-Ficou para a próxima leva: a preparação de cada modo em tela cheia (proposta B), a torre de posições (F) e a paleta do construtor embaixo (E).
+**Preparação em tela cheia** (proposta B):
+- Quando vale: na Corrida, no Campeonato e no Online, com os carros no grid (`sim.phase == Idle`), o painel visível e nem o menu nem a tela de teclas abertos. `RaceController.UpdateMinimap` chama `BuilderPanel.SetPrep` a cada quadro.
+- O painel ganha `.side--prep`: cobre a mesa com fundo escuro e conteúdo centrado (até 1400 px). As seções viram cartões em 2 colunas, ou 3 com a tela de 1200 px ou mais (`.prep--3`).
+- Quem tem seções como filhos ganha `.prep-grid` na entrada (a caixa do modo, `.mode-box`, ou os blocos de dentro dela). Seção dentro de seção fica de fora.
+- Na Corrida, o cabeçalho ganha **LARGAR (Enter)** (`prepGo`, `BuilderPanel.AddHeader`).
+- Na largada o painel some, como antes (`SideForPhase`). Na chegada ele volta estreito, ao lado do resultado. "Voltar ao grid" traz a tela cheia de novo.
+- Durante a preparação, `SideWidth` vale 0 e `RaceUI` é falso (placar, painéis, minimapa e etiquetas escondidos). Quando `RaceUI` muda, `DrawPadHeads` redesenha os painéis dos jogadores.
+
+**Torre de posições** (proposta F, `UpdateHud`, `.hud`):
+- As fichas saíram do topo e formam uma coluna de 230 px no canto de cima, à esquerda da mesa (`top` 52, abaixo do botão do painel).
+- Cada ficha é absoluta, na altura da posição (`HudRow`: altura da ficha + 4). A transição de `top` (0,3 s) anima as ultrapassagens.
+- A bolinha da cor virou um traço vertical.
+- A narração fica embaixo do relógio.
+- O minimapa volta uma vez para o canto de cima, à direita (`RaceSettings.miniV`), para não cair em cima da torre.
+
+**Paleta embaixo da mesa** (proposta E, `.pal-bar`):
+- Os grupos (Retas, Curvas, Curvas inclinadas, Cruzamentos e rampas, Loop e salto) viraram abas. A barra mostra as peças do grupo aberto em quadrados de 88 px, com a tecla no canto.
+- As teclas valem para todas as peças, com qualquer aba aberta.
+- Frente/Trás e a dica continuam no painel.
+- A barra de ações foi para o canto de cima, à direita. O selo de status foi para a esquerda, embaixo da régua, e a escala fica em cima da paleta.
+- "Correr nesta pista" não aparece no construtor da carreira (`TrackBuilder.AllowedEntry`).
+
+**Menu por cima da corrida:**
+- `RaceUI` é falso com o menu aberto: minimapa, placar, painéis e etiquetas somem.
+- O topo, a contagem e a torre ficam invisíveis (`visible`, sem mexer no `display` deles).
+
+**Etiquetas do F1** (`RaceController.Tags`): a camada fica no índice 0 da raiz, embaixo de toda a interface (antes passava por cima do ajuste do carro).

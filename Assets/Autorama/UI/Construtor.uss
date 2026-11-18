@@ -196,7 +196,7 @@
 .scale-text { font-size: 12px; color: var(--tinta-mesa); margin: 0; padding: 0; }
 
 .view-badge { font-size: 13px;
-    position: absolute; top: 54px; right: 12px; padding: 5px 10px; border-radius: 6px;
+    position: absolute; top: 64px; right: 12px; padding: 5px 10px; border-radius: 6px;
     background-color: rgba(22, 28, 25, 0.9); color: var(--texto); font-size: 12px;
 }
 .toast {
@@ -326,7 +326,8 @@
 .pads--6 .meter-label { display: none; }
 .pads--6 .meter { height: 5px; margin-bottom: 3px; }
 .pads--6 .reslot { height: 22px; font-size: 10px; margin: 0; padding: 0; }
-.hud--6 .hud-card { min-width: 0; margin: 0 2px; padding: 4px 8px 4px 4px; }
+.hud--6 .hud-card { padding: 3px 8px 3px 4px; }
+.hud--6 .hud-dot { height: 20px; }
 .hud--6 .hud-pos { width: 22px; font-size: 14px; }
 .hud--6 .hud-name { font-size: 10px; letter-spacing: 0; }
 .hud--6 .hud-lap { font-size: 10px; margin-right: 6px; }
@@ -335,7 +336,8 @@
 .pads--8 .pad { margin-right: 3px; padding: 3px 4px 5px 4px; }
 .pads--8 .gas { height: 34px; }
 .pads--8 .gas-text { font-size: 9px; }
-.hud--8 .hud-card { margin: 0 1px; padding: 3px 5px 3px 3px; }
+.hud--8 .hud-card { padding: 2px 6px 2px 3px; }
+.hud--8 .hud-dot { height: 16px; }
 .hud--8 .hud-pos { width: 18px; font-size: 12px; }
 .hud--8 .hud-lap { margin-right: 3px; }
 .pad--held .gas { background-color: rgb(30, 36, 33); }
@@ -522,21 +524,24 @@
 .keys-btn--wait { border-color: var(--destaque); background-color: rgb(52, 48, 22); }
 
 /* Placar sobre a mesa (corrida): uma ficha por carrinho, o líder destacado */
-.hud { flex-direction: row; margin-bottom: 8px; }
+/* Torre de posições (proposta F): coluna no canto de cima, à esquerda da mesa; cada ficha fica na altura da
+   posição (RaceController.UpdateHud põe o top) e desliza nas ultrapassagens. */
+.hud { position: absolute; top: 52px; width: 230px; }
 /* Placar do topo: a volta ou o tempo que falta, grande (seção 54) */
 .race-clock { align-items: center; padding: 4px 16px 5px 16px; margin-bottom: 6px; border-radius: 10px; background-color: var(--fundo-vidro); }
 .race-clock-big { font-size: 30px; -unity-font-style: bold-and-italic; letter-spacing: 1px; color: var(--texto); margin: 0; padding: 0; }
 .race-clock-sub { font-size: 11px; color: var(--texto-fraco); margin: 0; padding: 0; }
 .race-clock--fim .race-clock-big { color: var(--alerta); }
 .hud-card {
-    flex-direction: row; align-items: center; min-width: 170px; margin: 0 4px; padding: 6px 12px 6px 8px;
-    border-radius: 10px; background-color: rgba(13, 17, 15, 0.9); border-width: 1px; border-color: var(--borda);
-    transition-property: border-color, translate; transition-duration: 0.2s;
+    position: absolute; left: 0; right: 0; top: 0;
+    flex-direction: row; align-items: center; margin: 0; padding: 5px 10px 5px 6px;
+    border-radius: 8px; background-color: rgba(13, 17, 15, 0.9); border-width: 1px; border-color: var(--borda);
+    transition-property: border-color, top; transition-duration: 0.3s; transition-timing-function: ease-in-out-sine;
 }
 .hud-card--lead { border-color: var(--destaque); }
 .hud-pos { font-size: 20px; -unity-font-style: bold-and-italic; color: var(--texto-fraco); width: 30px; margin: 0; padding: 0; -unity-text-align: middle-center; }
 .hud-card--lead .hud-pos { color: var(--destaque); }
-.hud-dot { width: 10px; height: 10px; border-radius: 5px; margin: 0 8px 0 2px; }
+.hud-dot { width: 5px; height: 26px; border-radius: 2px; margin: 0 8px 0 2px; }
 .hud-name { font-size: 13px; -unity-font-style: bold-and-italic; letter-spacing: 1px; color: var(--texto); margin: 0; padding: 0; }
 .hud-row { flex-direction: row; }
 .hud-lap { font-size: 12px; color: var(--texto); margin: 0 10px 0 0; padding: 0; }
@@ -584,7 +589,7 @@
 .pal-group { font-size: 10px; letter-spacing: 1px; color: var(--texto-fraco); -unity-font-style: bold; margin: 8px 0 4px 2px; padding: 0; }
 
 /* Selo de status sobre a mesa (construtor) */
-.table-status-wrap { position: absolute; top: 10px; left: 0; right: 0; flex-direction: row; justify-content: center; }
+.table-status-wrap { position: absolute; top: 28px; left: 0; right: 0; flex-direction: row; justify-content: flex-start; padding-left: 40px; }
 .table-status {
     flex-direction: row; align-items: center;
     padding: 5px 6px 5px 12px; border-radius: 18px; background-color: var(--fundo-vidro);
@@ -598,7 +603,7 @@
 
 /* Barra de ações sobre a mesa (construtor) */
 .action-bar {
-    position: absolute; bottom: 10px; right: 12px; flex-direction: row; align-items: center; padding: 4px;
+    position: absolute; top: 10px; right: 12px; flex-direction: row; align-items: center; padding: 4px;
     border-radius: 10px; background-color: var(--fundo-vidro); border-width: 1px; border-color: var(--borda-clara);
 }
 .bar-btn { width: 38px; height: 36px; margin: 0 2px; padding: 0; font-size: 14px; -unity-text-align: middle-center; }
@@ -762,3 +767,38 @@
 .sec-head > .h2 { flex-shrink: 1; }
 .sec-q { width: 22px; height: 22px; padding: 0; margin: -2px 0 0 6px; border-radius: 11px; font-size: 12px; color: var(--texto-fraco); }
 .sec-q--on { color: var(--sobre-destaque); background-color: var(--destaque); border-color: var(--destaque); }
+
+/* Preparação em tela cheia (proposta B, BuilderPanel.SetPrep): Corrida, Campeonato e Online com os carros no grid.
+   O painel cobre a mesa, o conteúdo fica centrado (até 1400 px) e as seções viram cartões em 2 colunas (3 em tela larga). */
+.side--prep { width: auto; right: 0; background-color: rgba(10, 13, 12, 0.93); border-right-width: 0; }
+.side--prep .side-scroll > .unity-scroll-view__content-viewport > .unity-scroll-view__content-container { align-items: center; }
+.side--prep .side-content { width: 100%; max-width: 1400px; align-self: center; padding: 24px 32px 40px 32px; }
+.side--prep .title { font-size: 34px; }
+.side--prep .title-row { margin-bottom: 4px; }
+.side--prep .mode-box, .side--prep .prep-grid { flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; }
+.side--prep .mode-box > .section, .side--prep .prep-grid > .section { width: 49.2%; margin-top: 14px; }
+.side--prep .prep--3 .mode-box > .section, .side--prep .prep--3 .prep-grid > .section { width: 32.6%; }
+.side--prep .prep-grid { width: 100%; }
+.prep-go { height: 44px; padding: 0 26px; margin: 0 6px 0 0; font-size: 18px; -unity-font-style: bold-and-italic; }
+
+/* Paleta embaixo da mesa (proposta E, BuilderPanel.BuildLayout): abas dos grupos e as peças do grupo aberto. */
+.pal-bar {
+    position: absolute; bottom: 10px; padding: 6px 8px 8px 8px; border-radius: 12px;
+    background-color: rgba(13, 17, 15, 0.92); border-width: 1px; border-color: var(--borda-clara);
+}
+.pal-tabs { flex-direction: row; margin-bottom: 6px; }
+.pal-tab {
+    height: 26px; margin: 0 4px 0 0; padding: 0 10px; border-radius: 13px; border-width: 0; font-size: 11px; -unity-font-style: bold;
+    letter-spacing: 1px; color: var(--texto-fraco); background-color: rgba(0, 0, 0, 0);
+    transition-property: background-color, color; transition-duration: 0.12s;
+}
+.pal-tab:hover { color: var(--texto); background-color: var(--sup-2); }
+.pal-tab--on, .pal-tab--on:hover { color: var(--sobre-destaque); background-color: var(--destaque); }
+.pal-bar .palette { flex-wrap: nowrap; justify-content: flex-start; }
+.pal-bar .tile { width: 88px; height: 88px; flex-direction: column; justify-content: center; margin: 0 6px 0 0; padding: 6px 4px 4px 4px; }
+.pal-bar .tile-icon { width: 44px; height: 44px; }
+.pal-bar .tile-texts { flex-grow: 0; margin: 4px 0 0 0; }
+.pal-bar .tile-name { font-size: 11px; -unity-text-align: middle-center; }
+.pal-bar .tile-sub { display: none; }
+/* Bolinha do trilho no Resumo (a .swatch das cores de piloto, mais adiante, é maior). */
+.stats-row .swatch { width: 10px; height: 10px; border-radius: 3px; border-width: 0; margin: 0 6px 0 0; }

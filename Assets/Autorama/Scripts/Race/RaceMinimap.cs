@@ -118,6 +118,8 @@ namespace Autorama
                 float w = Mathf.Clamp(set.miniW, MinW, MaxW);
                 set.miniW = w;
                 SetWidth(w);
+                // A torre de posições ocupa o canto de cima à esquerda: o minimapa volta uma vez para a direita.
+                if (set.miniV < 1) { set.miniV = 1; set.miniX = -1f; }
                 if (set.miniX < 0f || set.miniY < 0f) { set.miniX = pw.x - w - Margin; set.miniY = TopGap; }
                 ApplyPos();
             }

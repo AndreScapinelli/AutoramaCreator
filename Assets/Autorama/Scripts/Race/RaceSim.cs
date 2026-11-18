@@ -34,6 +34,7 @@ namespace Autorama
         public PilotSlot[] slots;
         public float miniX = -1f, miniY = -1f, miniW = 240f;   // minimapa: posição (no canto da mesa) e largura; X < 0 = ainda não arrastado
         public bool miniOpen;           // aba Pilotos do minimapa aberta
+        public int miniV;               // 1 = posição do minimapa já revista para a torre de posições (canto de cima à esquerda)
         public int carTagMode = 1;      // em cima de cada carrinho (F1; seção 54): 0 desligada, 1 posição, nome e tempo (só no carro do jogador)
         public bool narra = true;       // narração da corrida na faixa do topo (F2; seção 60)
         public bool turbo = true;       // turbo ligado (seção 37): tanque que enche a cada volta completa (seção 79)

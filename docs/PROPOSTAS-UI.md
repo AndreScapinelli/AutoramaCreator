@@ -1,5 +1,10 @@
 # Propostas para a interface
 
+> **Situação (18/11/2026, branch `melhorias-ui`):**
+> - **Feitas:** A, C, G; em D, o kit de ícones, a dica própria e o "?"; B em versão de painel em tela cheia com cartões; F com a torre, os painéis compactos e o minimapa justo; E com a paleta em abas embaixo.
+> - **Faltam:** a fonte de display própria, a mesa de madeira, o resultado com pódio animado e a navegação completa por controle.
+> - Detalhes na seção 84 do `GUIA-UNITY.md`.
+
 Levantamento de 18/11/2026, feito no código (`UI/Construtor.uss`, `BuilderPanel.cs`, `RaceController*.cs`) e em capturas do Play a 1280×720. Os protótipos visuais das propostas estão em `docs/propostas-ui.html` (abre no navegador).
 
 ## 1. O que temos hoje

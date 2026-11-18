@@ -21,7 +21,7 @@ namespace Autorama
         {
             narraLabel = Text("", "narra", topBox);
             narraLabel.pickingMode = PickingMode.Ignore;
-            narraLabel.PlaceInFront(hudBox);
+            narraLabel.PlaceInFront(raceClock);           // embaixo do relógio (a torre de posições fica à esquerda)
             narraLabel.style.display = DisplayStyle.None;
         }
 

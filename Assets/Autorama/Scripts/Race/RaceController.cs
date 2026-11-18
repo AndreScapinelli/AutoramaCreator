@@ -184,6 +184,8 @@ namespace Autorama
         class HudCard { public VisualElement root, dot; public Label pos, name, lap, best; }
         readonly HudCard[] hud = new HudCard[RaceSim.MaxCars];
         VisualElement hudBox;
+        Button prepGo;
+        bool lastRaceUI;
         bool sideAutoHidden;                 // o painel foi recolhido pela largada (devolve na chegada)
         // Contagem grande no meio da mesa (3, 2, 1, VAI!) e o resultado da prova dentro do aviso de vitória.
         VisualElement cdBox, resTable, resBtns;
@@ -533,6 +535,17 @@ namespace Autorama
         void UpdateMinimap()
         {
             if (minimap == null) return;
+            // Preparação em tela cheia: modos de corrida com os carros no grid (e fora da tela de teclas).
+            var m = panel.CurrentMode;
+            panel.SetPrep(!panel.MenuOpen && !keysOpen && panel.SideVisible && sim != null && sim.phase == RaceSim.Phase.Idle
+                          && (m == BuilderPanel.Mode.Race || m == BuilderPanel.Mode.Champ || m == BuilderPanel.Mode.Online));
+            // Saiu do menu ou da preparação: os painéis dos jogadores (desenhados só em alguns eventos) voltam.
+            bool ui = RaceUI;
+            if (ui != lastRaceUI) { lastRaceUI = ui; DrawPadHeads(); }
+            if (!panel.RaceMode) hudBox.style.display = DisplayStyle.None;
+            if (prepGo != null) prepGo.style.display = panel.Prep && m == BuilderPanel.Mode.Race ? DisplayStyle.Flex : DisplayStyle.None;
+            // Menu inicial aberto no meio da corrida: placar, aviso e contagem ficam escondidos (sem mexer no display deles).
+            if (topBox != null) topBox.visible = cdBox.visible = hudBox.visible = !panel.MenuOpen;
             bool show = panel != null && panel.RaceMode && RaceUI && sim != null && sim.Ready;
             minimap.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
             if (!show) return;
@@ -589,6 +602,8 @@ namespace Autorama
             raceHint = Text("", "hint", race);
             var row = El("row", race);
             startBtn = Btn("Largar (Enter)", StartRace, "btn btn--primary", row);
+            prepGo = Btn("LARGAR  (Enter)", StartRace, "btn btn--primary prep-go");      // no cabeçalho da preparação em tela cheia
+            panel.AddHeader(prepGo);
             Btn("Voltar ao grid", () => { sim.Reset(); scoreDirty = true; }, "btn", row);
 
             var clockRow = El("row", race);
@@ -669,7 +684,8 @@ namespace Autorama
             raceClockBig = Text("", "race-clock-big", raceClock); raceClockBig.pickingMode = PickingMode.Ignore;
             raceClockSub = Text("", "race-clock-sub", raceClock); raceClockSub.pickingMode = PickingMode.Ignore;
             raceClock.style.display = DisplayStyle.None;
-            hudBox = El("hud", topBox); hudBox.pickingMode = PickingMode.Ignore;
+            // Torre de posições (proposta F): as fichas numa coluna no canto de cima, à esquerda da mesa.
+            hudBox = El("hud", root); hudBox.pickingMode = PickingMode.Ignore; hudBox.style.display = DisplayStyle.None;
             for (int k = 0; k < RaceSim.MaxCars; k++)
             {
                 var h = new HudCard { root = El("hud-card hud-card--" + LaneCls[k], hudBox) };
@@ -1419,7 +1435,7 @@ namespace Autorama
 
         void UpdateHud()
         {
-            bool show = sim.closed && sim.phase != RaceSim.Phase.Idle && RaceUI;
+            bool show = panel.RaceMode && sim.closed && sim.phase != RaceSim.Phase.Idle && RaceUI;
             hudBox.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
             if (!show) return;
             int L = sim.set.laps;
@@ -1435,8 +1451,13 @@ namespace Autorama
                 h.lap.text = sim.ByTime ? $"{LapsCell(k)} v · T{c.lane + 1}" : c.finish != null ? "Chegou" : $"Volta {Mathf.Clamp(c.laps + 1, 1, L)}/{L}";
                 h.best.text = c.best != null ? (k == fast ? $"★ {Fmt(c.best)}" : $"Melhor {Fmt(c.best)}") : "";
                 h.best.EnableInClassList("hud-best--top", k == fast);
+                // Torre: cada ficha na altura da posição; a transição de "top" (USS) anima as ultrapassagens.
+                h.root.style.top = ord.IndexOf(k) * HudRow(h);
             }
+            hudBox.style.height = sim.N * HudRow(hud[0]);
         }
+
+        static float HudRow(HudCard h) => Mathf.Max(26f, h.root.resolvedStyle.height) + 4f;
 
         // 3 · 2 · 1 acompanhando as luzes vermelhas; no primeiro segundo da prova, VAI! em verde.
         void UpdateCountdown()
@@ -1600,6 +1621,7 @@ namespace Autorama
         void UpdateTop()
         {
             topBox.style.left = panel.SideWidth;
+            hudBox.style.left = panel.SideWidth + 12f;
             UpdateHud();
             UpdateRaceClock();
             UpdateCountdown();

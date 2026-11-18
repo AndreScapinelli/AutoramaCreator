@@ -24,7 +24,9 @@ namespace Autorama
 
         void BuildTags()
         {
-            tagRoot = El("car-tags", panel.Root);
+            // Embaixo de toda a interface (painel, cartões, ajuste do carro): as etiquetas são parte da cena.
+            tagRoot = El("car-tags");
+            panel.Root.Insert(0, tagRoot);
             tagRoot.pickingMode = PickingMode.Ignore;
             for (int i = 0; i < 4; i++)
                 for (int k = 0; k < RaceSim.MaxCars; k++)

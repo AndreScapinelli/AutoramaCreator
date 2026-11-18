@@ -32,7 +32,8 @@ namespace Autorama
         RegionDef KRegion => Career.Def.regioes[Mathf.Clamp(kRegion, 0, Career.Def.regioes.Length - 1)];
         NodeDef KNode => kSel >= 0 && kSel < KRegion.nos.Length ? KRegion.nos[kSel] : null;
         // Na carreira, o HUD da corrida (placar, controles, minimapa, câmera) só aparece na prova.
-        bool RaceUI => !panel.CareerMode || kScreen == KScreen.Race || kScreen == KScreen.Result;
+        // Interface da corrida (placar, painéis, minimapa, etiquetas): nunca com o menu inicial aberto por cima.
+        bool RaceUI => !panel.MenuOpen && !panel.Prep && (!panel.CareerMode || kScreen == KScreen.Race || kScreen == KScreen.Result);
         // A simulação só anda na prova (e no resultado, com os carros terminando); no mapa o carrinho é posto à mão.
         bool CareerSteps => !panel.CareerMode || (kScreen == KScreen.Race && !kPause) || kScreen == KScreen.Result;
 

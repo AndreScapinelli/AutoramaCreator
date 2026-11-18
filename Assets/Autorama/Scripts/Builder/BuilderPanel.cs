@@ -57,7 +57,34 @@ namespace Autorama
         public VisualElement OnlineBox => onlineBox;      // conteúdo da aba Online
         public VisualElement CareerBox => careerBox;      // conteúdo da aba Carreira (seção 68)
         public VisualElement Root => root;                // camada por cima da mesa (controles dos jogadores, luzes)
-        public float SideWidth => sideVisible && side != null ? side.layout.width : 0f;
+        public float SideWidth => sideVisible && side != null && !Prep ? side.layout.width : 0f;
+
+        // Preparação em tela cheia (proposta B): na Corrida, no Campeonato e no Online, com os carros no grid, o painel
+        // ocupa a tela toda e as seções viram cartões em 2 ou 3 colunas. Quem decide é o RaceController (SetPrep).
+        public bool Prep { get; private set; }
+        public void SetPrep(bool on)
+        {
+            if (side == null) return;
+            if (on != Prep)
+            {
+                Prep = on;
+                side.EnableInClassList("side--prep", on);
+                // A grade vale para quem tem seções como filhos: a caixa do modo ou os blocos de dentro dela.
+                if (on) content.Query(className: "section").ForEach(sec =>
+                {
+                    var p = sec.parent;
+                    if (p == null || p == content || p.ClassListContains("mode-box")) return;
+                    for (var up = p; up != null && up != content; up = up.parent) if (up.ClassListContains("section")) return;   // seção dentro de seção: não
+                    p.AddToClassList("prep-grid");
+                });
+                root.schedule.Execute(FrameTrack).ExecuteLater(20);
+            }
+            if (on) content.EnableInClassList("prep--3", root.layout.width >= 1200f);
+        }
+
+        // Botão no cabeçalho do painel, antes do ⌂ (ex.: LARGAR da preparação da corrida).
+        public void AddHeader(VisualElement e) => titleRow.Insert(1, e);
+        VisualElement titleRow;
 
         public void SetMode(Mode m)
         {
@@ -94,7 +121,7 @@ namespace Autorama
         VisualElement statusBox, statusDot, selectedBox, summaryBox, seqBox, libList;
         Label statusText, hint, cellLabel, scaleText, toast, viewBadge;
         // Sobre a mesa, no construtor: o selo de status (com a ação que resolve) e a barra de ações.
-        VisualElement tableWrap, tableStatus, tableDot, actionBar;
+        VisualElement tableWrap, tableStatus, tableDot, actionBar, palBar;
         Label tableText;
         Button tableClose, tableShow, tableRace, barUndo, barRedo, barFlip, barRemove, bar3D;
         TextField nameField;
@@ -374,7 +401,7 @@ namespace Autorama
             side.Add(scroll);
             content = El("side-content", scroll.contentContainer);
 
-            var titleRow = El("title-row", content);
+            titleRow = El("title-row", content);
             var titles = El("titles", titleRow);
             panelTitle = Text("CONSTRUTOR", "title", titles);
             subtitle = Text("PISTA DE 2 TRILHOS", "subtitle", titles);
@@ -395,11 +422,11 @@ namespace Autorama
             closeBox.style.display = DisplayStyle.None;
 
             buildBox = El(null, content);
-            raceBox = El(null, content);
+            raceBox = El("mode-box", content);
             raceBox.style.display = DisplayStyle.None;
-            champBox = El(null, content);
+            champBox = El("mode-box", content);
             champBox.style.display = DisplayStyle.None;
-            onlineBox = El(null, content);
+            onlineBox = El("mode-box", content);
             onlineBox.style.display = DisplayStyle.None;
             careerBox = El(null, content);
             careerBox.style.display = DisplayStyle.None;
@@ -424,12 +451,25 @@ namespace Autorama
             endBackBtn = Btn("◂ Trás", () => builder.SetBack(true), "btn", endRow);
             endFrontBtn.tooltip = "Encaixa no fim da pista, na seta amarela (E alterna)";
             endBackBtn.tooltip = "Encaixa atrás da largada (E alterna)";
-            // Paleta em grupos: retas, curvas, inclinadas e especiais (cruzamentos e rampas).
+            // Paleta embaixo da mesa (proposta E): uma barra com os grupos em abas e as peças do grupo aberto.
+            // As teclas 1–0 continuam valendo para todas as peças, com qualquer aba aberta.
+            palBar = El("pal-bar", root);
+            var palTabs = El("pal-tabs", palBar);
+            var palTiles = El("pal-tiles", palBar);
             var groups = new Dictionary<string, VisualElement>();
+            var groupTabs = new List<(Button tab, VisualElement grid)>();
             foreach (var g in new[] { "RETAS", "CURVAS", "CURVAS INCLINADAS", "CRUZAMENTOS E RAMPAS", "LOOP E SALTO" })
             {
-                Text(g, "pal-group", pal);
-                groups[g] = El("palette", pal);
+                var grid = groups[g] = El("palette", palTiles);
+                Button tab = null;
+                tab = Btn(g, () =>
+                {
+                    foreach (var (t, gr) in groupTabs) { t.EnableInClassList("pal-tab--on", t == tab); gr.style.display = t == tab ? DisplayStyle.Flex : DisplayStyle.None; }
+                }, "pal-tab", palTabs);
+                groupTabs.Add((tab, grid));
+                bool first = groupTabs.Count == 1;
+                tab.EnableInClassList("pal-tab--on", first);
+                grid.style.display = first ? DisplayStyle.Flex : DisplayStyle.None;
             }
             foreach (var e in TrackBuilder.Palette)
             {
@@ -642,7 +682,7 @@ namespace Autorama
             if (cls != "") tableStatus.AddToClassList(cls);
             tableClose.style.display = !i.closed && builder.pieces.Count > 1 && i.overlaps.Count == 0 ? DisplayStyle.Flex : DisplayStyle.None;
             tableShow.style.display = i.overlaps.Count > 0 ? DisplayStyle.Flex : DisplayStyle.None;
-            tableRace.style.display = i.closed && i.overlaps.Count == 0 && !chromeHidden ? DisplayStyle.Flex : DisplayStyle.None;
+            tableRace.style.display = i.closed && i.overlaps.Count == 0 && !chromeHidden && TrackBuilder.AllowedEntry == null ? DisplayStyle.Flex : DisplayStyle.None;
             barUndo.SetEnabled(builder.CanUndo);
             barRedo.SetEnabled(builder.CanRedo);
             bool sel = builder.Selected >= 0;
@@ -959,7 +999,9 @@ namespace Autorama
             info.style.display = Locked || MenuOpen ? DisplayStyle.None : DisplayStyle.Flex;
             // Selo e barra só no construtor; o selo fica centrado na mesa (à direita do painel).
             var buildOnly = Locked || MenuOpen ? DisplayStyle.None : DisplayStyle.Flex;
-            tableWrap.style.display = actionBar.style.display = buildOnly;
+            tableWrap.style.display = actionBar.style.display = palBar.style.display = buildOnly;
+            palBar.style.left = left + 34f;
+            info.style.bottom = palBar.layout.height + 18f;
             tableWrap.style.left = left;
             bar3D.EnableInClassList("btn--on", cam.Tilted);
             cellLabel.text = hover.HasValue ? $"Célula {CellName(hover.Value)}" : "Célula —";
