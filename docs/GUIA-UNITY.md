@@ -1467,6 +1467,8 @@ else if (slip < SpinOut)       spun[k] = false;
 - **Corrida livre com um humano só:** esse humano.
 - **Senão:** `-1`; a TV segue o líder, a Perseguição e a Primeira pessoa seguem o alvo do menu.
 
+**Perseguição e Primeira pessoa nunca seguem robô se há gente** (`RaceController.ChaseCar()`, fora do online, a cada quadro em `PlaceCars` e em `ApplyCameraSettings`): o alvo do menu (`cameraTarget`) vale se o trilho é de um humano presente (`sim.aiSkill[k] == 0 && sim.present[k]`); senão, o primeiro humano presente. Só robôs na pista: o alvo do menu. Antes, o alvo era usado direto, e no campeonato e na carreira o rodízio de trilhos punha a câmera num robô (o jogador no trilho 2 e o alvo no 1).
+
 O slider **Distância** vale para a TV (zoom) e a Perseguição: `100%` é o padrão, a faixa é `40%–160%` (era 70%; seção 57).
 
 Implementação: `RaceController.BuildCamMenu(root)` monta `.cam-menu`, `.cam-btn`, `.cam-pop` com um `.cam-opt` por modo (`CamModeValues`, `CamModes`, `CamModeHints`), o `.cam-sub` do alvo e o `SliderInt`. `RaceSettings` salva `cameraMode` (valor de `RaceViewMode`: 5, 2 ou 4; padrão 5), `cameraTarget` e `cameraDistance`.
@@ -5005,7 +5007,7 @@ Primeira leva das propostas de `docs/PROPOSTAS-UI.md` (branch `melhorias-ui`). A
 
 **Nome.** A tela inicial mostra **AUTORAMA MANIA · DEFINITIVE EDITION 1**. O `productName` do `ProjectSettings` continua `AutoramaMania`: ele dá o nome da pasta de `Application.persistentDataPath`, e trocá-lo esconderia pistas, recordes e carreiras de quem já joga.
 
-**Menu inicial em tela cheia** (`BuilderPanel.BuildStartMenu`, `.start*`): o nome à esquerda (72 px, itálico, sombra), a faixa quadriculada (`Texturas/bandeirada.png`) e, à direita, a Carreira em destaque (cartão largo) e quatro cartões: Corrida, Campeonato, Online e Construtor. Peças, Opções e Sair ficam no pé, à esquerda. Com o menu aberto, a barra lateral, as réguas, o selo de status e a barra de ações somem (`ApplyChrome`, que junta `chromeHidden` da carreira e `MenuOpen`).
+**Menu inicial em tela cheia** (`BuilderPanel.BuildStartMenu`, `.start*`): o logo animado (seção 85) e, à direita, a Carreira em destaque (cartão largo) e quatro cartões: Corrida, Campeonato, Online e Construtor. Peças, Opções e Sair ficam no pé, à esquerda. Com o menu aberto, a barra lateral, as réguas, o selo de status e a barra de ações somem (`ApplyChrome`, que junta `chromeHidden` da carreira e `MenuOpen`).
 
 **Sem abas.** A barra lateral não tem mais as abas Construtor · Corrida · Campeonato · Online: o título dela é o nome do modo (`panelTitle`) e o caminho é menu → modo → ⌂ volta ao menu. No construtor, com o circuito fechado, o selo de cima ganha **Correr nesta pista** (`RaceHereRequested`): abre a Corrida com `set.track = "builder"`.
 
@@ -5070,3 +5072,24 @@ Primeira leva das propostas de `docs/PROPOSTAS-UI.md` (branch `melhorias-ui`). A
 - Os textos do Campeonato e do Online que diziam "aba Corrida" agora apontam para Opções.
 
 **Etiquetas do F1** (`RaceController.Tags`): a camada fica no índice 0 da raiz, embaixo de toda a interface (antes passava por cima do ajuste do carro).
+
+## 85. Logo e ícone do jogo
+
+**Arquivos** (`Assets/Autorama/Texturas/`), recortados das imagens geradas fora do jogo: o fundo escuro ligado à borda (canal máximo < 38 no logo e < 30 no ícone, preenchido a partir das bordas) virou transparente, com 1,2 px de desfoque na borda.
+- `logo.png` (1039 × 401): "AUTORAMA MANIA 1 · DEFINITIVE EDITION". Substitui no menu inicial os textos AUTORAMA, MANIA, a edição e a faixa quadriculada (as classes `.start-title--2`, `.start-edition` e `.start-flag` saíram; `.start-title` fica para a Carreira).
+- `logo-brilho.png`: a máscara do brilho. É branca, com alfa = alfa do logo × (1,4 · luminância)^0,7 (mais forte nas letras claras).
+- `icone-jogo.png` (1254 × 1254): o ícone padrão do Player Settings (`PlayerSettings.SetIcons`, alvo `Unknown`).
+
+**Animação** (`Builder/StartLogo.cs`, um `VisualElement`; `.start-logo` com o `logo.png` de fundo e `scale-to-fit`):
+- **Entrada** (0,75 s): a escala vai de 0,35 a 1 com o *back out* (c = 1,9), gira de −7° a 0°, cai 60 px de cima e acende em 0,3 s.
+- **Parado**: flutua ±4 px num período de 3,4 s, a escala respira ±1,2% e gira ±0,5°.
+- **Brilho**: aos 0,55 s e depois a cada 4,5 s, uma faixa inclinada (meia largura 0,13 da largura do logo, inclinação 0,25) passa em 0,9 s, com até 75% de opacidade. O desenho é uma malha de 48 × 6 quadrados com a textura do brilho (`generateVisualContent`), e a transparência de cada vértice segue a faixa. Por isso o brilho só aparece em cima do logo. A textura vem do filho `.start-logo-brilho`, que tem tinta transparente e serve só para o USS carregar o arquivo.
+- A altura segue a largura (401/1039, no `GeometryChangedEvent`). O relógio é o `Time.unscaledTime` (16 ms). `ShowMenu(true)` chama `Play()` (a entrada repete toda vez que o menu abre) e `ShowMenu(false)` chama `Stop()`.
+
+**Menu com o logo em cima.** A primeira versão (logo à esquerda, com 42% do cartão, e os modos à direita) foi testada e não ficou boa. O logo ficou pequeno (uns 430 px numa tela de 1940), centrado na coluna enquanto o slogan e os botões do pé ficavam à esquerda, e o slogan cinza fino não combinava com o logo 3D. Como ficou:
+- `.start-card` em coluna, com até 1280 px e 90% da tela. O logo fica no alto e no centro (`.start-hero`, 64% e no máximo 820 px; o logo chega a uns 316 px de altura).
+- Atrás do logo, `.start-halo` (`Texturas/logo-halo.png`, 512 × 256): um halo escuro radial (alfa máximo 0,85, suavizado), esticado de −22% a −22% dos lados, −40% em cima e −30% embaixo, para a grade da mesa não brigar com o logo.
+- O slogan virou "MONTE · CORRA · VENÇA" em 13 px, negrito e espaçado 5 px, centrado (`.start-hero .start-sub`; o `.start-sub` da tela de saves da Carreira continua o de antes).
+- Os cinco modos ficam numa faixa só (`.start-grid` em linha): cartões de 128 px, com o ícone em cima, o título e a explicação. A Carreira cresce 1,45 vez e é amarela. Peças, Opções e Sair ficam centrados no pé.
+
+**Teste:** compila; no Play, o logo mede 496 × 191 no menu, e o logo e o brilho acham as texturas.

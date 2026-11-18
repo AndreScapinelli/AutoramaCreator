@@ -529,16 +529,14 @@ namespace Autorama
 
         void BuildStartMenu()
         {
-            // Tela cheia (proposta B): o nome à esquerda, os modos à direita e, embaixo, Peças · Opções · Sair.
+            // Tela cheia: o logo em cima (seção 85), os cinco modos numa faixa e, no pé, Peças · Opções · Sair.
             startMenu = El("start", root);
             MenuOpen = true;
             var card = El("start-card", startMenu);
             var hero = El("start-hero", card);
-            Text("AUTORAMA", "start-title", hero);
-            Text("MANIA", "start-title start-title--2", hero);
-            Text("DEFINITIVE EDITION 1", "start-edition", hero);
-            El("start-flag", hero);
-            Text("Monte a pista, chame alguém e acelere.", "start-sub", hero);
+            El("start-halo", hero).pickingMode = PickingMode.Ignore;
+            hero.Add(logo = new StartLogo());
+            Text("MONTE  ·  CORRA  ·  VENÇA", "start-sub", hero);
             var grid = El("start-grid", card);
             void Opt(string title, string sub, string icon, Mode m, string extra = null)
             {
@@ -563,6 +561,7 @@ namespace Autorama
         }
 
         // Pedido do botão Opções da tela inicial: quem tem as opções (a RaceController, com as teclas) abre a tela.
+        StartLogo logo;
         public event System.Action OptionsRequested;
         // Peças (seção 78): o RaceController abre a tela com o que a carreira já abriu.
         public event System.Action ShopRequested;
@@ -592,6 +591,7 @@ namespace Autorama
             if (startMenu == null) return;
             MenuOpen = open;
             startMenu.style.display = open ? DisplayStyle.Flex : DisplayStyle.None;
+            if (open) logo.Play(); else logo.Stop();
             if (side != null) { ApplyChrome(); root.schedule.Execute(FrameTrack).ExecuteLater(20); }
             if (open) { builder.CancelAutoClose(); builder.HideGhost(); builder.SetHoverCell(null); hover = null; }
             root.focusController?.focusedElement?.Blur();
