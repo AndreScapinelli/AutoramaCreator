@@ -49,7 +49,7 @@ namespace Autorama
         void UpdateSplit(int leader)
         {
             int n = 0;
-            if (set.splitScreen && !OnlineRun && panel != null && panel.RaceMode)
+            if (set.splitScreen && !OnlineRun && panel != null && panel.RaceMode && !panel.MenuOpen)
                 for (int k = 0; k < sim.N && n <= 4; k++)
                     if (sim.present[k] && sim.aiSkill[k] == 0) { if (n < 4) splitCar[n] = k; n++; }
             // Online: um quadro para cada jogador deste computador (o dono em cima, o jogador 2 embaixo), se os dois estão na bateria.

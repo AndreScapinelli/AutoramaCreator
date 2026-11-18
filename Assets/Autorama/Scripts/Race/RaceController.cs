@@ -343,8 +343,23 @@ namespace Autorama
             if (m == BuilderPanel.Mode.Online) OnlineShown();
             sim.Reset();
             topBox.style.display = panel.RaceMode ? DisplayStyle.Flex : DisplayStyle.None;
+            ShowCamPop(false);
+            if (keysOpen) CloseKeys();                    // um convite da Steam troca de modo com Opções ou Peças abertas
+            if (ShopOpen) ShowShop(false);
+            if (!panel.RaceMode) RaceUiOff();
             DrawPadHeads();
             scoreDirty = champDirty = true;
+        }
+
+        // Fora da corrida (construtor, lobby online, fim da corrida online): desliga já o que só o quadro da corrida
+        // apagaria. Com a pista do construtor aberta o Update nem chega ao PlaceCars, e a tela dividida, o menu de
+        // câmera, o minimapa, a contagem e o semáforo 3D ficavam como estavam.
+        void RaceUiOff()
+        {
+            PauseClear();
+            if (SplitOn) LayoutSplit(0, 0);
+            cdBox.style.display = hudBox.style.display = minimap.style.display = camMenu.style.display = DisplayStyle.None;
+            TrackPieceView.SetStartLights(0, false);
         }
 
         struct Option { public string key, name, sub; public TrackSave save; public bool closed; }
@@ -483,7 +498,8 @@ namespace Autorama
                 if (cars[k].gameObject.activeSelf != on) cars[k].gameObject.SetActive(on);
                 if (!on) continue;
                 var st0 = sim.cars[k];
-                for (int i = 0; i < CamCount; i++) PaneCam(i).SetCarTrack(k, st0.mode == CarMode.OnSlot, st0.slip);
+                float speed01 = st0.mode == CarMode.OnSlot ? Mathf.Clamp01(st0.v / Mathf.Max(1f, sim.set.vmax * sim.Speed * sim.setup[k].Top)) : 0f;
+                for (int i = 0; i < CamCount; i++) PaneCam(i).SetCarTrack(k, st0.mode == CarMode.OnSlot, st0.slip, speed01);
                 var p = sim.CarPose(k, out float y, out float pitch);
                 var pos = new Vector3(p.pos.x, y, p.pos.y);
                 cars[k].position = pos;
@@ -498,7 +514,7 @@ namespace Autorama
                 UpdateVfx(k, st);
                 carPos[k] = pos; carHeading[k] = p.heading;
                 // Ponto do trilho à frente, para a Perseguição olhar a curva antes de chegar.
-                var ahead = sim.PathOf(k).At(st.s + CamAhead * sim.Scale);
+                var ahead = sim.PathOf(k).At(st.s + CamAhead);
                 for (int i = 0; i < CamCount; i++) PaneCam(i).SetCarAhead(k, new Vector3(ahead.pos.x, ahead.y, ahead.pos.y));
                 // Loop logo à frente (ou o carrinho dentro dele): a Perseguição vai para o lado (seção 57).
                 bool nearLoop = sim.PathOf(k).LoopNear(st.s, LoopCamAfter * sim.Scale,
@@ -1099,7 +1115,7 @@ namespace Autorama
             SetBot(); DrawRaceSetup();
         }
 
-        const float CamAhead = 2.2f;      // células à frente do carrinho que a Perseguição olha
+        const float CamAhead = 2.2f;      // distância no mundo à frente do carrinho que a Perseguição olha (sem a escala da pista)
         const float LoopCamLead = 0.6f;   // segundos de antecedência para a câmera ir para o lado do loop
         const float LoopCamMin = 1.5f;    // células: antecedência mínima
         const float LoopCamAfter = 0.5f;  // células depois da saída do loop até voltar para trás do carrinho

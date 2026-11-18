@@ -55,9 +55,13 @@ namespace Autorama
         Rect trackRect; float trackTop;                       // contorno da pista (x, z) e a altura máxima
         Vector3[] tvSpots; int tvSpot = -1; float tvTime; Vector3 tvLook;
 
-        const float ChaseBack = 3.2f, ChaseUp = 1.7f;         // em células: ~28° de cima
+        const float ChaseBack = 3.4f, ChaseUp = 1.2f;         // no mundo (o carrinho não cresce com a pista): ~19° de cima
         const float ChaseLookAhead = 0.55f;                   // 0 = olha o carrinho, 1 = olha o ponto à frente
         const float ChaseTurnRate = 6f, ChasePosRate = 6f;
+        // Andando, a câmera recua até ChaseSpeedBack a mais (na velocidade máxima), devagar (ChaseSpeedRate).
+        const float ChaseSpeedBack = 1.6f, ChaseSpeedRate = 1.5f;
+        readonly float[] carSpeed01 = new float[RaceSim.MaxCars];   // v / velocidade máxima do carrinho, 0 fora do trilho
+        float chaseExtra;                                           // recuo atual, suavizado
         const float TvMargin = 2f, TvFrame = 2.2f, TvHold = 2.5f, TvSwitch = 1.35f, TvLookRate = 8f;
 
         // "Atrás do carro": a câmera segue a direção suavizada do carro, não o rumo bruto. Ela gira no máximo
@@ -105,9 +109,10 @@ namespace Autorama
         }
 
         // Estado de um carrinho vindo da simulação: no trilho (OnSlot) e a derrapagem. Com histerese, marca "rodando".
-        public void SetCarTrack(int k, bool onSlot, float slip)
+        public void SetCarTrack(int k, bool onSlot, float slip, float speed01)
         {
             if (k < 0 || k >= spun.Length) return;
+            carSpeed01[k] = speed01;
             bool before = spun[k];
             if (!onSlot || slip >= SpinIn) spun[k] = true;
             else if (slip < SpinOut) spun[k] = false;
@@ -279,26 +284,30 @@ namespace Autorama
         }
 
         // "Perseguição": atrás e acima do carrinho (~28°), olhando para um ponto entre ele e o trilho à frente
-        // (raceAhead), para a curva aparecer antes de chegar. Distâncias em células × trackScale (pista de 4/6 maior).
+        // (raceAhead), para a curva aparecer antes de chegar. Distâncias no mundo × distanceScale, sem a escala da
+        // pista: o carrinho tem o mesmo tamanho em todas, e na pista de 6 ele sumia a 9,6 atrás.
         void ApplyThirdPerson()
         {
             int k = Mathf.Clamp(ThirdPersonCar, 0, raceCars - 1);
             float rad = raceCarHeading[k] * Mathf.Deg2Rad;
             Vector3 carFwd = new Vector3(Mathf.Cos(rad), 0f, Mathf.Sin(rad));
             float dt = Time.unscaledDeltaTime;
-            float u = trackScale * distanceScale;
+            float u = distanceScale;
             Vector3 car = raceCarPos[k];
             // Rodando (ou fora do trilho), o ponto à frente não vale: olha só para o carrinho.
             Vector3 look = spun[k] ? car : Vector3.Lerp(car, raceAhead[k], ChaseLookAhead);
 
             cam.nearClipPlane = nearDefault;
+            float extraTarget = ChaseSpeedBack * carSpeed01[k];
             if (!chaseReady)
             {
                 chaseFwd = carFwd;
                 chaseLook = look;
-                transform.position = car - carFwd * ChaseBack * u + Vector3.up * ChaseUp * u;
+                chaseExtra = extraTarget;
+                transform.position = car - carFwd * (ChaseBack + chaseExtra) * u + Vector3.up * ChaseUp * u;
                 chaseReady = true;
             }
+            chaseExtra = Mathf.Lerp(chaseExtra, extraTarget, 1f - Mathf.Exp(-ChaseSpeedRate * dt));
 
             if (spun[k])
                 chaseFwd = Vector3.RotateTowards(chaseFwd, carFwd, ThirdTurnRate * Mathf.Deg2Rad * dt, 0f).normalized;
@@ -306,7 +315,7 @@ namespace Autorama
                 chaseFwd = Vector3.Slerp(chaseFwd, carFwd, 1f - Mathf.Exp(-ChaseTurnRate * dt)).normalized;
 
             chaseLook = Vector3.Lerp(chaseLook, look, 1f - Mathf.Exp(-ThirdLookRate * dt));
-            Vector3 desired = car - chaseFwd * ChaseBack * u + Vector3.up * ChaseUp * u;
+            Vector3 desired = car - chaseFwd * (ChaseBack + chaseExtra) * u + Vector3.up * ChaseUp * u;
             Vector3 lookAt = chaseLook;
 
             // Loop à frente: vai para o lado do anel, para o carrinho aparecer dando a volta.

@@ -943,6 +943,10 @@ public class BuilderUI : MonoBehaviour
 
 **Tela inicial** (`BuilderPanel.BuildStartMenu`, `ShowMenu(bool)`, `MenuOpen`): ao abrir o jogo, um cartão no meio da tela escura mostra "AUTORAMA" e quatro opções, cada uma com ícone e uma linha de explicação: **Construir**, **Correr**, **Campeonato** e **Online**. Escolher uma fecha o menu e chama `SetMode`. O botão **⌂** no topo do painel volta para o menu (não durante um campeonato online). Qualquer `SetMode` também fecha o menu, então um convite da Steam (que chama `SetMode(Online)`) passa direto. Com o menu aberto, `EditLocked` é verdadeiro: as teclas do construtor não colocam peças por trás dele. Estilos `.start*`. Só a Unity tem essa tela.
 
+**Voltar ao menu encerra o modo:** `ShowMenu(true)` fora do construtor (e fora de uma corrida online) chama antes `SetMode(Build)`, como a saída da carreira (`CareerExit`) já fazia. O `OnMode(Build)` do `RaceController` para a simulação (`sim.Reset`), apaga o placar e a interface da corrida, põe a câmera de volta na mesa e restaura a pista do construtor; a tela dividida também sai (`UpdateSplit` exige `!panel.MenuOpen`). Antes, o ⌂ só cobria a tela: a corrida seguia andando por trás do menu, com os botões de câmera de cada quadro por cima dele. Teste (Play): `SetMode(Race)` → `ShowMenu(true)` deixa `CurrentMode = Build`, `RaceMode = false` e `MenuOpen = true`.
+
+**Desligar a interface da corrida na troca de modo** (`RaceController.RaceUiOff`): o `OnMode` fecha o menu de câmera e, se estiverem abertos, Opções (`CloseKeys`) e Peças (`ShowShop(false)`), porque um convite da Steam troca de modo com eles na tela. Fora da corrida (`!panel.RaceMode`) chama `RaceUiOff`, que também roda em `OnlineExitRun`: limpa a pausa, desfaz a tela dividida (`LayoutSplit(0, 0)`: desliga as câmeras extras e os botões de câmera de cada quadro), esconde contagem, HUD, minimapa e menu de câmera, e apaga o semáforo 3D. Antes isso ficava só a cargo do `PlaceCars` e do `UpdateTop`, que não rodam com a pista do construtor aberta (`sim.Ready` falso): a tela dividida e a contagem ficavam presas na tela. Teste (Play, por reflexão): na Corrida com `LayoutSplit(2, 2)` e a contagem visível, `ShowMenu(true)` deixa `splitPanes = 0`, 1 câmera ativa e contagem, menu de câmera e minimapa em `None`.
+
 **Paleta de cores** (topo de `UI/Construtor.uss`): todas as cores repetidas viraram variáveis num bloco `:root`, e o resto do arquivo usa `var(--nome)`. São 21 cores e 173 trocas; a aparência não muda. Principais: `--texto` (229, 235, 227), `--texto-fraco` (148, 161, 151), `--destaque` (245, 194, 27, o amarelo), `--alerta` (240, 122, 58), `--ok` (61, 190, 116), `--trilho-a` (240, 74, 63), `--trilho-b` (80, 137, 242), `--fundo` / `--fundo-vidro` / `--fundo-painel` (22, 28, 25 com 1 / 0,94 / 0,97), `--borda*`. Para mudar o visual, mexa só nesse bloco. As cores calculadas em C# (barra de derrapagem, cor dos pilotos) continuam no código.
 
 Teste (Play mode): o cartão abre centrado (560 × 351); as cores resolvidas batem com as variáveis (título 0,961/0,761/0,106 = `--destaque`; painel 0,086/0,110/0,098 com 0,97 = `--fundo-painel`). Clicar **Correr** fecha o menu e vai para a aba Corrida; `ShowMenu(true)` reabre. Ao abrir o jogo: `MenuOpen = true` e `EditLocked = true`; `SetMode(Online)` (o caminho do convite) fecha o menu.
@@ -1435,8 +1439,8 @@ Os modos antigos *3D* (1) e *Dinâmica* (3) saíram da corrida (eram ruins de as
 
 **Perseguição** (`TopDownCamera.ApplyThirdPerson`):
 
-- **Posição:** `carro − chaseFwd × 3,2u + cima × 1,7u`, com `u = escala × distância` (fica igual em pistas de 2, 4 e 6). Lerp `ChasePosRate 6`. Campo de visão 55°.
-- **Ponto olhado:** `RaceController` manda a cada quadro o ponto do trilho `CamAhead 2,2 × escala` à frente (`SetCarAhead`); a câmera olha `ChaseLookAhead 0,55` do caminho entre o carrinho e esse ponto, com lerp `ThirdLookRate 12`. Assim a curva aparece antes de o carrinho chegar nela. Rodando, olha só o carrinho.
+- **Posição:** `carro − chaseFwd × (3,4 + recuo)u + cima × 1,2u` (~19° de cima), com `u = distância` do slider. **Recuo com a velocidade:** `ChaseSpeedBack 1,6 × v/vmax` do carrinho (`vmax × Speed × setup.Top`; 0 fora do trilho), vindo de `SetCarTrack(k, noTrilho, derrapagem, speed01)`, com lerp lento `ChaseSpeedRate 1,5`: parado, 3,4 atrás; no máximo, 5,0. Parado o carrinho ficava bom, mas andando a câmera grudava nele. Lerp `ChasePosRate 6`. Campo de visão 55°. Não multiplica pela escala da pista: o carrinho tem o mesmo tamanho em todas, e com `3,2 × escala` ele sumia na pista de 6 (9,6 atrás e 5,1 acima). Era `3,2u + 1,7u` antes.
+- **Ponto olhado:** `RaceController` manda a cada quadro o ponto do trilho `CamAhead 2,2` à frente (no mundo, sem a escala) (`SetCarAhead`); a câmera olha `ChaseLookAhead 0,55` do caminho entre o carrinho e esse ponto, com lerp `ThirdLookRate 12`. Assim a curva aparece antes de o carrinho chegar nela. Rodando, olha só o carrinho.
 - **Direção:** `chaseFwd` segue o rumo com lerp `ChaseTurnRate 6`; rodando, gira no máximo `ThirdTurnRate 110°/s`.
 - **Reinício:** trocar de modo ou de carrinho zera a direção (corte direto para a posição).
 
@@ -4250,7 +4254,7 @@ Robôs de qualidade 100, 5 voltas, colisão e turbo ligados, `Random.InitState(7
 
 ## 57. Perseguição: zoom maior e câmera de lado no loop
 
-- **Zoom:** o slider **Distância** vai de `40%` a `160%` (era 70%). O limite está no `SliderInt`, no `Mathf.Clamp` de `set.cameraDistance` e em `TopDownCamera.SetDistanceScale` (0,4 a 1,6). Em 40%, a Perseguição fica a 1,3 célula atrás e 0,7 acima (× escala da pista).
+- **Zoom:** o slider **Distância** vai de `40%` a `160%` (era 70%). O limite está no `SliderInt`, no `Mathf.Clamp` de `set.cameraDistance` e em `TopDownCamera.SetDistanceScale` (0,4 a 1,6). Em 40%, a Perseguição fica a 1,36 atrás e 0,48 acima (no mundo; seção 15 para a distância atual, sem a escala da pista).
 - **Loop à frente:** a cada quadro, `RaceController` pergunta `LanePath.LoopNear(s, back, ahead, out centro, out rumo)` para cada carrinho no trilho: há um ponto de loop (`kinds == 1`) entre `s − LoopCamAfter 0.5` e `s + max(LoopCamMin 1.5, v · LoopCamLead 0.6 s)`? Medidas em células × `sim.Scale`. O centro do anel é a média dos pontos do loop daquela peça, guardado em `loopCenters`. O resultado chega à câmera em `TopDownCamera.SetCarLoop(k, on, centro, rumo)`.
 - **Câmera de lado** (`ApplyThirdPerson`): com o loop ligado e o carrinho sem rodar, ela escolhe o lado do anel mais perto de onde está (o sinal fica fixo até sair) e vai para `centro + normal · LoopSide 6 + cima · LoopUp 0.4` (× `trackScale`, sem a Distância, para o anel caber inteiro com 55° de campo), olhando entre o centro e o carrinho (`LoopLookCar 0.5`). A mistura com a posição de trás é exponencial (`LoopBlendRate 4`/s) nos dois sentidos, e a suavização normal da posição (`ChasePosRate`) continua por cima. Se o carrinho cai do loop (`spun`), ela volta para trás dele.
 - Vale para a Perseguição, a Primeira pessoa quando ela vira Perseguição (carrinho rodando) e cada vista da tela dividida.
@@ -5085,7 +5089,8 @@ Primeira leva das propostas de `docs/PROPOSTAS-UI.md` (branch `melhorias-ui`). A
 ## 85. Logo e ícone do jogo
 
 **Arquivos** (`Assets/Autorama/Texturas/`), recortados das imagens geradas fora do jogo: o fundo escuro ligado à borda (canal máximo < 38 no logo e < 30 no ícone, preenchido a partir das bordas) virou transparente, com 1,2 px de desfoque na borda.
-- `logo.png` (1039 × 401): "AUTORAMA MANIA 1 · DEFINITIVE EDITION". Substitui no menu inicial os textos AUTORAMA, MANIA, a edição e a faixa quadriculada (as classes `.start-title--2`, `.start-edition` e `.start-flag` saíram; `.start-title` fica para a Carreira).
+- `logo.png` (2000 × 667, já veio com fundo transparente): "AUTORAMA MANIA · DEFINITIVE EDITION". O "1" saiu do nome do jogo, no logo e no ícone. Substitui no menu inicial os textos AUTORAMA, MANIA, a edição e a faixa quadriculada (as classes `.start-title--2`, `.start-edition` e `.start-flag` saíram; `.start-title` fica para a Carreira).
+- **Import:** `logo.png` e `logo-brilho.png` usam *Non-Power of 2* = None e não têm mipmap. No padrão, a Unity arredondava o logo para 2048 × 512 (antes, 1024 × 512), e o `scale-to-fit` achatava o desenho.
 - `logo-brilho.png`: a máscara do brilho. É branca, com alfa = alfa do logo × (1,4 · luminância)^0,7 (mais forte nas letras claras).
 - `icone-jogo.png` (1254 × 1254): o ícone padrão do Player Settings (`PlayerSettings.SetIcons`, alvo `Unknown`).
 
@@ -5093,12 +5098,12 @@ Primeira leva das propostas de `docs/PROPOSTAS-UI.md` (branch `melhorias-ui`). A
 - **Entrada** (0,75 s): a escala vai de 0,35 a 1 com o *back out* (c = 1,9), gira de −7° a 0°, cai 60 px de cima e acende em 0,3 s.
 - **Parado**: flutua ±4 px num período de 3,4 s, a escala respira ±1,2% e gira ±0,5°.
 - **Brilho**: aos 0,55 s e depois a cada 4,5 s, uma faixa inclinada (meia largura 0,13 da largura do logo, inclinação 0,25) passa em 0,9 s, com até 75% de opacidade. O desenho é uma malha de 48 × 6 quadrados com a textura do brilho (`generateVisualContent`), e a transparência de cada vértice segue a faixa. Por isso o brilho só aparece em cima do logo. A textura vem do filho `.start-logo-brilho`, que tem tinta transparente e serve só para o USS carregar o arquivo.
-- A altura segue a largura (401/1039, no `GeometryChangedEvent`). O relógio é o `Time.unscaledTime` (16 ms). `ShowMenu(true)` chama `Play()` (a entrada repete toda vez que o menu abre) e `ShowMenu(false)` chama `Stop()`.
+- A altura segue a largura (667/2000, no `GeometryChangedEvent`). O relógio é o `Time.unscaledTime` (16 ms). `ShowMenu(true)` chama `Play()` (a entrada repete toda vez que o menu abre) e `ShowMenu(false)` chama `Stop()`.
 
 **Menu com o logo em cima.** A primeira versão (logo à esquerda, com 42% do cartão, e os modos à direita) foi testada e não ficou boa. O logo ficou pequeno (uns 430 px numa tela de 1940), centrado na coluna enquanto o slogan e os botões do pé ficavam à esquerda, e o slogan cinza fino não combinava com o logo 3D. Como ficou:
-- `.start-card` em coluna, com até 1280 px e 90% da tela. O logo fica no alto e no centro (`.start-hero`, 64% e no máximo 820 px; o logo chega a uns 316 px de altura).
+- `.start-card` em coluna, com até 1280 px e 90% da tela. O logo fica no alto e no centro (`.start-hero`, 64% e no máximo 820 px; o logo chega a uns 273 px de altura).
 - Atrás do logo, `.start-halo` (`Texturas/logo-halo.png`, 512 × 256): um halo escuro radial (alfa máximo 0,85, suavizado), esticado de −22% a −22% dos lados, −40% em cima e −30% embaixo, para a grade da mesa não brigar com o logo.
-- O slogan virou "MONTE · CORRA · VENÇA" em 13 px, negrito e espaçado 5 px, centrado (`.start-hero .start-sub`; o `.start-sub` da tela de saves da Carreira continua o de antes).
+- Sem slogan: o logo já diz tudo. Primeiro o slogan virou "MONTE · CORRA · VENÇA" em maiúsculas espaçadas, mas não agradou e saiu. O `.start-sub` continua só na tela de saves da Carreira.
 - Os cinco modos ficam numa faixa só (`.start-grid` em linha): cartões de 128 px, com o ícone em cima, o título e a explicação. A Carreira cresce 1,45 vez e é amarela. Peças, Opções e Sair ficam centrados no pé.
 
 **Teste:** compila; no Play, o logo mede 496 × 191 no menu, e o logo e o brilho acham as texturas.

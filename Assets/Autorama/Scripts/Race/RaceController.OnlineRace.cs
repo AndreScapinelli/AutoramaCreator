@@ -181,6 +181,7 @@ namespace Autorama
             if (builderStash != null) builder.ShowTrack(builderStash);
             panel.FrameTrack();
             topBox.style.display = DisplayStyle.None;
+            RaceUiOff();
             DrawPadHeads();
             scoreDirty = true;
         }

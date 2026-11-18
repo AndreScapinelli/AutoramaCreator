@@ -536,7 +536,6 @@ namespace Autorama
             var hero = El("start-hero", card);
             El("start-halo", hero).pickingMode = PickingMode.Ignore;
             hero.Add(logo = new StartLogo());
-            Text("MONTE  ·  CORRA  ·  VENÇA", "start-sub", hero);
             var grid = El("start-grid", card);
             void Opt(string title, string sub, string icon, Mode m, string extra = null)
             {
@@ -589,6 +588,9 @@ namespace Autorama
         public void ShowMenu(bool open)
         {
             if (startMenu == null) return;
+            // Voltar ao menu encerra o que estava aberto (corrida, campeonato, carreira, lobby): volta ao construtor,
+            // que para a simulação, apaga a interface da corrida e a tela dividida. Só a corrida online não larga.
+            if (open && CurrentMode != Mode.Build && !OnlineRacing) { MenuOpen = false; SetMode(Mode.Build); }
             MenuOpen = open;
             startMenu.style.display = open ? DisplayStyle.Flex : DisplayStyle.None;
             if (open) logo.Play(); else logo.Stop();

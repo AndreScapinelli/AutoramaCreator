@@ -8,7 +8,7 @@ namespace Autorama
     // em grade cuja transparência acompanha a faixa.
     public class StartLogo : VisualElement
     {
-        const float Aspect = 401f / 1039f;      // altura / largura do logo.png
+        const float Aspect = 667f / 2000f;      // altura / largura do logo.png
         const float InTime = 0.75f;             // entrada: cai de cima girando e quica
         const float FloatPeriod = 3.4f, FloatPx = 4f;
         const float ShineFirst = 0.55f, ShineEvery = 4.5f, ShineTime = 0.9f, ShinePeak = 0.75f;
