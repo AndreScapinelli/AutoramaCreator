@@ -511,7 +511,8 @@ namespace Autorama
                 if (framedPath != sim.PathOf(0)) FrameTrackForCamera();
                 // No online o seu trilho muda de uma bateria para outra: a câmera acompanha o seu carrinho.
                 int focus = CamFocusCar();
-                if (OnlineRun && focus >= 0) cam.SetThirdPersonCar(focus);
+                if (OnlineRun) { if (focus >= 0) cam.SetThirdPersonCar(focus); }
+                else cam.SetThirdPersonCar(ChaseCar());
                 cam.SetRaceTargets(carPos, carHeading, sim.N, focus >= 0 ? focus : LeaderCar());
                 // A "De cima" mantém na tela os carrinhos de gente (no online, só o seu).
                 for (int k = 0; k < RaceSim.MaxCars; k++)
@@ -1192,6 +1193,18 @@ namespace Autorama
             return -1;
         }
 
+        // Carrinho da Perseguição e da primeira pessoa fora do online: o escolhido em "Seguir", se for de gente;
+        // se for robô (o rodízio do campeonato e da carreira muda os trilhos), o primeiro humano. Só robôs: o escolhido.
+        int ChaseCar()
+        {
+            int n = sim != null ? sim.N : 2;
+            int t = Mathf.Clamp(set.cameraTarget, 0, n - 1);
+            if (sim == null) return t;
+            if (sim.present[t] && sim.aiSkill[t] == 0) return t;
+            for (int k = 0; k < n; k++) if (sim.present[k] && sim.aiSkill[k] == 0) return k;
+            return t;
+        }
+
         void ApplyCameraSettings()
         {
             // Valores antigos (0 de cima, 1 3D, 3 Dinâmica) viram Transmissão de TV.
@@ -1206,7 +1219,7 @@ namespace Autorama
             var applied = panel != null && !panel.RaceMode ? TopDownCamera.RaceViewMode.Atual : CamModeValues[mode];
             cam.SetRaceViewMode(applied);
             int focus = CamFocusCar();
-            cam.SetThirdPersonCar(OnlineRun && focus >= 0 ? focus : target);
+            cam.SetThirdPersonCar(OnlineRun ? (focus >= 0 ? focus : target) : ChaseCar());
             cam.SetDistanceScale(set.cameraDistance / 100f);
 
             if (camBtn == null) return;
