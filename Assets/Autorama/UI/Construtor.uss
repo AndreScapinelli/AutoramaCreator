@@ -792,11 +792,10 @@
 .pal-bar .tile-sub { display: none; }
 /* Bolinha do trilho no Resumo (a .swatch das cores de piloto, mais adiante, é maior). */
 .stats-row .swatch { width: 10px; height: 10px; border-radius: 3px; border-width: 0; margin: 0 6px 0 0; }
-/* Torre: tempo da volta atual à direita da ficha; a melhor volta da prova pinta a ficha de roxo (seção 84). */
+/* Torre: diferença para o da frente à direita da ficha; a melhor volta da prova pinta a ficha de roxo (seção 84). */
 .hud-info { flex-grow: 1; flex-shrink: 1; overflow: hidden; }
 .hud-cur { font-size: 15px; -unity-font-style: bold-and-italic; color: var(--texto); margin: 0 0 0 6px; padding: 0; -unity-text-align: middle-right; flex-shrink: 0; }
-.hud-cur--pb { color: var(--ok); }
-.hud-cur--top { color: var(--roxo); }
+.hud-cur--lider { font-size: 11px; letter-spacing: 1px; color: var(--destaque); }
 .hud-card--fast { border-color: var(--roxo); }
 .hud-card--fast.hud-card--lead { border-color: var(--destaque); border-right-color: var(--roxo); border-right-width: 4px; }
 .hud .hud-best { display: flex; }

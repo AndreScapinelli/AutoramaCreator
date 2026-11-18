@@ -5050,10 +5050,12 @@ Primeira leva das propostas de `docs/PROPOSTAS-UI.md` (branch `melhorias-ui`). A
 - A narração fica embaixo do relógio.
 - O minimapa volta uma vez para o canto de cima, à direita (`RaceSettings.miniV`), para não cair em cima da torre.
 
-**Tempos na torre** (`UpdateHud`, `.hud-cur`): a torre tem 270 px.
-- À direita de cada ficha, o tempo da volta atual, correndo (`sim.t - lapStart`).
-- Nos 3 s depois de fechar uma volta, a ficha mostra a volta que acabou: roxa se é a melhor da prova (`sim.bestT`), verde se é a melhor dele.
-- Na volta da troca de trilho (`lapDirty`) aparece "—"; no grid e depois da chegada, nada.
+**Diferenças na torre** (`UpdateHud`, `.hud-cur`): a torre tem 270 px.
+- À direita de cada ficha, a diferença para o carro da frente, em segundos, com uma casa ("+0,4"). O líder mostra "LÍDER" em amarelo.
+- O tempo vem do histórico das etiquetas do F1 (`TagGap`): quanto tempo faz que o da frente passou por onde este está agora.
+- Uma volta ou mais atrás (`Dist` do da frente − `Dist` dele ≥ 1): "+1 v", "+2 v"…
+- Sem histórico (o começo de cada manche, na corrida por tempo, porque o histórico recomeça com o relógio): a distância vezes a melhor volta (ou a última) do da frente.
+- No grid e depois da chegada, nada.
 - Embaixo do nome, a melhor volta de cada um aparece sempre, também com 6 e 8 carros (antes sumia).
 - Quem tem a melhor volta da prova ganha a borda roxa (`.hud-card--fast`) e "★" no tempo. Se também for o líder, a borda fica amarela com o lado direito roxo.
 

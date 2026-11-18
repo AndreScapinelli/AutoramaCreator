@@ -694,7 +694,7 @@ namespace Autorama
                 var hudRow = El("hud-row", info);
                 h.lap = Text("", "hud-lap", hudRow);
                 h.best = Text("", "hud-best", hudRow);
-                h.cur = Text("", "hud-cur", h.root);          // volta atual correndo (ou a que acabou, por 3 s)
+                h.cur = Text("", "hud-cur", h.root);          // diferença para o da frente (o líder: LÍDER)
                 foreach (var e in h.root.Query<VisualElement>().ToList()) e.pickingMode = PickingMode.Ignore;
                 hud[k] = h;
             }
@@ -1477,14 +1477,24 @@ namespace Autorama
                 h.best.text = c.best != null ? (k == fast ? $"★ {Fmt(c.best)}" : $"Melhor {Fmt(c.best)}") : "";
                 h.best.EnableInClassList("hud-best--top", k == fast);
                 h.root.EnableInClassList("hud-card--fast", k == fast);
-                // Volta atual: o tempo correndo. Nos 3 s depois de fechar uma volta, mostra a que acabou:
-                // roxa se é a melhor da prova, verde se é a melhor dele. Volta da troca de trilho não tem tempo.
-                float run = sim.t - c.lapStart;
-                bool going = sim.phase == RaceSim.Phase.Running && c.finish == null && c.cross >= 0;
-                bool just = going && c.lastLap != null && c.cross >= 1 && run < 3f;
-                h.cur.text = !going ? "" : just ? Fmt(c.lastLap) : c.lapDirty || run < 0f ? "—" : Fmt(run);
-                h.cur.EnableInClassList("hud-cur--top", just && sim.bestT != null && Mathf.Approximately(c.lastLap.Value, sim.bestT.Value));
-                h.cur.EnableInClassList("hud-cur--pb", just && c.best != null && Mathf.Approximately(c.lastLap.Value, c.best.Value));
+                // Diferença para o da frente, em segundos (quanto tempo faz que ele passou por onde este está agora,
+                // pelo histórico das etiquetas: TagGap). Uma volta ou mais atrás: "+1 v". O líder: "LÍDER".
+                int pos = ord.IndexOf(k);
+                bool going = sim.phase == RaceSim.Phase.Running && c.finish == null;
+                string gap = "";
+                if (going && pos == 0) gap = "LÍDER";
+                else if (going && pos > 0)
+                {
+                    int front = ord[pos - 1];
+                    float dl = sim.Dist(front) - sim.Dist(k);
+                    float g = dl >= 1f ? -1f : TagGap(front, k);
+                    // Sem histórico (começo da manche, por tempo): a distância vezes a volta do da frente.
+                    float? refLap = sim.cars[front].best ?? sim.cars[front].lastLap;
+                    if (g < 0f && dl < 1f && refLap != null) g = Mathf.Max(0f, dl) * refLap.Value;
+                    gap = dl >= 1f ? $"+{Mathf.FloorToInt(dl)} v" : g >= 0f ? $"+{Num(g, 1)}" : "—";
+                }
+                h.cur.text = gap;
+                h.cur.EnableInClassList("hud-cur--lider", pos == 0);
                 // Torre: cada ficha na altura da posição; a transição de "top" (USS) anima as ultrapassagens.
                 h.root.style.top = ord.IndexOf(k) * HudRow(h);
             }
