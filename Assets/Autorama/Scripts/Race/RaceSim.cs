@@ -389,13 +389,15 @@ namespace Autorama
         const float Accel = 3.5f, Brake = 1.8f, Brake0 = 0.5f, SlopeG = 8f, Fall = 3f;
         const float SlipGain = 3f, SlipDecay = 3f, YawMax = 38f;
         const float CarHL = 0.3f, CarHW = 0.16f, Restitution = 0.35f;
-        // Turbo: cada volta completa enche o tanque, de TurboGainMin (quem lidera) a TurboGainMax (o último e longe):
+        // Turbo: cada volta completa enche o tanque (a saída de pista dá um pouco, seção 81), de TurboGainMin (quem lidera) a TurboGainMax (o último e longe):
         // handicap para quem ficou para trás (seção 79). Apertado, o carrinho busca (1 + TurboBoost) × a velocidade
         // máxima e o tanque cheio dura TurboTime segundos (o tipo de turbo do ajuste muda os dois, seção 77).
         public const float TurboGainMin = 0.1f, TurboGainMax = 0.4f, TurboBoost = 0.25f, TurboTime = 3f;
         // O ganho olha também a distância até o líder: TurboGap voltas atrás já conta como "longe"; TurboGapWeight é o
         // peso da distância na conta (o resto é a posição).
         public const float TurboGap = 0.5f, TurboGapWeight = 0.5f;
+        // Na saída de pista (seção 81) o tanque ganha só TurboOff do ganho da volta: um pouco, mais para quem está atrás.
+        public const float TurboOff = 0.25f;
         // Loop e salto (seção 42). A gravidade ao longo do loop é a mesma da rampa (SlopeG por nível = SlopeG / LevelHeight
         // por célula); o carrinho cai quando v²/raio não segura mais o peso na parte de cima. No ar, depois do salto,
         // a gravidade é JumpG (mais forte, para o salto caber na peça); o tranco do pouso (velocidade contra a pista,
@@ -717,6 +719,7 @@ namespace Autorama
             c.flyW = -c.side * (220f + c.v * 30f);                           // gira no sentido da curva
             c.mode = CarMode.Off; c.load = 0f;
             c.exitS = c.s; c.v = 0f; c.slip = 0f; c.offs++;
+            if (set.turbo && phase == Phase.Running && !test) c.turbo = Mathf.Min(1f, c.turbo + TurboOff * TurboGain(k));   // saída de pista: um pouco (seção 81)
             ScoreChanged?.Invoke();
         }
 

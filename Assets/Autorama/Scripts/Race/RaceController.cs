@@ -863,7 +863,7 @@ namespace Autorama
                 helpLabel.text = "<b>Segure</b> Acelerar e o acelerador sobe de 0 a 100%. <b>Soltou, zerou</b>: o carrinho freia.\n" +
                     "Rápido demais na curva, a traseira escorrega e a barra de <b>derrapagem</b> enche. Cheia, o carrinho sai da pista.\n" +
                     "<b>Recolocar</b> devolve o carrinho ao trilho, um pouco antes de onde ele saiu.\n" +
-                    "<b>Turbo</b>: começa vazio e enche um pouco a cada volta completa (mais para quem está atrás). O tipo de turbo fica no ajuste do carro: explosivo ou eficiente. Segure para andar acima da velocidade máxima até o tanque acabar. Volta com turbo não vale como melhor volta.\n" +
+                    "<b>Turbo</b>: começa vazio e enche um pouco a cada volta completa e um pouquinho a cada saída de pista (mais para quem está atrás). O tipo de turbo fica no ajuste do carro: explosivo ou eficiente. Segure para andar acima da velocidade máxima até o tanque acabar. Volta com turbo não vale como melhor volta.\n" +
                     $"<b>Teclas</b> (acelerar 100% · meia {set?.halfGas ?? 60}% · recolocar · turbo): " +
                     $"jogador 1 {KeyText(GasKeyAt(0))} · {KeyText(HalfKeyAt(0))} · {KeyText(ReslotKeyAt(0))} · {KeyText(TurboKeyAt(0))}; " +
                     $"jogador 2 {KeyText(GasKeyAt(1))} · {KeyText(HalfKeyAt(1))} · {KeyText(ReslotKeyAt(1))} · {KeyText(TurboKeyAt(1))}; " +

@@ -3057,7 +3057,26 @@ Play mode, `script eval` (os números, não o ouvido: **ninguém ouviu ainda**):
 
 1. **Ouvir e ajustar o timbre** (principalmente o motor e o pneu).
 2. Som nos menus e no construtor (clique, encaixe de peça), música.
-3. Som posicional (3D) seguindo cada carrinho.
+
+### 29.3 Som posicionado e Doppler
+
+Motor, pneu e turbo de cada carrinho saem **de onde ele está** (as três fontes vão para `cars[k].position` a cada quadro), e quem ouve é a câmera principal (o `AudioListener` dela). Assim o carro do outro lado da mesa fica baixo, e o som vem do lado em que ele está.
+
+- **Volume pela distância** (nosso, não o da Unity): `ganho = max(SoundFloor, (dPerto + ref) / (d + ref))`, com `ref = SoundRef × escala` e `dPerto` = a distância do carro mais perto da câmera. O carro mais perto toca cheio. Assim a vista de cima (todos longe e à mesma distância) não fica muda, e a perseguição e a TV destacam quem está perto. As fontes usam `rolloffMode = Custom` com curva constante 1: a Unity só faz o lado (`spatialBlend = SoundPan`).
+- **Doppler à mão** (`dopplerLevel = 0` na Unity): `vr` = quanto a distância à câmera muda por segundo, suavizada com `1 − e^(−DopplerRate·dt)`. O tom fica × `c / (c + vr)`, entre `DopplerMin` e `DopplerMax`, com `c = DopplerC × vmax × Speed`. Com os 343 m/s da Unity o efeito sumia na escala da mesa, e o Doppler da Unity pulava a cada corte de câmera. Aqui, um salto mais rápido que 3× a velocidade máxima conta como corte e mantém o `vr` anterior. Na perseguição, o seu carro anda junto com a câmera: `vr ≈ 0` e o tom fica igual. Os outros carros dão o "nhéééuuum" quando passam.
+- **Efeitos de um carro só** (saída de pista, batida em `sim.Spark`, ligar o turbo, tanque enchendo) tocam × o mesmo ganho, sem o lado. Bipes, largada, volta e vitória continuam 2D.
+- **Tela dividida** (`SplitOn`): a Unity só aceita um `AudioListener`, então tudo volta a ser 2D, com ganho 1 e sem Doppler. Fora da corrida e na pausa, também.
+
+| Constante | Valor |
+|---|---|
+| `SoundRef` | 4 células (× `sim.Scale`) |
+| `SoundFloor` | 0,15 |
+| `SoundPan` | 0,75 |
+| `DopplerC` | 6 (× velocidade máxima) |
+| `DopplerRate` | 8 /s |
+| `DopplerMin`, `DopplerMax` | 0,8 e 1,25 |
+
+Teste (por `script eval`, com as fórmulas e vmax 14, escala 1). Doppler: × 1,200 com o carro vindo na velocidade máxima e × 0,857 indo. Ganho com o mais perto a 3 de distância: 1,00 a 3, 0,50 a 10 e 0,29 a 20. Na escala 4, mais perto a 12 e outro a 80: 0,29. Compila sem erro. **Ainda não foi ouvido numa corrida.**
 
 ## 30. Sugerir pistas ao host (online)
 
@@ -4865,3 +4884,19 @@ Cada bolha (seção 46) ganhou **3 modelos**. O modelo é **só visual**: a fís
 - **Abertura** (`script eval`, com o "Desbloquear tudo" desligado só na memória): o slot 1, que venceu Tio Beto, Marina e a Copa Garagem, abre Coupé GT, Rali e Flecha. Protótipo, Bala e Asa dupla aparecem fechados, com a dica certa.
 - **JSON:** `{"bolha":1,"modelo":2,…}`.
 
+
+## 81. Turbo também na saída de pista
+
+O tanque do turbo enche **a cada volta completa** (seção 79) e ganha **um pouco a cada saída de pista** (`RaceSim.Deslot`): `TurboOff` (¼) do `TurboGain(k)` da volta, que olha a posição e a distância até o líder, meio a meio. O líder ganha 0,025 por saída; o último colado no líder, 0,0625; o último longe (≥ meia volta), 0,1. Vale para qualquer saída (curva, derrapagem, batida, loop, salto), só com a prova valendo (`Phase.Running`) e fora do teste de pista.
+
+```csharp
+public const float TurboOff = 0.25f;
+// Deslot, depois de contar a saída:
+if (set.turbo && phase == Phase.Running && !test) c.turbo = Mathf.Min(1f, c.turbo + TurboOff * TurboGain(k));
+```
+
+- **Ideia.** Quem sai perde o tempo de recolocar e ganha um pouco de turbo para se recuperar, como na seção 37, mas bem menos que uma volta. Assim, sair de propósito não compensa.
+- **Som.** O "power-up" do tanque toca também na saída, porque ele toca sempre que o tanque sobe.
+- **Ajuda.** O texto de ajuda da corrida foi atualizado.
+- **Online.** A lógica fica no `RaceSim` do host; os dois lados precisam da mesma versão.
+- **Teste:** ainda não rodado (o Editor estava fechado).

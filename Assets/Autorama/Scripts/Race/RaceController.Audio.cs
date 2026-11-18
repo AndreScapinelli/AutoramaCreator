@@ -20,6 +20,18 @@ namespace Autorama
         readonly int[] lastOffs = new int[RaceSim.MaxCars];
         readonly float[] motorVol = new float[RaceSim.MaxCars];
 
+        // Som posicionado (seção 29): o motor, o pneu e o turbo de cada carro saem de onde ele está; quem ouve é a câmera
+        // principal. O volume cai com a distância relativa ao carro mais perto da câmera (o mais perto toca cheio), em
+        // SoundRef células × escala, nunca abaixo de SoundFloor. O lado vem da Unity (spatialBlend SoundPan, sem a queda
+        // dela). Doppler à mão: a velocidade com que o carro se afasta da câmera, suavizada, sobre uma "velocidade do som"
+        // de DopplerC × a velocidade máxima da pista. Tela dividida: tudo como antes, 2D e sem Doppler.
+        const float SoundRef = 4f, SoundFloor = 0.15f, SoundPan = 0.75f, DopplerC = 6f, DopplerRate = 8f, DopplerMin = 0.8f, DopplerMax = 1.25f;
+        readonly float[] lastDist = new float[RaceSim.MaxCars], radial = new float[RaceSim.MaxCars];
+        bool spatial;
+        Vector3 ear;
+        float nearD, refD;
+        float GainAt(Vector3 p) => spatial ? Mathf.Max(SoundFloor, (nearD + refD) / (Vector3.Distance(p, ear) + refD)) : 1f;
+
         static AudioClip Clip(string name, float seconds, Func<float, int, float> f)
         {
             int n = Mathf.RoundToInt(seconds * Rate);
@@ -184,7 +196,7 @@ namespace Autorama
             }
             fx = gameObject.AddComponent<AudioSource>();
             fx.playOnAwake = false; fx.spatialBlend = 0f;
-            sim.Spark += _ => Play(hitClip, 0.8f);
+            sim.Spark += p => Play(hitClip, 0.8f * GainAt(p));
             sim.LapDone += (k, lap) => Play(lapClip, sim.aiSkill[k] > 0 ? 0.25f : 0.7f);
         }
 
@@ -194,6 +206,10 @@ namespace Autorama
             go.transform.SetParent(transform, false);
             var a = go.AddComponent<AudioSource>();
             a.clip = clip; a.loop = true; a.playOnAwake = false; a.spatialBlend = 0f; a.volume = 0f;
+            a.dopplerLevel = 0f;
+            a.rolloffMode = AudioRolloffMode.Custom;          // a queda com a distância é nossa (GainAt); a Unity só dá o lado
+            a.SetCustomCurve(AudioSourceCurveType.CustomRolloff, AnimationCurve.Constant(0f, 1f, 1f));
+            a.maxDistance = 1000f;
             a.Play();
             return a;
         }
@@ -209,6 +225,13 @@ namespace Autorama
             float dt = Time.unscaledDeltaTime, master = Master;
             // Com 4 carrinhos cada motor toca mais baixo, para a soma não estourar.
             float each0 = sim.N > 2 ? 0.16f : 0.24f;
+            spatial = on && !SplitOn;
+            ear = cam.transform.position;
+            refD = SoundRef * sim.Scale;
+            nearD = float.MaxValue;
+            if (spatial) for (int k = 0; k < sim.N; k++) if (sim.present[k]) nearD = Mathf.Min(nearD, Vector3.Distance(cars[k].position, ear));
+            if (nearD == float.MaxValue) spatial = false;
+            float vtop = Mathf.Max(1f, sim.set.vmax * sim.Speed), sound = DopplerC * vtop;
             for (int k = 0; k < RaceSim.MaxCars; k++)
             {
                 var ms = MotorOf(k);
@@ -221,30 +244,48 @@ namespace Autorama
                 var c = car ? sim.cars[k] : null;
                 bool running = car && c.mode == CarMode.OnSlot && (sim.phase == RaceSim.Phase.Running || sim.phase == RaceSim.Phase.Done);
                 float speed = running ? Mathf.Clamp01(c.v / Mathf.Max(1f, sim.set.vmax * sim.Speed * sim.setup[k].Top)) : 0f;
+                // Posição, volume pela distância e Doppler. Um salto de distância mais rápido que 3× a velocidade máxima é
+                // corte de câmera (TV, troca de vista): não vira Doppler.
+                float gain = 1f, dop = 1f;
+                if (spatial && car)
+                {
+                    var p = cars[k].position;
+                    motor[k].transform.position = skid[k].transform.position = jet[k].transform.position = p;
+                    float d = Vector3.Distance(p, ear);
+                    gain = GainAt(p);
+                    float vr = lastDist[k] >= 0f && dt > 0f ? (d - lastDist[k]) / dt : 0f;
+                    if (Mathf.Abs(vr) > 3f * vtop) vr = radial[k];
+                    radial[k] = Mathf.Lerp(radial[k], vr, 1f - Mathf.Exp(-DopplerRate * dt));
+                    dop = Mathf.Clamp(sound / Mathf.Max(1e-3f, sound + radial[k]), DopplerMin, DopplerMax);
+                    lastDist[k] = d;
+                }
+                else { lastDist[k] = -1f; radial[k] = 0f; }
+                float blend = spatial && car ? SoundPan : 0f;
+                motor[k].spatialBlend = skid[k].spatialBlend = jet[k].spatialBlend = blend;
                 // Motor: parado fica mudo; acelerando soa mais forte que embalado. Cada carrinho tem um tom um pouco diferente.
                 float target = running ? (0.25f + 0.75f * c.T) * Mathf.Min(1f, speed * 6f + c.T) : 0f;
                 motorVol[k] = Mathf.MoveTowards(motorVol[k], target, dt * 6f);
-                motor[k].volume = motorVol[k] * each * master;
+                motor[k].volume = motorVol[k] * each * master * gain;
                 // Sobe rápido no começo e devagar no fim (raiz), como o motor que gira livre.
-                motor[k].pitch = Mathf.Lerp(ms.p0, ms.p1, Mathf.Sqrt(speed)) * (1f + 0.03f * k);
+                motor[k].pitch = Mathf.Lerp(ms.p0, ms.p1, Mathf.Sqrt(speed)) * (1f + 0.03f * k) * dop;
                 // Pneu: aparece quando a barra de derrapagem passa de 25% e cresce até a saída de pista.
                 float slip = running ? Mathf.Clamp01((c.slip - 0.25f) / 0.75f) : 0f;
-                skid[k].volume = slip * slip * 0.5f * master;
-                skid[k].pitch = 0.85f + 0.3f * slip + 0.05f * k;
+                skid[k].volume = slip * slip * 0.5f * master * gain;
+                skid[k].pitch = (0.85f + 0.3f * slip + 0.05f * k) * dop;
                 // Turbo: o sopro enquanto o tanque está sendo gasto, o "vuush" ao ligar e as notas quando o tanque enche.
                 // O carrinho de robô soa mais baixo, como na volta completa.
                 if (!jet[k].isPlaying) jet[k].Play();
                 bool boosting = running && sim.set.turbo && sim.phase == RaceSim.Phase.Running && c.boost && c.turbo > 0f && c.T > 0f;
-                float quiet = car && sim.aiSkill[k] > 0 ? 0.4f : 1f;
+                float quiet = (car && sim.aiSkill[k] > 0 ? 0.4f : 1f) * gain;
                 jetVol[k] = Mathf.MoveTowards(jetVol[k], boosting ? 1f : 0f, dt * 8f);
                 jet[k].volume = jetVol[k] * (sim.N > 2 ? 0.22f : 0.3f) * quiet * master;
-                jet[k].pitch = 0.9f + 0.35f * speed + 0.03f * k;
+                jet[k].pitch = (0.9f + 0.35f * speed + 0.03f * k) * dop;
                 if (boosting && !jetOn[k]) Play(turboOnClip, 0.6f * quiet);
                 jetOn[k] = boosting;
                 float tank = car ? c.turbo : 0f;
                 if (car && tank > lastTank[k] + 0.05f) Play(turboFillClip, 0.6f * quiet);
                 lastTank[k] = tank;
-                if (car && c.offs != lastOffs[k]) { if (c.offs > lastOffs[k]) Play(offClip, 0.9f); lastOffs[k] = c.offs; }
+                if (car && c.offs != lastOffs[k]) { if (c.offs > lastOffs[k]) Play(offClip, 0.9f * gain); lastOffs[k] = c.offs; }
                 if (!car) lastOffs[k] = 0;
             }
             if (!on) { lastLights = -1; lastWinner = -1; audioPhase = RaceSim.Phase.Idle; return; }
