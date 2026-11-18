@@ -906,7 +906,7 @@ namespace Autorama
 
             // Etapas
             oStageHint.text = host
-                ? $"Escolha as pistas e {(set.byTime ? "a duração" : "as voltas")} de cada etapa. As outras regras (velocidade, aderência, colisão) são as da aba Corrida. Os visitantes veem a lista, mas só você mexe nela."
+                ? $"Escolha as pistas e {(set.byTime ? "a duração" : "as voltas")} de cada etapa. As outras regras (velocidade, aderência, colisão) são as de Opções, no menu inicial. Os visitantes veem a lista, mas só você mexe nela."
                 : "O host escolhe as pistas. Você escolhe a cor do seu carrinho e conversa no chat.";
             oStages.Clear();
             var list = room.stages;
@@ -981,7 +981,7 @@ namespace Autorama
             // Pronto e largada
             string blocker = LobbyBlocker();
             oRulesHint.style.display = host ? DisplayStyle.Flex : DisplayStyle.None;
-            oRulesHint.text = $"Regras: os ajustes da aba Corrida (velocidade {Num(set.vmax)} cél/s, até 100% em {Num(set.ramp, 2)} s, aderência {Mathf.RoundToInt(set.grip)}, colisão {(set.collide ? "ligada" : "desligada")}, turbo {(set.turbo ? "ligado" : "desligado")}, recolocar em {Num(set.reslotTime, 2)} s). Ficam fixos até o fim.";
+            oRulesHint.text = $"Regras da corrida, em Opções no menu inicial (velocidade {Num(set.vmax)} cél/s, até 100% em {Num(set.ramp, 2)} s, aderência {Mathf.RoundToInt(set.grip)}, colisão {(set.collide ? "ligada" : "desligada")}, turbo {(set.turbo ? "ligado" : "desligado")}, recolocar em {Num(set.reslotTime, 2)} s). Ficam fixos até o fim.";
             oReadyBtn.style.display = host ? DisplayStyle.None : DisplayStyle.Flex;
             oReadyBtn.text = me != null && me.ready ? "Não estou pronto" : "Estou pronto";
             oReadyBtn.EnableInClassList("btn--primary", !(me != null && me.ready));

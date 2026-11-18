@@ -185,6 +185,7 @@ namespace Autorama
         readonly HudCard[] hud = new HudCard[RaceSim.MaxCars];
         VisualElement hudBox;
         bool lastRaceUI;
+        VisualElement optRules, optPersonal;      // regras da corrida e ajustes pessoais, montados na aba Corrida e mostrados em Opções
         bool sideAutoHidden;                 // o painel foi recolhido pela largada (devolve na chegada)
         // Contagem grande no meio da mesa (3, 2, 1, VAI!) e o resultado da prova dentro do aviso de vitória.
         VisualElement cdBox, resTable, resBtns;
@@ -608,7 +609,9 @@ namespace Autorama
             Text("<b>Controle:</b> gatilho direito acelera aos poucos (o 1º controle é do jogador 1, o 2º do jogador 2, e assim por diante) · <b>A/✕</b> recoloca · <b>X/□</b> ou <b>RB</b> turbo · <b>Start</b> larga\n" +
                  "<b>Enter</b> largar · câmera no menu do canto direito", "small", how);
 
-            var adj = Fold(box, "AJUSTES AVANÇADOS");
+            // Regras da corrida e ajustes pessoais: ficam na tela de Opções (BuildKeysUI), com o aviso de onde valem.
+            var adj = optRules = El(null);
+            optPersonal = El(null);
             var byLaps = Btn("Por voltas", null, "btn", kindRow);
             var byTime = Btn("Por tempo", null, "btn", kindRow);
             var secs = new SliderInt(2, 20) { value = Mathf.Clamp(set.secs / 30, 2, 20) };     // em meios minutos: 1 a 10 min
@@ -643,7 +646,8 @@ namespace Autorama
                                 $"Nas inclinadas, até {Lim(rIn, PieceCatalog.BankGrip)}% e {Lim(rOut, PieceCatalog.BankGrip)}%.";
             }
             foreach (var s in new VisualElement[] { laps, secs }) { s.AddToClassList("setting"); fmt.Add(s); }
-            foreach (var s in new VisualElement[] { vmax, ramp, grip, half, reslot, col, turbo }) { s.AddToClassList("setting"); adj.Add(s); }
+            foreach (var s in new VisualElement[] { vmax, ramp, grip, reslot, col, turbo }) { s.AddToClassList("setting"); adj.Add(s); }
+            half.AddToClassList("setting"); optPersonal.Add(half);
             void Kind(bool t) { if (Racing) return; set.byTime = t; set.Save(); Labels(); sim.Reset(); scoreDirty = true; }
             byLaps.clicked += () => Kind(false);
             byTime.clicked += () => Kind(true);
@@ -656,10 +660,11 @@ namespace Autorama
             grip.RegisterValueChangedCallback(e => { set.grip = e.newValue; set.Save(); Labels(); });
             col.RegisterValueChangedCallback(e => { set.collide = e.newValue; set.Save(); });
             turbo.RegisterValueChangedCallback(e => { set.turbo = e.newValue; set.Save(); });
-            vol.AddToClassList("setting"); adj.Add(vol);
+            vol.AddToClassList("setting"); optPersonal.Add(vol);
             // Som do motor: alterna entre as opções (dá para trocar no meio da corrida e ouvir na hora).
             Button motorBtn = null;
-            motorBtn = Btn("", () => { NextMotor(); motorBtn.text = $"Som do motor: <b>{MotorName}</b>  ▸"; }, "btn", adj);
+            motorBtn = Btn("", () => { NextMotor(); motorBtn.text = $"Som do motor: <b>{MotorName}</b>  ▸"; }, "btn", optPersonal);
+            motorBtn.style.alignSelf = Align.FlexStart;
             motorBtn.text = $"Som do motor: <b>{MotorName}</b>  ▸";
             motorBtn.tooltip = "Clique para ouvir o próximo. Para usar uma gravação sua, ponha motor.wav (PCM 16 bits) em " + System.IO.Path.Combine(TrackLibrary.Root, "sons");
             vol.label = $"Som: {set.volume}%";
@@ -770,6 +775,18 @@ namespace Autorama
             var reset = Btn("Restaurar padrão", () => { CancelCapture(); Controles.Restaurar(); KeysChanged(); }, "btn", card);
             reset.style.alignSelf = Align.FlexStart;
 
+            Text("REGRAS DA CORRIDA", "hint", card).style.marginTop = 14;
+            Text("<b>Onde valem:</b>\n" +
+                 "• <b>Corrida livre</b> e <b>carreira</b>: na hora (na carreira, a pista molhada tira aderência quando a prova pede).\n" +
+                 "• <b>Campeonato offline</b>: são copiadas quando o campeonato é criado. Mudar aqui depois não mexe num campeonato em andamento.\n" +
+                 "• <b>Campeonato online</b>: valem as do <b>host</b>, enviadas na largada e fixas até o fim. As dos outros jogadores não contam.\n" +
+                 "• <b>Partida rápida</b>: não valem. Lá as regras são sempre as padrão: velocidade 14, 0,5 s até 100%, aderência 29, colisão e turbo ligados, recolocar em 0,3 s.",
+                 "small", card).style.marginBottom = 8;
+            card.Add(optRules);
+            Text("SEU CONTROLE E SOM", "hint", card).style.marginTop = 14;
+            Text("Só seus, em qualquer modo, também no online: não vão para os outros jogadores.", "small", card).style.marginBottom = 8;
+            card.Add(optPersonal);
+
             Text("JOGO ONLINE", "hint", card).style.marginTop = 14;
             Text("O jogo abre conectado à Steam. Desligue para jogar pelo servidor (Node) no endereço abaixo.", "hint", card);
             netOpts = El(null, card);
@@ -837,6 +854,7 @@ namespace Autorama
             if (oSteam != null) oSteam.SetEnabled(room == null);         // na sala não dá para trocar de rede
             keysBox.style.display = DisplayStyle.Flex;
             keysBox.BringToFront();
+            refreshAdjLabels?.Invoke();                                   // limites das curvas da pista atual
             KeysChanged();
         }
 

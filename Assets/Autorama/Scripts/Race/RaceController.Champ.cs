@@ -425,7 +425,7 @@ namespace Autorama
             }
             if (hidden > 0) Text(hidden == 1 ? "1 pista aberta não aparece: feche o circuito no Construtor." : $"{hidden} pistas abertas não aparecem: feche os circuitos no Construtor.", "small", cPick);
 
-            cRules.text = $"• Usa os ajustes da aba Corrida: velocidade <b>{Num(set.vmax)} cél/s</b>, até 100% em <b>{Num(set.ramp, 2)} s</b>, aderência <b>{Mathf.RoundToInt(set.grip)}</b>, colisão <b>{(set.collide ? "ligada" : "desligada")}</b>, turbo <b>{(set.turbo ? "ligado" : "desligado")}</b>, recolocar em <b>{Num(set.reslotTime, 2)} s</b>. Ficam fixos até o fim.\n" +
+            cRules.text = $"• Usa as regras da corrida de Opções (menu inicial): velocidade <b>{Num(set.vmax)} cél/s</b>, até 100% em <b>{Num(set.ramp, 2)} s</b>, aderência <b>{Mathf.RoundToInt(set.grip)}</b>, colisão <b>{(set.collide ? "ligada" : "desligada")}</b>, turbo <b>{(set.turbo ? "ligado" : "desligado")}</b>, recolocar em <b>{Num(set.reslotTime, 2)} s</b>. Ficam fixos até o fim.\n" +
                           (D.byTime
                             ? $"• <b>Por tempo</b>: cada etapa tem {(ps.Count > D.faixas ? $"<b>{Champ.HeatsPerStage(ps.Count, D.faixas, true)} grupos</b>" : "<b>uma bateria</b>")} de até {D.faixas} carros. A bateria se divide em <b>{D.faixas} manches</b>, uma em cada trilho. Vale a <b>distância</b> (voltas e fração).\n"
                             : $"• Cada etapa: {(ps.Count >= 2 ? $"<b>{Champ.HeatsPerStage(ps.Count, D.faixas, false)} baterias</b>" : "uma bateria por piloto")} de até <b>{D.faixas} carros</b>, e cada piloto corre uma vez em cada trilho. Vale o <b>tempo somado</b> de todas.\n" +

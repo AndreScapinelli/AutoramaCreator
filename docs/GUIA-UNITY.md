@@ -3348,7 +3348,7 @@ Pedido: um terceiro botão de aceleração, **A · S · D**, com o **D sendo o t
 - Só gasta no trilho, com a prova valendo (`Phase.Running`) e o acelerador subindo (`T > 0`).
 - **Volta com turbo não vale como tempo**: aparece como "última", conta para a prova, mas não entra em melhor volta, `bestT`, recordes nem dispara `LapDone` (`CarState.turboLap`). Os recordes continuam sendo de voltas sem turbo.
 - **IA**: usa o turbo quando nenhuma curva nos próximos 3,5 de pista pede freio nem na velocidade com turbo (`need > vmax × 1,25`).
-- **Ajuste**: `RaceSettings.turbo` (padrão ligado), caixa "Turbo (enche a cada saída de pista)" em AJUSTES AVANÇADOS. No campeonato e no online ele é uma regra, como a colisão (37.1).
+- **Ajuste**: `RaceSettings.turbo` (padrão ligado), caixa "Turbo (enche a cada saída de pista)" em Opções (menu inicial, REGRAS DA CORRIDA; antes em AJUSTES AVANÇADOS da aba Corrida, seção 84). No campeonato e no online ele é uma regra, como a colisão (37.1).
 
 **Controles:** quarta ação em `Controles` (`Acao.Turbo`, 4 por jogador). Padrão: jogador 1 **D**, jogador 2 **J**, jogador 3 **→**, jogador 4 **6 do numérico**. No controle: **X/□** ou **RB**. Na tela: a barra **TURBO** do painel do jogador é o tanque e também o botão (segurar com o mouse ou o dedo). Teclas salvas antes do turbo (12 números) são lidas e o turbo entra com o padrão; se a tecla padrão já estava em uso, o turbo fica sem tecla até o jogador escolher em Opções.
 
@@ -3377,7 +3377,7 @@ Sem turbo apertado a conta é a de antes: a física e os recordes não mudam.
 ### 37.1 Turbo como regra (ligar ou desligar) e sons
 
 **Regra, como a colisão.** O turbo agora segue o mesmo caminho da opção "Colisão entre carrinhos":
-- **Corrida livre:** caixa **Turbo** em AJUSTES AVANÇADOS (`RaceSettings.turbo`, padrão ligado). Vale na hora.
+- **Corrida livre:** caixa **Turbo** em Opções, REGRAS DA CORRIDA (`RaceSettings.turbo`, padrão ligado). Vale na hora.
 - **Campeonato:** `ChampRules.turbo`, copiado dos ajustes da aba Corrida quando o campeonato começa e fixo até o fim. A ficha de regras mostra "turbo ligado/desligado". Campeonato salvo antes (sem o campo) fica com turbo **ligado**.
 - **Online:** o host manda `turbo` no `start` (`NetOut.turbo`), o servidor põe em `rules.turbo` (`m.turbo !== false`: cliente antigo, sem o campo, vale ligado) e todos recebem em `NetRules.turbo`. A Steam (`SteamTransport`) faz o mesmo. O texto das regras da sala mostra o turbo.
 - Desligado: o tanque não enche nem gasta, a barra TURBO some do painel e a tecla de turbo não faz nada (`tb = sim.set.turbo && TurboHeld`).
@@ -5058,5 +5058,15 @@ Primeira leva das propostas de `docs/PROPOSTAS-UI.md` (branch `melhorias-ui`). A
 **Menu por cima da corrida:**
 - `RaceUI` é falso com o menu aberto: minimapa, placar, painéis e etiquetas somem.
 - O topo, a contagem e a torre ficam invisíveis (`visible`, sem mexer no `display` deles).
+
+**Regras da corrida em Opções.** A sanfona AJUSTES AVANÇADOS saiu da aba Corrida e foi para a tela de Opções do menu inicial (`BuildKeysUI`). Os controles continuam sendo montados na aba Corrida (para o `Labels()` de lá), mas em duas caixas soltas que a tela de Opções adota: `optRules` e `optPersonal`.
+- **REGRAS DA CORRIDA:** velocidade máxima, tempo até 100%, aderência, tempo para recolocar, colisão, turbo e o limite das curvas. Embaixo do título, um aviso de onde elas valem:
+  - na hora, na corrida livre e na carreira (com a pista molhada quando a prova pede);
+  - copiadas na criação do campeonato offline;
+  - as do host no campeonato online, enviadas na largada e fixas até o fim;
+  - nunca na partida rápida, que usa as padrão (`MM_RULES`: 14, 0,5 s, 29, colisão e turbo ligados, 0,3 s).
+- **SEU CONTROLE E SOM:** meia aceleração, volume e som do motor. Valem só para o jogador, em qualquer modo.
+- Ao abrir Opções, `refreshAdjLabels` refaz o limite das curvas para a pista atual.
+- Os textos do Campeonato e do Online que diziam "aba Corrida" agora apontam para Opções.
 
 **Etiquetas do F1** (`RaceController.Tags`): a camada fica no índice 0 da raiz, embaixo de toda a interface (antes passava por cima do ajuste do carro).
