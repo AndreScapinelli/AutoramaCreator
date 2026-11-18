@@ -999,9 +999,10 @@ namespace Autorama
                 Row("Turbo", CarSetup.NitroNames, su.nitro, o => { var n = su; n.nitro = o; return n; });
             }
             // Barra a partir do meio: verde para mais, laranja para menos. "range" é a variação que enche meia barra.
-            void Stat(string name, float m, float range)
+            void Stat(string name, float m, float range, string tip)
             {
                 var row = El("car-stat", box);
+                row.tooltip = tip;
                 Text(name, "seg-label car-stat-name", row);
                 var bar = El("car-bar", row);
                 var fill = El("car-fill", bar);
@@ -1012,12 +1013,12 @@ namespace Autorama
                 El("car-mid", bar);
                 Text(Mathf.Abs(m - 1f) < 0.0005f ? "padrão" : ((m - 1f) * 100f).ToString("+0.#;−0.#") + "%", "small car-stat-val", row);
             }
-            Stat("Final", su.Top, 0.04f);
-            Stat("Aceleração", su.Accel, 0.05f);
-            Stat("Curva lenta", su.Grip, 0.06f);                       // aderência sem a aerodinâmica
-            Stat("Curva rápida", su.Grip * (1f + su.Aero), 0.08f);      // aderência na velocidade máxima, com a bolha
-            Stat("Agilidade", su.Resp, 0.15f);                         // acelerador e freio
-            Stat("Estabilidade", 1f / su.Slip, 0.15f);                 // quanto tempo a derrapagem leva para encher
+            Stat("Final", su.Top, 0.04f, "Velocidade máxima na reta. Motor longo, pneu duro e, mais que todos, a bolha lisa.");
+            Stat("Aceleração", su.Accel, 0.05f, "Quanto o carro embala ao sair da curva. Motor curto.");
+            Stat("Aderência", su.Grip, 0.06f, "Pneu: segura o carro em qualquer curva, devagar ou rápido. Macio segura mais.");
+            Stat("Aerodinâmica", 1f + su.Aero, 0.05f, "Bolha com asa: segura o carro na curva, e mais quanto mais rápido ele vai. Não ajuda na curva feita devagar.");
+            Stat("Agilidade", su.Resp, 0.15f, "Chassi leve: o gatilho e o freio respondem mais rápido.");
+            Stat("Estabilidade", 1f / su.Slip, 0.15f, "Chassi pesado: demora mais para escapar quando você passa do limite na curva.");
             if (su.chassi != 0)
                 Text(su.chassi == 1 ? "Chassi leve: responde rápido, mas escapa fácil no limite da curva."
                                     : "Chassi pesado: mais lento no gatilho, perdoa o exagero na curva.", "small", box);

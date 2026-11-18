@@ -96,7 +96,8 @@ namespace Autorama
         // Quanto cada peça dá e tira (calibrado na seção 52; não são const para a calibração poder variar).
         public static float MotorAccel = 0.025f, MotorTop = 0.0125f;
         public static float TireGrip = 0.03f, TireTop = 0.015f;
-        public static float BodyAero = 0.035f, BodyTop = 0.008f;
+        // Bolha (seção 82): a asa ganha aerodinâmica e perde final (o arrasto); a lisa só ganha final, sem perder aderência.
+        public static float BodyAero = 0.035f, BodyTop = 0.008f, BodySlick = 0.03f;
         public static float ChassiResp = 0.12f, ChassiSlip = 0.1f, ChassiDecay = 0.4f;
         // Tipo de turbo (seção 77): o ganho de distância numa reta sem fim é v × boost × tempo do tanque cheio, então os
         // três ficam perto de 0,75 (padrão 0,25 × 3 s). O explosivo rende nas retas compridas; o eficiente, nas de reta curta.
@@ -110,11 +111,11 @@ namespace Autorama
         static int Sign(int v, int plus) => v == plus ? 1 : v == 0 ? 0 : -1;
         // Níveis que valem para o lado `want` da peça: a opção dele, inteiros; o padrão, metade; a outra, nada.
         static float Lv(int lv, int opt, int want) => opt == want ? lv : opt == 0 ? lv * 0.5f : 0f;
-        public float Top => (1f + MotorTop * Sign(motor, 2)) * (1f + TireTop * Sign(pneu, 2)) * (1f + BodyTop * Sign(bolha, 2))
+        public float Top => (1f + MotorTop * Sign(motor, 2)) * (1f + TireTop * Sign(pneu, 2)) * (bolha == 1 ? 1f - BodyTop : bolha == 2 ? 1f + BodySlick : 1f)
                             * (1f + LvTop * (Lv(lvMotor, motor, 2) + Lv(lvPneu, pneu, 2) + Lv(lvBolha, bolha, 2)));          // × velocidade final
         public float Accel => (1f + MotorAccel * Sign(motor, 1)) * (1f + LvAccel * Lv(lvMotor, motor, 1));   // × Accel (o empurrão do motor)
         public float Grip => (1f + TireGrip * Sign(pneu, 1)) * (1f + LvGrip * Lv(lvPneu, pneu, 1));          // × aderência, em qualquer velocidade
-        public float Aero => BodyAero * Sign(bolha, 1) + LvAero * Lv(lvBolha, bolha, 1);                     // aderência × (1 + Aero × (v / vmax)²)
+        public float Aero => (bolha == 1 ? BodyAero : 0f) + LvAero * Lv(lvBolha, bolha, 1);                     // aderência × (1 + Aero × (v / vmax)²)
         public float Resp => (1f + ChassiResp * Sign(chassi, 1)) * (1f + LvResp * Lv(lvChassi, chassi, 1));  // × ritmo do acelerador e × freio
         public float Slip => (1f + ChassiSlip * Sign(chassi, 1)) * (1f - LvSlip * Lv(lvChassi, chassi, 2));  // × SlipGain (o quanto a derrapagem enche)
         public float Decay => 1f - ChassiDecay * Sign(chassi, 1);               // × SlipDecay (o quanto ela esvazia)

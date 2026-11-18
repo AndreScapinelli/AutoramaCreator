@@ -127,18 +127,18 @@ namespace Autorama
         }
 
         // Quanto cada número do ajuste vale sozinho em cada pista: liga um de cada vez (os outros em zero) e compara
-        // com o carro padrão. Ordem: aceleração e final do motor, aderência e final do pneu, aerodinâmica e final da
-        // bolha, resposta, derrapagem e recuperação do chassi (as três do leve).
+        // com o carro padrão. Ordem: aceleração e final do motor, aderência e final do pneu, aerodinâmica e final da asa,
+        // final da lisa, resposta, derrapagem e recuperação do chassi (as três do leve).
         public static string Sens(int from, int to)
         {
-            float[] keep = { CarSetup.MotorAccel, CarSetup.MotorTop, CarSetup.TireGrip, CarSetup.TireTop, CarSetup.BodyAero, CarSetup.BodyTop, CarSetup.ChassiResp, CarSetup.ChassiSlip, CarSetup.ChassiDecay };
-            string[] names = { "motor acel", "motor final", "pneu ader", "pneu final", "bolha aero", "bolha final", "chassi resp", "chassi derrap", "chassi recup" };
-            var with = new[] { new CarSetup { motor = 1 }, new CarSetup { motor = 2 }, new CarSetup { pneu = 1 }, new CarSetup { pneu = 2 }, new CarSetup { bolha = 1 }, new CarSetup { bolha = 2 },
+            float[] keep = { CarSetup.MotorAccel, CarSetup.MotorTop, CarSetup.TireGrip, CarSetup.TireTop, CarSetup.BodyAero, CarSetup.BodyTop, CarSetup.BodySlick, CarSetup.ChassiResp, CarSetup.ChassiSlip, CarSetup.ChassiDecay };
+            string[] names = { "motor acel", "motor final", "pneu ader", "pneu final", "asa aero", "asa final", "lisa final", "chassi resp", "chassi derrap", "chassi recup" };
+            var with = new[] { new CarSetup { motor = 1 }, new CarSetup { motor = 2 }, new CarSetup { pneu = 1 }, new CarSetup { pneu = 2 }, new CarSetup { bolha = 1 }, new CarSetup { bolha = 1 }, new CarSetup { bolha = 2 },
                                new CarSetup { chassi = 1 }, new CarSetup { chassi = 1 }, new CarSetup { chassi = 1 } };
             void Set(float[] v)
             {
                 CarSetup.MotorAccel = v[0]; CarSetup.MotorTop = v[1]; CarSetup.TireGrip = v[2]; CarSetup.TireTop = v[3]; CarSetup.BodyAero = v[4];
-                CarSetup.BodyTop = v[5]; CarSetup.ChassiResp = v[6]; CarSetup.ChassiSlip = v[7]; CarSetup.ChassiDecay = v[8];
+                CarSetup.BodyTop = v[5]; CarSetup.BodySlick = v[6]; CarSetup.ChassiResp = v[7]; CarSetup.ChassiSlip = v[8]; CarSetup.ChassiDecay = v[9];
             }
             var sb = new StringBuilder();
             var tracks = Tracks();

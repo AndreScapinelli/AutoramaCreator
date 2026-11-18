@@ -4125,16 +4125,16 @@ Feedback dos testes: cada peça com um papel só dela. O **pneu** diz onde fica 
 |---|---|---|---|
 | `motor` | **curto**: aceleração +2,5%, final −1,25% | padrão | **longo**: aceleração −2,5%, final +1,25% |
 | `pneu` | **macio**: aderência +3%, final −1,5% | médio | **duro**: aderência −3%, final +1,5% |
-| `bolha` (`CarBody`) | **asa**: aerodinâmica +3,5%, final −0,8% | padrão | **lisa**: aerodinâmica −3,5%, final +0,8% |
+| `bolha` (`CarBody`) | **asa**: aerodinâmica +3,5%, final −0,8% | padrão | **lisa**: final +3%, aerodinâmica igual à do padrão (seção 82; antes: aerodinâmica −3,5%, final +0,8%) |
 | `chassi` (novo) | **leve**: resposta +12%, a derrapagem enche 10% mais rápido e esvazia 40% mais devagar | padrão | **pesado**: resposta −12%, a derrapagem enche 10% mais devagar e esvazia 40% mais rápido |
 
-Constantes (estáticas, para a calibração variar): `MotorAccel 0.025`, `MotorTop 0.0125`, `TireGrip 0.03`, `TireTop 0.015`, `BodyAero 0.035`, `BodyTop 0.008`, `ChassiResp 0.12`, `ChassiSlip 0.1`, `ChassiDecay 0.4`. Arquivo antigo sem `chassi` abre com o chassi padrão; `Clamped` prende as quatro em 0–2.
+Constantes (estáticas, para a calibração variar): `MotorAccel 0.025`, `MotorTop 0.0125`, `TireGrip 0.03`, `TireTop 0.015`, `BodyAero 0.035`, `BodyTop 0.008`, `BodySlick 0.03` (seção 82), `ChassiResp 0.12`, `ChassiSlip 0.1`, `ChassiDecay 0.4`. Arquivo antigo sem `chassi` abre com o chassi padrão; `Clamped` prende as quatro em 0–2.
 
 ### 52.2 Onde entra no passo
 
 | Propriedade | Conta | Onde |
 |---|---|---|
-| `Top` | (1 ± `MotorTop`) × (1 ± `TireTop`) × (1 ± `BodyTop`) | velocidade final; o turbo multiplica por cima |
+| `Top` | (1 ± `MotorTop`) × (1 ± `TireTop`) × (asa 1 − `BodyTop` · lisa 1 + `BodySlick`) | velocidade final; o turbo multiplica por cima |
 | `Accel` | 1 ± `MotorAccel` | o empurrão do motor: `Accel × su.Accel × (T × top − v)` |
 | `Resp` | 1 ± `ChassiResp` (leve +) | o freio: `−(Brake × v + Brake0 × S) × Resp` |
 | `Ramp` | `Accel × Resp` | o acelerador chega a 100% em `ramp / Ramp` segundos |
@@ -4173,7 +4173,7 @@ Robôs de qualidade 100, 5 voltas, colisão e turbo ligados, `Random.InitState(7
 
 ### 52.6 Interface, carrinho e rede
 
-- **Cartão "Carro":** quatro linhas (Motor, Bolha, Pneu, Chassi) e seis barras: Final (meia barra = 4%), Aceleração (5%), Curva lenta (`Grip`, 6%), Curva rápida (`Grip × (1 + Aero)`, a aderência na velocidade máxima, 8%), Agilidade (`Resp`, 15%) e Estabilidade (`1 / Slip`, 15%). Com chassi leve ou pesado aparece uma frase embaixo ("responde rápido, mas escapa fácil no limite da curva" · "mais lento no gatilho, perdoa o exagero na curva"). A linha da curva plana usa `CurveV`. As barras se chamavam Resposta e Tolerância; o nome mudou porque "tolerância" era difícil de explicar aos jogadores.
+- **Cartão "Carro":** quatro linhas (Motor, Bolha, Pneu, Chassi) e seis barras: Final (meia barra = 4%), Aceleração (5%), Aderência (`Grip`, 6%), Aerodinâmica (`1 + Aero`, 5%; até a seção 82 eram Curva lenta e Curva rápida, `Grip × (1 + Aero)`), Agilidade (`Resp`, 15%) e Estabilidade (`1 / Slip`, 15%). Com chassi leve ou pesado aparece uma frase embaixo ("responde rápido, mas escapa fácil no limite da curva" · "mais lento no gatilho, perdoa o exagero na curva"). A linha da curva plana usa `CurveV`. As barras se chamavam Resposta e Tolerância; o nome mudou porque "tolerância" era difícil de explicar aos jogadores.
 - **Carrinho** (`CarView.SetChassi`): o leve tem uma placa prata embaixo (0,5 × 0,2); o pesado, uma placa escura mais grossa com o ímã vermelho (0,12 × 0,12); o padrão não tem placa. Trocar a bolha ou o chassi remonta o carrinho (`Rebuild`).
 - **Rede:** protocolo **4** (`OnlineClient.Protocol` e `PROTOCOL` do servidor): o código do ajuste vai até 162 (48.3) e o servidor prende `car` em 0–162. Cliente de protocolo 3 é recusado.
 
@@ -4900,3 +4900,57 @@ if (set.turbo && phase == Phase.Running && !test) c.turbo = Mathf.Min(1f, c.turb
 - **Ajuda.** O texto de ajuda da corrida foi atualizado.
 - **Online.** A lógica fica no `RaceSim` do host; os dois lados precisam da mesma versão.
 - **Teste:** ainda não rodado (o Editor estava fechado).
+
+## 82. Bolha lisa com velocidade final de verdade
+
+Feedback dos testes: o melhor carro era sempre asa · pesado · macio, e a lisa não tinha destaque. Ela dava só +0,8% de final (menos que o motor longo, 1,25%, e o pneu duro, 1,5%) e ainda perdia 3,5% de aerodinâmica, ou seja, aderência nas curvas rápidas. Subir só a final não bastava: com 3,5% de final e a aerodinâmica −3,5%, a lisa ainda perdia de 1 a 3% no Oval, no Quadrado e nas Retas longas inclinada.
+
+### 82.1 O que mudou (`CarSetup`, em `Race/RaceSim.cs`)
+
+- **Lisa:** final +3% (`BodySlick 0.03`) e aerodinâmica 0, igual à do padrão. É a peça da velocidade final.
+- **Asa:** igual: aerodinâmica +3,5% (`BodyAero`), final −0,8% (`BodyTop`).
+- `Top`: o fator da bolha é `bolha == 1 ? 1 − BodyTop : bolha == 2 ? 1 + BodySlick : 1`. `Aero`: `bolha == 1 ? BodyAero : 0` mais os níveis da carreira (iguais).
+- O carro padrão não mudou: Oval, robô 100, 5 voltas, `Random.InitState(7)`: 23,73314 s, o mesmo da 52.4.
+- `SetupCalib.Sens` mede agora "asa final" e "lisa final" separados (10 números).
+
+### 82.2 Calibração
+
+`SetupCalib.Run(0, 5)` com `BodySlick` 0,015 · 0,025 · 0,03 (e 0,02 · 0,035 com a aerodinâmica antiga). Ficou 0,03. Média das 27 combinações com a opção contra a média geral (negativo = mais rápido):
+
+| Pista | Asa antes / agora | Lisa antes / agora | Melhor combinação agora |
+|---|---|---|---|
+| Oval | −1,11 / −0,68 | +1,20 / +0,34 | longo/asa/macio/pesado −6,19% |
+| Retas longas | +0,46 / +0,95 | −0,47 / **−1,45** | longo/lisa/duro/leve −4,34% |
+| Retas longas inclinada | −2,51 / −1,92 | +2,57 / +1,38 | padrão/asa/médio/pesado −7,81% |
+| Quadrado | −1,44 / −1,02 | +1,31 / +0,46 | longo/asa/macio/pesado −4,76% |
+| Oval curto | −0,06 / +0,29 | +0,02 / **−0,68** | curto/lisa/macio/leve −3,33% |
+
+A asa ganha nas pistas de curva e a lisa nas de reta e no oval curto, e a lisa perde bem menos que antes onde não é a melhor. A bolha padrão fica no meio (+0,3 a +0,55%) em todas. Pneu, motor e chassi não mudaram; o pesado continua forte nas pistas de curva (52.3).
+
+Robô 100 nas Retas longas (5 voltas, sozinho, longo · duro · pesado): lisa 22,317 s, asa 22,666 s, padrão 22,716 s, nenhuma saída. A IA continua com a lisa nas pistas com menos de 45% de curva (52.5).
+
+### 82.3 Salto e loop
+
+Pista aberta de teste: 6 retas compridas, a peça, 12 retas; gatilho em 100% e turbo ligado o tempo todo; 2 trilhos. O carro mais rápido (longo · lisa · duro · explosivo) com a lisa antiga e com a nova:
+
+| Peça | Chega no salto | Voo (células) | Nível 10 da carreira: chega · voo |
+|---|---|---|---|
+| Salto vão 1 | 19,42 → 19,79 | 10,7 → 11,2 | 23,24 → 23,77 · 15,1 → 15,8 |
+| Salto vão 3 | 19,33 → 19,66 | 20,9 → 21,6 | 23,13 → 23,70 · 29,7 → 31,2 |
+
+O padrão nas mesmas condições: 17,35 e 8,7 células. O pouso segue a 42: derrapagem até 0,6, perde até 60% da velocidade, nenhuma saída em nenhum caso (também na pista de 8). No loop, mais rápido só segura mais. A diferença nova é de 2% na chegada e meia célula de voo, bem menor que a que os níveis da carreira já davam.
+
+### 82.4 Cartão "Carro"
+
+As barras Curva lenta e Curva rápida confundiam os jogadores. Agora cada barra é de uma peça, e passar o mouse mostra a explicação (`tooltip` da linha):
+
+| Barra | O quê | Peça |
+|---|---|---|
+| Final | velocidade máxima na reta | motor longo, pneu duro, bolha lisa |
+| Aceleração | quanto embala ao sair da curva | motor curto |
+| Aderência (`Grip`) | segura em qualquer curva | pneu macio |
+| Aerodinâmica (`1 + Aero`, meia barra = 5%) | segura mais quanto mais rápido; não ajuda devagar | bolha asa |
+| Agilidade | gatilho e freio | chassi leve |
+| Estabilidade | demora para escapar no limite | chassi pesado |
+
+Na garagem da carreira, o nível da asa diz "+0,3% de aerodinâmica" (era "de aderência na velocidade máxima").

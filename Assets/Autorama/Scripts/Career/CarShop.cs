@@ -46,7 +46,7 @@ namespace Autorama
             {
                 case "motor": a = $"+{P(CarSetup.LvAccel)}% de aceleração"; b = $"+{P(CarSetup.LvTop)}% de final"; break;
                 case "pneu": a = $"+{P(CarSetup.LvGrip)}% de aderência"; b = $"+{P(CarSetup.LvTop)}% de final"; break;
-                case "bolha": a = $"+{P(CarSetup.LvAero)}% de aderência na velocidade máxima"; b = $"+{P(CarSetup.LvTop)}% de final"; break;
+                case "bolha": a = $"+{P(CarSetup.LvAero)}% de aerodinâmica"; b = $"+{P(CarSetup.LvTop)}% de final"; break;
                 case "chassi": a = $"+{P(CarSetup.LvResp)}% de resposta no gatilho e no freio"; b = $"−{P(CarSetup.LvSlip)}% na derrapagem"; break;
                 default: a = $"+{P(CarSetup.LvBoost)} ponto de velocidade do turbo"; b = $"+{P(CarSetup.LvTank)}% de tanque"; break;
             }
