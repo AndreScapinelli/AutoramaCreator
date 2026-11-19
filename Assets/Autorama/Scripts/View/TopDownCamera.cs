@@ -59,7 +59,7 @@ namespace Autorama
         const float ChaseLookAhead = 0.55f;                   // 0 = olha o carrinho, 1 = olha o ponto à frente
         const float ChaseTurnRate = 6f, ChasePosRate = 6f;
         // Andando, a câmera recua até ChaseSpeedBack a mais (na velocidade máxima), devagar (ChaseSpeedRate), e sobe junto: o ângulo fica o mesmo.
-        const float ChaseSpeedBack = 1.6f, ChaseSpeedRate = 1.5f;
+        const float ChaseSpeedBack = 0.5f, ChaseSpeedRate = 1.5f;
         readonly float[] carSpeed01 = new float[RaceSim.MaxCars];   // v / velocidade máxima do carrinho, 0 fora do trilho
         float chaseExtra;                                           // recuo atual, suavizado
         const float TvMargin = 2f, TvFrame = 2.2f, TvHold = 2.5f, TvSwitch = 1.35f, TvLookRate = 8f;
@@ -70,6 +70,7 @@ namespace Autorama
         const float ThirdLookRate = 12f;      // suavização do ponto olhado
         Vector3 chaseFwd;                     // direção suavizada, no plano XZ
         Vector3 chaseLook;                    // ponto olhado suavizado
+        Vector3 chaseOffset;                  // câmera − carrinho, suavizado (a velocidade não faz a câmera ficar para trás)
         bool chaseReady;                      // false = começa a seguir do zero (troca de modo ou de carrinho)
 
         // Câmera lateral do loop: a LoopSide células (× escala) do centro do anel, de lado, misturada com a de trás.
@@ -305,6 +306,7 @@ namespace Autorama
                 chaseLook = look;
                 chaseExtra = extraTarget;
                 transform.position = car - carFwd * (ChaseBack + chaseExtra) * u + Vector3.up * ChaseUp * (1f + chaseExtra / ChaseBack) * u;
+                chaseOffset = transform.position - car;
                 chaseReady = true;
             }
             chaseExtra = Mathf.Lerp(chaseExtra, extraTarget, 1f - Mathf.Exp(-ChaseSpeedRate * dt));
@@ -338,7 +340,8 @@ namespace Autorama
                 desired = Vector3.Lerp(desired, side, loopW);
                 lookAt = Vector3.Lerp(chaseLook, Vector3.Lerp(c, car, LoopLookCar), loopW);
             }
-            transform.position = Vector3.Lerp(transform.position, desired, 1f - Mathf.Exp(-ChasePosRate * dt));
+            chaseOffset = Vector3.Lerp(chaseOffset, desired - car, 1f - Mathf.Exp(-ChasePosRate * dt));
+            transform.position = car + chaseOffset;
             transform.rotation = Quaternion.LookRotation((lookAt - transform.position).normalized, Vector3.up);
 
             cam.orthographic = false;

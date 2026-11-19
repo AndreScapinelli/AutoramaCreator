@@ -430,7 +430,11 @@ namespace Autorama
             if (arrow2) arrow2.gameObject.SetActive(!RaceMode);
             if (ghostEntry.HasValue && !RaceMode) ShowGhost(ghostEntry.Value); else if (ghost) ghost.gameObject.SetActive(false);
             if (RaceMode) SetHoverCell(null);
-            if (board) board.Build(boardSize, Scale, theme.Board(Faixas));
+            if (board)
+            {
+                board.Build(boardSize, Scale, theme.Board(Faixas));
+                RaceBoard();
+            }
             // Só salva o rascunho no Play e fora da corrida: no Editor a pista é só mostrada,
             // e na corrida a pista em uso pode ser outra (escolhida na lista).
             if (Application.isPlaying && !RaceMode)
@@ -520,7 +524,60 @@ namespace Autorama
         // ---------- Modo corrida ----------
 
         // Na corrida: sem seta, sem fantasma, sem seleção, e o rascunho do construtor não é tocado.
-        public bool RaceMode { get; set; }
+        public bool RaceMode { get => raceMode; set { raceMode = value; if (board) RaceBoard(); } }
+        bool raceMode;
+
+        // Na corrida a mesa fica só em volta da pista: a caixa dela com 2 células de folga, dentro da mesa.
+        const int RaceMargin = 2;
+        RectInt RaceArea()
+        {
+            var b = Info.bounds;
+            int x0 = Mathf.Max(0, Mathf.FloorToInt(b.xMin) - RaceMargin), y0 = Mathf.Max(0, Mathf.FloorToInt(b.yMin) - RaceMargin);
+            int x1 = Mathf.Min(boardSize.x, Mathf.CeilToInt(b.xMax) + RaceMargin), y1 = Mathf.Min(boardSize.y, Mathf.CeilToInt(b.yMax) + RaceMargin);
+            return new RectInt(x0, y0, x1 - x0, y1 - y0);
+        }
+
+        void RaceBoard()
+        {
+            bool on = RaceMode && pieces.Count > 0 && Info != null;
+            board.SetRacing(RaceMode, on ? RaceArea() : default, on ? Blocked() : null);
+        }
+
+        // Onde a pista passa no chão (grade de 1/4 de célula): lá a grama não nasce. Pontes e o alto ficam de fora.
+        const int GrassRes = 8;
+        const float GrassClear = 0.54f;    // meia largura da pista (0,5 célula) e uma folga; o tufo inteiro é testado (GramaMesa)
+        Func<float, float, bool> Blocked()
+        {
+            var area = RaceArea();
+            int W = area.width * GrassRes, H = area.height * GrassRes;
+            var mask = new bool[W * H];
+            int r = Mathf.CeilToInt(GrassClear * GrassRes);
+            foreach (var sg in Segments)
+            {
+                const int N = 48;
+                for (int k = 0; k <= N; k++)
+                {
+                    float t = k / (float)N;
+                    if (sg.ZAt(t) > 0.5f) continue;
+                    var p = TrackMath.PoseAt(sg.a, sg.def, sg.piece.dir, t).pos;
+                    int cx = Mathf.FloorToInt((p.x - area.x) * GrassRes), cy = Mathf.FloorToInt((p.y - area.y) * GrassRes);
+                    for (int y = cy - r; y <= cy + r; y++)
+                        for (int x = cx - r; x <= cx + r; x++)
+                        {
+                            if (x < 0 || y < 0 || x >= W || y >= H) continue;
+                            float dx = (x + 0.5f) / GrassRes + area.x - p.x, dy = (y + 0.5f) / GrassRes + area.y - p.y;
+                            if (dx * dx + dy * dy <= GrassClear * GrassClear) mask[y * W + x] = true;
+                        }
+                }
+            }
+            Vector3 o = board.transform.position;
+            float sc = Scale;
+            return (wx, wz) =>
+            {
+                int x = Mathf.FloorToInt(((wx - o.x) / sc - area.x) * GrassRes), y = Mathf.FloorToInt(((wz - o.z) / sc - area.y) * GrassRes);
+                return x >= 0 && y >= 0 && x < W && y < H && mask[y * W + x];
+            };
+        }
 
         // Mostra uma pista sem passar pelo desfazer (troca de pista na corrida, volta ao construtor).
         public void ShowTrack(TrackSave s)

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace Autorama
@@ -10,6 +11,12 @@ namespace Autorama
     {
         public Material material;          // URP/Lit com grade-mesa.png (recebe a sombra das pontes)
         public Vector2Int size = new Vector2Int(32, 20);
+        public Mesh grassMesh;             // Grass_Patch do pacote Wind Grass Interaction
+        public Material grassMaterial;     // Autorama/Grama (Materiais/Grama.mat)
+        readonly GramaMesa grass = new GramaMesa();
+        Func<float, float, bool> grassBlocked;
+
+        void Update() { if (racing) grass.Draw(grassMesh, grassMaterial); }
         const int MajorEvery = 4;
 
         GameObject quad;
@@ -23,12 +30,14 @@ namespace Autorama
             TrackPieceView.Kill(furniture);
             furniture = null;
             TrackPieceView.Kill(wood); TrackPieceView.Kill(legMat); TrackPieceView.Kill(floorMat);
+            TrackPieceView.Kill(fadeMat); fadeMat = null;
         }
 
         // ----- Mesa 3D (seção 28 do guia): tampo de madeira com moldura, quatro pés e o chão -----
         const float Frame = 0.7f, Slab = 0.5f, FloorY = -9f, Leg = 0.9f;
         GameObject furniture;
         float builtW, builtH;
+        Vector3 builtAt;
         Material wood, legMat, floorMat;
 
         Material Plain(Color c)
@@ -54,14 +63,15 @@ namespace Autorama
         }
 
         // top: altura do tampo quadriculado (a moldura de madeira fica rente a ele).
-        void BuildFurniture(float w, float h, float top)
+        // at: canto da mesa no mundo (x, z).
+        void BuildFurniture(Vector3 at, float w, float h, float top)
         {
-            if (furniture && w == builtW && h == builtH) return;     // só refaz quando a mesa muda de tamanho
-            builtW = w; builtH = h;
+            if (furniture && w == builtW && h == builtH && at == builtAt) return;     // só refaz quando a mesa muda
+            builtW = w; builtH = h; builtAt = at;
             TrackPieceView.Kill(furniture);
             furniture = new GameObject("Mesa 3D (gerada)") { hideFlags = HideFlags.DontSave };
             if (wood == null) { wood = Plain(new Color32(0xB9, 0x8E, 0x5E, 0xFF)); legMat = Plain(new Color32(0x7A, 0x5A, 0x3A, 0xFF)); floorMat = Plain(new Color32(0xC9, 0xCF, 0xC4, 0xFF)); }
-            Vector3 o = transform.position;
+            Vector3 o = at;
             float cx = o.x + w / 2f, cz = o.z + h / 2f;
             // Tampo: um bloco maior que a grade (a sobra é a moldura), logo abaixo dela.
             Block("Tampo", wood, new Vector3(cx, top - 0.005f - Slab / 2f, cz), new Vector3(w + 2f * Frame, Slab, h + 2f * Frame));
@@ -74,6 +84,27 @@ namespace Autorama
 
         float scale = 1f;
         Material other;
+
+        // Na corrida (seção 28.2): a mesa encolhe em volta da pista (crop, em células) e a grade fica apagada.
+        bool racing;
+        RectInt crop;
+        Material fadeSrc, fadeMat;
+        const float Fade = 0.35f;       // luz própria que clareia as linhas da grade
+
+        Material Faded(Material src)
+        {
+            if (fadeMat && fadeSrc == src) return fadeMat;
+            TrackPieceView.Kill(fadeMat);
+            fadeSrc = src;
+            fadeMat = new Material(src) { hideFlags = HideFlags.DontSave };
+            fadeMat.EnableKeyword("_EMISSION");
+            fadeMat.SetColor("_EmissionColor", Color.white * Fade);
+            if (grassMaterial) { var g = new Color(0.45f, 0.62f, 0.3f); fadeMat.SetColor("_BaseColor", g); fadeMat.SetColor("_EmissionColor", g * Fade); }     // chão de grama embaixo dos tufos
+            return fadeMat;
+        }
+
+        // blocked(x, z): o ponto do mundo fica embaixo da pista no chão (lá não nasce grama).
+        public void SetRacing(bool on, RectInt area, Func<float, float, bool> blocked = null) { racing = on; crop = area; grassBlocked = blocked; Build(size, scale, other); }
 
         // cellScale: unidades do mundo por célula (2 na pista de 4 carros), com a mesa própria dela (wideMaterial).
         public void Build(Vector2Int boardSize, float cellScale = 1f, Material wideMaterial = null)
@@ -90,18 +121,24 @@ namespace Autorama
                 TrackPieceView.Kill(quad.GetComponent<Collider>());
                 quad.transform.rotation = Quaternion.Euler(90f, 0f, 0f);    // virado para cima: u = +X, v = +Z
             }
+            var a = racing && crop.width > 0 ? crop : new RectInt(0, 0, size.x, size.y);
             // A base da pista tem espessura: o tampo fica esse tanto abaixo do nível 0, onde os carrinhos correm.
             float top = -TrackPieceView.Thickness - 0.01f;
-            quad.transform.position = transform.position + new Vector3(size.x * scale / 2f, top, size.y * scale / 2f);
-            BuildFurniture(size.x * scale, size.y * scale, transform.position.y + top);
-            quad.transform.localScale = new Vector3(size.x * scale, size.y * scale, 1f);
+            Vector3 corner = transform.position + new Vector3(a.x * scale, 0f, a.y * scale);
+            quad.transform.position = corner + new Vector3(a.width * scale / 2f, top, a.height * scale / 2f);
+            BuildFurniture(corner, a.width * scale, a.height * scale, transform.position.y + top);
+            quad.transform.localScale = new Vector3(a.width * scale, a.height * scale, 1f);
             var r = quad.GetComponent<MeshRenderer>();
-            r.sharedMaterial = other != null ? other : material;
-            // Escala da textura por objeto, sem mexer no material compartilhado.
+            var src = other != null ? other : material;
+            r.sharedMaterial = racing ? Faded(src) : src;
+            // Escala da textura por objeto, sem mexer no material compartilhado; o deslocamento mantém as linhas nas células.
             var block = new MaterialPropertyBlock();
             r.GetPropertyBlock(block);
-            block.SetVector("_BaseMap_ST", new Vector4(size.x / (float)MajorEvery, size.y / (float)MajorEvery, 0f, 0f));
+            float m = MajorEvery;
+            block.SetVector("_BaseMap_ST", new Vector4(a.width / m, a.height / m, a.x / m, a.y / m));
             r.SetPropertyBlock(block);
+            if (racing && grassBlocked != null) grass.Fill(corner, a.width * scale, a.height * scale, transform.position.y + top, scale, grassBlocked);
+            else grass.Clear();
         }
     }
 }

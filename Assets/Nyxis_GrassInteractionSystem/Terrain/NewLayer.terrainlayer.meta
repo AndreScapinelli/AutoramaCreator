@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 94b3aec23ee086c41b8eb913fc91eb8b
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 8574412962073106934
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 407778
+  packageName: Wind Grass - Interaction
+  packageVersion: 1.0
+  assetPath: Assets/Nyxis_GrassInteractionSystem/Terrain/NewLayer.terrainlayer
+  uploadId: 995300

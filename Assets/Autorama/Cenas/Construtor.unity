@@ -277,7 +277,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   theme: {fileID: 11400000, guid: 2821b3fea16fcd2428e92227b61abdca, type: 2}
   board: {fileID: 671373774}
-  boardSize: {x: 65, y: 51}
+  boardSize: {x: 69, y: 77}
   cellCm: 15
 --- !u!4 &187234329
 Transform:
@@ -324,7 +324,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   material: {fileID: 2100000, guid: 3b1ff3d719beb0c44a7ab31eb5ebef72, type: 2}
-  size: {x: 65, y: 51}
+  size: {x: 69, y: 77}
+  grassMesh: {fileID: 8112463898271776947, guid: 2c0b3f51b0460194cbb9f15f7edd0cc2, type: 3}
+  grassMaterial: {fileID: 2100000, guid: 86397364c268b6e4381da9882635e734, type: 2}
 --- !u!4 &671373775
 Transform:
   m_ObjectHideFlags: 0

@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 35178c3bcf13a91419d2008c08f86656
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 407778
+  packageName: Wind Grass - Interaction
+  packageVersion: 1.0
+  assetPath: Assets/Nyxis_GrassInteractionSystem/Shader/URP_Grass.shader
+  uploadId: 995300

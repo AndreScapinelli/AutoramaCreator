@@ -1439,7 +1439,7 @@ Os modos antigos *3D* (1) e *Dinâmica* (3) saíram da corrida (eram ruins de as
 
 **Perseguição** (`TopDownCamera.ApplyThirdPerson`):
 
-- **Posição:** `carro − chaseFwd × (3,4 + recuo)u + cima × 1,6 × (1 + recuo/3,4)u` (~25° de cima, parado ou andando; era `1,2u` fixo, ~19° parado e ~13° na velocidade máxima, deitada demais), com `u = distância` do slider. **Recuo com a velocidade:** `ChaseSpeedBack 1,6 × v/vmax` do carrinho (`vmax × Speed × setup.Top`; 0 fora do trilho), vindo de `SetCarTrack(k, noTrilho, derrapagem, speed01)`, com lerp lento `ChaseSpeedRate 1,5`: parado, 3,4 atrás; no máximo, 5,0. Parado o carrinho ficava bom, mas andando a câmera grudava nele. Lerp `ChasePosRate 6`. Campo de visão 55°. Não multiplica pela escala da pista: o carrinho tem o mesmo tamanho em todas, e com `3,2 × escala` ele sumia na pista de 6 (9,6 atrás e 5,1 acima). Era `3,2u + 1,7u` antes.
+- **Posição:** `carro − chaseFwd × (3,4 + recuo)u + cima × 1,6 × (1 + recuo/3,4)u` (~25° de cima, parado ou andando; era `1,2u` fixo, ~19° parado e ~13° na velocidade máxima, deitada demais), com `u = distância` do slider. **Recuo com a velocidade:** `ChaseSpeedBack 0,5 × v/vmax` (era 1,6) do carrinho (`vmax × Speed × setup.Top`; 0 fora do trilho), vindo de `SetCarTrack(k, noTrilho, derrapagem, speed01)`, com lerp lento `ChaseSpeedRate 1,5`: parado, 3,4 atrás; no máximo, 3,9. Parado o carrinho ficava bom, mas andando a câmera grudava nele. Lerp `ChasePosRate 6` só no deslocamento câmera − carrinho (`chaseOffset`), não na posição: antes ela seguia a posição absoluta e ficava v/6 para trás, muito longe e baixa no talo. Campo de visão 55°. Não multiplica pela escala da pista: o carrinho tem o mesmo tamanho em todas, e com `3,2 × escala` ele sumia na pista de 6 (9,6 atrás e 5,1 acima). Era `3,2u + 1,7u` antes.
 - **Ponto olhado:** `RaceController` manda a cada quadro o ponto do trilho `CamAhead 2,2` à frente (no mundo, sem a escala) (`SetCarAhead`); a câmera olha `ChaseLookAhead 0,55` do caminho entre o carrinho e esse ponto, com lerp `ThirdLookRate 12`. Assim a curva aparece antes de o carrinho chegar nela. Rodando, olha só o carrinho.
 - **Direção:** `chaseFwd` segue o rumo com lerp `ChaseTurnRate 6`; rodando, gira no máximo `ThirdTurnRate 110°/s`.
 - **Reinício:** trocar de modo ou de carrinho zera a direção (corte direto para a posição).
@@ -2995,6 +2995,18 @@ A malha continua gerada por código a partir da lista de peças, agora com corpo
 ### 28.2 Mesa (`GridBoard`)
 
 Tampo de madeira com moldura (0,7 além da grade, 0,5 de espessura), quatro pés e um chão claro 9 unidades abaixo, feitos com cubos e cópias do material da mesa sem a textura. Só são refeitos quando a mesa muda de tamanho.
+
+Na corrida (`TrackBuilder.RaceMode` → `GridBoard.SetRacing`), a mesa encolhe em volta da pista: a caixa dela (`Info.bounds`) com 2 células de folga (`RaceMargin`), dentro da mesa do construtor, e a moldura, os pés e o tampo acompanham. A grade continua, mas apagada: cópia do material com emissão branca 0,35 (`Fade`), e o deslocamento da textura mantém as linhas nas mesmas células. Só a vista muda, o `boardSize` e a pista não mexem. Voltar ao construtor devolve a mesa inteira.
+
+### 28.2a Grama na mesa da corrida
+
+Na corrida, a mesa recortada ganha grama do pacote **Wind Grass Interaction** (Nyxis, em `Assets/Nyxis_GrassInteractionSystem`; usamos a malha `Grass_Patch.fbx`). O shader é uma cópia, `Assets/Autorama/Shaders/Grama.shader` (`Autorama/Grama`), que troca o jogador único do original por até 8 carrinhos (`_GramaCarros[8]`: xyz = posição, w = raio; `_GramaN`). O material é `Materiais/Grama.mat` (instancing; `_BladeHeight 0.5`, `_WindStrength 0.15`, `_WindSpeed 2`, `_PushStrength 0.12`, `_BendDownStrength 0.08`, `_Cutoff 0.45`, cores mais claras). `GridBoard.grassMesh`/`grassMaterial` ficam na cena.
+
+- `View/GramaMesa.cs`: tufos em grade com sorteio fixo (semente 12345), espaçamento 0,12 no mundo (`Spacing`; cresce para ficar em até 60 000 tufos), tufo de 2,4 espaçamentos (± 25%), giro aleatório. Desenha com `Graphics.RenderMeshInstanced` em lotes de 1023, sem sombra projetada. A cada 0,5 s procura os `CarView`, e o raio do empurrão é 0,35 × escala.
+- `TrackBuilder.Blocked()`: máscara de 1/8 de célula (`GrassRes 8`) onde a pista passa **no chão** (48 pontos por peça, `ZAt(t) ≤ 0,5`, raio `GrassClear` 0,54 célula: a meia largura e uma folga). Ali a grama não nasce. Embaixo das pontes ela nasce.
+- **O tufo inteiro fora da pista** (`GramaMesa.Fill`): antes só o centro do tufo era testado, e as folhas de um tufo colado à pista (até 0,55 × escala do tufo) passavam por cima dela. Agora o tufo só nasce se o centro e 8 pontos a `TuftReach 0,6` × escala do tufo (4 eixos e 4 diagonais) estão fora da máscara. Visto no Play: oval de 6 trilhos (perseguição e de cima) e a Mizuka (de cima e inclinada, com a curva inclinada), sem folha sobre a pista.
+- Com a grama, o tampo da corrida fica verde (`#739E4D`) com a grade apagada por cima.
+- Teste: no Play, com a mesa no modo corrida, a grama cobre a mesa e some embaixo da pista.
 
 ### 28.3 Carrinho 3D (`CarView`)
 
