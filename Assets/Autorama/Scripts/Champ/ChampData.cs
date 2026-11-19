@@ -111,7 +111,7 @@ namespace Autorama
     [Serializable] public class RecordsFile { public List<TrackRecords> tracks = new List<TrackRecords>(); }
 
     // jogador.json: o id fixo deste computador no online (o melhor pessoal online fica preso a ele).
-    [Serializable] public class PlayerFile { public string uid; public int elo, eloJogos; }   // elo 0: ainda não jogou (vale Elo.Start; seção 89)
+    [Serializable] public class PlayerFile { public string uid; public int elo, eloJogos; public string eloSig; }   // elo 0: ainda não jogou (vale Elo.Start); eloSig: a assinatura (seção 89.1)
 
     // ---------- Regras e contas ----------
 
@@ -384,15 +384,18 @@ namespace Autorama
         // O Elo da partida rápida (seção 89), no mesmo jogador.json. Na Steam ele também vai para o placar "elo".
         public static void PlayerElo(out int elo, out int jogos)
         {
+            string id = PlayerUid();
             var f = Read<PlayerFile>(Path.Combine(TrackLibrary.Root, "jogador.json"));
-            elo = f.elo > 0 ? f.elo : Elo.Start; jogos = Math.Max(0, f.eloJogos);
+            bool ok = f.elo >= Elo.Min && f.eloJogos >= 0 && f.eloSig == Elo.Sign(id, f.elo, f.eloJogos);
+            if (f.elo > 0 && !ok) Debug.LogWarning("Elo do jogador.json com assinatura errada: volta para " + Elo.Start);
+            elo = ok ? f.elo : Elo.Start; jogos = ok ? f.eloJogos : 0;
         }
         public static void SavePlayerElo(int elo, int jogos)
         {
-            PlayerUid();
+            string id = PlayerUid();
             string path = Path.Combine(TrackLibrary.Root, "jogador.json");
             var f = Read<PlayerFile>(path);
-            f.elo = elo; f.eloJogos = jogos;
+            f.elo = elo; f.eloJogos = jogos; f.eloSig = Elo.Sign(id, elo, jogos);
             Write(path, f);
         }
         public static bool SaveRecords(RecordsFile r) => Write(RecordsPath, r);

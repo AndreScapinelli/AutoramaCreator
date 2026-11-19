@@ -12,6 +12,18 @@ namespace Autorama
         public const int Start = 1000, Min = 100;
         public const int NewGames = 30, HighRating = 2400;
 
+        // A assinatura do Elo no jogador.json (seção 89.1): HMAC-SHA256 do "uid:elo:jogos" com uma chave do jogo,
+        // 16 letras. Mexer no número à mão invalida; não segura quem tira a chave do jogo.
+        static readonly byte[] SignKey = System.Text.Encoding.UTF8.GetBytes("autorama/elo/7c1e9b42d05a4f3e");
+        public static string Sign(string uid, int elo, int games)
+        {
+            using var h = new System.Security.Cryptography.HMACSHA256(SignKey);
+            var b = h.ComputeHash(System.Text.Encoding.UTF8.GetBytes(uid + ":" + elo + ":" + games));
+            var sb = new System.Text.StringBuilder(16);
+            for (int i = 0; i < 8; i++) sb.Append(b[i].ToString("x2"));
+            return sb.ToString();
+        }
+
         public static double Expected(int a, int b) => 1.0 / (1.0 + Math.Pow(10.0, (b - a) / 400.0));
 
         public static int K(int rating, int games) => games < NewGames ? 40 : rating >= HighRating ? 10 : 20;

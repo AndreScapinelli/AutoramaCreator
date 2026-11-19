@@ -2591,7 +2591,7 @@ net.Pump();
 | Correção suave por snapshot (`NetSync.Blend`) | 25% do erro |
 | Repetição do botão do visitante (`HeldRefresh`) | 0,25 s |
 | Botão sem notícia vira solto (`InTimeout`) | 1 s |
-| Host larga / salva sozinho (`AutoStart` / `AutoSave`) | 20 s / 10 s |
+| Host larga / salva sozinho (`AutoStart` / `AutoSave`) | 10 s / 10 s |
 | Entradas por segundo de cada visitante (servidor) | 120 |
 
 **Fluxo de uma bateria.**
@@ -3560,7 +3560,9 @@ ownHist.Add(Time.realtimeSinceStartup, sim.cars[lane]);
 
 ### 41.4 O host não trava a sala
 
-- **Sozinho:** parado em "Largar" por **20 s** (`AutoStart`), o host larga; em "Salvar e seguir" por **10 s** (`AutoSave`), salva e segue. A dica do cartão mostra a contagem ("Larga sozinho em 12 s"), para todos.
+- **Sozinho:** parado em "Largar" por **10 s** (`AutoStart`; era 20 s), o host larga; em "Salvar e seguir" por **10 s** (`AutoSave`), salva e segue. A dica do cartão mostra a contagem ("Larga sozinho em 8 s"), para todos.
+- **Barra da largada** (`StartBarUI` em `RaceController.cs`, classes `start-bar*` da USS): com a corrida parada e a escolha do carro fechada, o cartão do meio mostra "Largada em N s" e uma barra amarela que esvazia até o 3, 2, 1 (`AutoLeftF`: o que falta, com fração, e o prazo). No host o texto diz "Enter larga agora". O visitante conta do momento em que o ev `cars` do host chega fechando a etapa (`OnlineApplyCars` zera o `phaseSince`), então os relógios batem com a diferença da latência.
+- **Enter do host** (`OnlineEnter`): com a escolha do carro aberta, fecha a escolha (como o botão "Fechar a escolha"); depois, larga na hora, sem esperar o `AutoStart`.
 - **Host que sai no meio:** o campeonato não acaba mais. No servidor Node o jogador mais antigo vira host ("…agora é o host: a bateria da vez recomeça"); na Steam é o novo dono do lobby (`AdoptRaceHost`). Quem vira host (`OnlineTakeOver`) manda a sua tabela a todos (`ev sync` sem `to` e sem as pistas), recomeça a bateria da vez e copia as etapas do campeonato para a lista do lobby (`takeOverStages`): ao voltar ao lobby elas vão para a sala (`SendStages`), porque na Steam o JSON das pistas ficava só no host antigo. Os outros zeram o número do snapshot e a latência (`OnlineHostChanged`).
 
 ### 41.5 Voltar de uma queda e assistir
@@ -3798,7 +3800,7 @@ Com a largada selecionada no construtor, **Subir** e **Descer** (no painel da pe
 ### 45.3 HUD do campeonato
 
 - **Fim da bateria:** embaixo do resultado (`DrawResult`), `DrawChampStandings` mostra a tabela geral como fica com esta bateria (o resultado do `RaceSim` entra em `heat.res` só para a conta e volta) e, para cada piloto, a posição na etapa (voltas e tempo, ou distância por tempo; com a etapa encerrada, os pontos que ela deu). Os pontos da etapa só entram na tabela quando ela termina.
-- **Começo da bateria:** o cartão de recordes (seção 39) já aparece com a corrida parada, antes do 3, 2, 1 (no online, até o host largar ou os 20 s do `AutoStart`).
+- **Começo da bateria:** o cartão de recordes (seção 39) já aparece com a corrida parada, antes do 3, 2, 1 (no online, até o host largar ou os 10 s do `AutoStart`, com a barra da largada).
 - **Troca de trilho (por tempo):** embaixo de "TROCA DE TRILHO" e no 3, 2, 1 da manche seguinte, `DrawGaps` lista a ordem, as voltas de cada um (`Dist`) e a distância para o líder e para o da frente, em voltas. Estilos `cd-list`, `res-row--small`, `res-head` em `Construtor.uss`.
 
 ### 45.4 Testes
@@ -3961,7 +3963,7 @@ No banner do meio da mesa (`carPick`, dentro de `banner`), no lugar do cartão d
 
 - **Offline:** cartões para todos os pilotos de gente. Fecha quando todos ficam prontos; **Enter** (ou Start do controle) deixa todos prontos com o que está escolhido. Grava em `campeonatos.json` a cada clique.
 - **Robôs:** `AiCar(pista)` pela fração do comprimento em curva (curva de 90° = 2,5 × π/2 células, 45° = metade; retas 1, 2 ou 4): **≥ 45%** curto · asa · macio · pesado; menos, longo · lisa · duro · pesado (regra da seção 52.5).
-- **Online:** cartões só para os jogadores deste computador (eu e o jogador 2). O host fecha quando todos os pilotos na sala ficam prontos, pelo botão "Fechar a escolha" ou sozinho depois de **`CarPickWait` = 45 s** (quem não confirmou corre com o que estiver escolhido). Depois de fechar, a largada automática (`AutoStart`, 20 s) conta de novo.
+- **Online:** cartões só para os jogadores deste computador (eu e o jogador 2). O host fecha quando todos os pilotos na sala ficam prontos, pelo botão "Fechar a escolha", pelo Enter ou sozinho depois de **`CarPickWait` = 45 s** (quem não confirmou corre com o que estiver escolhido). Depois de fechar, a largada automática (`AutoStart`, 10 s) conta de novo, com a barra da largada no cartão; outro Enter do host larga na hora.
 - Estilos em `Construtor.uss`: `car-pick`, `pick-grid`, `pick-card`, `pick-card--ok`, `pick-head`, `pick-name`, `pick-sum`, `pick-ok`, `pick-others`, `pick-foot`.
 
 ### 48.3 Rede
@@ -4309,7 +4311,7 @@ Uma faixa no topo da mesa, embaixo das fichas dos pilotos, narra a prova em tom 
 
 ## 62. Partida rápida (fila e sorteio da pista; protocolo 5)
 
-- **O que faz:** na aba Online, o cartão **Partida rápida** fica acima de Criar sala. O jogador escolhe o tamanho (2, 4, 6 ou 8 carros) e uma pista fechada dele, que entra adaptada a esse tamanho (seção 32). Depois toca em **Procurar partida**. Na fila, a tela mostra "3 de 4", o tempo de espera, as pistas na disputa (repetidas aparecem com ×2) e o botão **Sair da fila**. As outras seções da entrada somem enquanto o jogador está na fila. Só larga com a fila cheia. Quando ela enche, o servidor cria uma sala privada (`room.mm`) e sorteia uma das pistas. Uma pista repetida conta uma vez por jogador que a escolheu. Em seguida o servidor larga sozinho: uma bateria **por tempo, 4:00**, com todos na mesma bateria (`MakeHeats` por tempo com pilotos = trilhos dá uma bateria só) e as regras padrão. Na tela aparece a roleta do sorteio (`.mm-sorteio`, ~3 s, para na pista escolhida). Depois vem a escolha do carro, que dura **20 s** (`MmCarWait`; no campeonato são 45). O host larga sozinho 20 s depois, como no campeonato online. No fim, todos veem **Jogar de novo** (sai da sala e volta à fila com o mesmo tamanho e a mesma pista) e **Sair**. Não tem "Voltar ao lobby" nem "Encerrar campeonato": o botão de baixo vira "Sair da partida". Funciona no servidor Node e na Steam (veja abaixo).
+- **O que faz:** na aba Online, o cartão **Partida rápida** fica acima de Criar sala. O jogador escolhe o tamanho (2, 4, 6 ou 8 carros) e uma pista fechada dele, que entra adaptada a esse tamanho (seção 32). Depois toca em **Procurar partida**. Na fila, a tela mostra "3 de 4", o tempo de espera, as pistas na disputa (repetidas aparecem com ×2) e o botão **Sair da fila**. As outras seções da entrada somem enquanto o jogador está na fila. Só larga com a fila cheia. Quando ela enche, o servidor cria uma sala privada (`room.mm`) e sorteia uma das pistas. Uma pista repetida conta uma vez por jogador que a escolheu. Em seguida o servidor larga sozinho: uma bateria **por tempo, 4:00**, com todos na mesma bateria (`MakeHeats` por tempo com pilotos = trilhos dá uma bateria só) e as regras padrão. Na tela aparece a roleta do sorteio (`.mm-sorteio`, ~3 s, para na pista escolhida). Depois vem a escolha do carro, que dura **20 s** (`MmCarWait`; no campeonato são 45). O host larga sozinho 10 s depois (ou no Enter dele), com a barra da largada, como no campeonato online. No fim, todos veem **Jogar de novo** (sai da sala e volta à fila com o mesmo tamanho e a mesma pista) e **Sair**. Não tem "Voltar ao lobby" nem "Encerrar campeonato": o botão de baixo vira "Sair da partida". Funciona no servidor Node e na Steam (veja abaixo).
 - **Servidor** (`servidor.js`): `MM_SIZES [2,4,6,8]`, `MM_SECS 240`, `MM_RULES` (vmax 14, ramp 0,5, grip 29, colisão, turbo, reslot 0,3, por tempo). A fila é `queues` (tamanho → entradas). As mensagens:
   - `mm {on, faixas, name, uid, track, hash, json}` entra na fila. Antes, o servidor tira o jogador de qualquer outra fila. O servidor recusa tamanho inválido, pista cujo JSON tem outro `faixas`, nome repetido na fila e quem já está numa sala. `on: false` sai da fila.
   - O servidor responde `mm {faixas, n, need, tracks, mmq}` a todos da fila (`faixas 0`: fora). `mmq` traz quantos esperam em cada fila e também vai no `rooms` (a lista de salas).

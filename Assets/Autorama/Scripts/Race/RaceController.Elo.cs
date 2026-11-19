@@ -21,10 +21,12 @@ namespace Autorama
         {
             ChampFiles.PlayerElo(out myElo, out myEloJ);
             mmElo = Text("", "lib-name", box);
-            // Outro computador jogou mais partidas nessa conta da Steam: vale o Elo da Steam.
-            EloBoard.Adopt = (e, j) =>
+            // Na Steam o placar é a fonte (seção 89.1): o Elo dele vale, mesmo menor que o daqui. Sem linha no placar,
+            // o daqui sobe para lá (já assinado, então não foi mexido à mão).
+            EloBoard.Mine = (found, e, j) =>
             {
-                if (j < myEloJ || (e == myElo && j == myEloJ)) return;
+                if (!found) { if (myEloJ > 0) EloBoard.Push(myElo, myEloJ); return; }
+                if (e == myElo && j == myEloJ) return;
                 myElo = e; myEloJ = j;
                 ChampFiles.SavePlayerElo(myElo, myEloJ);
             };
@@ -55,6 +57,18 @@ namespace Autorama
             if (!MmRoom) { eloApplied = true; return; }
             foreach (var p in m.pilots) if (p.elo >= Elo.Min && !NetGuest.Is(p.id)) mmRatings[p.id] = (p.elo, p.eloj);
             if (myId != null) mmRatings[myId] = (myElo, myEloJ);
+            // Na Steam (ids são SteamIDs), o Elo dos outros vem do placar, não do que cada um disse; fora dele: 1000.
+            var steam = new List<ulong>();
+            foreach (var p in m.pilots)
+                if (p.id != myId && !NetGuest.Is(p.id) && p.uid != null && p.uid.StartsWith("steam:") && ulong.TryParse(p.id, out ulong sid)) steam.Add(sid);
+            if (steam.Count == 0 || !EloBoard.Available) return;
+            foreach (ulong sid in steam) mmRatings[sid.ToString()] = (Elo.Start, 0);
+            string room0 = room?.code;
+            EloBoard.Users(steam.ToArray(), res =>
+            {
+                if (eloApplied || room?.code != room0) return;
+                foreach (var kv in res) mmRatings[kv.Key.ToString()] = kv.Value;
+            });
         }
 
         // Fim da bateria (quit = false) ou saída no meio (quit = true: eu em último). Uma vez por partida.

@@ -25,4 +25,5 @@ Ordem sugerida: primeiro o que faz o jogo ser achado na Steam, depois o que apro
 ## 5. Online
 - [x] Ranking Elo na partida rápida (seção 89)
 - [ ] Temporadas do Elo
+- [ ] Elo gravado por servidor confiável (placar "Trusted" pela Web API da Steam, resultado conferido; seção 89.1)
 - [ ] Espectador numa sala online

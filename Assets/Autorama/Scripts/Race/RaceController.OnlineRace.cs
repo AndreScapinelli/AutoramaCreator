@@ -42,7 +42,7 @@ namespace Autorama
         bool takeOverStages;                                   // virei host no meio: no lobby, mando as etapas
         float phaseSince;                                      // quando a fase atual começou (largar e salvar sozinho)
         int autoShown = -1;
-        const float AutoStart = 20f, AutoSave = 10f;           // o host larga e salva sozinho depois desse tempo parado
+        const float AutoStart = 10f, AutoSave = 10f;           // o host larga e salva sozinho depois desse tempo parado
 
         bool OnlinePresent(string id) => room != null && room.Player(id) != null;
         string OnlineHostName() => room?.Player(room.host)?.name is string n && n != "" ? Safe(n) : "host";
@@ -321,9 +321,15 @@ namespace Autorama
         // Segundos até o host largar ou salvar sozinho; −1 fora dessas fases.
         int AutoLeft()
         {
-            if (CarPickOpen(out _, out _)) return -1;
-            float wait = sim.phase == RaceSim.Phase.Idle && sim.closed ? AutoStart : sim.phase == RaceSim.Phase.Done ? AutoSave : -1f;
-            return wait < 0f ? -1 : Mathf.Max(0, Mathf.CeilToInt(wait - (Time.realtimeSinceStartup - phaseSince)));
+            float f = AutoLeftF(out _);
+            return f < 0f ? -1 : Mathf.CeilToInt(f);
+        }
+
+        // O mesmo em segundos com fração (a barra da largada), e o prazo inteiro.
+        float AutoLeftF(out float wait)
+        {
+            wait = CarPickOpen(out _, out _) ? -1f : sim.phase == RaceSim.Phase.Idle && sim.closed ? AutoStart : sim.phase == RaceSim.Phase.Done ? AutoSave : -1f;
+            return wait < 0f ? -1f : Mathf.Max(0f, wait - (Time.realtimeSinceStartup - phaseSince));
         }
 
         void ClearRemote() { remotePz.Clear(); remoteHeld.Clear(); remoteRe.Clear(); remoteGas.Clear(); remoteBoost.Clear(); remoteInAt.Clear(); remoteTs.Clear(); }
@@ -520,9 +526,11 @@ namespace Autorama
             scoreDirty = champDirty = true; snapAcc = 1f;
         }
 
+        // Enter do host: com a escolha do carro aberta, fecha a escolha; depois, larga sem esperar o AutoStart.
         void OnlineEnter()
         {
-            if (sim.phase == RaceSim.Phase.Idle) OnlineStart();
+            if (CarPickOpen(out var pc, out int ps)) CarPickClose(pc, ps);
+            else if (sim.phase == RaceSim.Phase.Idle) OnlineStart();
             else if (sim.phase == RaceSim.Phase.Done) OnlineSave();
         }
 

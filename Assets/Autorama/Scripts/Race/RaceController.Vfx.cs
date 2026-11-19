@@ -30,6 +30,12 @@ namespace Autorama
         float[] vfxHit;
         const float DustLifeMin = 2f, DustLifeMax = 2.8f, DustRate = 30f;
         const int HitSparks = 10, OffSparks = 12, OffDust = 30;
+        // Faísca da trança (seção 90): no limite de velocidade, estalos amarelo-claros saindo do guia.
+        const float ZapOn = 0.97f, ZapOff = 0.94f, ZapGapMin = 0.45f, ZapGapMax = 1.1f;
+        static readonly Vector3 ZapAt = new Vector3(0.22f, 0.015f, 0f);
+        ParticleSystem zap;
+        bool[] zapOn;
+        float[] zapT;
 
         void CreateVfx()
         {
@@ -90,6 +96,28 @@ namespace Autorama
             sr.shadowCastingMode = ShadowCastingMode.Off;
             smoke.Play();
 
+            zapOn = new bool[n]; zapT = new float[n];
+            var zgo = new GameObject("Faísca da trança");
+            zgo.transform.SetParent(transform, false);
+            zap = zgo.AddComponent<ParticleSystem>();
+            zap.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            var zm = zap.main;
+            zm.playOnAwake = false; zm.loop = false;
+            zm.startLifetime = new ParticleSystem.MinMaxCurve(0.06f, 0.14f);
+            zm.startSize = new ParticleSystem.MinMaxCurve(0.012f, 0.02f);
+            zm.startColor = new ParticleSystem.MinMaxGradient(new Color(1f, 0.96f, 0.8f), new Color(1f, 0.78f, 0.4f));
+            zm.simulationSpace = ParticleSystemSimulationSpace.World;
+            zm.maxParticles = 400;
+            var zem = zap.emission; zem.enabled = false;
+            var zsh = zap.shape; zsh.enabled = false;
+            var zr = zgo.GetComponent<ParticleSystemRenderer>();
+            zr.sharedMaterial = sparkMaterial;
+            zr.renderMode = ParticleSystemRenderMode.Stretch;
+            zr.velocityScale = 0.012f;
+            zr.lengthScale = 1f;
+            zr.shadowCastingMode = ShadowCastingMode.Off;
+            zap.Play();
+
             // Marcas de pneu: uma malha só, com SkidMax faixas num buffer circular (as mais velhas dão lugar às novas).
             var mgo = new GameObject("Marcas de pneu");
             mgo.transform.SetParent(transform, false);
@@ -139,6 +167,8 @@ namespace Autorama
             if (smoke == null) return;
             foreach (var tr in turboTrails) { tr.emitting = false; tr.Clear(); }
             smoke.Clear();
+            zap.Clear();
+            System.Array.Clear(zapOn, 0, zapOn.Length);
             System.Array.Clear(skidC, 0, skidC.Length);
             System.Array.Clear(skidHas, 0, skidHas.Length);
             skidNext = 0; skidDirty = true;
@@ -183,6 +213,25 @@ namespace Autorama
             vfxHit[k] = st.hitFx; vfxMode[k] = st.mode;
 
             turboTrails[k].emitting = live && st.boost && st.turbo > 0f && !st.air;
+
+            // Faísca da trança: v perto da velocidade máxima do carro agora (ajuste e turbo), com folga para não piscar.
+            var su = sim.setup[k];
+            bool tb = st.boost && st.turbo > 0f;
+            float top = sim.set.vmax * sim.Speed * su.Top * (tb ? 1f + su.Boost : 1f);
+            zapOn[k] = live && !st.air && st.v >= top * (zapOn[k] ? ZapOff : ZapOn);
+            if (zapOn[k] && (zapT[k] -= dt) <= 0f)
+            {
+                zapT[k] = Random.Range(ZapGapMin, ZapGapMax);
+                var fwd = car.right; var side = car.forward;
+                var at0 = car.TransformPoint(ZapAt);
+                int cnt = Random.Range(1, 3);
+                for (int i = 0; i < cnt; i++)
+                {
+                    // Sobram para trás do carro (mais devagar que ele), abrindo para os lados e um pouco para cima.
+                    var vel = fwd * (st.v * Random.Range(0.2f, 0.6f)) + side * (Random.Range(-0.6f, 0.6f) * sim.Scale) + car.up * (Random.Range(0.1f, 0.4f) * sim.Scale);
+                    zap.Emit(new ParticleSystem.EmitParams { position = at0, velocity = vel, startSize = Random.Range(0.012f, 0.02f) * sim.Scale }, 1);
+                }
+            }
 
             bool slide = live && !st.air && st.v > SmokeMinV;
             float sf = slide ? Mathf.Clamp01((st.slip - SmokeSlip) / (1f - SmokeSlip)) : 0f;

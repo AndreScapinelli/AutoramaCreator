@@ -55,10 +55,10 @@ namespace Autorama
         Rect trackRect; float trackTop;                       // contorno da pista (x, z) e a altura máxima
         Vector3[] tvSpots; int tvSpot = -1; float tvTime; Vector3 tvLook;
 
-        const float ChaseBack = 3.4f, ChaseUp = 1.2f;         // no mundo (o carrinho não cresce com a pista): ~19° de cima
+        const float ChaseBack = 3.4f, ChaseUp = 1.6f;         // no mundo (o carrinho não cresce com a pista): ~25° de cima
         const float ChaseLookAhead = 0.55f;                   // 0 = olha o carrinho, 1 = olha o ponto à frente
         const float ChaseTurnRate = 6f, ChasePosRate = 6f;
-        // Andando, a câmera recua até ChaseSpeedBack a mais (na velocidade máxima), devagar (ChaseSpeedRate).
+        // Andando, a câmera recua até ChaseSpeedBack a mais (na velocidade máxima), devagar (ChaseSpeedRate), e sobe junto: o ângulo fica o mesmo.
         const float ChaseSpeedBack = 1.6f, ChaseSpeedRate = 1.5f;
         readonly float[] carSpeed01 = new float[RaceSim.MaxCars];   // v / velocidade máxima do carrinho, 0 fora do trilho
         float chaseExtra;                                           // recuo atual, suavizado
@@ -283,7 +283,7 @@ namespace Autorama
             Apply();
         }
 
-        // "Perseguição": atrás e acima do carrinho (~28°), olhando para um ponto entre ele e o trilho à frente
+        // "Perseguição": atrás e acima do carrinho (~25°), olhando para um ponto entre ele e o trilho à frente
         // (raceAhead), para a curva aparecer antes de chegar. Distâncias no mundo × distanceScale, sem a escala da
         // pista: o carrinho tem o mesmo tamanho em todas, e na pista de 6 ele sumia a 9,6 atrás.
         void ApplyThirdPerson()
@@ -304,7 +304,7 @@ namespace Autorama
                 chaseFwd = carFwd;
                 chaseLook = look;
                 chaseExtra = extraTarget;
-                transform.position = car - carFwd * (ChaseBack + chaseExtra) * u + Vector3.up * ChaseUp * u;
+                transform.position = car - carFwd * (ChaseBack + chaseExtra) * u + Vector3.up * ChaseUp * (1f + chaseExtra / ChaseBack) * u;
                 chaseReady = true;
             }
             chaseExtra = Mathf.Lerp(chaseExtra, extraTarget, 1f - Mathf.Exp(-ChaseSpeedRate * dt));
@@ -315,7 +315,7 @@ namespace Autorama
                 chaseFwd = Vector3.Slerp(chaseFwd, carFwd, 1f - Mathf.Exp(-ChaseTurnRate * dt)).normalized;
 
             chaseLook = Vector3.Lerp(chaseLook, look, 1f - Mathf.Exp(-ThirdLookRate * dt));
-            Vector3 desired = car - chaseFwd * (ChaseBack + chaseExtra) * u + Vector3.up * ChaseUp * u;
+            Vector3 desired = car - chaseFwd * (ChaseBack + chaseExtra) * u + Vector3.up * ChaseUp * (1f + chaseExtra / ChaseBack) * u;
             Vector3 lookAt = chaseLook;
 
             // Loop à frente: vai para o lado do anel, para o carrinho aparecer dando a volta.

@@ -156,6 +156,7 @@ namespace Autorama
                 p.carro = CarOf(cars[i], out bool ok);
                 if (ok) carOk.Add(p.id); else carOk.Remove(p.id);
             }
+            if (open && hi >= s) phaseSince = Time.realtimeSinceStartup;   // o host fechou agora: a barra da largada conta daqui
             C.carStage = hi;
             ApplyChampCars(); carPickSig = null; scoreDirty = champDirty = true;
         }
