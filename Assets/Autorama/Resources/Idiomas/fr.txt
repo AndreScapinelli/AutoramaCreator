@@ -1378,3 +1378,10 @@ Saia da sala para trocar o idioma.	Quittez le salon pour changer de langue.
 Seu Elo: {0} · {1}	Votre Elo : {0} · {1}
  · {0}º de {1} na Steam	 · {0}e sur {1} sur Steam
 Elo {0} ({1})	Elo {0} ({1})
+Nenhuma pista baixada. As pistas das corridas online aparecem aqui.	Aucun circuit téléchargé. Les circuits des courses en ligne apparaissent ici.
+Nenhuma pista sua ainda.	Aucun circuit à vous pour l’instant.
+Todas	Tous
+Minhas	Les miens
+Baixadas	Téléchargés
+Largada em {0} s · Enter larga agora	Départ dans {0} s · Entrée pour partir
+Largada em {0} s	Départ dans {0} s

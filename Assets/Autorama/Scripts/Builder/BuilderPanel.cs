@@ -485,6 +485,7 @@ namespace Autorama
             }, TrickleDown.TrickleDown);
             nameRow.Add(nameField);
             Btn(L.T("Salvar"), SaveTrack, "btn btn--primary", nameRow).style.marginBottom = 0;
+            libFilter = new TrackFilter(lib, DrawLibrary);
             libList = El(null, Caixa(lib));
             var libRow = El("row", lib);
             Btn(L.T("Exemplo: oval"), () => Open(Kind(TrackSave.Oval())), "btn", libRow);
@@ -811,12 +812,19 @@ namespace Autorama
             }
         }
 
+        TrackFilter libFilter;
+
         void DrawLibrary()
         {
             libList.Clear();
+            int down = library.FindAll(e => TrackFilter.Downloaded(e.save)).Count;
+            libFilter.Counts(library.Count - down, down);
             if (library.Count == 0) { Text(L.T("Nenhuma pista salva ainda. Dê um nome e salve."), "small", libList); return; }
+            int shown = 0;
             foreach (var e in library)
             {
+                if (!libFilter.Shows(e.save)) continue;
+                shown++;
                 var entry = e;
                 var item = El("lib-item", libList);
                 if (e.save.nome == builder.TrackName) item.AddToClassList("lib-item--on");
@@ -835,6 +843,7 @@ namespace Autorama
                     Say(L.F("“{0}” apagada.", entry.save.nome));
                 };
             }
+            if (shown == 0) Text(libFilter.Mode == 2 ? L.T("Nenhuma pista baixada. As pistas das corridas online aparecem aqui.") : L.T("Nenhuma pista sua ainda."), "small", libList);
         }
 
         // ---------- Ações do painel ----------

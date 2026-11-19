@@ -576,6 +576,10 @@
 /* Melhor volta da prova (roxo) e recorde da pista (selo dourado) */
 .res-cell--fast { color: var(--roxo); -unity-font-style: bold; }
 .res-badge { font-size: 12px; -unity-font-style: bold; letter-spacing: 1px; color: var(--sobre-destaque); background-color: var(--premio); padding: 1px 6px; border-radius: 4px; margin: 0 0 0 10px; }
+.start-bar { align-items: center; margin: 8px 0 0 0; }
+.start-bar-text { font-size: 15px; -unity-font-style: bold; color: var(--texto); margin: 0 0 4px 0; }
+.start-bar-track { width: 260px; height: 8px; border-radius: 4px; background-color: rgba(255, 255, 255, 0.12); overflow: hidden; }
+.start-bar-fill { height: 100%; border-radius: 4px; background-color: var(--destaque); }
 .banner-rec { font-size: 16px; -unity-font-style: bold; letter-spacing: 1px; color: var(--sobre-destaque); background-color: var(--premio); padding: 4px 14px; border-radius: 6px; margin: 8px 0 0 0; }
 .hud-best--top { color: var(--roxo); -unity-font-style: bold; }
 .res-row--small { padding: 3px 8px; margin-bottom: 2px; }
@@ -800,3 +804,7 @@
 .hud .hud-best { display: flex; }
 .hud { width: 270px; }
 .hud--6 .hud-cur, .hud--8 .hud-cur { font-size: 13px; }
+
+/* Filtro das listas de pistas (TrackFilter, seção 84): Todas · Minhas · Baixadas. */
+.track-filter { margin: 0 0 6px 0; }
+.track-filter .btn { height: 26px; font-size: 12px; margin-bottom: 0; }

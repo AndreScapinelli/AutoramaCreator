@@ -1378,3 +1378,10 @@ Saia da sala para trocar o idioma.	Leave the room to change the language.
 Seu Elo: {0} · {1}	Your Elo: {0} · {1}
  · {0}º de {1} na Steam	 · #{0} of {1} on Steam
 Elo {0} ({1})	Elo {0} ({1})
+Nenhuma pista baixada. As pistas das corridas online aparecem aqui.	No downloaded tracks. Tracks from online races show up here.
+Nenhuma pista sua ainda.	None of your own tracks yet.
+Todas	All
+Minhas	Mine
+Baixadas	Downloaded
+Largada em {0} s · Enter larga agora	Start in {0} s · Enter starts now
+Largada em {0} s	Start in {0} s

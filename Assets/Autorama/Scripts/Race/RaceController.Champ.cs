@@ -91,6 +91,7 @@ namespace Autorama
             Text(L.T("Cada etapa é uma pista com um número de voltas. Clique numa pista abaixo para incluir."), "hint", stg);
             cStages = El(null, Caixa(stg));
             Text(L.T("PISTAS DISPONÍVEIS"), "h3", stg);
+            cPickFilter = new TrackFilter(stg, RefreshChamp);
             cPick = El(null, Caixa(stg));
 
             var rules = Section(cSetup, L.T("REGRAS"));
@@ -407,9 +408,12 @@ namespace Autorama
             // O recorde mostrado é o da pista nesse tamanho.
             cPick.Clear();
             int hidden = 0;
-            foreach (var o in Options())
+            var cOpts = Options();
+            CountFilter(cPickFilter, cOpts);
+            foreach (var o in cOpts)
             {
                 if (!o.closed) { hidden++; continue; }
+                if (!cPickFilter.Shows(o.save)) continue;
                 var opt = o;
                 var item = new Button(() => AddStage(opt));
                 item.AddToClassList("lib-item"); item.AddToClassList("pick");
@@ -734,6 +738,8 @@ namespace Autorama
             }
             DrawPadHeads();
         }
+
+        TrackFilter cPickFilter;
 
         void RefreshChamp()
         {

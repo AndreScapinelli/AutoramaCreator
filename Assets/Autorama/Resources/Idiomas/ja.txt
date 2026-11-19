@@ -1378,3 +1378,10 @@ Saia da sala para trocar o idioma.	言語を変えるにはルームを出てく
 Seu Elo: {0} · {1}	あなたのElo:{0} · {1}
  · {0}º de {1} na Steam	 · Steamで{1}人中{0}位
 Elo {0} ({1})	Elo {0}({1})
+Nenhuma pista baixada. As pistas das corridas online aparecem aqui.	ダウンロードしたコースはありません。オンラインレースのコースがここに表示されます。
+Nenhuma pista sua ainda.	自作のコースはまだありません。
+Todas	すべて
+Minhas	自作
+Baixadas	ダウンロード
+Largada em {0} s · Enter larga agora	スタートまで {0} 秒 · Enter ですぐスタート
+Largada em {0} s	スタートまで {0} 秒

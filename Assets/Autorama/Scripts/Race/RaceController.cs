@@ -579,6 +579,7 @@ namespace Autorama
 
             var pick = Section(box, L.T("PISTA"));
             Text(L.T("Escolha onde correr. Qualquer pista fechada serve, em qualquer tamanho. Trocar aqui não mexe na pista do construtor."), "hint", pick);
+            pickFilter = new TrackFilter(pick, () => DrawPicker(Options()));
             pickList = El(null, Caixa(pick));
 
             pickNote = Text("", "small", pick);
@@ -720,6 +721,10 @@ namespace Autorama
             bannerSub = Text("", "banner-sub", banner);
             bannerRec = Text("", "banner-rec", banner);    // selo de recorde da pista batido (campeonato)
             bannerRec.style.display = DisplayStyle.None;
+            startBar = El("start-bar", banner);             // online: quanto falta para o host largar sozinho
+            startBarText = Text("", "start-bar-text", startBar);
+            startBarFill = El("start-bar-fill", El("start-bar-track", startBar));
+            startBar.style.display = DisplayStyle.None;
             recCard = El("res-table", banner);              // recordes antes da largada (RaceController.Records.cs)
             recCard.style.display = DisplayStyle.None;
             carPick = El("car-pick", banner);              // escolha do carro antes da etapa (RaceController.CarPick.cs)
@@ -1321,13 +1326,25 @@ namespace Autorama
             return p;
         }
 
+        TrackFilter pickFilter;
+
+        // Conta as fechadas de cada tipo e põe no filtro.
+        static void CountFilter(TrackFilter f, List<Option> opts)
+        {
+            int mine = 0, down = 0;
+            foreach (var o in opts) if (o.closed) { if (TrackFilter.Downloaded(o.save)) down++; else mine++; }
+            f.Counts(mine, down);
+        }
+
         void DrawPicker(List<Option> opts)
         {
             pickList.Clear();
+            CountFilter(pickFilter, opts);
             int open = 0;
             foreach (var o in opts)
             {
                 if (!o.closed) { open++; continue; }             // pista aberta não corre: nem aparece
+                if (!pickFilter.Shows(o.save)) continue;
                 var opt = o;
                 var item = new Button(() => { if (!Racing) { UseTrack(opt.key); sim.Reset(); scoreDirty = true; } });
                 item.AddToClassList("lib-item");
@@ -1707,6 +1724,7 @@ namespace Autorama
             }
             // Antes do 3, 2, 1: os recordes da pista (e de cada piloto da bateria).
             if (ChampLike) CarPickTick();
+            StartBarUI(showLights);
             if (PauseUI()) return;
             if (panel.CareerMode) { banner.style.display = DisplayStyle.None; SetResult(false); return; }   // a carreira tem o resultado dela
             if (CarPickUI(showLights)) return;
@@ -1750,6 +1768,20 @@ namespace Autorama
             for (int k = 0; k < sim.N; k++)
                 if (sim.present[k] && sim.cars[k].best != null && (f < 0 || sim.cars[k].best < sim.cars[f].best)) f = k;
             return f;
+        }
+
+        // Online, com a corrida parada: a barra que esvazia até o host largar sozinho (Enter do host larga na hora).
+        VisualElement startBar, startBarFill;
+        Label startBarText;
+        void StartBarUI(bool showLights)
+        {
+            float wait = 0f, left = OnlineRun && !showLights && !panel.CareerMode && sim.phase == RaceSim.Phase.Idle ? AutoLeftF(out wait) : -1f;
+            bool on = left >= 0f && HeatNow(out _, out _, out _, out _, out _);
+            startBar.style.display = on ? DisplayStyle.Flex : DisplayStyle.None;
+            if (!on) return;
+            int n = Mathf.CeilToInt(left);
+            startBarText.text = IsHost ? L.F("Largada em {0} s · Enter larga agora", n) : L.F("Largada em {0} s", n);
+            startBarFill.style.width = Length.Percent(100f * left / wait);
         }
 
         void BannerColor(int lane)

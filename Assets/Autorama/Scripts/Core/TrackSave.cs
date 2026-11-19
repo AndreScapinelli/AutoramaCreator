@@ -18,6 +18,7 @@ namespace Autorama
         public int versao = 1;
         public string nome = "";
         public string autor = "";         // quem criou a pista (seção 83): posto ao salvar, vai junto pelo online; não entra na identidade
+        public bool baixada;              // chegou pelo online (seção 84, filtro Minhas · Baixadas); não entra na identidade
         public BoardSave mesa = new BoardSave();
         public float escalaCm = 15f;
         public OriginSave largada = new OriginSave();

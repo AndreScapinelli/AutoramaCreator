@@ -175,6 +175,7 @@ namespace Autorama
             oStages = El(null, Caixa(st));
             oHostPick = El(null, st);
             Text(L.T("PISTAS DISPONÍVEIS"), "h3", oHostPick);
+            oPickFilter = new TrackFilter(oHostPick, DrawLobby);
             oPick = El(null, Caixa(oHostPick));
             // Host: o que os visitantes sugeriram. Visitante: as próprias pistas, para sugerir ao host.
             oSuggestBox = El(null, st);
@@ -184,6 +185,7 @@ namespace Autorama
             oSendBox = El(null, st);
             Text(L.T("SUGERIR UMA PISTA AO HOST"), "h3", oSendBox);
             Text(L.T("Escolha uma das suas pistas (fechada) para o host incluir. Até 3 por minuto."), "hint", oSendBox);
+            oSendFilter = new TrackFilter(oSendBox, DrawLobby);
             oSend = El(null, Caixa(oSendBox));
 
             var chat = Section(oLobby, L.T("CHAT"));
@@ -640,6 +642,7 @@ namespace Autorama
         {
             var data = TrackSave.FromJson(s.save.ToJson(false));
             data.nome = s.track;
+            data.baixada = true;
             if (TrackLibrary.List().Exists(e => e.save.nome == data.nome)) data.nome = L.F("{0} (de {1})", s.track, s.name);
             TrackLibrary.Save(data);
             panel.Toast(L.F("“{0}” salva na sua biblioteca.", data.nome));
@@ -679,6 +682,7 @@ namespace Autorama
             string nome = st.name.Replace("​", "").Trim();   // tira o Safe do nome da etapa
             string bas = nome.Length > 0 ? nome : L.T("Pista");
             data.nome = bas;
+            data.baixada = true;
             for (int n = 2; lib.Exists(e => e.save.nome == data.nome); n++)   // outra pista com o mesmo nome: não sobrescreve
                 data.nome = n == 2 ? bas + L.T(" (online)") : L.F("{0} (online {1})", bas, n - 1);
             TrackLibrary.Save(data);
@@ -726,9 +730,12 @@ namespace Autorama
             // Se o host já escolheu o tipo (2 ou 4 carros), só as pistas desse tipo fazem sentido.
             int want = room.stages.Count > 0 ? TrackMath.Faixas(room.stages[0].faixas) : 0;
             int shown = 0;
-            foreach (var o in Options())
+            var sendOpts = Options();
+            CountFilter(oSendFilter, sendOpts);
+            foreach (var o in sendOpts)
             {
                 if (!o.closed) continue;                         // qualquer tamanho serve: o host adapta
+                if (!oSendFilter.Shows(o.save)) continue;
                 var opt = o;
                 bool sent = sentSuggestions.Contains(Champ.TrackHash(o.save));
                 var item = new Button(() => SendSuggestion(opt));
@@ -805,6 +812,8 @@ namespace Autorama
         }
 
         // ---------- Desenho ----------
+
+        TrackFilter oPickFilter, oSendFilter;
 
         void DrawOnline()
         {
@@ -961,10 +970,13 @@ namespace Autorama
 
             oHostPick.style.display = host ? DisplayStyle.Flex : DisplayStyle.None;
             oPick.Clear();
+            var hostOpts = host ? Options() : null;
+            if (host) CountFilter(oPickFilter, hostOpts);
             if (host)
-                foreach (var o in Options())
+                foreach (var o in hostOpts)
                 {
                     if (!o.closed) continue;                     // pista aberta não corre
+                    if (!oPickFilter.Shows(o.save)) continue;
                     var opt = o;
                     var item = new Button(() => AddOnlineStage(opt));
                     item.AddToClassList("lib-item"); item.AddToClassList("pick");

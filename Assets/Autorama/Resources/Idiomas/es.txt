@@ -1378,3 +1378,10 @@ Saia da sala para trocar o idioma.	Sal de la sala para cambiar el idioma.
 Seu Elo: {0} · {1}	Tu Elo: {0} · {1}
  · {0}º de {1} na Steam	 · {0}.º de {1} en Steam
 Elo {0} ({1})	Elo {0} ({1})
+Nenhuma pista baixada. As pistas das corridas online aparecem aqui.	No hay pistas descargadas. Las pistas de las carreras online aparecen aquí.
+Nenhuma pista sua ainda.	Todavía no tienes pistas propias.
+Todas	Todas
+Minhas	Mías
+Baixadas	Descargadas
+Largada em {0} s · Enter larga agora	Salida en {0} s · Enter sale ya
+Largada em {0} s	Salida en {0} s

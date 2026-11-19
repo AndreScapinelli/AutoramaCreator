@@ -1439,7 +1439,7 @@ Os modos antigos *3D* (1) e *Dinâmica* (3) saíram da corrida (eram ruins de as
 
 **Perseguição** (`TopDownCamera.ApplyThirdPerson`):
 
-- **Posição:** `carro − chaseFwd × (3,4 + recuo)u + cima × 1,2u` (~19° de cima), com `u = distância` do slider. **Recuo com a velocidade:** `ChaseSpeedBack 1,6 × v/vmax` do carrinho (`vmax × Speed × setup.Top`; 0 fora do trilho), vindo de `SetCarTrack(k, noTrilho, derrapagem, speed01)`, com lerp lento `ChaseSpeedRate 1,5`: parado, 3,4 atrás; no máximo, 5,0. Parado o carrinho ficava bom, mas andando a câmera grudava nele. Lerp `ChasePosRate 6`. Campo de visão 55°. Não multiplica pela escala da pista: o carrinho tem o mesmo tamanho em todas, e com `3,2 × escala` ele sumia na pista de 6 (9,6 atrás e 5,1 acima). Era `3,2u + 1,7u` antes.
+- **Posição:** `carro − chaseFwd × (3,4 + recuo)u + cima × 1,6 × (1 + recuo/3,4)u` (~25° de cima, parado ou andando; era `1,2u` fixo, ~19° parado e ~13° na velocidade máxima, deitada demais), com `u = distância` do slider. **Recuo com a velocidade:** `ChaseSpeedBack 1,6 × v/vmax` do carrinho (`vmax × Speed × setup.Top`; 0 fora do trilho), vindo de `SetCarTrack(k, noTrilho, derrapagem, speed01)`, com lerp lento `ChaseSpeedRate 1,5`: parado, 3,4 atrás; no máximo, 5,0. Parado o carrinho ficava bom, mas andando a câmera grudava nele. Lerp `ChasePosRate 6`. Campo de visão 55°. Não multiplica pela escala da pista: o carrinho tem o mesmo tamanho em todas, e com `3,2 × escala` ele sumia na pista de 6 (9,6 atrás e 5,1 acima). Era `3,2u + 1,7u` antes.
 - **Ponto olhado:** `RaceController` manda a cada quadro o ponto do trilho `CamAhead 2,2` à frente (no mundo, sem a escala) (`SetCarAhead`); a câmera olha `ChaseLookAhead 0,55` do caminho entre o carrinho e esse ponto, com lerp `ThirdLookRate 12`. Assim a curva aparece antes de o carrinho chegar nela. Rodando, olha só o carrinho.
 - **Direção:** `chaseFwd` segue o rumo com lerp `ChaseTurnRate 6`; rodando, gira no máximo `ThirdTurnRate 110°/s`.
 - **Reinício:** trocar de modo ou de carrinho zera a direção (corte direto para a posição).
@@ -5063,6 +5063,27 @@ Primeira leva das propostas de `docs/PROPOSTAS-UI.md` (branch `melhorias-ui`). A
 - Embaixo do nome, a melhor volta de cada um aparece sempre, também com 6 e 8 carros (antes sumia).
 - Quem tem a melhor volta da prova ganha a borda roxa (`.hud-card--fast`) e "★" no tempo. Se também for o líder, a borda fica amarela com o lado direito roxo.
 
+**Filtro das listas de pistas** (`Builder/TrackFilter.cs`, `.track-filter`): um segmentado **Todas · Minhas · Baixadas**, com a contagem de cada um, em cima de cinco listas:
+- Minhas pistas, no construtor;
+- Pista, na aba Corrida;
+- Pistas disponíveis, no Campeonato;
+- Pistas disponíveis (host) e Sugerir uma pista ao host, no Online.
+
+Escolhemos o filtro, e não duas rolagens, porque o painel é estreito e duas caixas dividiriam a altura. Cada lista guarda o próprio filtro; trocar redesenha só ela.
+- **Quando a pista é baixada** (`TrackFilter.Downloaded`):
+  - `TrackSave.baixada` é verdadeiro. É um campo novo no JSON, fora da identidade, posto em `SaveRunTrack` (pistas do campeonato online e da partida rápida) e em `SaveSuggestion` (sugestão aceita pelo host);
+  - ou o `autor` não é vazio e é diferente de quem joga aqui (`BuilderPanel.LocalAuthor`).
+- O exemplo oval e a pista do construtor contam como minhas.
+- As pistas baixadas antes deste campo, sem autor, ficam em Minhas.
+- Lista vazia no filtro: "Nenhuma pista baixada. As pistas das corridas online aparecem aqui." ou "Nenhuma pista sua ainda.".
+- Textos traduzidos nas cinco tabelas.
+- **Teste** (`script eval`):
+  - `baixada = true` dá baixada;
+  - autor "Outro" dá baixada;
+  - autor igual ao do jogador dá minha;
+  - sem nada dá minha.
+  - Na biblioteca de teste (16 pistas, autor vazio ou "Zulks"), a Corrida mostrou Todas (18), Minhas (18), Baixadas (0).
+
 **Paleta embaixo da mesa** (proposta E, `.pal-bar`):
 - Os grupos (Retas, Curvas, Curvas inclinadas, Cruzamentos e rampas, Loop e salto) viraram abas. A barra mostra as peças do grupo aberto em quadrados de 88 px, com a tecla no canto.
 - As teclas valem para todas as peças, com qualquer aba aberta.
@@ -5088,25 +5109,28 @@ Primeira leva das propostas de `docs/PROPOSTAS-UI.md` (branch `melhorias-ui`). A
 
 ## 85. Logo e ícone do jogo
 
-**Arquivos** (`Assets/Autorama/Texturas/`), recortados das imagens geradas fora do jogo: o fundo escuro ligado à borda (canal máximo < 38 no logo e < 30 no ícone, preenchido a partir das bordas) virou transparente, com 1,2 px de desfoque na borda.
-- `logo.png` (2000 × 667, já veio com fundo transparente): "AUTORAMA MANIA · DEFINITIVE EDITION". O "1" saiu do nome do jogo, no logo e no ícone. Substitui no menu inicial os textos AUTORAMA, MANIA, a edição e a faixa quadriculada (as classes `.start-title--2`, `.start-edition` e `.start-flag` saíram; `.start-title` fica para a Carreira).
-- **Import:** `logo.png` e `logo-brilho.png` usam *Non-Power of 2* = None e não têm mipmap. No padrão, a Unity arredondava o logo para 2048 × 512 (antes, 1024 × 512), e o `scale-to-fit` achatava o desenho.
-- `logo-brilho.png`: a máscara do brilho. É branca, com alfa = alfa do logo × (1,4 · luminância)^0,7 (mais forte nas letras claras).
-- `icone-jogo.png` (1254 × 1254): o ícone padrão do Player Settings (`PlayerSettings.SetIcons`, alvo `Unknown`).
+**Nome do jogo:** **Autorama Mania - Slot Car Racing · Definitive Edition**. Ele aparece só no logo e no ícone; o `productName` continua `AutoramaMania` (seção 84).
+
+**Arquivos** (`Assets/Autorama/Texturas/`), gerados das imagens feitas fora do jogo (o script ficou fora do projeto; os passos estão aqui):
+- `logo.png` (1766 × 785; a imagem de 1774 × 887 já veio com fundo transparente): "AUTORAMA MANIA · SLOT CAR RACING · DEFINITIVE EDITION". Cortado no retângulo com alfa > 20, com 8 px de folga. Substitui no menu inicial os textos AUTORAMA, MANIA, a edição e a faixa quadriculada (as classes `.start-title--2`, `.start-edition` e `.start-flag` saíram; `.start-title` fica para a Carreira).
+- **Import:** `logo.png` e `logo-brilho.png` usam *Non-Power of 2* = None e não têm mipmap. No padrão, a Unity arredondava o logo para uma potência de 2, e o `scale-to-fit` achatava o desenho.
+- `logo-brilho.png` (1766 × 785): a máscara do brilho. É branca, com alfa = alfa do logo × min(1; 1,4 · luminância)^0,7 (mais forte nas letras claras).
+- `icone-jogo.png` (1254 × 1254): o ícone padrão do Player Settings (`PlayerSettings.SetIcons`, alvo `Unknown`). O preto ligado à borda (canal máximo < 30, preenchido a partir das bordas, 68 946 px) virou transparente, com 1,2 px de desfoque; sobram os cantos arredondados da moldura amarela.
+- Versão anterior (2000 × 667, sem "SLOT CAR RACING"): no histórico do git, antes da troca.
 
 **Animação** (`Builder/StartLogo.cs`, um `VisualElement`; `.start-logo` com o `logo.png` de fundo e `scale-to-fit`):
 - **Entrada** (0,75 s): a escala vai de 0,35 a 1 com o *back out* (c = 1,9), gira de −7° a 0°, cai 60 px de cima e acende em 0,3 s.
 - **Parado**: flutua ±4 px num período de 3,4 s, a escala respira ±1,2% e gira ±0,5°.
 - **Brilho**: aos 0,55 s e depois a cada 4,5 s, uma faixa inclinada (meia largura 0,13 da largura do logo, inclinação 0,25) passa em 0,9 s, com até 75% de opacidade. O desenho é uma malha de 48 × 6 quadrados com a textura do brilho (`generateVisualContent`), e a transparência de cada vértice segue a faixa. Por isso o brilho só aparece em cima do logo. A textura vem do filho `.start-logo-brilho`, que tem tinta transparente e serve só para o USS carregar o arquivo.
-- A altura segue a largura (667/2000, no `GeometryChangedEvent`). O relógio é o `Time.unscaledTime` (16 ms). `ShowMenu(true)` chama `Play()` (a entrada repete toda vez que o menu abre) e `ShowMenu(false)` chama `Stop()`.
+- A altura segue a largura (785/1766, no `GeometryChangedEvent`). O relógio é o `Time.unscaledTime` (16 ms). `ShowMenu(true)` chama `Play()` (a entrada repete toda vez que o menu abre) e `ShowMenu(false)` chama `Stop()`.
 
 **Menu com o logo em cima.** A primeira versão (logo à esquerda, com 42% do cartão, e os modos à direita) foi testada e não ficou boa. O logo ficou pequeno (uns 430 px numa tela de 1940), centrado na coluna enquanto o slogan e os botões do pé ficavam à esquerda, e o slogan cinza fino não combinava com o logo 3D. Como ficou:
-- `.start-card` em coluna, com até 1280 px e 90% da tela. O logo fica no alto e no centro (`.start-hero`, 64% e no máximo 820 px; o logo chega a uns 273 px de altura).
+- `.start-card` em coluna, com até 1280 px e 90% da tela. O logo fica no alto e no centro (`.start-hero`, 64% e no máximo 820 px; o logo chega a uns 364 px de altura).
 - Atrás do logo, `.start-halo` (`Texturas/logo-halo.png`, 512 × 256): um halo escuro radial (alfa máximo 0,85, suavizado), esticado de −22% a −22% dos lados, −40% em cima e −30% embaixo, para a grade da mesa não brigar com o logo.
 - Sem slogan: o logo já diz tudo. Primeiro o slogan virou "MONTE · CORRA · VENÇA" em maiúsculas espaçadas, mas não agradou e saiu. O `.start-sub` continua só na tela de saves da Carreira.
 - Os cinco modos ficam numa faixa só (`.start-grid` em linha): cartões de 128 px, com o ícone em cima, o título e a explicação. A Carreira cresce 1,45 vez e é amarela. Peças, Opções e Sair ficam centrados no pé.
 
-**Teste:** compila; no Play, o logo mede 496 × 191 no menu, e o logo e o brilho acham as texturas.
+**Teste:** compila; no Play, o logo mede 496 × 191 no menu, e o logo e o brilho acham as texturas. Com o logo novo (proporção 0,444 em vez de 0,333), o logo chega a uns 364 px de altura no `.start-hero` de 820 px. Conferido no Editor: `logo` e `logo-brilho` importam em 1766 × 785, sem mipmap e com NPOT = None; o ícone do Player Settings continua o `icone-jogo`.
 
 ## 86. Aceleração e agilidade que fazem diferença
 
@@ -5194,10 +5218,29 @@ A interface tem seis idiomas: português (o original), inglês, espanhol, franc�
 - **Quem conta:** cada um entra na fila dizendo o seu Elo e quantas partidas tem (`NetOut.elo`/`eloj`). No servidor Node, o `mm` guarda isso na conexão (fora de 100–4000 vira 0) e o `snapshot` põe `elo`/`eloj` nos jogadores da sala `mm` (o segundo jogador fica com 0). Na Steam, vai nos dados do membro da fila (`elo` = "1032:12", lido por `EloOf` no `BuildRoom`). Tudo chega no `started` (`NetPlayer.elo`/`eloj`). No fim da bateria, cada cliente faz a mesma conta pela ordem de chegada (`Order()`) e grava **só a própria** mudança (`RaceController.Elo.cs`, `EloApply`). O Elo do jogador fica no `jogador.json` (`PlayerFile.elo`, `eloJogos`; `ChampFiles.PlayerElo`/`SavePlayerElo`). Ficam de fora da conta o segundo jogador do mesmo computador e quem não tem Elo (0).
 - **Sair no meio:** quem sai da partida (`LeaveRoom`) depois da largada e antes do fim conta como último. Uma partida só conta uma vez (`eloApplied`). Cair a conexão sem sair não muda nada.
 - **Steam** (`Online/Steam/EloBoard.cs`): placar `elo` (decrescente, numérico). A pontuação é o Elo e o detalhe 0 é o número de partidas. `Push` grava com `ForceUpdate`, porque o Elo também desce. `Pull` (na primeira vez que o cartão aparece e depois de cada `Push`) lê a própria linha (`GlobalAroundUser 0,0`), com a posição e o total. Se a Steam tiver um Elo com mais partidas que o daqui (jogou em outro computador), ele é adotado (`EloBoard.Adopt`).
-- **Confiança:** o Elo de cada um é o que ele diz. Quem mexer no `jogador.json` muda o próprio número e, um pouco, a conta dos adversários daquela partida. Na Steam, só ele grava o próprio placar.
+- **Confiança:** veja 89.1. No servidor Node, o Elo dos outros continua sendo o que cada um diz (assinado no arquivo dele).
 - **Teste:**
   - `script eval`: 1000 contra 1000 (K 40) dá +20/−20. Com 4 jogadores (1200 com 50 partidas em último, 1000, 1000 e 800), dá −16, +20, +7 e +6. 1500 contra 1500 com 40 partidas (K 20) dá +10/−10. `E(1200, 1000) = 0,760`. O `JsonUtility` lê `elo`/`eloj` do `started` e grava os do `mm`.
   - `npm test`: verificação nova "o Elo de cada um vai no started (fora da faixa vira 0)" e todas as antigas.
   - `OnlineSmokeTest` contra o servidor: 67 ok.
   - Recompilado sem erros. **Não testado:** uma partida rápida de verdade até o fim (a conta no resultado, o `jogador.json` gravado) e o placar da Steam.
 - **Ainda não tem:** temporadas e fila por nível de Elo.
+
+### 89.1 Elo protegido
+
+- **Assinatura no `jogador.json`:** junto do `elo` e do `eloJogos` vai `eloSig`, os 16 primeiros caracteres hexadecimais do HMAC-SHA256 de `uid:elo:jogos` com uma chave do jogo (`Elo.Sign`). Ao ler (`ChampFiles.PlayerElo`), se a assinatura não bate, o Elo volta para 1000 com 0 partidas e sai um aviso no log. O número fica legível (não é cifrado): o que protege é a assinatura, e cifrar só esconderia o valor. Isso segura quem edita o arquivo, mas não quem descompila o jogo e acha a chave.
+- **Na Steam, o placar é a fonte:**
+  - **Próprio Elo:** o `Pull` lê a própria linha do placar `elo` e ela vale sempre (`EloBoard.Mine`), mesmo menor que o número daqui. Sem linha no placar e com partidas aqui, o número daqui sobe para lá (já passou pela assinatura).
+  - **Adversários:** na largada (`EloStart`), quem tem SteamID entra com 1000 e o jogo pede o Elo de cada um ao placar (`EloBoard.Users`, `DownloadLeaderboardEntriesForUsers`). O que chega substitui o que cada um disse na fila; quem não está no placar fica com 1000 e 0 partidas. A resposta só vale se chegar antes do fim da bateria e na mesma sala.
+- **Ainda não protege:** quem modifica o jogo pode gravar qualquer número no próprio placar, porque o próprio cliente grava. Para fechar isso, um servidor confiável teria que gravar o placar (Web API da Steam, placar "Trusted") depois de conferir o resultado. Está anotado no `docs/IDEIAS.md`.
+- **Teste** (`script eval`, com backup e restauração do `jogador.json` de verdade): gravar 1234 com 7 partidas e ler de volta dá 1234:7. Trocar o Elo à mão para 2500 dá 1000:0. Trocar as partidas para 70 dá 1000:0. `Sign("x", 1000, 0)` e `Sign("x", 1001, 0)` dão assinaturas diferentes. Recompilado sem erros. **Não testado com a Steam de verdade:** o `Mine` e o `Users`.
+
+## 90. Faísca da trança na velocidade máxima
+
+- **O que faz:** quando o carro chega perto da própria velocidade máxima, saem estalos pequenos de faísca amarelo-clara embaixo da frente, no guia, como a trança de cobre no trilho. A primeira versão era azulada, maior e mais frequente; ficou estranha e chamava atenção demais. Fica em `RaceController.Vfx.cs` (`zap`) e só lê o `CarState`, então vale também no cliente online sem mudar o protocolo.
+- **Quando liga:** `v ≥ 0,97 × máxima` liga e `v < 0,94 × máxima` desliga (`ZapOn`, `ZapOff`; a folga evita que pisque). A máxima é a do carro naquele momento, a mesma conta do `RaceSim`: `vmax × Speed × Top` do ajuste, × (1 + `Boost`) com o turbo apertado e com carga. Fica desligada no ar (salto), fora da pista e na pausa.
+- **Como sai:** um `ParticleSystem` só, em espaço do mundo, com `Emit` por carro. A cada 0,45 a 1,1 s (`ZapGapMin/Max`) saem 1 ou 2 partículas de `ZapAt` (0,22 à frente, 0,015 de altura, no espaço do carro). A velocidade delas é de 20 a 60% da do carro para a frente (ficam para trás), ±0,6 para os lados e 0,1 a 0,4 para cima, × `Scale`. Têm vida de 0,06 a 0,14 s e tamanho de 0,012 a 0,02 × `Scale`, de branco-amarelado a amarelo-alaranjado, em modo `Stretch` (`velocityScale 0.012`), com o `sparkMaterial`.
+- **Teste** (`script eval`, IA 100 sozinha, 3 voltas, sem turbo, fração do tempo no trilho):
+  - **Oval:** a máxima não passa de 0,88 (0,92 com os mestres, 150), então nunca acende: as retas são curtas.
+  - **Carreira:** nas pistas com retas longas, a IA fica acima de 0,94 de 15 a 59% do tempo (nacional-c1 59%, regional-1 48%, clube-c1 46%). Nas da garagem, de 0 a 5%.
+  - Recompilado sem erros. **Não visto na tela:** o tamanho e o brilho das partículas no Play.
