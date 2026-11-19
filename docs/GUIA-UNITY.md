@@ -5387,3 +5387,26 @@ Sem saídas. Nas pistas de salto e loop a lenda ganha pouco do mestre (o salto e
 - **Correções depois do teste:**
   - **Felix:** a 195 venceu o Felix (200) por 3×0. Sem turbo, os dois empatavam na global-8: nos saltos e no loop, as lendas param no mesmo limite. Com turbo, ganhava quem vinha atrás (o handicap da seção 79). Agora o Felix tem a garagem no nível 11, um a mais que o máximo à venda (`NodeDef.rivalNivel`, `PilotoDef.nivel`, `Pilot.nivel`, até `Career.MaxNivelIA 15`). Duelo de 6 voltas com turbo, 6 provas por trilho, contra a 195 no nível 10: no nível 10 o Felix vence 1 de 12; no 11, 6 de 12; no 12, 10 de 12. Ele fica entre os melhores, sem ser imbatível. Na região inteira: série 3×1 para a 195.
   - **Chicane antes do salto:** na Serra do Mundo e na Serra Nacional (`Md Me Md Me J2`), a IA saía uma vez por volta. Eram duas causas. Primeiro, a lenda contava a folga curva a curva, e na chicane a derrapagem não tem reta para baixar: agora curvas encostadas contam como uma só (`aiRest`). Segundo, com o salto à frente, o mestre não freava forte nem pela curva antes da rampa: agora não freia forte só pelo salto (`needCurve`). Sozinha, a IA de 125 a 200 faz 0 a 0,3 saída por prova em global-3, nacional-7, nacional-4, nacional-2, regional-2, global-8 e global-c5 (antes, 4 na global-3 e na nacional-7). As voltas das pistas sem chicane não mudaram.
+
+## 93. Bolha Fórmula: a quarta bolha, do campeão do Mundial
+
+Uma **quarta bolha** (`CarSetup.bolha = 3`, `CarBody.Formula`), com física própria e equilibrada: um pouco da asa e um pouco da lisa. Ela abre para quem for campeão (★★) do Mundial (`global-mundial`) em algum save (`Progresso.FormulaOk`, `FormulaNo`) e vale em todos os modos. Na garagem da carreira não se compra nem tem níveis (`CarShop.HasOpt`, `Level` e `CanBuyLevel` com opção > 2).
+
+- **Física** (`CarSetup.FormulaAero 0.0125`, `FormulaTop 0.01`): aderência × (1 + 0,0125 × (v/vmax)²) e final × 1,01. Os níveis da carreira não valem para ela (`Lv` dá 0).
+- **Calibração** (`SetupCalib.Drive`, as 27 combinações de motor, pneu e chassi com cada bolha; média contra a média das três antigas e a melhor volta):
+
+| Pista | Asa | Lisa | Fórmula 1,75% / 1,5% | **Fórmula 1,25% / 1%** | Melhor volta: asa · lisa · Fórmula |
+|---|---|---|---|---|---|
+| Oval | −1,09% | +0,29% | +0,01% | +0,15% | 10,600 · 10,783 · 10,683 |
+| 8 com ponte | +1,12% | −1,78% | −0,86% | −0,29% | 14,200 · 13,667 · 13,950 |
+| Retas longas | +0,98% | −1,49% | −0,64% | −0,22% | 11,350 · 11,083 · 11,183 |
+| Retas longas inclinada | −1,48% | +1,12% | −0,57% | −0,55% | 9,217 · 9,167 · 9,200 |
+| Quadrado | −1,19% | +0,64% | −0,53% | −0,15% | 7,100 · 7,200 · 7,083 |
+
+  Com 1,75% / 1,5% a melhor combinação de Fórmula ganhava da asa por 4% no Quadrado. Com 1,25% / 1%, ela fica em segundo na média em todas as pistas e a melhor volta só empata com a asa no Quadrado (0,2%, dentro do ruído). A asa continua a das curvas e a lisa a das retas. Com 1% / 0,75% ela passava a perder do padrão no Quadrado.
+- **Desenho** (`CarView.BuildFormula`, low-poly por código, um modelo só, "Fórmula Mundial"): monocoque de bico fino, pontões, assoalho escuro, tampa do motor com tomada de ar, capacete na segunda cor com viseira, halo, asa dianteira de ponta a ponta com dois planos e placas, asa traseira de dois planos na altura do meio (y 0,18), braços da suspensão e rodas descobertas (z = 0,15). Capacete e viseira se chamam "Teto" e somem na primeira pessoa. `CarView.ModelsOf(bolha)`: 3 modelos nas outras, 1 na Fórmula.
+- **Cartão Carro:** a linha Bolha ganha embaixo o botão Fórmula, com 🔒 e a dica "Seja campeão do Mundial na carreira para abrir." até abrir. A garagem da carreira continua com as três de sempre.
+- **Online:** a Fórmula vai como bolha 0 com o modelo 3 (que não existe), então o código continua cabendo (`CarCode`, `CarOf` até 24 × 81). Quem tem a versão antiga vê um carro padrão (modelo 2) com a física da Fórmula vinda do host.
+- **Servidor Node:** o `in` cortava o código do carro em 162, então o turbo e o modelo de um visitante nunca chegavam ao host pelo servidor (pela Steam chegavam). Agora o corte é 1944. `npm test` passa.
+- **Carreira:** de Fórmula correm o Felix (rival e campeonatos), as lendas do Mundial e das Lendas e, na Copa Global, a Sofia e a Aiko. O resultado do Mundial mostra "bolha Fórmula" ao abrir.
+- **Teste:** foto (renderização à parte no Play) e corrida de 6 carros na oval com a Fórmula. Textos nas cinco tabelas. **Não testado:** abrir de verdade, ganhando o Mundial.

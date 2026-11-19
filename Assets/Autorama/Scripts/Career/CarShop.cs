@@ -62,7 +62,7 @@ namespace Autorama
 
         public static int OptPrice(string peca) => OptPrices[Idx(peca)];
         public static int OptRegion(string peca) => OptRegions[Idx(peca)];
-        public static bool HasOpt(CarGarage g, string peca, int v) => v == 0 || Progresso.All || g.opcoes.Contains($"{peca}-{v}");
+        public static bool HasOpt(CarGarage g, string peca, int v) => v == 0 || (peca == "bolha" && v == 3 ? Progresso.FormulaOk : Progresso.All || g.opcoes.Contains($"{peca}-{v}"));   // a Fórmula não se compra (seção 93)
 
         static bool RegionOk(CareerSave s, int r) => Progresso.All || r >= Career.Def.regioes.Length || Career.RegionOpen(s, r);
         static string RegionName(int r) => r < Career.Def.regioes.Length ? Career.Def.regioes[r].nome : "?";
@@ -91,7 +91,7 @@ namespace Autorama
             if (g.niveis == null || g.niveis.Length != Trilhas) { var n = new int[Trilhas]; if (g.niveis != null) Array.Copy(g.niveis, n, Mathf.Min(g.niveis.Length, Trilhas)); g.niveis = n; }
         }
 
-        public static int Level(CarGarage g, string peca, int opt) => Mathf.Clamp(g.niveis[Idx(peca) * 3 + opt], 0, MaxNivel);
+        public static int Level(CarGarage g, string peca, int opt) => opt > 2 ? 0 : Mathf.Clamp(g.niveis[Idx(peca) * 3 + opt], 0, MaxNivel);   // a Fórmula não tem níveis
 
         // O maior nível à venda neste save (pela região mais adiantada aberta).
         public static int Cap(CareerSave s)
@@ -103,6 +103,7 @@ namespace Autorama
 
         public static string CanBuyLevel(CareerSave s, string peca, int opt)
         {
+            if (opt > 2) return L.T("A Fórmula não tem níveis.");
             int lv = Level(s.garagem, peca, opt);
             if (lv >= MaxNivel) return L.T("Nível máximo.");
             if (!HasOpt(s.garagem, peca, opt)) return L.T("Abra a opção primeiro.");

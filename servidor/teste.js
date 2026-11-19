@@ -243,7 +243,7 @@ const trilha = (n, extra = {}) => ({ name: 'Pista ' + n, laps: 3, hash: 'a34f4cb
   A.send({ t: 'in', held: true, re: 2, ts: 123456 }); assert.strictEqual((await H.next('in')).ts, 123456);
   A.send({ t: 'in', held: true, re: 2, ts: 'x' }); assert.strictEqual((await H.next('in')).ts, 0); ok('o relógio do visitante (ts) chega ao host');
   A.send({ t: 'in', held: false, re: 2, car: 41, cs: 1 }); { const m = await H.next('in'); assert.strictEqual(m.car, 41); assert.strictEqual(m.cs, 1); }
-  A.send({ t: 'in', held: false, re: 2, car: 999, cs: -3 }); { const m = await H.next('in'); assert.strictEqual(m.car, 162); assert.strictEqual(m.cs, 0); }
+  A.send({ t: 'in', held: false, re: 2, car: 9999, cs: -3 }); { const m = await H.next('in'); assert.strictEqual(m.car, 1944); assert.strictEqual(m.cs, 0); }
   A.send({ t: 'in', held: true, re: 2 }); assert.strictEqual((await H.next('in')).car, 0); ok('a escolha do carro (car, cs) chega ao host, presa nos limites');
   A.send({ t: 'in', held: true, re: 2, pz: 3 }); assert.strictEqual((await H.next('in')).pz, 3);
   A.send({ t: 'in', held: true, re: 2, pz: 'x' }); assert.strictEqual((await H.next('in')).pz, 0); ok('o contador da pausa (pz) chega ao host');

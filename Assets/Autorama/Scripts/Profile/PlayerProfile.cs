@@ -76,6 +76,7 @@ namespace Autorama
         public static IEnumerable<string> ModelsOf(string no, int estrelas)
         {
             foreach (var u in Modelos) if (u.no == no && estrelas >= u.estrelas) yield return L.F("{0} (bolha {1})", CarView.ModelName(u.bolha, u.modelo), CarSetup.BolhaNames[u.bolha].ToLowerInvariant());
+            if (no == FormulaNo && estrelas >= 2) yield return L.T("bolha Fórmula");
         }
 
         // Peça → grupo que a libera ("" = grátis).
@@ -116,17 +117,23 @@ namespace Autorama
         static readonly HashSet<ModelUnlock> models = new HashSet<ModelUnlock>();
         static int reached = -1;
         public static void Refresh() { open = null; reached = -1; Changed?.Invoke(); }
+        // A bolha Fórmula (seção 93): campeão do Mundial (★★) em algum save.
+        public const string FormulaNo = "global-mundial";
+        static bool formula;
+        public static bool FormulaOk { get { if (All) return true; if (open == null) Scan(); return formula; } }
         static void Scan()
         {
             open = new HashSet<string>();
             models.Clear();
             reached = 0;
+            formula = false;
             int n = Career.Def.regioes.Length;
             for (int slot = 1; slot <= Career.Slots; slot++)
             {
                 var s = Career.Load(slot);
                 foreach (var u in Pecas) if (Career.Stars(s, u.no) > 0) open.Add(u.id);
                 foreach (var u in Modelos) if (Career.Stars(s, u.no) >= u.estrelas) models.Add(u);
+                if (Career.Stars(s, FormulaNo) >= 2) formula = true;
                 for (int i = 0; i < n; i++) if (Career.RegionOpen(s, i)) reached = Mathf.Max(reached, i);
             }
         }

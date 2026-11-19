@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Autorama
 {
     // A bolha do carrinho (seção 46 do guia). O número vai para o JSON: 0 = padrão.
-    public enum CarBody { Padrao, Asa, Lisa }
+    public enum CarBody { Padrao, Asa, Lisa, Formula }   // Formula: a bolha do campeão do Mundial (seção 93)
     // Cada bolha tem 3 modelos (seção 80): só o visual muda; física e caixa de colisão são as da bolha.
 
     // O carrinho 3D (seções 28 e 46 do guia). Low-poly de duas cores montado por código: cubos, cilindros e peças
@@ -31,8 +31,12 @@ namespace Autorama
             new[] { L.N("Clássico"), L.N("Coupé GT"), L.N("Rali") },
             new[] { L.N("Fórmula"), L.N("Protótipo"), L.N("Asa dupla") },
             new[] { L.N("Gota"), L.N("Flecha"), L.N("Bala") },
+            new[] { L.N("Fórmula Mundial") },
         };
-        public static string ModelName(int bolha, int modelo) => L.T(ModelNames[Mathf.Clamp(bolha, 0, 2)][Mathf.Clamp(modelo, 0, 2)]);
+        public const int Models = 3;
+        // Modelos de cada bolha: 3, e a Fórmula (seção 93) só o dela.
+        public static int ModelsOf(int bolha) => bolha == (int)CarBody.Formula ? 1 : Models;
+        public static string ModelName(int bolha, int modelo) { var r = ModelNames[Mathf.Clamp(bolha, 0, 3)]; return L.T(r[Mathf.Clamp(modelo, 0, r.Length - 1)]); }
         public int Tire { get; private set; } = -1;
 
         // A faixa do pneu (seção 48): médio amarelo, macio vermelho, duro branco. Índice = CarSetup.pneu.
@@ -74,7 +78,7 @@ namespace Autorama
 
         public void SetBody(CarBody body, int model = 0)
         {
-            model = Mathf.Clamp(model, 0, 2);
+            model = Mathf.Clamp(model, 0, ModelsOf((int)body) - 1);
             if (body == Body && model == Model) return;
             Body = body;
             Model = model;
@@ -204,7 +208,8 @@ namespace Autorama
 
             var cube = PrimitiveType.Cube;
             float wheelZ = 0.145f;
-            if (Model != 0) wheelZ = BuildModel();
+            if (Body == CarBody.Formula) wheelZ = BuildFormula();
+            else if (Model != 0) wheelZ = BuildModel();
             else if (Body == CarBody.Asa)
             {
                 // Asa: cunha baixa de rodas descobertas, lâmina na frente e aerofólio alto e largo.
@@ -357,6 +362,50 @@ namespace Autorama
                     Part(cube, "Bico", trimMat, new Vector3(0.288f, 0.06f, 0f), new Vector3(0.02f, 0.02f, 0.04f), visual);
                     return 0.105f;
             }
+        }
+
+        // Fórmula Mundial (seção 93): monoposto de rodas descobertas, bico fino e comprido, pontões, halo, capacete,
+        // asa dianteira de ponta a ponta e asa traseira de dois planos, na altura do meio (um pouco da asa e da lisa).
+        float BuildFormula()
+        {
+            var cube = PrimitiveType.Cube;
+            const bool asa = true, lisa = false;
+            // Monocoque: do bico (fino, baixo) até atrás do piloto.
+            Shape("Casco", bodyMat, P(-0.20f, 0.03f, 0.055f), P(0.30f, 0.035f, 0.016f), P(0.30f, 0.05f, 0.014f),
+                                    P(0.12f, 0.08f, 0.04f), P(-0.04f, 0.10f, 0.055f), P(-0.20f, 0.095f, 0.055f));
+            // Pontões laterais e o assoalho, entre as rodas.
+            Shape("Pontão", bodyMat, P(-0.16f, 0.028f, 0.115f), P(0.08f, 0.028f, 0.115f), P(0.08f, 0.06f, 0.1f),
+                                     P(0.0f, 0.078f, 0.11f), P(-0.16f, 0.07f, 0.09f));
+            Part(cube, "Assoalho", darkMat, new Vector3(-0.02f, 0.02f, 0f), new Vector3(0.36f, 0.008f, 0.24f), visual);
+            // Tampa do motor que desce até a asa traseira, com a tomada de ar em cima do piloto.
+            Shape("Tampa do motor", bodyMat, P(-0.27f, 0.04f, 0.035f), P(-0.06f, 0.06f, 0.05f), P(-0.08f, 0.135f, 0.03f),
+                                             P(-0.16f, 0.115f, 0.03f), P(-0.27f, 0.075f, 0.03f));
+            Part(cube, "Tomada de ar", darkMat, new Vector3(-0.055f, 0.132f, 0f), new Vector3(0.012f, 0.022f, 0.03f), visual);
+            // Cabine aberta: o piloto de capacete e o halo em volta.
+            Part(cube, "Cabine", darkMat, new Vector3(0.02f, 0.098f, 0f), new Vector3(0.09f, 0.012f, 0.07f), visual);
+            Part(PrimitiveType.Sphere, "Teto", trimMat, new Vector3(0.0f, 0.118f, 0f), new Vector3(0.045f, 0.042f, 0.042f), visual);
+            Part(cube, "Teto", darkMat, new Vector3(0.0f, 0.12f, 0f), new Vector3(0.012f, 0.012f, 0.046f), visual);     // viseira
+            Part(cube, "Halo", darkMat, new Vector3(0.025f, 0.142f, 0f), new Vector3(0.07f, 0.008f, 0.06f), visual);
+            Part(cube, "Halo", darkMat, new Vector3(0.062f, 0.122f, 0f), new Vector3(0.008f, 0.04f, 0.01f), visual);
+            // Asa dianteira de ponta a ponta, com as placas das pontas.
+            float fw = lisa ? 0.006f : 0.008f;
+            Part(cube, "Asa dianteira", trimMat, new Vector3(0.275f, 0.022f, 0f), new Vector3(0.05f, fw, 0.31f), visual);
+            if (asa) Part(cube, "Asa dianteira", bodyMat, new Vector3(0.262f, 0.034f, 0f), new Vector3(0.03f, 0.006f, 0.28f), visual);
+            foreach (float z in new[] { -1f, 1f })
+                Part(cube, "Placa", bodyMat, new Vector3(0.275f, 0.032f, 0.152f * z), new Vector3(0.055f, 0.03f, 0.006f), visual);
+            // Asa traseira: alta e de dois planos na asa, baixa na lisa.
+            float ry = 0.18f, rw = 0.065f;
+            Part(cube, "Aerofólio", trimMat, new Vector3(-0.268f, ry, 0f), new Vector3(rw, 0.012f, 0.26f), visual);
+            if (asa) Part(cube, "Aerofólio", bodyMat, new Vector3(-0.248f, ry + 0.022f, 0f), new Vector3(0.04f, 0.008f, 0.26f), visual);
+            foreach (float z in new[] { -1f, 1f })
+            {
+                Part(cube, "Placa", bodyMat, new Vector3(-0.268f, ry - 0.025f, 0.133f * z), new Vector3(rw + 0.02f, 0.07f, 0.006f), visual);
+                Part(cube, "Apoio", darkMat, new Vector3(-0.26f, (ry + 0.07f) * 0.5f, 0.02f * z), new Vector3(0.012f, ry - 0.07f, 0.008f), visual);
+            }
+            // Braços da suspensão até as rodas.
+            foreach (float x in new[] { 0.185f, -0.185f })
+                Part(cube, "Suspensão", darkMat, new Vector3(x, WheelR + 0.01f, 0f), new Vector3(0.012f, 0.006f, 0.29f), visual);
+            return 0.15f;
         }
 
         // Modelo importado: frente em +X, chão em y = 0, dentro da caixa de 0,60 × 0,32. Os materiais com nome começando

@@ -269,7 +269,7 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
       const ts = Math.max(0, Math.min(2147483647, Math.round(Number(m.ts)) || 0));
       const from = m.g && c.guest ? c.guest.id : c.id;    // g: o botão é do segundo jogador
       // car: o ajuste do carro escolhido antes da etapa cs (seção 48 do guia); 0 = não é escolha.
-      const car = Math.max(0, Math.min(162, Math.round(Number(m.car)) || 0)), cs = Math.max(0, Math.min(MAX_STAGES, Math.round(Number(m.cs)) || 0));
+      const car = Math.max(0, Math.min(1944, Math.round(Number(m.car)) || 0)), cs = Math.max(0, Math.min(MAX_STAGES, Math.round(Number(m.cs)) || 0));
       const pz = Math.max(0, Math.min(1e6, Math.round(Number(m.pz)) || 0));   // pz: contador do P (pausa; seção 53)
       if (host) send(host, { t: 'in', from, held: !!m.held, gp, tb: !!m.tb, re: Math.max(0, Math.min(1e6, Math.round(Number(m.re)) || 0)), ts, car, cs, pz });
     },

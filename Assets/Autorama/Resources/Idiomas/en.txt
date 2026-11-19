@@ -1443,3 +1443,8 @@ Volte quando o relógio tiver medo de você.	Come back when the clock is afraid 
 Faz trinta anos que ninguém me passa. A mesa agora é sua.	Nobody has passed me in thirty years. The table is yours now.
 Lendas	Legends
 Mundial	World Championship
+Fórmula Mundial	World Formula
+A Fórmula não tem níveis.	The Formula has no levels.
+bolha Fórmula	Formula body
+Um pouco da asa e um pouco da lisa.	A bit of the wing and a bit of the slick.
+Seja campeão do Mundial na carreira para abrir.	Win the World Championship in the career to unlock.

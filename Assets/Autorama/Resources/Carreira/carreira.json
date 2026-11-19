@@ -2877,11 +2877,11 @@
               "ia": 182,
               "carro": {
                 "motor": 2,
-                "bolha": 2,
+                "bolha": 3,
                 "pneu": 0,
                 "chassi": 0,
                 "nitro": 1,
-                "modelo": 1
+                "modelo": 0
               },
               "estilo": "constante"
             },
@@ -2905,11 +2905,11 @@
               "ia": 184,
               "carro": {
                 "motor": 0,
-                "bolha": 1,
+                "bolha": 3,
                 "pneu": 1,
                 "chassi": 1,
                 "nitro": 2,
-                "modelo": 1
+                "modelo": 0
               },
               "estilo": "constante"
             },
@@ -3004,11 +3004,11 @@
           "rivalCor": "#E5E7EB",
           "rivalCarro": {
             "motor": 2,
-            "bolha": 2,
+            "bolha": 3,
             "pneu": 0,
             "chassi": 2,
             "nitro": 1,
-            "modelo": 2
+            "modelo": 0
           },
           "rivalEstilo": "",
           "baterias": 5,
@@ -3055,11 +3055,11 @@
               "ia": 200,
               "carro": {
                 "motor": 1,
-                "bolha": 1,
+                "bolha": 3,
                 "pneu": 1,
                 "chassi": 1,
                 "nitro": 1,
-                "modelo": 2
+                "modelo": 0
               },
               "estilo": "",
               "nivel": 11
@@ -3070,11 +3070,11 @@
               "ia": 192,
               "carro": {
                 "motor": 2,
-                "bolha": 2,
+                "bolha": 3,
                 "pneu": 0,
                 "chassi": 0,
                 "nitro": 1,
-                "modelo": 1
+                "modelo": 0
               },
               "estilo": "constante"
             },
@@ -3084,11 +3084,11 @@
               "ia": 190,
               "carro": {
                 "motor": 1,
-                "bolha": 1,
+                "bolha": 3,
                 "pneu": 1,
                 "chassi": 1,
                 "nitro": 1,
-                "modelo": 2
+                "modelo": 0
               },
               "estilo": "agressivo"
             },
@@ -3098,11 +3098,11 @@
               "ia": 194,
               "carro": {
                 "motor": 0,
-                "bolha": 1,
+                "bolha": 3,
                 "pneu": 1,
                 "chassi": 1,
                 "nitro": 2,
-                "modelo": 1
+                "modelo": 0
               },
               "estilo": "constante"
             },
@@ -3112,11 +3112,11 @@
               "ia": 188,
               "carro": {
                 "motor": 2,
-                "bolha": 0,
+                "bolha": 3,
                 "pneu": 2,
                 "chassi": 2,
                 "nitro": 0,
-                "modelo": 2
+                "modelo": 0
               },
               "estilo": "normal"
             },
@@ -3126,11 +3126,11 @@
               "ia": 186,
               "carro": {
                 "motor": 1,
-                "bolha": 2,
+                "bolha": 3,
                 "pneu": 1,
                 "chassi": 0,
                 "nitro": 1,
-                "modelo": 1
+                "modelo": 0
               },
               "estilo": "nervoso"
             },
@@ -3194,11 +3194,11 @@
               "ia": 200,
               "carro": {
                 "motor": 1,
-                "bolha": 1,
+                "bolha": 3,
                 "pneu": 1,
                 "chassi": 1,
                 "nitro": 1,
-                "modelo": 2
+                "modelo": 0
               },
               "estilo": "",
               "nivel": 11
@@ -3209,11 +3209,11 @@
               "ia": 186,
               "carro": {
                 "motor": 2,
-                "bolha": 2,
+                "bolha": 3,
                 "pneu": 0,
                 "chassi": 0,
                 "nitro": 1,
-                "modelo": 1
+                "modelo": 0
               },
               "estilo": "constante"
             },
@@ -3223,11 +3223,11 @@
               "ia": 184,
               "carro": {
                 "motor": 1,
-                "bolha": 1,
+                "bolha": 3,
                 "pneu": 1,
                 "chassi": 1,
                 "nitro": 1,
-                "modelo": 2
+                "modelo": 0
               },
               "estilo": "agressivo"
             },
@@ -3237,11 +3237,11 @@
               "ia": 188,
               "carro": {
                 "motor": 0,
-                "bolha": 1,
+                "bolha": 3,
                 "pneu": 1,
                 "chassi": 1,
                 "nitro": 2,
-                "modelo": 1
+                "modelo": 0
               },
               "estilo": "constante"
             },
@@ -3251,11 +3251,11 @@
               "ia": 182,
               "carro": {
                 "motor": 2,
-                "bolha": 0,
+                "bolha": 3,
                 "pneu": 2,
                 "chassi": 2,
                 "nitro": 0,
-                "modelo": 2
+                "modelo": 0
               },
               "estilo": "normal"
             },
@@ -3265,11 +3265,11 @@
               "ia": 180,
               "carro": {
                 "motor": 1,
-                "bolha": 2,
+                "bolha": 3,
                 "pneu": 1,
                 "chassi": 0,
                 "nitro": 1,
-                "modelo": 1
+                "modelo": 0
               },
               "estilo": "nervoso"
             },

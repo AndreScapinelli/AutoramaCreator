@@ -84,7 +84,7 @@ namespace Autorama
     public struct CarSetup
     {
         public int motor;   // 0 padrão, 1 curto (acelera mais, final menor), 2 longo (o contrário)
-        public int bolha;   // CarBody: 0 padrão, 1 asa (mais aderência em alta, final menor), 2 lisa (o contrário)
+        public int bolha;   // CarBody: 0 padrão, 1 asa (mais aderência em alta, final menor), 2 lisa (o contrário), 3 Fórmula (um pouco dos dois; só do campeão do Mundial, seção 93)
         public int pneu;    // 0 médio, 1 macio (mais aderência, final menor), 2 duro (o contrário)
         public int chassi;  // 0 padrão, 1 leve (responde rápido, escapa na hora), 2 pesado (segura no trilho, mais inércia)
         public int modelo;  // só visual (seção 80): 0–2, o modelo da bolha (CarView.ModelNames); física igual
@@ -99,6 +99,9 @@ namespace Autorama
         public static float TireGrip = 0.03f, TireTop = 0.015f;
         // Bolha (seção 82): a asa ganha aerodinâmica e perde final (o arrasto); a lisa só ganha final, sem perder aderência.
         public static float BodyAero = 0.035f, BodyTop = 0.008f, BodySlick = 0.03f;
+        // Fórmula (seção 93): parte da aerodinâmica da asa e parte da final da lisa, calibrada para não vencer a asa nas
+        // pistas de curva nem a lisa nas de reta.
+        public static float FormulaAero = 0.0125f, FormulaTop = 0.01f;
         public static float ChassiResp = 0.2f, ChassiSlip = 0.1f, ChassiDecay = 0.4f;   // resposta: seção 86
         // Tipo de turbo (seção 77): o ganho de distância numa reta sem fim é v × boost × tempo do tanque cheio, então os
         // três ficam perto de 0,75 (padrão 0,25 × 3 s). O explosivo rende nas retas compridas; o eficiente, nas de reta curta.
@@ -112,11 +115,11 @@ namespace Autorama
         static int Sign(int v, int plus) => v == plus ? 1 : v == 0 ? 0 : -1;
         // Níveis que valem para o lado `want` da peça: a opção dele, inteiros; o padrão, metade; a outra, nada.
         static float Lv(int lv, int opt, int want) => opt == want ? lv : opt == 0 ? lv * 0.5f : 0f;
-        public float Top => (1f + MotorTop * Sign(motor, 2)) * (1f + TireTop * Sign(pneu, 2)) * (bolha == 1 ? 1f - BodyTop : bolha == 2 ? 1f + BodySlick : 1f)
+        public float Top => (1f + MotorTop * Sign(motor, 2)) * (1f + TireTop * Sign(pneu, 2)) * (bolha == 1 ? 1f - BodyTop : bolha == 2 ? 1f + BodySlick : bolha == 3 ? 1f + FormulaTop : 1f)
                             * (1f + LvTop * (Lv(lvMotor, motor, 2) + Lv(lvPneu, pneu, 2) + Lv(lvBolha, bolha, 2)));          // × velocidade final
         public float Accel => (1f + MotorAccel * Sign(motor, 1)) * (1f + LvAccel * Lv(lvMotor, motor, 1));   // × Accel (o empurrão do motor)
         public float Grip => (1f + TireGrip * Sign(pneu, 1)) * (1f + LvGrip * Lv(lvPneu, pneu, 1));          // × aderência, em qualquer velocidade
-        public float Aero => (bolha == 1 ? BodyAero : 0f) + LvAero * Lv(lvBolha, bolha, 1);                     // aderência × (1 + Aero × (v / vmax)²)
+        public float Aero => (bolha == 1 ? BodyAero : bolha == 3 ? FormulaAero : 0f) + LvAero * Lv(lvBolha, bolha, 1);                     // aderência × (1 + Aero × (v / vmax)²)
         public float Resp => (1f + ChassiResp * Sign(chassi, 1)) * (1f + LvResp * Lv(lvChassi, chassi, 1));  // × ritmo do acelerador e × freio
         public float Slip => (1f + ChassiSlip * Sign(chassi, 1)) * (1f - LvSlip * Lv(lvChassi, chassi, 2));  // × SlipGain (o quanto a derrapagem enche)
         public float Decay => 1f - ChassiDecay * Sign(chassi, 1);               // × SlipDecay (o quanto ela esvazia)
@@ -125,7 +128,7 @@ namespace Autorama
         public float BurnTime => (nitro == 1 ? NitroForteTime : nitro == 2 ? NitroLongoTime : RaceSim.TurboTime) * (1f + LvTank * Lv(lvNitro, nitro, 2));   // s de tanque cheio
 
         public static string[] MotorNames => new[] { L.T("Padrão"), L.T("Curto"), L.T("Longo") };
-        public static string[] BolhaNames => new[] { L.T("Padrão"), L.T("Asa"), L.T("Lisa") };
+        public static string[] BolhaNames => new[] { L.T("Padrão"), L.T("Asa"), L.T("Lisa"), L.T("Fórmula") };
         public static string[] PneuNames => new[] { L.T("Médio"), L.T("Macio"), L.T("Duro") };
         public static string[] ChassiNames => new[] { L.T("Padrão"), L.T("Leve"), L.T("Pesado") };
         public static string[] NitroNames => new[] { L.T("Padrão"), L.T("Explosivo"), L.T("Eficiente") };
@@ -145,7 +148,7 @@ namespace Autorama
                 return string.Join(" · ", l);
             }
         }
-        public CarSetup Clamped => new CarSetup { motor = Mathf.Clamp(motor, 0, 2), bolha = Mathf.Clamp(bolha, 0, 2), pneu = Mathf.Clamp(pneu, 0, 2), chassi = Mathf.Clamp(chassi, 0, 2), nitro = Mathf.Clamp(nitro, 0, 2), modelo = Mathf.Clamp(modelo, 0, 2) };
+        public CarSetup Clamped => new CarSetup { motor = Mathf.Clamp(motor, 0, 2), bolha = Mathf.Clamp(bolha, 0, 3), pneu = Mathf.Clamp(pneu, 0, 2), chassi = Mathf.Clamp(chassi, 0, 2), nitro = Mathf.Clamp(nitro, 0, 2), modelo = Mathf.Clamp(modelo, 0, CarView.Models - 1) };
 
         // Velocidade-limite numa curva: v² × k = G × (1 + Aero × v² / V²), com G a aderência (sem a aerodinâmica),
         // k a curvatura e V a velocidade máxima da pista. Sem aerodinâmica é √(G / k), a conta de sempre.

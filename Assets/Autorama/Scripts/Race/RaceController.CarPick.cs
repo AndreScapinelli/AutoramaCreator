@@ -23,13 +23,15 @@ namespace Autorama
         // O ajuste numa mensagem: 1–81 (o ajuste) mais 81 se o piloto já confirmou, mais 162 × nitro, mais 486 × modelo.
         // 0 = não é escolha (protocolo 4). Com o nitro e o modelo padrão o código é o mesmo de antes.
         public const int CarCodes = 81;
-        static int CarCode(CarSetup c, bool ok) => 1 + c.motor * 27 + c.bolha * 9 + c.pneu * 3 + c.chassi + (ok ? CarCodes : 0) + c.nitro * 2 * CarCodes + c.modelo * 6 * CarCodes;
+        // A Fórmula (bolha 3, seção 93) vai como bolha 0 com o modelo 3, que não existe: o código continua cabendo.
+        static int CarCode(CarSetup c, bool ok) => 1 + c.motor * 27 + (c.bolha == 3 ? 0 : c.bolha) * 9 + c.pneu * 3 + c.chassi + (ok ? CarCodes : 0) + c.nitro * 2 * CarCodes + (c.bolha == 3 ? 3 : c.modelo) * 6 * CarCodes;
         static CarSetup CarOf(int code, out bool ok)
         {
-            int v = Mathf.Clamp(code, 1, 18 * CarCodes) - 1;
+            int v = Mathf.Clamp(code, 1, 24 * CarCodes) - 1;     // modelo 3 = a Fórmula (seção 93)
             int modelo = v / (6 * CarCodes); v %= 6 * CarCodes;
             int nitro = v / (2 * CarCodes); v %= 2 * CarCodes;
             ok = v >= CarCodes; v %= CarCodes;
+            if (modelo == 3) return new CarSetup { motor = v / 27, bolha = 3, pneu = v / 3 % 3, chassi = v % 3, nitro = nitro };
             return new CarSetup { motor = v / 27, bolha = v / 9 % 3, pneu = v / 3 % 3, chassi = v % 3, nitro = nitro, modelo = modelo };
         }
         static bool Same(CarSetup a, CarSetup b) => a.motor == b.motor && a.bolha == b.bolha && a.pneu == b.pneu && a.chassi == b.chassi && a.nitro == b.nitro && a.modelo == b.modelo;

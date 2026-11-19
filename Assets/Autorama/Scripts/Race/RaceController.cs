@@ -1049,7 +1049,7 @@ namespace Autorama
         {
             var row = El("segmented car-row", box);
             Text(L.T("Modelo"), "seg-label", row);
-            for (int m = 0; m < 3; m++)
+            for (int m = 0; m < CarView.ModelsOf(su.bolha); m++)
             {
                 int mm = m;
                 bool ok = Progresso.ModelOk(su.bolha, m);
@@ -1079,6 +1079,15 @@ namespace Autorama
             {
                 Row(L.T("Motor"), CarSetup.MotorNames, su.motor, o => { var n = su; n.motor = o; return n; });
                 Row(L.T("Bolha"), CarSetup.BolhaNames, su.bolha, o => { var n = su; n.bolha = o; if (!Progresso.ModelOk(o, n.modelo)) n.modelo = 0; return n; });
+                // A Fórmula (seção 93): só para quem foi campeão do Mundial na carreira.
+                {
+                    bool ok = Progresso.FormulaOk;
+                    var fr = El("segmented car-row", box);
+                    Text("", "seg-label", fr);
+                    var fb = Btn(ok ? CarSetup.BolhaNames[3] : "🔒 " + CarSetup.BolhaNames[3], () => { var n = su; n.bolha = 3; n.modelo = 0; change(n); }, su.bolha == 3 ? "btn btn--on" : "btn", fr);
+                    fb.SetEnabled(ok);
+                    fb.tooltip = ok ? L.T("Um pouco da asa e um pouco da lisa.") : L.T("Seja campeão do Mundial na carreira para abrir.");
+                }
                 ModelRow(box, su, change);
                 Row(L.T("Pneu"), CarSetup.PneuNames, su.pneu, o => { var n = su; n.pneu = o; return n; });
                 Row(L.T("Chassi"), CarSetup.ChassiNames, su.chassi, o => { var n = su; n.chassi = o; return n; });

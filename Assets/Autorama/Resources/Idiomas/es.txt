@@ -1443,3 +1443,8 @@ Volte quando o relógio tiver medo de você.	Vuelve cuando el reloj te tenga mie
 Faz trinta anos que ninguém me passa. A mesa agora é sua.	Hace treinta años que nadie me pasa. La mesa ahora es tuya.
 Lendas	Leyendas
 Mundial	Mundial
+Fórmula Mundial	Fórmula Mundial
+A Fórmula não tem níveis.	La Fórmula no tiene niveles.
+bolha Fórmula	carrocería Fórmula
+Um pouco da asa e um pouco da lisa.	Un poco del alerón y un poco de la lisa.
+Seja campeão do Mundial na carreira para abrir.	Gana el Mundial en la carrera para desbloquear.

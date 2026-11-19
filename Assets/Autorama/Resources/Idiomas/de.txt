@@ -1443,3 +1443,8 @@ Volte quando o relógio tiver medo de você.	Komm wieder, wenn die Uhr Angst vor
 Faz trinta anos que ninguém me passa. A mesa agora é sua.	Seit dreißig Jahren hat mich niemand überholt. Der Tisch gehört jetzt dir.
 Lendas	Legenden
 Mundial	Weltmeisterschaft
+Fórmula Mundial	Welt-Formel
+A Fórmula não tem níveis.	Die Formel hat keine Stufen.
+bolha Fórmula	Formel-Karosserie
+Um pouco da asa e um pouco da lisa.	Ein bisschen Flügel und ein bisschen Glatt.
+Seja campeão do Mundial na carreira para abrir.	Gewinne die Weltmeisterschaft in der Karriere zum Freischalten.
