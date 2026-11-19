@@ -37,40 +37,40 @@ namespace Autorama
 
             // Montar o campeonato
             cSetup = El(null, box);
-            var head = Section(cSetup, "NOVO CAMPEONATO");
-            Text("Escolha os pilotos e as pistas. Em cada etapa, todo piloto corre uma bateria em cada trilho, em rodízio: ninguém leva vantagem por ficar sempre do lado de dentro.", "hint", head);
-            cName = Field("Nome do campeonato", 40, head);
+            var head = Section(cSetup, L.T("NOVO CAMPEONATO"));
+            Text(L.T("Escolha os pilotos e as pistas. Em cada etapa, todo piloto corre uma bateria em cada trilho, em rodízio: ninguém leva vantagem por ficar sempre do lado de dentro."), "hint", head);
+            cName = Field(L.T("Nome do campeonato"), 40, head);
             cName.RegisterValueChangedCallback(e => { store.draft.name = e.newValue; SaveStore(); });
             // Tipo: 2 ou 4 carros por bateria. As etapas são todas pistas desse tipo (nunca se misturam).
-            Text("TAMANHO DA PISTA", "h3", head);
+            Text(L.T("TAMANHO DA PISTA"), "h3", head);
             var kind = El("segmented", head);
-            cKind2 = Btn("2 trilhos", () => ChampKind(2), "btn", kind);
-            cKind4 = Btn("4 trilhos", () => ChampKind(4), "btn", kind);
-            cKind6 = Btn("6 trilhos", () => ChampKind(6), "btn", kind);
-            cKind8 = Btn("8 trilhos", () => ChampKind(8), "btn", kind);
-            cKind2.tooltip = cKind4.tooltip = cKind6.tooltip = cKind8.tooltip = "Todas as etapas correm nesse tamanho (qualquer pista é adaptada). Depois de começar, o tamanho não muda. Com menos pilotos que trilhos, sobra trilho vazio.";
+            cKind2 = Btn(L.T("2 trilhos"), () => ChampKind(2), "btn", kind);
+            cKind4 = Btn(L.T("4 trilhos"), () => ChampKind(4), "btn", kind);
+            cKind6 = Btn(L.T("6 trilhos"), () => ChampKind(6), "btn", kind);
+            cKind8 = Btn(L.T("8 trilhos"), () => ChampKind(8), "btn", kind);
+            cKind2.tooltip = cKind4.tooltip = cKind6.tooltip = cKind8.tooltip = L.T("Todas as etapas correm nesse tamanho (qualquer pista é adaptada). Depois de começar, o tamanho não muda. Com menos pilotos que trilhos, sobra trilho vazio.");
             // Formato: por voltas (rodízio de baterias) ou por tempo (cada bateria passa por todos os trilhos em manches).
-            Text("FORMATO", "h3", head);
+            Text(L.T("FORMATO"), "h3", head);
             var fmt = El("segmented", head);
-            cByLaps = Btn("Por voltas", () => { store.draft.byTime = false; SaveStore(); DrawChampSide(); }, "btn", fmt);
-            cByTime = Btn("Por tempo", () => { store.draft.byTime = true; SaveStore(); DrawChampSide(); }, "btn", fmt);
-            cByTime.tooltip = "Cada bateria tem uma duração e se divide em uma manche por trilho. Vence quem andar mais.";
+            cByLaps = Btn(L.T("Por voltas"), () => { store.draft.byTime = false; SaveStore(); DrawChampSide(); }, "btn", fmt);
+            cByTime = Btn(L.T("Por tempo"), () => { store.draft.byTime = true; SaveStore(); DrawChampSide(); }, "btn", fmt);
+            cByTime.tooltip = L.T("Cada bateria tem uma duração e se divide em uma manche por trilho. Vence quem andar mais.");
 
-            var pil = Section(cSetup, "PILOTOS");
+            var pil = Section(cSetup, L.T("PILOTOS"));
             cPilotCount = Text("", "small", pil);
-            Text("Marque quem vai correr: de 2 a 8. A ordem em que você marca é a ordem do rodízio. Piloto IA é dirigido pelo computador e não bate recorde da pista.", "hint", pil);
+            Text(L.T("Marque quem vai correr: de 2 a 8. A ordem em que você marca é a ordem do rodízio. Piloto IA é dirigido pelo computador e não bate recorde da pista."), "hint", pil);
             cRoster = El(null, pil);
             var form = El("pform", pil);
-            cFormTitle = Text("NOVO PILOTO", "h3", form);
+            cFormTitle = Text(L.T("NOVO PILOTO"), "h3", form);
             var names = El("pf-row", form);
-            pName = Field("Nome", 20, names); pName.AddToClassList("pf-name");
-            pTag = Field("Sigla", 3, names); pTag.AddToClassList("pf-tag");
+            pName = Field(L.T("Nome"), 20, names); pName.AddToClassList("pf-name");
+            pTag = Field(L.T("Sigla"), 3, names); pTag.AddToClassList("pf-tag");
             pName.RegisterValueChangedCallback(e => { if (!tagTouched) pTag.SetValueWithoutNotify(Champ.TagOf(e.newValue)); });
             pTag.RegisterValueChangedCallback(e => { tagTouched = true; pTag.SetValueWithoutNotify(Champ.TagOf(e.newValue)); });
             foreach (var f in new[] { pName, pTag })
                 f.RegisterCallback<KeyDownEvent>(ev => { if (ev.keyCode == KeyCode.Return || ev.keyCode == KeyCode.KeypadEnter) { SavePilot(); f.Blur(); } }, TrickleDown.TrickleDown);
             cColors = El("swatches", form);
-            pAi = new Toggle("Piloto IA (o computador dirige)");
+            pAi = new Toggle(L.T("Piloto IA (o computador dirige)"));
             pAi.AddToClassList("setting"); pAi.AddToClassList("ai-toggle");
             form.Add(pAi);
             cSkillBox = El(null, form);
@@ -82,23 +82,23 @@ namespace Autorama
             pSkill.RegisterValueChangedCallback(e => SetAiForm(true, e.newValue));
             var formRow = El("row", form);
             formRow.style.marginTop = 8;
-            pSave = Btn("Adicionar piloto", SavePilot, "btn btn--primary", formRow);
-            pCancel = Btn("Cancelar", () => { ResetPilotForm(); DrawChampSide(); }, "btn", formRow);
+            pSave = Btn(L.T("Adicionar piloto"), SavePilot, "btn btn--primary", formRow);
+            pCancel = Btn(L.T("Cancelar"), () => { ResetPilotForm(); DrawChampSide(); }, "btn", formRow);
             SetAiForm(false, 50);
 
-            var stg = Section(cSetup, "ETAPAS");
+            var stg = Section(cSetup, L.T("ETAPAS"));
             cStageCount = Text("", "small", stg);
-            Text("Cada etapa é uma pista com um número de voltas. Clique numa pista abaixo para incluir.", "hint", stg);
+            Text(L.T("Cada etapa é uma pista com um número de voltas. Clique numa pista abaixo para incluir."), "hint", stg);
             cStages = El(null, Caixa(stg));
-            Text("PISTAS DISPONÍVEIS", "h3", stg);
+            Text(L.T("PISTAS DISPONÍVEIS"), "h3", stg);
             cPick = El(null, Caixa(stg));
 
-            var rules = Section(cSetup, "REGRAS");
+            var rules = Section(cSetup, L.T("REGRAS"));
             cRules = Text("", "small", rules);
             cPlan = Text("", "body plan", rules);
-            cStart = Btn("Começar campeonato", ChampBegin, "btn btn--primary", rules);
+            cStart = Btn(L.T("Começar campeonato"), ChampBegin, "btn btn--primary", rules);
 
-            cHistBlock = Section(cSetup, "CAMPEONATOS ANTERIORES");
+            cHistBlock = Section(cSetup, L.T("CAMPEONATOS ANTERIORES"));
             cHist = El(null, cHistBlock);
 
             // Durante o campeonato
@@ -111,29 +111,29 @@ namespace Autorama
             cHint = Text("", "hint", run);
             cLive = El(null, run);
             var clockRow = El("row", cLive);
-            Text("Tempo de prova", "stats-key", clockRow).style.marginRight = 8;
-            cClock = Text("0,00 s", "clock", clockRow);
+            Text(L.T("Tempo de prova"), "stats-key", clockRow).style.marginRight = 8;
+            cClock = Text(L.T("0,00 s"), "clock", clockRow);
             cScore = El("score", cLive);
 
             cStageBlock = El("section", cRun);
             cStageTitle = Text("", "h2", cStageBlock);
             cStageTable = El("stand", cStageBlock);
 
-            var table = Section(cRun, "TABELA GERAL");
+            var table = Section(cRun, L.T("TABELA GERAL"));
             cTable = El("stand", table);
             cPts = Text("", "small", table);
             cPts.style.marginTop = 6;
 
-            cRecs = El(null, Section(cRun, "RECORDES DA PISTA"));
+            cRecs = El(null, Section(cRun, L.T("RECORDES DA PISTA")));
 
-            var stages = Section(cRun, "ETAPAS");
+            var stages = Section(cRun, L.T("ETAPAS"));
             cStageList = El(null, Caixa(stages));
-            cQuit = Btn("Abandonar campeonato", null, "btn btn--danger", stages);
+            cQuit = Btn(L.T("Abandonar campeonato"), null, "btn btn--danger", stages);
             cQuit.style.marginTop = 8;
             cQuit.clicked += () =>
             {
-                if (!panel.ConfirmTwice("abandonar")) { cQuit.text = "Abandonar? Clique de novo"; cQuit.schedule.Execute(() => cQuit.text = "Abandonar campeonato").ExecuteLater(3000); return; }
-                cQuit.text = "Abandonar campeonato";
+                if (!panel.ConfirmTwice("abandonar")) { cQuit.text = L.T("Abandonar? Clique de novo"); cQuit.schedule.Execute(() => cQuit.text = L.T("Abandonar campeonato")).ExecuteLater(3000); return; }
+                cQuit.text = L.T("Abandonar campeonato");
                 store.hasActive = false; store.active = null; SaveStore();
                 RefreshChamp();
             };
@@ -170,7 +170,7 @@ namespace Autorama
             return f;
         }
 
-        void SaveStore() { if (!ChampFiles.SaveStore(store)) panel.Toast("Não deu para salvar o campeonato no disco."); }
+        void SaveStore() { if (!ChampFiles.SaveStore(store)) panel.Toast(L.T("Não deu para salvar o campeonato no disco.")); }
 
         // ---------- Pilotos ----------
 
@@ -193,7 +193,7 @@ namespace Autorama
         {
             pAi.SetValueWithoutNotify(on);
             pSkill.SetValueWithoutNotify(skill);
-            pSkill.label = $"Qualidade: {skill}";
+            pSkill.label = L.F("Qualidade: {0}", skill);
             cSkillHint.text = Champ.SkillWord(skill);
             cSkillBox.style.display = on ? DisplayStyle.Flex : DisplayStyle.None;
         }
@@ -209,7 +209,7 @@ namespace Autorama
         {
             string name = pName.value.Trim();
             int robots = roster.FindAll(p => p.ai).Count;
-            if (name == "" && pAi.value && editPilot == null) name = $"Robô {robots + 1}";     // piloto IA sem nome ganha um
+            if (name == "" && pAi.value && editPilot == null) name = L.F("Robô {0}", robots + 1);     // piloto IA sem nome ganha um
             if (name == "") { pName.Focus(); return; }
             if (name.Length > 20) name = name.Substring(0, 20);
             string tag = Champ.TagOf(pTag.value);
@@ -236,12 +236,12 @@ namespace Autorama
         {
             var ps = DraftPilots();
             int F = store.draft.faixas;
-            if (ps.Count < Champ.MinPilots(F, store.draft.byTime)) return "Marque pelo menos 2 pilotos.";
-            if (ps.Count > Champ.MaxPilots) return $"No máximo {Champ.MaxPilots} pilotos.";
+            if (ps.Count < Champ.MinPilots(F, store.draft.byTime)) return L.T("Marque pelo menos 2 pilotos.");
+            if (ps.Count > Champ.MaxPilots) return L.F("No máximo {0} pilotos.", Champ.MaxPilots);
             for (int i = 0; i < ps.Count; i++)
                 for (int j = 0; j < i; j++)
-                    if (ps[i].color == ps[j].color) return $"{ps[j].name} e {ps[i].name} estão com a mesma cor. Troque a cor de um deles.";
-            if (store.draft.stages.Count == 0) return "Inclua pelo menos uma pista nas etapas.";
+                    if (ps[i].color == ps[j].color) return L.F("{0} e {1} estão com a mesma cor. Troque a cor de um deles.", ps[j].name, ps[i].name);
+            if (store.draft.stages.Count == 0) return L.T("Inclua pelo menos uma pista nas etapas.");
             FitDraftStages();
             return "";
         }
@@ -265,7 +265,7 @@ namespace Autorama
         }
 
         static void Dot(Pilot p, VisualElement parent) => El("pdot", parent).style.backgroundColor = p.Color;
-        static void AiBadge(Pilot p, VisualElement parent) { if (p.ai) Text($"IA {p.skill}", "aib", parent).tooltip = $"Piloto IA, qualidade {p.skill}"; }
+        static void AiBadge(Pilot p, VisualElement parent) { if (p.ai) Text(L.F("IA {0}", p.skill), "aib", parent).tooltip = L.F("Piloto IA, qualidade {0}", p.skill); }
 
         // Célula com sigla, nome e selo de IA.
         static VisualElement PilotCell(Pilot p, VisualElement row)
@@ -296,7 +296,7 @@ namespace Autorama
             var D = store.draft;
             var ps = DraftPilots();
             if (!IsTyping) cName.SetValueWithoutNotify(D.name);
-            cPilotCount.text = $"{ps.Count} de {Champ.MaxPilots}" + (D.faixas >= 4 && ps.Count > 0 && ps.Count < D.faixas ? $" · {D.faixas - ps.Count} {(D.faixas - ps.Count == 1 ? "trilho vazio" : "trilhos vazios")} por bateria" : "");
+            cPilotCount.text = L.F("{0} de {1}", ps.Count, Champ.MaxPilots) + (D.faixas >= 4 && ps.Count > 0 && ps.Count < D.faixas ? L.F(" · {0} {1} por bateria", D.faixas - ps.Count, (D.faixas - ps.Count == 1 ? L.T("trilho vazio") : L.T("trilhos vazios"))) : "");
             cKind2.EnableInClassList("btn--on", D.faixas < 4);
             cKind4.EnableInClassList("btn--on", D.faixas == 4);
             cKind6.EnableInClassList("btn--on", D.faixas == 6);
@@ -305,7 +305,7 @@ namespace Autorama
             cByTime.EnableInClassList("btn--on", D.byTime);
 
             cRoster.Clear();
-            if (roster.Count == 0) Text("Nenhum piloto cadastrado. Adicione abaixo.", "small", cRoster);
+            if (roster.Count == 0) Text(L.T("Nenhum piloto cadastrado. Adicione abaixo."), "small", cRoster);
             foreach (var p in roster)
             {
                 var pilot = p;
@@ -328,10 +328,10 @@ namespace Autorama
                 Text(p.name, "prow-name", info);
                 Tag(p, info);
                 AiBadge(p, info);
-                if (on) Text($"{k + 1}º", "small", info);
-                if (dup) Text("cor repetida", "small bad", info);
+                if (on) Text(L.F("{0}º", k + 1), "small", info);
+                if (dup) Text(L.T("cor repetida"), "small bad", info);
                 var acts = El("prow-acts", row);
-                Btn("Editar", () =>
+                Btn(L.T("Editar"), () =>
                 {
                     editPilot = pilot.id; pColor = pilot.color; tagTouched = true;
                     pName.SetValueWithoutNotify(pilot.name); pTag.SetValueWithoutNotify(pilot.tag);
@@ -339,10 +339,10 @@ namespace Autorama
                     DrawChampSide();
                 }, "btn", acts);
                 string key = "piloto:" + p.id;
-                var del = Btn("Apagar", null, "btn btn--danger", acts);
+                var del = Btn(L.T("Apagar"), null, "btn btn--danger", acts);
                 del.clicked += () =>
                 {
-                    if (!panel.ConfirmTwice(key)) { del.text = "Certeza?"; return; }
+                    if (!panel.ConfirmTwice(key)) { del.text = L.T("Certeza?"); return; }
                     roster.Remove(pilot); ChampFiles.SavePilots(roster);
                     D.pilots.Remove(pilot.id); SaveStore();
                     if (editPilot == pilot.id) ResetPilotForm();
@@ -361,18 +361,18 @@ namespace Autorama
                 var sw = Btn("", () => { pColor = hex; DrawChampSide(); }, "swatch", cColors);
                 ColorUtility.TryParseHtmlString(hex, out var col);
                 sw.style.backgroundColor = col;
-                sw.tooltip = Champ.ColorNames[i] + (used.Contains(hex) ? " (já usada)" : "");
+                sw.tooltip = Champ.ColorNames[i] + (used.Contains(hex) ? L.T(" (já usada)") : "");
                 sw.EnableInClassList("swatch--on", hex == pColor);
                 sw.EnableInClassList("swatch--used", used.Contains(hex));
             }
-            cFormTitle.text = editPilot != null ? "EDITAR PILOTO" : "NOVO PILOTO";
-            pSave.text = editPilot != null ? "Salvar piloto" : "Adicionar piloto";
+            cFormTitle.text = editPilot != null ? L.T("EDITAR PILOTO") : L.T("NOVO PILOTO");
+            pSave.text = editPilot != null ? L.T("Salvar piloto") : L.T("Adicionar piloto");
             pCancel.style.display = editPilot != null ? DisplayStyle.Flex : DisplayStyle.None;
 
             // Etapas
-            cStageCount.text = D.stages.Count > 0 ? $"{D.stages.Count} {(D.stages.Count == 1 ? "etapa" : "etapas")}" : "";
+            cStageCount.text = D.stages.Count > 0 ? (D.stages.Count == 1 ? L.F("{0} etapa", D.stages.Count) : L.F("{0} etapas", D.stages.Count)) : "";
             cStages.Clear();
-            if (D.stages.Count == 0) Text("Nenhuma etapa ainda.", "small", cStages);
+            if (D.stages.Count == 0) Text(L.T("Nenhuma etapa ainda."), "small", cStages);
             for (int i = 0; i < D.stages.Count; i++)
             {
                 int idx = i;
@@ -394,13 +394,13 @@ namespace Autorama
                 else
                 {
                     Btn("−", () => { s.laps = Mathf.Max(1, s.laps - 1); SaveStore(); DrawChampSide(); }, "btn step-btn", step);
-                    Text($"{s.laps} {(s.laps == 1 ? "volta" : "voltas")}", "step-val", step);
+                    Text((s.laps == 1 ? L.F("{0} volta", s.laps) : L.F("{0} voltas", s.laps)), "step-val", step);
                     Btn("+", () => { s.laps = Mathf.Min(30, s.laps + 1); SaveStore(); DrawChampSide(); }, "btn step-btn", step);
                 }
                 var mv = El("row", ctl);
                 Btn("▲", () => { (D.stages[idx - 1], D.stages[idx]) = (D.stages[idx], D.stages[idx - 1]); SaveStore(); RefreshChamp(); }, "btn step-btn", mv).SetEnabled(i > 0);
                 Btn("▼", () => { (D.stages[idx + 1], D.stages[idx]) = (D.stages[idx], D.stages[idx + 1]); SaveStore(); RefreshChamp(); }, "btn step-btn", mv).SetEnabled(i < D.stages.Count - 1);
-                Btn("✕", () => { D.stages.RemoveAt(idx); SaveStore(); RefreshChamp(); }, "btn step-btn", mv).tooltip = "Tirar etapa";
+                Btn("✕", () => { D.stages.RemoveAt(idx); SaveStore(); RefreshChamp(); }, "btn step-btn", mv).tooltip = L.T("Tirar etapa");
             }
 
             // Pistas disponíveis (as mesmas da aba Corrida): qualquer pista fechada, adaptada ao tamanho do campeonato.
@@ -418,22 +418,21 @@ namespace Autorama
                 var texts = El("lib-texts", item); texts.pickingMode = PickingMode.Ignore;
                 Text(o.name, "lib-name", texts).pickingMode = PickingMode.Ignore;
                 var rec = FindRecords(Champ.TrackHash(Adapted(o.save, D.faixas)));
-                string recTxt = rec != null && rec.lap.Has ? $" · recorde {Fmt(rec.lap.t)} {rec.lap.pilot.tag}" : "";
+                string recTxt = rec != null && rec.lap.Has ? L.F(" · recorde {0} {1}", Fmt(rec.lap.t), rec.lap.pilot.tag) : "";
                 Text((o.sub != null ? o.sub + " · " : "") + TrackLine(o.save) + recTxt, "small", texts).pickingMode = PickingMode.Ignore;
                 Text("+", "pick-plus", item).pickingMode = PickingMode.Ignore;
                 cPick.Add(item);
             }
-            if (hidden > 0) Text(hidden == 1 ? "1 pista aberta não aparece: feche o circuito no Construtor." : $"{hidden} pistas abertas não aparecem: feche os circuitos no Construtor.", "small", cPick);
+            if (hidden > 0) Text(hidden == 1 ? L.T("1 pista aberta não aparece: feche o circuito no Construtor.") : L.F("{0} pistas abertas não aparecem: feche os circuitos no Construtor.", hidden), "small", cPick);
 
-            cRules.text = $"• Usa as regras da corrida de Opções (menu inicial): velocidade <b>{Num(set.vmax)} cél/s</b>, até 100% em <b>{Num(set.ramp, 2)} s</b>, aderência <b>{Mathf.RoundToInt(set.grip)}</b>, colisão <b>{(set.collide ? "ligada" : "desligada")}</b>, turbo <b>{(set.turbo ? "ligado" : "desligado")}</b>, recolocar em <b>{Num(set.reslotTime, 2)} s</b>. Ficam fixos até o fim.\n" +
+            cRules.text = L.F("• Usa as regras da corrida de Opções (menu inicial): velocidade <b>{0} cél/s</b>, até 100% em <b>{1} s</b>, aderência <b>{2}</b>, colisão <b>{3}</b>, turbo <b>{4}</b>, recolocar em <b>{5} s</b>. Ficam fixos até o fim.\n", Num(set.vmax), Num(set.ramp, 2), Mathf.RoundToInt(set.grip), (set.collide ? L.T("ligada") : L.T("desligada")), (set.turbo ? L.T("ligado") : L.T("desligado")), Num(set.reslotTime, 2)) +
                           (D.byTime
-                            ? $"• <b>Por tempo</b>: cada etapa tem {(ps.Count > D.faixas ? $"<b>{Champ.HeatsPerStage(ps.Count, D.faixas, true)} grupos</b>" : "<b>uma bateria</b>")} de até {D.faixas} carros. A bateria se divide em <b>{D.faixas} manches</b>, uma em cada trilho. Vale a <b>distância</b> (voltas e fração).\n"
-                            : $"• Cada etapa: {(ps.Count >= 2 ? $"<b>{Champ.HeatsPerStage(ps.Count, D.faixas, false)} baterias</b>" : "uma bateria por piloto")} de até <b>{D.faixas} carros</b>, e cada piloto corre uma vez em cada trilho. Vale o <b>tempo somado</b> de todas.\n" +
-                              $"• Quem não completar as voltas tem <b>{Champ.Cutoff:0} s</b> depois da bandeirada do primeiro; fica com as voltas que fez.\n") +
-                          $"• Pontos: <b>{string.Join(" · ", Champ.Points)}</b>, mais 1 para a melhor volta da etapa.";
+                            ? L.F("• <b>Por tempo</b>: cada etapa tem {0} de até {1} carros. A bateria se divide em <b>{2} manches</b>, uma em cada trilho. Vale a <b>distância</b> (voltas e fração).\n", (ps.Count > D.faixas ? L.F("<b>{0} grupos</b>", Champ.HeatsPerStage(ps.Count, D.faixas, true)) : L.T("<b>uma bateria</b>")), D.faixas, D.faixas)
+                            : L.F("• Cada etapa: {0} de até <b>{1} carros</b>, e cada piloto corre uma vez em cada trilho. Vale o <b>tempo somado</b> de todas.\n• Quem não completar as voltas tem <b>{2:0} s</b> depois da bandeirada do primeiro; fica com as voltas que fez.\n", (ps.Count >= 2 ? L.F("<b>{0} baterias</b>", Champ.HeatsPerStage(ps.Count, D.faixas, false)) : L.T("uma bateria por piloto")), D.faixas, Champ.Cutoff)) +
+                          L.F("• Pontos: <b>{0}</b>, mais 1 para a melhor volta da etapa.", string.Join(" · ", Champ.Points));
             string prob = ChampProblem();
             cPlan.text = prob != "" ? $"<color=#F07A3A>{prob}</color>"
-                : $"<b>{ps.Count} pilotos · {D.stages.Count} {(D.stages.Count == 1 ? "etapa" : "etapas")} · {Champ.HeatsPerStage(ps.Count, D.faixas, D.byTime) * D.stages.Count} baterias de {D.faixas}</b> · cerca de {Champ.EstimateMin(D.stages, ps.Count, set.vmax, D.faixas, D.byTime)} min";
+                : L.F("<b>{0} pilotos · {1} {2} · {3} baterias de {4}</b> · cerca de {5} min", ps.Count, D.stages.Count, (D.stages.Count == 1 ? L.T("etapa") : L.T("etapas")), Champ.HeatsPerStage(ps.Count, D.faixas, D.byTime) * D.stages.Count, D.faixas, Champ.EstimateMin(D.stages, ps.Count, set.vmax, D.faixas, D.byTime));
             cStart.SetEnabled(prob == "");
 
             // Histórico
@@ -446,7 +445,7 @@ namespace Autorama
                 var fold = new Foldout { text = $"{h.name}  ·  {(w != null ? w.name : "—")}  ·  {DateTimeOffset.FromUnixTimeMilliseconds(h.finished).LocalDateTime:dd/MM/yyyy}", value = false };
                 fold.AddToClassList("hist");
                 var t = El("stand", fold);
-                var hr = TableRow(t, true); Cell(hr, "#", "st-pos"); Cell(hr, "Piloto", "st-cell--name"); Cell(hr, "Pts"); Cell(hr, "Vit.");
+                var hr = TableRow(t, true); Cell(hr, "#", "st-pos"); Cell(hr, L.T("Piloto"), "st-cell--name"); Cell(hr, L.T("Pts")); Cell(hr, L.T("Vit."));
                 for (int i = 0; i < h.table.Count; i++)
                 {
                     var r = h.table[i];
@@ -455,11 +454,11 @@ namespace Autorama
                 }
                 Text(string.Join(" · ", h.stages), "small", fold);
                 string key = "hist:" + h.id;
-                var del = Btn("Apagar do histórico", null, "btn btn--danger", fold);
+                var del = Btn(L.T("Apagar do histórico"), null, "btn btn--danger", fold);
                 del.style.marginTop = 6;
                 del.clicked += () =>
                 {
-                    if (!panel.ConfirmTwice(key)) { del.text = "Certeza?"; return; }
+                    if (!panel.ConfirmTwice(key)) { del.text = L.T("Certeza?"); return; }
                     store.history.Remove(entry); SaveStore(); DrawChampSide();
                 };
                 cHist.Add(fold);
@@ -470,7 +469,7 @@ namespace Autorama
         {
             if (!o.closed) return;
             var data = Adapted(o.save, store.draft.faixas);       // a etapa corre no tamanho do campeonato
-            data.nome = o.key == "builder" ? (string.IsNullOrEmpty(o.save.nome) ? "Pista do construtor" : o.save.nome) : o.name;
+            data.nome = o.key == "builder" ? (string.IsNullOrEmpty(o.save.nome) ? L.T("Pista do construtor") : o.save.nome) : o.name;
             store.draft.stages.Add(new Stage { name = data.nome, laps = set.laps, secs = Mathf.Clamp(set.secs, 60, 600), data = data, hash = Champ.TrackHash(data) });
             SaveStore();
             RefreshChamp();
@@ -491,12 +490,12 @@ namespace Autorama
         // ímpares): não diz. Na pista de 4, os do meio não dizem nada.
         string LaneSide(int k)
         {
-            var L = builder.Info.laneLengths;
-            if (k >= L.Length) return "";
+            var lens = builder.Info.laneLengths;
+            if (k >= lens.Length) return "";
             float lo = float.MaxValue, hi = float.MinValue;
-            foreach (float v in L) { lo = Mathf.Min(lo, v); hi = Mathf.Max(hi, v); }
+            foreach (float v in lens) { lo = Mathf.Min(lo, v); hi = Mathf.Max(hi, v); }
             if (hi - lo < 0.01f) return "";
-            return Mathf.Abs(L[k] - lo) < 0.01f ? "dentro" : Mathf.Abs(L[k] - hi) < 0.01f ? "fora" : "";
+            return Mathf.Abs(lens[k] - lo) < 0.01f ? L.T("dentro") : Mathf.Abs(lens[k] - hi) < 0.01f ? L.T("fora") : "";
         }
 
         void DrawRun(Championship C)
@@ -504,7 +503,7 @@ namespace Autorama
             bool live = HeatNow(out _, out int idx, out var heat, out var stage, out var pl);
             int S = C.stages.Count, H = C.heats.Count;
             cTitle.text = C.name.ToUpperInvariant();
-            cProgress.text = live ? $"Etapa {heat.s + 1} de {S} · bateria {idx + 1} de {H}" : $"Encerrado · {S} {(S == 1 ? "etapa" : "etapas")} · {H} baterias";
+            cProgress.text = live ? L.F("Etapa {0} de {1} · bateria {2} de {3}", heat.s + 1, S, idx + 1, H) : L.F("Encerrado · {0} {1} · {2} baterias", S, (S == 1 ? L.T("etapa") : L.T("etapas")), H);
 
             cHeat.Clear();
             if (live)
@@ -517,9 +516,9 @@ namespace Autorama
                 vs.EnableInClassList("vs--8", pl.Length > 6);
                 for (int k = 0; k < pl.Length; k++)
                 {
-                    if (k > 0 && pl.Length == 2) Text("×", "vs-x", vs);
+                    if (k > 0 && pl.Length == 2) Text(L.T("×"), "vs-x", vs);
                     var p = pl[k];
-                    if (p == null) { var empty = El("hp hp--empty", vs); Text(LaneNames[k], "small", empty); Text("—", "hp-name", empty); Text("trilho vazio", "small", empty); continue; }
+                    if (p == null) { var empty = El("hp hp--empty", vs); Text(LaneNames[k], "small", empty); Text("—", "hp-name", empty); Text(L.T("trilho vazio"), "small", empty); continue; }
                     var hp = El("hp", vs);
                     hp.style.borderLeftColor = p.Color;
                     string side = LaneSide(k);
@@ -527,7 +526,7 @@ namespace Autorama
                     Text(p.name.ToUpperInvariant(), "hp-name", hp);
                     // As teclas seguem a ordem dos humanos (KeySet): o 1º humano usa as teclas do jogador 1, o 2º as do 2, e assim por diante.
                     int ks = 0; for (int i = 0; i < k; i++) if (pl[i] != null && !pl[i].ai) ks++;
-                    Text(OnlineRun ? OnlineWho(p) : p.ai ? $"IA · qualidade {p.skill}" : ks >= Controles.Jogadores ? "só com controle" : $"acelera {KeyText(GasKeyAt(ks))} · recoloca {KeyText(ReslotKeyAt(ks))}", "small", hp);
+                    Text(OnlineRun ? OnlineWho(p) : p.ai ? L.F("IA · qualidade {0}", p.skill) : ks >= Controles.Jogadores ? L.T("só com controle") : L.F("acelera {0} · recoloca {1}", KeyText(GasKeyAt(ks)), KeyText(ReslotKeyAt(ks))), "small", hp);
                 }
             }
             else DrawPodium(C);
@@ -537,15 +536,15 @@ namespace Autorama
             if (OnlineRun) DrawOnlineActs(live, idx, stage);
             else
             {
-                if (!live) Btn("Arquivar e montar outro", ChampArchive, "btn btn--primary", cActs);
-                else if (ph == RaceSim.Phase.Idle) Btn("Largar (Enter)", ChampStart, "btn btn--primary", cActs).SetEnabled(sim.closed);
-                else if (ph == RaceSim.Phase.Done) { Btn("Salvar e seguir (Enter)", ChampSave, "btn btn--primary", cActs); Btn("Correr de novo", ChampRestart, "btn", cActs); }
-                else Btn("Recomeçar bateria", ChampRestart, "btn", cActs);
-                cHint.text = !live ? "Arquivar guarda a tabela final no histórico. Os recordes ficam salvos nas pistas."
-                    : ph == RaceSim.Phase.Idle ? "Confira quem está em cada trilho e passe o controle. Depois, Largar e esperar as luzes."
-                    : ph == RaceSim.Phase.Done ? "Salve para o resultado contar na tabela. Se algo deu errado, corra de novo: esta bateria é descartada."
-                    : C.byTime ? $"Bateria de {Dur(stage.secs)} em {C.Faixas} manches: no fim de cada uma, todos trocam de trilho. Vence quem andar mais."
-                    : $"Vence a bateria quem completar {stage.laps} {(stage.laps == 1 ? "volta" : "voltas")} primeiro. Quem não terminar tem {Champ.Cutoff:0} s depois da bandeirada.";
+                if (!live) Btn(L.T("Arquivar e montar outro"), ChampArchive, "btn btn--primary", cActs);
+                else if (ph == RaceSim.Phase.Idle) Btn(L.T("Largar (Enter)"), ChampStart, "btn btn--primary", cActs).SetEnabled(sim.closed);
+                else if (ph == RaceSim.Phase.Done) { Btn(L.T("Salvar e seguir (Enter)"), ChampSave, "btn btn--primary", cActs); Btn(L.T("Correr de novo"), ChampRestart, "btn", cActs); }
+                else Btn(L.T("Recomeçar bateria"), ChampRestart, "btn", cActs);
+                cHint.text = !live ? L.T("Arquivar guarda a tabela final no histórico. Os recordes ficam salvos nas pistas.")
+                    : ph == RaceSim.Phase.Idle ? L.T("Confira quem está em cada trilho e passe o controle. Depois, Largar e esperar as luzes.")
+                    : ph == RaceSim.Phase.Done ? L.T("Salve para o resultado contar na tabela. Se algo deu errado, corra de novo: esta bateria é descartada.")
+                    : C.byTime ? L.F("Bateria de {0} em {1} manches: no fim de cada uma, todos trocam de trilho. Vence quem andar mais.", Dur(stage.secs), C.Faixas)
+                    : L.F("Vence a bateria quem completar {0} {1} primeiro. Quem não terminar tem {2:0} s depois da bandeirada.", stage.laps, (stage.laps == 1 ? L.T("volta") : L.T("voltas")), Champ.Cutoff);
             }
             cLive.style.display = live ? DisplayStyle.Flex : DisplayStyle.None;
             if (live) DrawChampScore();
@@ -555,10 +554,10 @@ namespace Autorama
             int sIdx = lastSaved >= 0 ? C.heats[lastSaved].s : live ? heat.s : 0;
             var rows = Champ.StageResults(C, sIdx, out bool complete, out int saved, out int total);
             cStageBlock.style.display = saved > 0 ? DisplayStyle.Flex : DisplayStyle.None;
-            cStageTitle.text = $"ETAPA {sIdx + 1} · {C.stages[sIdx].name.ToUpperInvariant()}{(complete ? "" : $" ({saved} de {total} baterias)")}";
+            cStageTitle.text = L.F("ETAPA {0} · {1}{2}", sIdx + 1, C.stages[sIdx].name.ToUpperInvariant(), (complete ? "" : L.F(" ({0} de {1} baterias)", saved, total)));
             cStageTable.Clear();
             var sh = TableRow(cStageTable, true);
-            Cell(sh, "#", "st-pos"); Cell(sh, "Piloto", "st-cell--name"); if (!complete && !C.byTime) Cell(sh, "Bat."); Cell(sh, C.byTime ? "Distância" : "Voltas"); if (!C.byTime) Cell(sh, "Tempo", "st-time"); Cell(sh, "Melhor", "st-time"); Cell(sh, "Pts");
+            Cell(sh, "#", "st-pos"); Cell(sh, L.T("Piloto"), "st-cell--name"); if (!complete && !C.byTime) Cell(sh, L.T("Bat.")); Cell(sh, C.byTime ? L.T("Distância") : L.T("Voltas")); if (!C.byTime) Cell(sh, L.T("Tempo"), "st-time"); Cell(sh, L.T("Melhor"), "st-time"); Cell(sh, L.T("Pts"));
             for (int pos = 0; pos < rows.Count; pos++)
             {
                 var r = rows[pos];
@@ -578,7 +577,7 @@ namespace Autorama
             var st = Champ.Standings(C);
             cTable.Clear();
             var th = TableRow(cTable, true);
-            Cell(th, "#", "st-pos"); Cell(th, "Piloto", "st-cell--name"); Cell(th, "Pts"); Cell(th, "Vit."); Cell(th, "MV").tooltip = "Melhores voltas";
+            Cell(th, "#", "st-pos"); Cell(th, L.T("Piloto"), "st-cell--name"); Cell(th, L.T("Pts")); Cell(th, L.T("Vit.")); Cell(th, "MV").tooltip = L.T("Melhores voltas");
             for (int pos = 0; pos < st.Count; pos++)
             {
                 var r = st[pos];
@@ -588,7 +587,7 @@ namespace Autorama
                 if (prev.TryGetValue(r.i, out int was) && was != pos) Text(was > pos ? $"▲{was - pos}" : $"▼{pos - was}", was > pos ? "st-up" : "st-down", name);
                 Cell(row, r.pts.ToString(), "st-pts"); Cell(row, r.wins.ToString()); Cell(row, r.fast.ToString());
             }
-            cPts.text = $"Pontos por etapa: {string.Join(" · ", System.Linq.Enumerable.Take(Champ.Points, Mathf.Clamp(C.pilots.Count, 2, Champ.Points.Length)))}, mais 1 para a melhor volta. Desempate: vitórias, pódios, tempo total.";
+            cPts.text = L.F("Pontos por etapa: {0}, mais 1 para a melhor volta. Desempate: vitórias, pódios, tempo total.", string.Join(" · ", System.Linq.Enumerable.Take(Champ.Points, Mathf.Clamp(C.pilots.Count, 2, Champ.Points.Length))));
 
             // Recordes da pista em uso (os deste computador; no online cada um grava os seus, seção 39).
             {
@@ -602,13 +601,13 @@ namespace Autorama
                 var row = TableRow(cRecs);
                 Cell(row, label, "st-label");
                 var who = El("st-cell st-cell--name", row);
-                if (r != null && r.Has) { Tag(r.pilot, who); Text(r.pilot.name, "st-name", who); if (r.online) Text(" online", "small", who); }
-                else Text("ninguém ainda", "small", who);
+                if (r != null && r.Has) { Tag(r.pilot, who); Text(r.pilot.name, "st-name", who); if (r.online) Text(L.T(" online"), "small", who); }
+                else Text(L.T("ninguém ainda"), "small", who);
                 Cell(row, r != null && r.Has ? Fmt(r.t) : "—", "st-time");
             }
-            Line("Volta", rec?.lap);
+            Line(L.T("Volta"), rec?.lap);
             if (!odd && !C.byTime) for (int k = 0; k < C.Faixas; k++) Line(LaneNames[k], rec?.Lane(k));
-            if (!C.byTime) Line($"{cur.laps} voltas", rec?.Race(cur.laps));
+            if (!C.byTime) Line(L.F("{0} voltas", cur.laps), rec?.Race(cur.laps));
             if (rec != null)
             {
                 var bests = new List<(Pilot p, float t)>();
@@ -616,7 +615,7 @@ namespace Autorama
                 if (bests.Count > 0)
                 {
                     bests.Sort((a, b) => a.t.CompareTo(b.t));
-                    Text("MELHOR VOLTA DE CADA UM", "h3", cRecs);
+                    Text(L.T("MELHOR VOLTA DE CADA UM"), "h3", cRecs);
                     foreach (var (p, t) in bests) { var row = TableRow(cRecs); PilotCell(p, row); Cell(row, Fmt(t), "st-time"); }
                 }
             }
@@ -635,14 +634,14 @@ namespace Autorama
                 Text($"{i + 1}. {s.name}", "lib-name", texts);
                 var sub = El("row", texts);
                 Text($"{StageGoal(C, s)} · ", "small", sub);
-                if (comp && r.Count > 0) { Text("✓ ", "small ok", sub); Tag(C.pilots[r[0].i], sub); Text(" venceu", "small", sub); }
-                else Text(sv > 0 ? $"{sv} de {tot} baterias" : isCur ? "próxima" : $"{tot} baterias", "small", sub);
+                if (comp && r.Count > 0) { Text("✓ ", "small ok", sub); Tag(C.pilots[r[0].i], sub); Text(L.T(" venceu"), "small", sub); }
+                else Text(sv > 0 ? L.F("{0} de {1} baterias", sv, tot) : isCur ? L.T("próxima") : L.F("{0} baterias", tot), "small", sub);
             }
             cQuit.style.display = live && !OnlineRun ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
         // "5 voltas" ou "2 min" (campeonato por tempo).
-        static string StageGoal(Championship C, Stage s) => C != null && C.byTime ? Dur(s.secs) : $"{s.laps} {(s.laps == 1 ? "volta" : "voltas")}";
+        static string StageGoal(Championship C, Stage s) => C != null && C.byTime ? Dur(s.secs) : (s.laps == 1 ? L.F("{0} volta", s.laps) : L.F("{0} voltas", s.laps));
 
         void DrawPodium(Championship C)
         {
@@ -654,9 +653,9 @@ namespace Autorama
                 var p = C.pilots[T[i].i];
                 var box = El("pod pod--" + (i + 1), pod);
                 box.style.borderTopColor = p.Color;
-                Text($"{i + 1}º", "pod-place", box);
+                Text(L.F("{0}º", i + 1), "pod-place", box);
                 Text(p.name, "pod-name", box);
-                Text($"{T[i].pts} pts", "small", box);
+                Text(L.F("{0} pts", T[i].pts), "small", box);
             }
             // Prêmios: mão mais rápida, rei do muro, para-choque, recordes batidos.
             Pilot fastP = null; float fastT = float.MaxValue; int fastS = 0, recCount = 0;
@@ -679,10 +678,10 @@ namespace Autorama
                 Text(text, "body", row);
             }
             Pilot Most(Dictionary<Pilot, int> d, out int n) { Pilot best = null; n = 0; foreach (var kv in d) if (kv.Value > n) { n = kv.Value; best = kv.Key; } return best; }
-            if (fastP != null) Award("Mão mais rápida", fastP, $" {Fmt(fastT)} em {C.stages[fastS].name}");
-            var wall = Most(offs, out int nOffs); if (wall != null) Award("Rei do muro", wall, $" {nOffs} {(nOffs == 1 ? "saída" : "saídas")} de pista");
-            var bump = Most(hits, out int nHits); if (bump != null) Award("Para-choque", bump, $" {nHits} {(nHits == 1 ? "toque" : "toques")}");
-            Award("Recordes batidos", null, recCount.ToString());
+            if (fastP != null) Award(L.T("Mão mais rápida"), fastP, L.F(" {0} em {1}", Fmt(fastT), C.stages[fastS].name));
+            var wall = Most(offs, out int nOffs); if (wall != null) Award(L.T("Rei do muro"), wall, L.F(" {0} {1} de pista", nOffs, (nOffs == 1 ? L.T("saída") : L.T("saídas"))));
+            var bump = Most(hits, out int nHits); if (bump != null) Award(L.T("Para-choque"), bump, (nHits == 1 ? L.F(" {0} toque", nHits) : L.F(" {0} toques", nHits)));
+            Award(L.T("Recordes batidos"), null, recCount.ToString());
         }
 
         void DrawChampScore()
@@ -690,7 +689,7 @@ namespace Autorama
             cScore.Clear();
             if (!HeatNow(out _, out _, out _, out _, out var pl)) return;
             var head = El("score-row score-head", cScore);
-            foreach (var h in new[] { "Piloto", sim.ByTime ? "Distância" : "Voltas", "Última", "Melhor", "Saídas", "Toques" }) Text(h, h == "Piloto" ? "score-cell score-cell--name" : "score-cell", head);
+            foreach (var h in new[] { L.T("Piloto"), sim.ByTime ? L.T("Distância") : L.T("Voltas"), L.T("Última"), L.T("Melhor"), L.T("Saídas"), L.T("Toques") }) Text(h, h == "Piloto" ? "score-cell score-cell--name" : "score-cell", head);
             for (int k = 0; k < pl.Length && k < sim.N; k++)
             {
                 if (pl[k] == null) continue;
@@ -755,7 +754,7 @@ namespace Autorama
             var ps = DraftPilots();
             var C = new Championship
             {
-                id = Champ.NewId("c"), name = string.IsNullOrWhiteSpace(D.name) ? $"Campeonato {store.history.Count + 1}" : D.name.Trim(), created = Champ.Now,
+                id = Champ.NewId("c"), name = string.IsNullOrWhiteSpace(D.name) ? L.F("Campeonato {0}", store.history.Count + 1) : D.name.Trim(), created = Champ.Now,
                 rules = new ChampRules { vmax = set.vmax, ramp = set.ramp, grip = set.grip, collide = set.collide, turbo = set.turbo, reslot = set.reslotTime },
                 faixas = D.faixas, byTime = D.byTime,
                 heats = Champ.MakeHeats(ps.Count, D.stages.Count, D.faixas, D.byTime, UnityEngine.Random.Range(1, int.MaxValue)),
@@ -792,8 +791,8 @@ namespace Autorama
             var b = key != null ? R?.Best(key, false) : null;
             float own = Mathf.Min(b != null && b.lap >= 0f ? b.lap : float.PositiveInfinity, carBest);
             var pad = pads[k];
-            if (!pl[k].ai && lap < track) { pad.flash = $"Recorde da pista! {Fmt(lap)}"; pad.flashRec = true; pad.flashT = 2.5f; }
-            else if (!float.IsPositiveInfinity(own) && lap < own) { pad.flash = $"Melhor volta pessoal! {Fmt(lap)}"; pad.flashRec = false; pad.flashT = 2.5f; }
+            if (!pl[k].ai && lap < track) { pad.flash = L.F("Recorde da pista! {0}", Fmt(lap)); pad.flashRec = true; pad.flashT = 2.5f; }
+            else if (!float.IsPositiveInfinity(own) && lap < own) { pad.flash = L.F("Melhor volta pessoal! {0}", Fmt(lap)); pad.flashRec = false; pad.flashT = 2.5f; }
         }
 
         // Salva o resultado da bateria, atualiza os recordes e prepara a próxima.
@@ -833,20 +832,20 @@ namespace Autorama
             heat.res = keep;
             var stagePos = new Dictionary<int, int>();
             for (int i = 0; i < sr.Count; i++) stagePos[sr[i].i] = i;
-            Text(complete ? $"TABELA GERAL · etapa {stage.name} encerrada" : $"TABELA GERAL · etapa {stage.name}: {saved} de {total} baterias", "res-head", into);
+            Text(complete ? L.F("TABELA GERAL · etapa {0} encerrada", stage.name) : L.F("TABELA GERAL · etapa {0}: {1} de {2} baterias", stage.name, saved, total), "res-head", into);
             for (int pos = 0; pos < st.Count; pos++)
             {
                 var r = st[pos]; var p = C.pilots[r.i];
                 var row = El("res-row res-row--small" + (pos == 0 && r.pts > 0 ? " res-row--win" : ""), into);
-                Text($"{pos + 1}º", "res-pos", row);
+                Text(L.F("{0}º", pos + 1), "res-pos", row);
                 El("hud-dot", row).style.backgroundColor = p.Color;
                 Text(p.name, "res-name", row);
-                Text($"{r.pts} pts", "res-cell", row);
+                Text(L.F("{0} pts", r.pts), "res-cell", row);
                 string etapa = "";
                 if (stagePos.TryGetValue(r.i, out int sp))
                 {
                     var s = sr[sp];
-                    etapa = $"etapa {sp + 1}º · " + (C.byTime ? $"{Num(s.dist, 2)} v" : $"{s.laps} v {Fmt(s.time)}");
+                    etapa = L.F("etapa {0}º · ", sp + 1) + (C.byTime ? L.F("{0} v", Num(s.dist, 2)) : L.F("{0} v {1}", s.laps, Fmt(s.time)));
                     if (complete && s.pts >= 0) etapa += $" · +{s.pts}";
                 }
                 Text(etapa, "res-cell res-cell--dim", row);
@@ -866,11 +865,11 @@ namespace Autorama
             var R = FindRecords(stage.hash, true, stage.name);
             R.name = stage.name;
             bool odd = Champ.CrossCount(stage.data) % 2 == 1;
-            int L = stage.laps;
+            int nV = stage.laps;
             long now = Champ.Now;
             string host = online ? OnlineHostName() : null;
             float prevLap = R.lap.Has ? R.lap.t : float.PositiveInfinity;
-            var prevRaceRec = R.Race(L);
+            var prevRaceRec = R.Race(nV);
             float prevRace = prevRaceRec != null && prevRaceRec.Has ? prevRaceRec.t : float.PositiveInfinity;
             // Recordes da pista são de gente: piloto IA só guarda o melhor pessoal dele.
             float heatBest = float.PositiveInfinity, heatFin = float.PositiveInfinity;
@@ -897,7 +896,7 @@ namespace Autorama
                         if (best == heatBest && best < prevLap)
                         {
                             R.lap = Make(best); r.rec = true;
-                            news.Add($"recorde de volta de {p.name} ({Fmt(best)})");
+                            news.Add(L.F("recorde de volta de {0} ({1})", p.name, Fmt(best)));
                         }
                         // Com cruzamentos em número ímpar o carrinho passa pelos dois trilhos: recorde por trilho não faz sentido.
                         // Por tempo o carrinho passa por todos os trilhos: também não há recorde por trilho.
@@ -908,17 +907,17 @@ namespace Autorama
                 if (r.fin >= 0f)
                 {
                     float fin = r.fin;
-                    if (!p.ai && fin == heatFin && fin < prevRace) { R.SetRace(L, Make(fin)); r.raceRec = true; news.Add($"recorde de {L} voltas de {p.name} ({Fmt(fin)})"); }
+                    if (!p.ai && fin == heatFin && fin < prevRace) { R.SetRace(nV, Make(fin)); r.raceRec = true; news.Add(L.F("recorde de {0} voltas de {1} ({2})", nV, p.name, Fmt(fin))); }
                     if (pb != null)
                     {
-                        var mine = pb.race.Find(x => x.laps == L);
-                        if (mine == null) pb.race.Add(new RaceRec { laps = L, rec = Make(fin) });
+                        var mine = pb.race.Find(x => x.laps == nV);
+                        if (mine == null) pb.race.Add(new RaceRec { laps = nV, rec = Make(fin) });
                         else if (fin < mine.rec.t) mine.rec = Make(fin);
                     }
                 }
             }
             ChampFiles.SaveRecords(recs);
-            if (news.Count > 0) panel.Toast("Novo " + string.Join(" e novo ", news) + ".");
+            if (news.Count > 0) panel.Toast(L.T("Novo ") + string.Join(L.T(" e novo "), news) + ".");
         }
 
         void ChampArchive()
@@ -938,18 +937,18 @@ namespace Autorama
         void ChampStatus()
         {
             var C = ActiveChamp;
-            if (C == null) { panel.SetStatus("Monte o campeonato: pilotos e etapas", ""); return; }
+            if (C == null) { panel.SetStatus(L.T("Monte o campeonato: pilotos e etapas"), ""); return; }
             if (!HeatNow(out _, out int idx, out var heat, out _, out _))
             {
                 var w = C.pilots[Champ.Standings(C)[0].i];
-                panel.SetStatus($"{C.name}: {w.name} venceu", "status--ok");
+                panel.SetStatus(L.F("{0}: {1} venceu", C.name, w.name), "status--ok");
                 return;
             }
-            string where = $"Etapa {heat.s + 1} de {C.stages.Count} · bateria {idx + 1} de {C.heats.Count}";
-            if (sim.phase == RaceSim.Phase.Switch) panel.SetStatus($"{where} · troca de trilho", "");
-            else if (sim.phase == RaceSim.Phase.Running) panel.SetStatus(sim.ByTime ? $"{where} · {MancheText} · faltam {Fmt(sim.TimeLeft)}" : $"{where} · volta {Mathf.Min(MaxLaps() + 1, sim.set.laps)} de {sim.set.laps}", "");
-            else if (sim.phase == RaceSim.Phase.Done) panel.SetStatus(OnlineRun && !IsHost ? $"Bateria {idx + 1} encerrada · o host salva e segue" : $"Bateria {idx + 1} encerrada · salve para seguir", "status--ok");
-            else if (sim.phase == RaceSim.Phase.Countdown) panel.SetStatus("Atenção à largada", "");
+            string where = L.F("Etapa {0} de {1} · bateria {2} de {3}", heat.s + 1, C.stages.Count, idx + 1, C.heats.Count);
+            if (sim.phase == RaceSim.Phase.Switch) panel.SetStatus(L.F("{0} · troca de trilho", where), "");
+            else if (sim.phase == RaceSim.Phase.Running) panel.SetStatus(sim.ByTime ? L.F("{0} · {1} · faltam {2}", where, MancheText, Fmt(sim.TimeLeft)) : L.F("{0} · volta {1} de {2}", where, Mathf.Min(MaxLaps() + 1, sim.set.laps), sim.set.laps), "");
+            else if (sim.phase == RaceSim.Phase.Done) panel.SetStatus(OnlineRun && !IsHost ? L.F("Bateria {0} encerrada · o host salva e segue", idx + 1) : L.F("Bateria {0} encerrada · salve para seguir", idx + 1), "status--ok");
+            else if (sim.phase == RaceSim.Phase.Countdown) panel.SetStatus(L.T("Atenção à largada"), "");
             else panel.SetStatus(where, "");
         }
 
@@ -975,19 +974,19 @@ namespace Autorama
             if (!HeatNow(out _, out int idx, out var heat, out var stage, out var pl))
             {
                 var top = Champ.Standings(C)[0];
-                title = $"{C.pilots[top.i].name} vence o campeonato";
-                sub = $"{top.pts} pontos · {top.wins} {(top.wins == 1 ? "vitória" : "vitórias")} · {C.name}";
+                title = L.F("{0} vence o campeonato", C.pilots[top.i].name);
+                sub = L.F("{0} pontos · {1} {2} · {3}", top.pts, top.wins, (top.wins == 1 ? L.T("vitória") : L.T("vitórias")), C.name);
                 return true;
             }
             if (sim.phase == RaceSim.Phase.Done && sim.winner >= 0)
             {
                 var c = sim.cars[sim.winner];
-                title = $"{pl[sim.winner].name} vence a bateria";
-                sub = $"{Fmt(c.finish)} · melhor volta {Fmt(c.best)}";
+                title = L.F("{0} vence a bateria", pl[sim.winner].name);
+                sub = L.F("{0} · melhor volta {1}", Fmt(c.finish), Fmt(c.best));
                 // Recorde de volta na bateria: pode ter sido de quem perdeu, então diz de quem é.
                 var R = FindRecords(stage.hash);
                 int rk = RecordCar();
-                champRecText = rk >= 0 ? $"★  RECORDE DA PISTA  ·  {pl[rk].name}  {Fmt(sim.cars[rk].best)}" : null;
+                champRecText = rk >= 0 ? L.F("★  RECORDE DA PISTA  ·  {0}  {1}", pl[rk].name, Fmt(sim.cars[rk].best)) : null;
                 return true;
             }
             // Primeira bateria de uma etapa nova: mostra quem venceu a anterior.
@@ -995,8 +994,8 @@ namespace Autorama
             {
                 int prev = C.heats[idx - 1].s;
                 var rows = Champ.StageResults(C, prev, out _, out _, out _);
-                title = $"{C.pilots[rows[0].i].name} vence a etapa {C.stages[prev].name}";
-                sub = $"Próxima: {stage.name} · {StageGoal(C, stage)}";
+                title = L.F("{0} vence a etapa {1}", C.pilots[rows[0].i].name, C.stages[prev].name);
+                sub = L.F("Próxima: {0} · {1}", stage.name, StageGoal(C, stage));
                 return true;
             }
             return false;
@@ -1028,12 +1027,12 @@ namespace Autorama
                 var pilot = live && k < pl.Length ? pl[k] : null;
                 bool ai = sim.aiSkill[k] > 0;
                 p.name.text = CareerName(k) is string cn ? cn : pilot != null ? $"{pilot.name.ToUpperInvariant()} · {LaneNames[k].ToUpperInvariant()}"
-                    : ai ? $"ROBÔ · {LaneNames[k].ToUpperInvariant()}" : $"JOGADOR {k + 1}";
+                    : ai ? L.F("ROBÔ · {0}", LaneNames[k].ToUpperInvariant()) : L.F("JOGADOR {0}", k + 1);
                 // O ajuste do carro ao lado do nome (só com até 4 painéis: nos de 6 e 8 não cabe).
-                if (!sim.setup[k].Padrao && sim.N <= 4) p.name.text += $"  <size=10><color=#9AA3A8>{sim.setup[k].Resumo}</color></size>";
-                p.gasText.text = ai && !OnlineRun ? $"IA PILOTANDO · {sim.aiSkill[k]}" : GasLabel(k);
+                if (!sim.setup[k].Padrao && sim.N <= 4) p.name.text += L.F("  <size=10><color=#9AA3A8>{0}</color></size>", sim.setup[k].Resumo);
+                p.gasText.text = ai && !OnlineRun ? L.F("IA PILOTANDO · {0}", sim.aiSkill[k]) : GasLabel(k);
                 p.halfTri.text = HalfTri(k);
-                p.reslot.text = OnlineRun ? $"Recolocar  {KeyText(ReslotKeyAt(LocalKeySet(Math.Max(0, LocalOf(pilot?.id)))))}" : $"Recolocar  {KeyText(ReslotKey(k))}";
+                p.reslot.text = OnlineRun ? L.F("Recolocar  {0}", KeyText(ReslotKeyAt(LocalKeySet(Math.Max(0, LocalOf(pilot?.id)))))) : L.F("Recolocar  {0}", KeyText(ReslotKey(k)));
                 p.gas.EnableInClassList("gas--ai", ai);
                 var kc = CareerColor(k);
                 if (pilot != null || kc.HasValue)

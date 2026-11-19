@@ -99,7 +99,18 @@ namespace Autorama
         public const int Slots = 3;
 
         static CareerDef def;
-        public static CareerDef Def => def ??= JsonUtility.FromJson<CareerDef>(Resources.Load<TextAsset>("Carreira/carreira").text);
+        public static CareerDef Def => def ??= Traduz(JsonUtility.FromJson<CareerDef>(Resources.Load<TextAsset>("Carreira/carreira").text));
+
+        // Nomes das regiões e das provas e as falas do rival no idioma do jogo (seção 88); os ids não mudam.
+        static CareerDef Traduz(CareerDef d)
+        {
+            foreach (var r in d.regioes)
+            {
+                r.nome = L.T(r.nome);
+                foreach (var n in r.nos) { n.nome = L.T(n.nome); n.rivalFrase = L.T(n.rivalFrase); n.rivalVitoria = L.T(n.rivalVitoria); n.rivalDerrota = L.T(n.rivalDerrota); }
+            }
+            return d;
+        }
         public static void Reload() => def = null;
 
         public static TrackSave Track(string id)
@@ -139,14 +150,14 @@ namespace Autorama
         {
             switch (o.tipo)
             {
-                case "posicao": return o.valor <= 1 ? "Vencer" : $"Chegar até o {o.valor:0}º";
-                case "semSair": return o.valor <= 0 ? "Sem sair da pista" : $"No máximo {o.valor:0} saídas";
-                case "semTurbo": return "Sem usar o turbo";
-                case "volta": return $"Volta abaixo de {RaceController.Fmt(o.valor)}";
-                case "tempo": return $"Prova abaixo de {RaceController.Fmt(o.valor)}";
-                case "serie": return "Vencer a série";
-                case "invicto": return "Vencer sem perder bateria";
-                case "todasEtapas": return "Vencer todas as etapas";
+                case "posicao": return o.valor <= 1 ? L.T("Vencer") : L.F("Chegar até o {0:0}º", o.valor);
+                case "semSair": return o.valor <= 0 ? L.T("Sem sair da pista") : L.F("No máximo {0:0} saídas", o.valor);
+                case "semTurbo": return L.T("Sem usar o turbo");
+                case "volta": return L.F("Volta abaixo de {0}", RaceController.Fmt(o.valor));
+                case "tempo": return L.F("Prova abaixo de {0}", RaceController.Fmt(o.valor));
+                case "serie": return L.T("Vencer a série");
+                case "invicto": return L.T("Vencer sem perder bateria");
+                case "todasEtapas": return L.T("Vencer todas as etapas");
                 default: return o.tipo;
             }
         }
@@ -157,11 +168,11 @@ namespace Autorama
         {
             switch (regra)
             {
-                case "molhada": return "Pista molhada: 20% menos aderência";
-                case "carro": return $"Carro imposto: {(n.carro.Padrao ? "padrão" : n.carro.Resumo)}";
-                case "sobrevivencia": return $"Mais de {n.limite} {(n.limite == 1 ? "saída" : "saídas")} e você está fora";
-                case "atrasada": return $"Você larga {n.atraso:0.#} s depois";
-                case "turboLivre": return "Turbo sempre cheio, para todos";
+                case "molhada": return L.T("Pista molhada: 20% menos aderência");
+                case "carro": return L.F("Carro imposto: {0}", (n.carro.Padrao ? L.T("padrão") : n.carro.Resumo));
+                case "sobrevivencia": return L.F("Mais de {0} {1} e você está fora", n.limite, (n.limite == 1 ? L.T("saída") : L.T("saídas")));
+                case "atrasada": return L.F("Você larga {0:0.#} s depois", n.atraso);
+                case "turboLivre": return L.T("Turbo sempre cheio, para todos");
                 default: return regra;
             }
         }
@@ -179,13 +190,13 @@ namespace Autorama
         public static string CheckBuild(NodeDef n, TrackSave t)
         {
             var ps = t.Pieces();
-            if (ps.Count < 3) return "Monte a pista primeiro.";
-            if (n.maxPecas > 0 && ps.Count - 1 > n.maxPecas) return $"Passou do limite: {ps.Count - 1} de {n.maxPecas} peças.";
-            foreach (var p in ps) if (!PieceOk(n, p.id, p.rise)) return $"{PieceName(p.id)}{(p.rise != 0 ? " com rampa" : "")} não vale nesta prova.";
-            if (n.exigir != null) foreach (var id in n.exigir) if (!ps.Exists(p => p.id == id)) return $"Falta usar: {PieceName(id)}.";
+            if (ps.Count < 3) return L.T("Monte a pista primeiro.");
+            if (n.maxPecas > 0 && ps.Count - 1 > n.maxPecas) return L.F("Passou do limite: {0} de {1} peças.", ps.Count - 1, n.maxPecas);
+            foreach (var p in ps) if (!PieceOk(n, p.id, p.rise)) return L.F("{0}{1} não vale nesta prova.", PieceName(p.id), (p.rise != 0 ? L.T(" com rampa") : ""));
+            if (n.exigir != null) foreach (var id in n.exigir) if (!ps.Exists(p => p.id == id)) return L.F("Falta usar: {0}.", PieceName(id));
             var a = TrackLayout.Analyze(t.Origin, TrackLayout.Build(t.Origin, ps, t.Tail, t.StartZ), t.Tail, t.Faixas);
-            if (!a.closed) return "Feche o circuito (Q fecha sozinho).";
-            if (a.overlaps.Count > 0) return "A pista passa por cima dela mesma.";
+            if (!a.closed) return L.T("Feche o circuito (Q fecha sozinho).");
+            if (a.overlaps.Count > 0) return L.T("A pista passa por cima dela mesma.");
             return "";
         }
 

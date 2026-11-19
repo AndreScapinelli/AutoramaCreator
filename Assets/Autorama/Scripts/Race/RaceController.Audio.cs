@@ -116,26 +116,26 @@ namespace Autorama
             float Saw(float hz, float t, int top) { float v = 0f; for (int h = 1; h <= top; h++) v += Sin(hz * h, t) / h; return v * 0.55f; }
             // As opções de motor (o jogador alterna nos Ajustes). p0 e p1: tom parado e no fundo; vol: volume relativo.
             motors.Clear();
-            motors.Add(new MotorSound { name = "Broca", clip = broca, p0 = 0.55f, p1 = 2.45f, vol = 0.62f });
+            motors.Add(new MotorSound { name = L.T("Broca"), clip = broca, p0 = 0.55f, p1 = 2.45f, vol = 0.62f });
             // Carrinho de controle remoto: silvo médio e limpo, quase só uma nota com um pouco de oitava.
-            motors.Add(new MotorSound { name = "Elétrico suave", p0 = 0.6f, p1 = 2.6f, vol = 0.9f,
+            motors.Add(new MotorSound { name = L.T("Elétrico suave"), p0 = 0.6f, p1 = 2.6f, vol = 0.9f,
                 clip = Clip("Motor: elétrico", 1f, (t, i) => 0.5f * Sin(420f, t) + 0.18f * Sin(840f, t) + 0.07f * Sin(1260f, t) + 0.04f * Sin(423f, t)) });
             // Autorama antigo: motor de escovas, zumbido rasgado com a "areia" do coletor.
-            motors.Add(new MotorSound { name = "Escovas", p0 = 0.6f, p1 = 2.4f, vol = 0.8f,
+            motors.Add(new MotorSound { name = L.T("Escovas"), p0 = 0.6f, p1 = 2.4f, vol = 0.8f,
                 clip = Clip("Motor: escovas", 1f, (t, i) => Saw(170f, t, 9) * (0.75f + 0.25f * Sin(340f, t)) + 0.05f * hiss[i]) });
             // Turbina: mais ar que nota. Chiado forte com um silvo fino por dentro.
-            motors.Add(new MotorSound { name = "Turbina", p0 = 0.6f, p1 = 2.0f, vol = 0.4f,     // a escolhida; volume reduzido a pedido
+            motors.Add(new MotorSound { name = L.T("Turbina"), p0 = 0.6f, p1 = 2.0f, vol = 0.4f,     // a escolhida; volume reduzido a pedido
                 clip = Clip("Motor: turbina", 1f, (t, i) => 0.3f * hiss[i] * (0.7f + 0.3f * Sin(40f, t)) + 0.25f * Sin(2100f, t) + 0.12f * Sin(2112f, t)) });
             // Grave e redondo: ronco baixo, para quem prefere o motor "de carro".
-            motors.Add(new MotorSound { name = "Ronco", p0 = 0.7f, p1 = 2.8f, vol = 1.1f,
+            motors.Add(new MotorSound { name = L.T("Ronco"), p0 = 0.7f, p1 = 2.8f, vol = 1.1f,
                 clip = Clip("Motor: ronco", 1f, (t, i) => Saw(70f, t, 6) * 0.9f + 0.2f * Sin(35f, t)) });
             // Gravação do jogador: autorama/sons/motor.wav (PCM 16 bits). Se existir, vira a 6ª opção.
             var own = LoadWav(System.IO.Path.Combine(TrackLibrary.Root, "sons", "motor.wav"));
-            if (own != null) motors.Add(new MotorSound { name = "Seu arquivo (motor.wav)", clip = own, p0 = 0.6f, p1 = 2.0f, vol = 1f });
+            if (own != null) motors.Add(new MotorSound { name = L.T("Seu arquivo (motor.wav)"), clip = own, p0 = 0.6f, p1 = 2.0f, vol = 1f });
             // Curto: zumbido agudo e rasgado que sobe rápido. Longo: ronco grave e cheio que sobe devagar e vai mais longe.
-            motorCurto = new MotorSound { name = "Motor curto", p0 = 0.8f, p1 = 2.9f, vol = 0.7f,
+            motorCurto = new MotorSound { name = L.T("Motor curto"), p0 = 0.8f, p1 = 2.9f, vol = 0.7f,
                 clip = Clip("Motor: curto", 1f, (t, i) => Saw(250f, t, 7) * (0.8f + 0.2f * Sin(500f, t)) + 0.12f * Sin(1750f, t) + 0.04f * hiss[i]) };
-            motorLongo = new MotorSound { name = "Motor longo", p0 = 0.5f, p1 = 2.2f, vol = 1.05f,
+            motorLongo = new MotorSound { name = L.T("Motor longo"), p0 = 0.5f, p1 = 2.2f, vol = 1.05f,
                 clip = Clip("Motor: longo", 1f, (t, i) => Saw(90f, t, 8) * 0.8f + 0.3f * Sin(45f, t) + 0.06f * Sin(181f, t)) };
             var motorClip = MotorNow.clip;
 

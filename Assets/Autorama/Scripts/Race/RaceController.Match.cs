@@ -29,30 +29,30 @@ namespace Autorama
         void BuildMatchUI(VisualElement entry)
         {
             mmSize = Mathf.Clamp(PlayerPrefs.GetInt(PrefMmSize, 4), 2, 8);
-            mmBox = Section(entry, "PARTIDA RÁPIDA");
-            Text($"Uma corrida de {RaceTimeText(240)} contra quem estiver na fila. Cada um põe uma pista na disputa e o servidor sorteia qual vale. Só larga com a fila cheia. Funciona pelo servidor e pela Steam.", "hint", mmBox);
-            Text("CARROS", "h3", mmBox);
+            mmBox = Section(entry, L.T("PARTIDA RÁPIDA"));
+            Text(L.F("Uma corrida de {0} contra quem estiver na fila. Cada um põe uma pista na disputa e o servidor sorteia qual vale. Só larga com a fila cheia. Funciona pelo servidor e pela Steam.", RaceTimeText(240)), "hint", mmBox);
+            Text(L.T("CARROS"), "h3", mmBox);
             mmSizes = El("segmented", mmBox);
-            mmTrack = new DropdownField("Sua pista");
+            mmTrack = new DropdownField(L.T("Sua pista"));
             mmTrack.AddToClassList("setting");
             mmTrack.style.marginTop = 6;
             mmTrack.RegisterValueChangedCallback(e => { int i = mmTrack.index; if (i >= 0 && i < mmOpts.Count) PlayerPrefs.SetString(PrefMmTrack, mmOpts[i].key); });
             mmBox.Add(mmTrack);
             mmInfo = Text("", "small", mmBox);
             mmInfo.style.marginTop = 4;
-            mmGo = Btn("Procurar partida", MatchJoin, "btn btn--primary", mmBox);
+            mmGo = Btn(L.T("Procurar partida"), MatchJoin, "btn btn--primary", mmBox);
             mmGo.style.marginTop = 6;
 
-            mmQueueBox = Section(entry, "PROCURANDO PARTIDA");
+            mmQueueBox = Section(entry, L.T("PROCURANDO PARTIDA"));
             mmQueueTitle = Text("", "lib-name", mmQueueBox);
             var row = El("row", mmQueueBox);
             row.style.alignItems = Align.Center;
             mmQueueCount = Text("", "clock", row);
             mmClock = Text("", "small", row);
             mmClock.style.marginLeft = 12;
-            Text("PISTAS NA DISPUTA", "h3", mmQueueBox);
+            Text(L.T("PISTAS NA DISPUTA"), "h3", mmQueueBox);
             mmQueueTracks = Text("", "body", mmQueueBox);
-            var sair = Btn("Sair da fila", MatchLeave, "btn btn--danger", mmQueueBox);
+            var sair = Btn(L.T("Sair da fila"), MatchLeave, "btn btn--danger", mmQueueBox);
             sair.style.marginTop = 8;
             mmQueueBox.schedule.Execute(MatchClock).Every(1000);
         }
@@ -73,7 +73,7 @@ namespace Autorama
             for (int i = 0; i < MmSizes.Length; i++)
             {
                 int n = MmSizes[i];
-                var b = Btn(mmq[i] > 0 ? $"{n} · {mmq[i]} na fila" : $"{n}", () => { mmSize = n; PlayerPrefs.SetInt(PrefMmSize, n); DrawMatch(); }, "btn", mmSizes);
+                var b = Btn(mmq[i] > 0 ? L.F("{0} · {1} na fila", n, mmq[i]) : $"{n}", () => { mmSize = n; PlayerPrefs.SetInt(PrefMmSize, n); DrawMatch(); }, "btn", mmSizes);
                 b.EnableInClassList("btn--on", n == mmSize);
             }
             mmOpts = Options().FindAll(o => o.closed);
@@ -84,8 +84,8 @@ namespace Autorama
             if (names.Count > 0) mmTrack.SetValueWithoutNotify(names[sel]); else mmTrack.SetValueWithoutNotify("");
             mmGo.SetEnabled(names.Count > 0);
             int k = System.Array.IndexOf(MmSizes, mmSize);
-            mmInfo.text = names.Count == 0 ? "Nenhuma pista fechada. Monte uma no construtor."
-                : $"A pista entra adaptada para {mmSize} carros. " + (k >= 0 && mmq[k] > 0 ? $"{mmq[k]} de {mmSize} na fila agora." : "Ninguém na fila agora: toque em Atualizar lista para ver de novo.");
+            mmInfo.text = names.Count == 0 ? L.T("Nenhuma pista fechada. Monte uma no construtor.")
+                : L.F("A pista entra adaptada para {0} carros. ", mmSize) + (k >= 0 && mmq[k] > 0 ? L.F("{0} de {1} na fila agora.", mmq[k], mmSize) : L.T("Ninguém na fila agora: toque em Atualizar lista para ver de novo."));
         }
 
         void MatchJoin()
@@ -96,7 +96,7 @@ namespace Autorama
             var data = Adapted(mmOpts[i].save, mmSize);
             if (string.IsNullOrWhiteSpace(data.nome)) data.nome = mmOpts[i].name;
             string json = data.ToJson(false);
-            if (json.Length > MaxTrackJson) { panel.Toast("Essa pista é grande demais para o servidor."); return; }
+            if (json.Length > MaxTrackJson) { panel.Toast(L.T("Essa pista é grande demais para o servidor.")); return; }
             int size = mmSize;
             WhenConnected(() => net.Send(new NetOut { t = "mm", on = true, faixas = size, name = name, uid = ChampFiles.PlayerUid(), track = data.nome, hash = Champ.TrackHash(data), json = json }));
         }
@@ -116,12 +116,12 @@ namespace Autorama
             mmIn = m.faixas;
             if (mmIn > 0)
             {
-                mmQueueTitle.text = $"Partida rápida · {m.need} carros · {RaceTimeText(240)}";
-                mmQueueCount.text = $"{m.n} de {m.need}";
+                mmQueueTitle.text = L.F("Partida rápida · {0} carros · {1}", m.need, RaceTimeText(240));
+                mmQueueCount.text = L.F("{0} de {1}", m.n, m.need);
                 var count = new Dictionary<string, int>();
                 foreach (var t in m.tracks) count[t] = count.TryGetValue(t, out int c) ? c + 1 : 1;
                 var parts = new List<string>();
-                foreach (var kv in count) parts.Add(Safe(kv.Key) + (kv.Value > 1 ? $" ×{kv.Value}" : ""));
+                foreach (var kv in count) parts.Add(Safe(kv.Key) + (kv.Value > 1 ? L.F(" ×{0}", kv.Value) : ""));
                 mmQueueTracks.text = string.Join(" · ", parts);
                 MatchClock();
             }
@@ -132,7 +132,7 @@ namespace Autorama
         {
             if (mmIn == 0 || mmClock == null) return;
             int s = Mathf.FloorToInt(Time.realtimeSinceStartup - mmSince);
-            mmClock.text = $"{s / 60:00}:{s % 60:00} esperando";
+            mmClock.text = L.F("{0:00}:{1:00} esperando", s / 60, s % 60);
         }
 
         // Fim da partida: jogar de novo (volta à fila com o mesmo tamanho e a mesma pista) ou sair.
@@ -145,7 +145,7 @@ namespace Autorama
             if (mm == null || mm.tracks.Count == 0 || mm.pick < 0 || mm.pick >= mm.tracks.Count) return;
             mmRoulette = El("mm-sorteio", panel.Root);
             mmRoulette.pickingMode = PickingMode.Ignore;
-            Text("SORTEIO DA PISTA", "h3", mmRoulette);
+            Text(L.T("SORTEIO DA PISTA"), "h3", mmRoulette);
             var name = Text("", "mm-sorteio-nome", mmRoulette);
             var by = Text("", "small", mmRoulette);
             var box = mmRoulette;
@@ -157,7 +157,7 @@ namespace Autorama
                 name.text = Safe(t.name);
                 if (step >= steps)
                 {
-                    by.text = $"vai para {Safe(t.name)} (de {Safe(t.by)})";
+                    by.text = L.F("vai para {0} (de {1})", Safe(t.name), Safe(t.by));
                     box.schedule.Execute(() => box.RemoveFromHierarchy()).ExecuteLater(1800);
                     return;
                 }

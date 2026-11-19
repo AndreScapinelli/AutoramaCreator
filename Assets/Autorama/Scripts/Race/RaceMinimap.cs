@@ -42,8 +42,8 @@ namespace Autorama
             style.position = Position.Absolute;
 
             head = new VisualElement(); head.AddToClassList("minimap-head"); Add(head);
-            headTitle = new Label("MINIMAPA"); headTitle.AddToClassList("minimap-title"); head.Add(headTitle);
-            var hint = new Label("⠿ arraste"); hint.AddToClassList("minimap-hint"); head.Add(hint);
+            headTitle = new Label(L.T("MINIMAPA")); headTitle.AddToClassList("minimap-title"); head.Add(headTitle);
+            var hint = new Label(L.T("⠿ arraste")); hint.AddToClassList("minimap-hint"); head.Add(hint);
             head.RegisterCallback<PointerDownEvent>(e => StartDrag(e, head, false));
             head.RegisterCallback<PointerMoveEvent>(e => Move(e, false));
             head.RegisterCallback<PointerUpEvent>(e => EndDrag(e, head, false));
@@ -67,7 +67,7 @@ namespace Autorama
             grip.RegisterCallback<PointerMoveEvent>(e => Move(e, true));
             grip.RegisterCallback<PointerUpEvent>(e => EndDrag(e, grip, true));
 
-            toggle = new Label("Pilotos ▸"); toggle.AddToClassList("minimap-toggle");
+            toggle = new Label(L.T("Pilotos ▸")); toggle.AddToClassList("minimap-toggle");
             toggle.RegisterCallback<ClickEvent>(_ => SetInfoOpen(!InfoOpen));
             Add(toggle);
 
@@ -196,7 +196,7 @@ namespace Autorama
             set.miniOpen = open;
             set.Save();
             info.style.display = open ? DisplayStyle.Flex : DisplayStyle.None;
-            toggle.text = open ? "Pilotos ▾" : "Pilotos ▸";
+            toggle.text = open ? L.T("Pilotos ▾") : L.T("Pilotos ▸");
             ApplyPos();
         }
 
@@ -204,9 +204,9 @@ namespace Autorama
         {
             bool open = InfoOpen;
             info.style.display = open ? DisplayStyle.Flex : DisplayStyle.None;
-            toggle.text = open ? "Pilotos ▾" : "Pilotos ▸";
+            toggle.text = open ? L.T("Pilotos ▾") : L.T("Pilotos ▸");
             if (!open) return;
-            int L = sim.set.laps;
+            int nV = sim.set.laps;
             for (int i = 0; i < RaceSim.MaxCars; i++)
             {
                 if (i >= order.Count) { rows[i].style.display = DisplayStyle.None; continue; }
@@ -214,11 +214,11 @@ namespace Autorama
                 var c = sim.cars[k];
                 rows[i].style.display = DisplayStyle.Flex;
                 rowDot[i].style.backgroundColor = k < colors.Length ? colors[k] : Color.white;
-                rowPos[i].text = sim.winner == k ? "🏁" : $"{i + 1}º";
+                rowPos[i].text = sim.winner == k ? "🏁" : L.F("{0}º", i + 1);
                 rowName[i].text = k < names.Length ? names[k] : "";
-                rowLap[i].text = sim.ByTime ? $"{c.laps} v · T{c.lane + 1}" : c.finish != null ? "Chegou" : $"Volta {Mathf.Clamp(c.laps + 1, 1, L)}/{L}";
+                rowLap[i].text = sim.ByTime ? L.F("{0} v · T{1}", c.laps, c.lane + 1) : c.finish != null ? L.T("Chegou") : L.F("Volta {0}/{1}", Mathf.Clamp(c.laps + 1, 1, nV), nV);
                 float metros = sim.Travel[k] * cellCm / 100f;
-                rowStats[i].text = $"última {RaceController.Fmt(c.lastLap)} · melhor {RaceController.Fmt(c.best)} · {metros:0.0} m";
+                rowStats[i].text = L.F("última {0} · melhor {1} · {2:0.0} m", RaceController.Fmt(c.lastLap), RaceController.Fmt(c.best), metros);
             }
         }
 

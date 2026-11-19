@@ -26,7 +26,7 @@ namespace Autorama
                 Ready = r == ESteamAPIInitResult.k_ESteamAPIInitResult_OK;
                 Error = Ready ? "" : Explain(r, msg);
             }
-            catch (System.Exception e) { Ready = false; Error = "Não deu para carregar a biblioteca da Steam: " + e.Message; }
+            catch (System.Exception e) { Ready = false; Error = L.T("Não deu para carregar a biblioteca da Steam: ") + e.Message; }
             return Ready;
         }
 
@@ -34,9 +34,9 @@ namespace Autorama
         {
             switch (r)
             {
-                case ESteamAPIInitResult.k_ESteamAPIInitResult_NoSteamClient: return "O cliente da Steam não está aberto. Abra a Steam, entre na conta e tente de novo.";
-                case ESteamAPIInitResult.k_ESteamAPIInitResult_VersionMismatch: return "A Steam está desatualizada para esta versão da biblioteca. Atualize o cliente da Steam.";
-                default: return $"A Steam não iniciou ({r}): {msg}. Confira se o steam_appid.txt (480) está na raiz do projeto.";
+                case ESteamAPIInitResult.k_ESteamAPIInitResult_NoSteamClient: return L.T("O cliente da Steam não está aberto. Abra a Steam, entre na conta e tente de novo.");
+                case ESteamAPIInitResult.k_ESteamAPIInitResult_VersionMismatch: return L.T("A Steam está desatualizada para esta versão da biblioteca. Atualize o cliente da Steam.");
+                default: return L.F("A Steam não iniciou ({0}): {1}. Confira se o steam_appid.txt (480) está na raiz do projeto.", r, msg);
             }
         }
 

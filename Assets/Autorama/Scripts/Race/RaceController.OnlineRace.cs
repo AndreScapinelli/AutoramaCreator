@@ -68,8 +68,8 @@ namespace Autorama
         string OnlineWho(Pilot p)
         {
             int j = LocalOf(p.id);
-            if (j >= 0) return $"{(j == 0 ? "é você" : "jogador 2 daqui")} · acelera {KeyText(GasKeyAt(LocalKeySet(j)))} · recoloca {KeyText(ReslotKeyAt(LocalKeySet(j)))}";
-            return OnlinePresent(p.id) ? "online" : "saiu da sala";
+            if (j >= 0) return L.F("{0} · acelera {1} · recoloca {2}", (j == 0 ? L.T("é você") : L.T("jogador 2 daqui")), KeyText(GasKeyAt(LocalKeySet(j))), KeyText(ReslotKeyAt(LocalKeySet(j))));
+            return OnlinePresent(p.id) ? "online" : L.T("saiu da sala");
         }
 
         // Até onde a meia vai é do jogador, não do trilho: o rodízio troca o trilho a cada bateria e o valor vai junto.
@@ -117,7 +117,7 @@ namespace Autorama
             {
                 C = new Championship
                 {
-                    id = "online", name = string.IsNullOrWhiteSpace(m.title) ? "Campeonato online" : Safe(m.title), created = Champ.Now,
+                    id = "online", name = string.IsNullOrWhiteSpace(m.title) ? L.T("Campeonato online") : Safe(m.title), created = Champ.Now,
                     rules = new ChampRules { vmax = m.rules.vmax, ramp = m.rules.ramp, grip = m.rules.grip, collide = m.rules.collide, turbo = m.rules.turbo, reslot = m.rules.reslot },
                     byTime = m.rules.byTime,
                 };
@@ -140,7 +140,7 @@ namespace Autorama
             catch (Exception e)
             {
                 Debug.LogWarning("Campeonato online inválido: " + e.Message);
-                panel.Toast("Não deu para abrir as pistas do campeonato. Você saiu da sala.");
+                panel.Toast(L.T("Não deu para abrir as pistas do campeonato. Você saiu da sala."));
                 LeaveRoom();
                 return;
             }
@@ -214,7 +214,7 @@ namespace Autorama
             oRunQuit.text = QuitLabel();
         }
 
-        string QuitLabel() => MmRoom ? "Sair da partida" : IsHost ? "Encerrar campeonato" : "Sair da sala";
+        string QuitLabel() => MmRoom ? L.T("Sair da partida") : IsHost ? L.T("Encerrar campeonato") : L.T("Sair da sala");
 
         // ---------- Quadro a quadro ----------
 
@@ -500,7 +500,7 @@ namespace Autorama
             takeOverStages = true;
             carPickSince = Time.realtimeSinceStartup; carBcastAcc = 1f;     // a escolha do carro aberta recomeça o prazo comigo
             net.Send(SyncEv(null));
-            panel.Toast("Você agora é o host: a bateria da vez recomeça.");
+            panel.Toast(L.T("Você agora é o host: a bateria da vez recomeça."));
             OnlineHeatLoaded();
         }
 
@@ -568,22 +568,22 @@ namespace Autorama
             OnlineHeatLoaded();
         }
 
-        void OnlineEnd() { if (IsHost) net.Send(new NetOut { t = "end", text = "O campeonato terminou." }); }
+        void OnlineEnd() { if (IsHost) net.Send(new NetOut { t = "end", text = L.T("O campeonato terminou.") }); }
 
         void OnlineQuit()
         {
             if (!panel.ConfirmTwice("online-quit"))
             {
-                oRunQuit.text = "Certeza? Clique de novo";
+                oRunQuit.text = L.T("Certeza? Clique de novo");
                 oRunQuit.schedule.Execute(() => oRunQuit.text = QuitLabel()).ExecuteLater(3000);
                 return;
             }
             oRunQuit.text = QuitLabel();
-            if (IsHost && !MmRoom) net.Send(new NetOut { t = "end", text = "O host encerrou o campeonato." });
+            if (IsHost && !MmRoom) net.Send(new NetOut { t = "end", text = L.T("O host encerrou o campeonato.") });
             else LeaveRoom();
         }
 
-        string Keys2Hint() => TwoLocal ? $" (o jogador 2 daqui: {KeyText(GasKeyAt(1))} e {KeyText(ReslotKeyAt(1))}, ou o 2º controle)" : "";
+        string Keys2Hint() => TwoLocal ? L.F(" (o jogador 2 daqui: {0} e {1}, ou o 2º controle)", KeyText(GasKeyAt(1)), KeyText(ReslotKeyAt(1))) : "";
 
         // Os botões e a dica do cartão da bateria (chamado por DrawRun no lugar dos botões do offline).
         void DrawOnlineActs(bool live, int idx, Stage stage)
@@ -592,29 +592,29 @@ namespace Autorama
             bool host = IsHost;
             if (MmRoom && !live)
             {
-                Btn("Jogar de novo", MatchAgain, "btn btn--primary", cActs);
-                Btn("Sair", LeaveRoom, "btn", cActs);
-                cHint.text = "A partida acabou. Jogar de novo volta para a fila com o mesmo tamanho e a mesma pista.";
+                Btn(L.T("Jogar de novo"), MatchAgain, "btn btn--primary", cActs);
+                Btn(L.T("Sair"), LeaveRoom, "btn", cActs);
+                cHint.text = L.T("A partida acabou. Jogar de novo volta para a fila com o mesmo tamanho e a mesma pista.");
                 autoShown = -1;
                 return;
             }
             if (host)
             {
-                if (!live) Btn("Voltar ao lobby", OnlineEnd, "btn btn--primary", cActs);
-                else if (ph == RaceSim.Phase.Idle) Btn("Largar (Enter)", OnlineStart, "btn btn--primary", cActs).SetEnabled(sim.closed);
-                else if (ph == RaceSim.Phase.Done) { Btn("Salvar e seguir (Enter)", OnlineSave, "btn btn--primary", cActs); Btn("Correr de novo", OnlineRestart, "btn", cActs); }
-                else Btn("Recomeçar bateria", OnlineRestart, "btn", cActs);
+                if (!live) Btn(L.T("Voltar ao lobby"), OnlineEnd, "btn btn--primary", cActs);
+                else if (ph == RaceSim.Phase.Idle) Btn(L.T("Largar (Enter)"), OnlineStart, "btn btn--primary", cActs).SetEnabled(sim.closed);
+                else if (ph == RaceSim.Phase.Done) { Btn(L.T("Salvar e seguir (Enter)"), OnlineSave, "btn btn--primary", cActs); Btn(L.T("Correr de novo"), OnlineRestart, "btn", cActs); }
+                else Btn(L.T("Recomeçar bateria"), OnlineRestart, "btn", cActs);
             }
-            string laps = stage != null ? $"{stage.laps} {(stage.laps == 1 ? "volta" : "voltas")}" : "";
-            cHint.text = !live ? (host ? "O campeonato acabou. Voltar ao lobby leva todos de volta para montar outro."
-                                       : "O campeonato acabou. O host leva todos de volta ao lobby.")
-                : ph == RaceSim.Phase.Idle ? (host ? $"Espere os pilotos da bateria se prepararem e aperte Largar. Quem corre acelera com {KeyText(GasKeyAt(0))} e recoloca com {KeyText(ReslotKeyAt(0))}{Keys2Hint()}."
-                                                   : $"Aguardando o host largar. Quem corre acelera com {KeyText(GasKeyAt(0))} e recoloca com {KeyText(ReslotKeyAt(0))}{Keys2Hint()}.")
-                : ph == RaceSim.Phase.Done ? (host ? "Salve para o resultado contar na tabela de todos. Se algo deu errado, corra de novo: esta bateria é descartada."
-                                                   : "Bateria encerrada. O host salva o resultado e segue.")
-                : $"Vence a bateria quem completar {laps} primeiro. Quem não terminar tem {Champ.Cutoff:0} s depois da bandeirada.";
+            string laps = stage != null ? (stage.laps == 1 ? L.F("{0} volta", stage.laps) : L.F("{0} voltas", stage.laps)) : "";
+            cHint.text = !live ? (host ? L.T("O campeonato acabou. Voltar ao lobby leva todos de volta para montar outro.")
+                                       : L.T("O campeonato acabou. O host leva todos de volta ao lobby."))
+                : ph == RaceSim.Phase.Idle ? (host ? L.F("Espere os pilotos da bateria se prepararem e aperte Largar. Quem corre acelera com {0} e recoloca com {1}{2}.", KeyText(GasKeyAt(0)), KeyText(ReslotKeyAt(0)), Keys2Hint())
+                                                   : L.F("Aguardando o host largar. Quem corre acelera com {0} e recoloca com {1}{2}.", KeyText(GasKeyAt(0)), KeyText(ReslotKeyAt(0)), Keys2Hint()))
+                : ph == RaceSim.Phase.Done ? (host ? L.T("Salve para o resultado contar na tabela de todos. Se algo deu errado, corra de novo: esta bateria é descartada.")
+                                                   : L.T("Bateria encerrada. O host salva o resultado e segue."))
+                : L.F("Vence a bateria quem completar {0} primeiro. Quem não terminar tem {1:0} s depois da bandeirada.", laps, Champ.Cutoff);
             autoShown = live ? AutoLeft() : -1;
-            if (autoShown >= 0) cHint.text += ph == RaceSim.Phase.Idle ? $" Larga sozinho em {autoShown} s." : $" Salva e segue sozinho em {autoShown} s.";
+            if (autoShown >= 0) cHint.text += ph == RaceSim.Phase.Idle ? L.F(" Larga sozinho em {0} s.", autoShown) : L.F(" Salva e segue sozinho em {0} s.", autoShown);
         }
     }
 }

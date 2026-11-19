@@ -65,8 +65,8 @@ namespace Autorama
         // O cartão do fantasma na aba Corrida: o botão e, embaixo, a volta e o carro do fantasma.
         void BuildGhostUI(VisualElement box)
         {
-            var sec = Section(box, "FANTASMA");
-            var tg = new Toggle("Correr contra o fantasma") { value = set.ghost };
+            var sec = Section(box, L.T("FANTASMA"));
+            var tg = new Toggle(L.T("Correr contra o fantasma")) { value = set.ghost };
             tg.AddToClassList("setting");
             sec.Add(tg);
             tg.RegisterValueChangedCallback(e => { set.ghost = e.newValue; set.Save(); DrawGhostInfo(); });
@@ -78,13 +78,13 @@ namespace Autorama
         {
             if (ghostInfo == null) return;
             ghostInfo.Clear();
-            if (!set.ghost) { Text("A melhor volta da pista corre ao seu lado, transparente, largando junto a cada volta.", "small", ghostInfo); return; }
-            if (ghost == null) { Text("Esta pista ainda não tem fantasma. A primeira volta limpa de um piloto de gente vira o fantasma.", "small", ghostInfo); return; }
+            if (!set.ghost) { Text(L.T("A melhor volta da pista corre ao seu lado, transparente, largando junto a cada volta."), "small", ghostInfo); return; }
+            if (ghost == null) { Text(L.T("Esta pista ainda não tem fantasma. A primeira volta limpa de um piloto de gente vira o fantasma."), "small", ghostInfo); return; }
             var day = System.DateTimeOffset.FromUnixTimeMilliseconds(ghost.date).LocalDateTime;
-            Text($"Melhor volta: <b>{Fmt(ghost.lap)}</b> · {LaneNames[Mathf.Clamp(ghost.lane, 0, LaneNames.Length - 1)]} · {day:dd/MM/yyyy}", "small", ghostInfo);
+            Text(L.F("Melhor volta: <b>{0}</b> · {1} · {2:dd/MM/yyyy}", Fmt(ghost.lap), LaneNames[Mathf.Clamp(ghost.lane, 0, LaneNames.Length - 1)], day), "small", ghostInfo);
             if (!Mathf.Approximately(ghost.vmax, set.vmax) || !Mathf.Approximately(ghost.grip, set.grip) || !Mathf.Approximately(ghost.ramp, set.ramp))
-                Text($"Gravado com velocidade máx. {Num(ghost.vmax)}, aderência {Mathf.RoundToInt(ghost.grip)} e tempo até 100% {Num(ghost.ramp, 2)} s (agora {Num(set.vmax)}, {Mathf.RoundToInt(set.grip)} e {Num(set.ramp, 2)} s).", "small", ghostInfo);
-            Text("O carro do fantasma:", "small", ghostInfo);
+                Text(L.F("Gravado com velocidade máx. {0}, aderência {1} e tempo até 100% {2} s (agora {3}, {4} e {5} s).", Num(ghost.vmax), Mathf.RoundToInt(ghost.grip), Num(ghost.ramp, 2), Num(set.vmax), Mathf.RoundToInt(set.grip), Num(set.ramp, 2)), "small", ghostInfo);
+            Text(L.T("O carro do fantasma:"), "small", ghostInfo);
             DrawCarCard(ghostInfo, ghost.carro, _ => { }, false);
         }
 
@@ -118,7 +118,7 @@ namespace Autorama
                     ghostTape = tape;
                     GhostStore.Save(ghostHash, ghost);
                     DrawGhostInfo();
-                    if (set.ghost) { var pad = pads[k]; pad.flash = $"Novo fantasma! {Fmt(lap)}"; pad.flashRec = false; pad.flashT = 2.5f; }
+                    if (set.ghost) { var pad = pads[k]; pad.flash = L.F("Novo fantasma! {0}", Fmt(lap)); pad.flashRec = false; pad.flashT = 2.5f; }
                 }
             }
             ghostLaps.Clear();

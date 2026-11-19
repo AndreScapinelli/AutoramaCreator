@@ -56,7 +56,7 @@ namespace Autorama
         {
             Close();
             int g = ++gen;
-            if (!TryParseUrl(url, out var uri)) { events.Enqueue(new Ev { gen = g, kind = 2, text = "Endereço do servidor inválido." }); return; }
+            if (!TryParseUrl(url, out var uri)) { events.Enqueue(new Ev { gen = g, kind = 2, text = L.T("Endereço do servidor inválido.") }); return; }
             state = State.Connecting;
             var c = conn = new Conn { gen = g };
             c.sock.Options.KeepAliveInterval = TimeSpan.FromSeconds(10);
@@ -99,7 +99,7 @@ namespace Autorama
 
         async Task Run(Conn c, Uri uri)
         {
-            string reason = "A conexão com o servidor foi encerrada.";
+            string reason = L.T("A conexão com o servidor foi encerrada.");
             try
             {
                 using (var timeout = CancellationTokenSource.CreateLinkedTokenSource(c.cts.Token))
@@ -116,17 +116,17 @@ namespace Autorama
                 while (c.sock.State == WebSocketState.Open && !c.cts.IsCancellationRequested)
                 {
                     var r = await c.sock.ReceiveAsync(new ArraySegment<byte>(buf), c.cts.Token).ConfigureAwait(false);
-                    if (r.MessageType == WebSocketMessageType.Close) { reason = "O servidor encerrou a conexão."; break; }
+                    if (r.MessageType == WebSocketMessageType.Close) { reason = L.T("O servidor encerrou a conexão."); break; }
                     ms.Write(buf, 0, r.Count);
-                    if (ms.Length > MaxMessage) { reason = "O servidor mandou uma mensagem grande demais."; break; }
+                    if (ms.Length > MaxMessage) { reason = L.T("O servidor mandou uma mensagem grande demais."); break; }
                     if (!r.EndOfMessage) continue;
                     events.Enqueue(new Ev { gen = c.gen, kind = 1, text = Encoding.UTF8.GetString(ms.GetBuffer(), 0, (int)ms.Length) });
                     ms.SetLength(0);
                 }
             }
             catch (OperationCanceledException) { }          // fechado por Close()
-            catch (TimeoutException) { reason = "Não foi possível conectar: tempo esgotado. Confira o endereço do servidor."; }
-            catch (Exception e) { reason = "Não foi possível falar com o servidor: " + (e.InnerException ?? e).Message; }
+            catch (TimeoutException) { reason = L.T("Não foi possível conectar: tempo esgotado. Confira o endereço do servidor."); }
+            catch (Exception e) { reason = L.T("Não foi possível falar com o servidor: ") + (e.InnerException ?? e).Message; }
             finally
             {
                 if (!c.cts.IsCancellationRequested) events.Enqueue(new Ev { gen = c.gen, kind = 2, text = reason });

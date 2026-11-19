@@ -76,12 +76,12 @@ namespace Autorama
         public void JoinById(ulong lobbyId)
         {
             if (state != OnlineClient.State.Open) return;
-            if (joined) { Err("sala", "Você já está numa sala."); return; }
+            if (joined) { Err("sala", L.T("Você já está numa sala.")); return; }
             b.Join(lobbyId, ok =>
             {
                 if (state != OnlineClient.State.Open) { b.Leave(); return; }
-                if (!ok) { Err("sem-sala", "Não deu para entrar na sala do amigo."); return; }
-                if (b.Data(SteamLobbyClient.Tag) != "1" || b.Data("ver") != OnlineClient.Protocol.ToString()) { b.Leave(); Err("sem-sala", "Esse lobby não é de uma sala do Autorama (ou é de outra versão do jogo)."); return; }
+                if (!ok) { Err("sem-sala", L.T("Não deu para entrar na sala do amigo.")); return; }
+                if (b.Data(SteamLobbyClient.Tag) != "1" || b.Data("ver") != OnlineClient.Protocol.ToString()) { b.Leave(); Err("sem-sala", L.T("Esse lobby não é de uma sala do Autorama (ou é de outra versão do jogo).")); return; }
                 b.SetMyData("ready", "0"); b.SetMyData("g2", "0");
                 AssignColor();
                 Enter();
@@ -130,7 +130,7 @@ namespace Autorama
             if (b.Owner != lastOwner && b.Owner != 0)
             {
                 lastOwner = b.Owner;
-                if (!racing) Say($"{NameOf(lastOwner)} agora é o host.");
+                if (!racing) Say(L.F("{0} agora é o host.", NameOf(lastOwner)));
                 AdoptRaceHost();
                 EmitRoom();
             }
@@ -138,7 +138,7 @@ namespace Autorama
             if (racing && b.Data("state") == "lobby")
             {
                 if (lobbyFlipSince < 0f) lobbyFlipSince = Time.realtimeSinceStartup;
-                else if (Time.realtimeSinceStartup - lobbyFlipSince > 2f) { racing = false; lobbyFlipSince = -1f; Emit(new NetMsg { t = "lobby", text = "O campeonato terminou." }); EmitRoom(); }
+                else if (Time.realtimeSinceStartup - lobbyFlipSince > 2f) { racing = false; lobbyFlipSince = -1f; Emit(new NetMsg { t = "lobby", text = L.T("O campeonato terminou.") }); EmitRoom(); }
             }
             else lobbyFlipSince = -1f;
         }
@@ -180,7 +180,7 @@ namespace Autorama
                 case "leave": if (joined) { b.Leave(); joined = racing = queuing = false; stageData.Clear(); Emit(new NetMsg { t = "left" }); } break;
                 case "color": SetColor(o.color, o.g); break;
                 case "guest": SetGuest(o.on); break;
-                case "ready": if (joined && !IsHost) { if (racing) Err("andamento", "O campeonato já começou."); else b.SetMyData("ready", o.ready ? EpochNow() : "0"); } break;
+                case "ready": if (joined && !IsHost) { if (racing) Err("andamento", L.T("O campeonato já começou.")); else b.SetMyData("ready", o.ready ? EpochNow() : "0"); } break;
                 case "chat": Chat(o.text); break;
                 case "visibility": if (RequireHost()) b.SetPublic(o.pub); break;
                 case "start": Start(o); break;
@@ -210,12 +210,12 @@ namespace Autorama
                 Emit(new NetMsg { t = "mm" });
                 return;
             }
-            if (joined) { Err("sala", "Você já está numa sala."); return; }
+            if (joined) { Err("sala", L.T("Você já está numa sala.")); return; }
             if (queuing || mmPending) return;
-            if (Array.IndexOf(MmSizes, o.faixas) < 0) { Err("mm", "Tamanho de pista inválido."); return; }
-            if (!SuggestionOk(o.hash, o.json)) { Err("mm", "Pista inválida ou grande demais."); return; }
+            if (Array.IndexOf(MmSizes, o.faixas) < 0) { Err("mm", L.T("Tamanho de pista inválido.")); return; }
+            if (!SuggestionOk(o.hash, o.json)) { Err("mm", L.T("Pista inválida ou grande demais.")); return; }
             string t = Clean(o.track, 60);
-            mmSize = o.faixas; mmTrack = t.Length > 0 ? t : "Pista"; mmHash = o.hash; mmJson = o.json;
+            mmSize = o.faixas; mmTrack = t.Length > 0 ? t : L.T("Pista"); mmHash = o.hash; mmJson = o.json;
             mmPending = true;
             b.SearchMatch(mmSize, list => TryJoinMatch(list, 0));
         }
@@ -229,7 +229,7 @@ namespace Autorama
                 b.CreateMatch(mmSize, ok =>
                 {
                     if (state != OnlineClient.State.Open) { b.Leave(); return; }
-                    if (!ok) { mmPending = false; Err("mm", "Não deu para criar a fila na Steam."); return; }
+                    if (!ok) { mmPending = false; Err("mm", L.T("Não deu para criar a fila na Steam.")); return; }
                     EnterQueue();
                 });
                 return;
@@ -293,7 +293,7 @@ namespace Autorama
             });
         }
 
-        string TrackName(ulong id) { string t = Clean(b.MemberData(id, "mmt"), 60); return t.Length > 0 ? t : "Pista"; }
+        string TrackName(ulong id) { string t = Clean(b.MemberData(id, "mmt"), 60); return t.Length > 0 ? t : L.T("Pista"); }
 
         // O sorteio sai de uma conta que todos podem refazer (SteamIDs e pistas de todos): o dono não escolhe a pista.
         public static int MatchSeed(List<ulong> ids, List<string> hashes)
@@ -326,7 +326,7 @@ namespace Autorama
 
             var room = BuildRoom();
             string track = TrackName(ids[win]);
-            var m = new NetMsg { t = "started", title = Clean("Partida rápida · " + track, 40),
+            var m = new NetMsg { t = "started", title = Clean(L.T("Partida rápida · ") + track, 40),
                 rules = new NetRules { vmax = 14f, ramp = 0.5f, grip = 29f, collide = true, byTime = true, turbo = true, sorteio = seed, reslot = 0.3f } };
             foreach (var p in room.players) if (!NetGuest.Is(p.id)) m.pilots.Add(new NetPlayer { id = p.id, name = p.name, color = p.color, uid = p.uid });
             m.stages.Add(new NetStage { name = track, laps = 30, secs = 240, tempo = true, faixas = mmSize, hash = hashes[win], json = JsonOf(ids[win]) });
@@ -336,7 +336,7 @@ namespace Autorama
             foreach (var x in members) if (x.id != b.MyId) b.SendTo(x.id, bytes, true);
             b.SetData("state", "racing");
             MatchStarted(m, b.MyId);
-            Say($"Pista sorteada: {track} (de {Clean(members[win].name, 20)}).");
+            Say(L.F("Pista sorteada: {0} (de {1}).", track, Clean(members[win].name, 20)));
         }
 
         void MatchStarted(NetMsg m, ulong host)
@@ -351,17 +351,17 @@ namespace Autorama
         bool RequireHost()
         {
             if (!joined) return false;
-            if (!IsHost) { Err("host", "Só o host pode fazer isso."); return false; }
+            if (!IsHost) { Err("host", L.T("Só o host pode fazer isso.")); return false; }
             return true;
         }
 
         void Create(NetOut o)
         {
-            if (joined) { Err("sala", "Você já está numa sala."); return; }
+            if (joined) { Err("sala", L.T("Você já está numa sala.")); return; }
             b.Create(o.roomName, o.pub, ok =>
             {
                 if (state != OnlineClient.State.Open) { b.Leave(); return; }
-                if (!ok) { Err("erro", "Não deu para criar a sala na Steam."); return; }
+                if (!ok) { Err("erro", L.T("Não deu para criar a sala na Steam.")); return; }
                 b.SetData("epoch", "1");                // "0" é "não pronto": a época começa em 1
                 SaveSummaries();
                 b.SetMyData("ready", "0"); b.SetMyData("g2", "0");
@@ -372,17 +372,17 @@ namespace Autorama
 
         void Join(NetOut o)
         {
-            if (joined) { Err("sala", "Você já está numa sala."); return; }
+            if (joined) { Err("sala", L.T("Você já está numa sala.")); return; }
             string code = (o.code ?? "").Trim().ToUpperInvariant();
             b.Search(code, list =>
             {
                 var r = list.Count > 0 ? list[0] : null;
-                if (r == null) { Err("sem-sala", "Sala não encontrada. Confira o código."); return; }
-                if (r.players >= r.max) { Err("cheia", "A sala está cheia."); return; }
+                if (r == null) { Err("sem-sala", L.T("Sala não encontrada. Confira o código.")); return; }
+                if (r.players >= r.max) { Err("cheia", L.T("A sala está cheia.")); return; }
                 b.Join(r.id, ok =>
                 {
                     if (state != OnlineClient.State.Open) { b.Leave(); return; }
-                    if (!ok) { Err("sem-sala", "Não deu para entrar na sala."); return; }
+                    if (!ok) { Err("sem-sala", L.T("Não deu para entrar na sala.")); return; }
                     b.SetMyData("ready", "0"); b.SetMyData("g2", "0");
                     AssignColor();
                     Enter();
@@ -422,10 +422,10 @@ namespace Autorama
         void SetGuest(bool on)
         {
             if (!joined) return;
-            if (racing) { Err("andamento", "O campeonato já começou."); return; }
+            if (racing) { Err("andamento", L.T("O campeonato já começou.")); return; }
             if (on == HasGuest(b.MyId)) return;
             if (!on) { b.SetMyData("g2", "0"); EmitRoom(); return; }
-            if (BuildRoom().players.Count >= SteamLobbyClient.MaxMembers) { Err("cheia", "A sala está cheia."); return; }
+            if (BuildRoom().players.Count >= SteamLobbyClient.MaxMembers) { Err("cheia", L.T("A sala está cheia.")); return; }
             foreach (var c in Champ.Colors) if (!ColorTaken(c, true) && !string.Equals(c, b.MemberData(b.MyId, "color"), StringComparison.OrdinalIgnoreCase)) { b.SetMyData("g2c", c); break; }
             b.SetMyData("g2", "1");
             EmitRoom();
@@ -434,11 +434,11 @@ namespace Autorama
         void SetColor(string color, bool guest)
         {
             if (!joined) return;
-            if (racing) { Err("andamento", "O campeonato já começou."); return; }
+            if (racing) { Err("andamento", L.T("O campeonato já começou.")); return; }
             if (guest && !HasGuest(b.MyId)) return;
             string col = Array.Find(Champ.Colors, c => string.Equals(c, color, StringComparison.OrdinalIgnoreCase));
-            if (col == null) { Err("cor", "Cor inválida."); return; }
-            if (ColorTaken(col, guest)) { Err("cor-usada", "Essa cor já é de outro piloto."); return; }
+            if (col == null) { Err("cor", L.T("Cor inválida.")); return; }
+            if (ColorTaken(col, guest)) { Err("cor-usada", L.T("Essa cor já é de outro piloto.")); return; }
             b.SetMyData(guest ? "g2c" : "color", col);
             EmitRoom();
         }
@@ -463,9 +463,9 @@ namespace Autorama
         void Suggest(NetOut o)
         {
             if (!joined || IsHost) return;
-            if (racing) { Err("andamento", "O campeonato já começou."); return; }
-            if (!SuggestionOk(o.hash, o.json)) { Err("sugestao", "Pista inválida ou grande demais."); return; }
-            if (!Rate(suggTimes)) { Err("rapido", "Você sugeriu pistas demais em pouco tempo. Espere um minuto."); return; }
+            if (racing) { Err("andamento", L.T("O campeonato já começou.")); return; }
+            if (!SuggestionOk(o.hash, o.json)) { Err("sugestao", L.T("Pista inválida ou grande demais.")); return; }
+            if (!Rate(suggTimes)) { Err("rapido", L.T("Você sugeriu pistas demais em pouco tempo. Espere um minuto.")); return; }
             o.t = "suggested"; o.track = Clean(o.track, 60); o.faixas = TrackMath.Faixas(o.faixas);
             b.SendTo(b.Owner, Encoding.UTF8.GetBytes(JsonUtility.ToJson(o)), true);
         }
@@ -477,7 +477,7 @@ namespace Autorama
             if (text.Length == 0) return;
             float now = Time.realtimeSinceStartup;
             chatTimes.RemoveAll(t => now - t > 3f);
-            if (chatTimes.Count >= 5) { Err("rapido", "Calma, você está mandando mensagens rápido demais."); return; }
+            if (chatTimes.Count >= 5) { Err("rapido", L.T("Calma, você está mandando mensagens rápido demais.")); return; }
             chatTimes.Add(now);
             b.SendChat(text);
         }
@@ -486,15 +486,15 @@ namespace Autorama
         void HandleStages(NetOutStages s)
         {
             if (!RequireHost()) return;
-            if (racing) { Err("andamento", "O campeonato já começou."); return; }
-            if (s.stages == null || s.stages.Count > MaxStages) { Err("etapas", $"No máximo {MaxStages} etapas."); return; }
+            if (racing) { Err("andamento", L.T("O campeonato já começou.")); return; }
+            if (s.stages == null || s.stages.Count > MaxStages) { Err("etapas", L.F("No máximo {0} etapas.", MaxStages)); return; }
             var list = new List<NetStage>();
             foreach (var st in s.stages)
             {
                 if (st != null && st.secs == 0) st.secs = 120;
                 if (st == null || string.IsNullOrEmpty(st.json) || st.json.Length > MaxTrackJson || st.laps < 1 || st.laps > 30 || st.secs < 60 || st.secs > 600 || st.hash == null || st.hash.Length != 8)
-                { Err("etapas", "Etapa inválida ou pista grande demais."); return; }
-                list.Add(new NetStage { name = Clean(st.name, 60) is var n && n.Length > 0 ? n : "Pista", laps = st.laps, secs = st.secs, tempo = st.tempo, faixas = TrackMath.Faixas(st.faixas), hash = st.hash, json = st.json });
+                { Err("etapas", L.T("Etapa inválida ou pista grande demais.")); return; }
+                list.Add(new NetStage { name = Clean(st.name, 60) is var n && n.Length > 0 ? n : L.T("Pista"), laps = st.laps, secs = st.secs, tempo = st.tempo, faixas = TrackMath.Faixas(st.faixas), hash = st.hash, json = st.json });
             }
             bool changed = list.Count != stageData.Count;
             for (int i = 0; !changed && i < list.Count; i++) changed = list[i].hash != stageData[i].hash || list[i].laps != stageData[i].laps || list[i].secs != stageData[i].secs || list[i].tempo != stageData[i].tempo;
@@ -503,7 +503,7 @@ namespace Autorama
             if (changed && b.Members().Exists(m => m.id != b.MyId && IsReady(m.id)))
             {
                 BumpEpoch();
-                Say("O host mudou as etapas: confirmem \"pronto\" de novo.");
+                Say(L.T("O host mudou as etapas: confirmem \"pronto\" de novo."));
             }
             EmitRoom();
         }
@@ -511,24 +511,24 @@ namespace Autorama
         void Start(NetOut o)
         {
             if (!RequireHost()) return;
-            if (racing || b.Data("state") != "lobby") { Err("andamento", "O campeonato já começou."); return; }
+            if (racing || b.Data("state") != "lobby") { Err("andamento", L.T("O campeonato já começou.")); return; }
             var room = BuildRoom();
-            if (room.players.Count < 2) { Err("poucos", "Precisa de pelo menos 2 pilotos."); return; }
-            if (stageData.Count == 0) { Err("sem-etapas", "Escolha pelo menos uma pista."); return; }
+            if (room.players.Count < 2) { Err("poucos", L.T("Precisa de pelo menos 2 pilotos.")); return; }
+            if (stageData.Count == 0) { Err("sem-etapas", L.T("Escolha pelo menos uma pista.")); return; }
             var wait = room.players.FindAll(p => p.id != Me && !p.ready);
-            if (wait.Count > 0) { Err("nao-prontos", "Falta ficar pronto: " + string.Join(", ", wait.ConvertAll(p => p.name)) + "."); return; }
-            if (!(o.vmax >= 8 && o.vmax <= 20 && o.ramp >= 0.2f && o.ramp <= 1.5f && o.grip >= 15 && o.grip <= 45)) { Err("regras", "Regras inválidas."); return; }
+            if (wait.Count > 0) { Err("nao-prontos", L.T("Falta ficar pronto: ") + string.Join(", ", wait.ConvertAll(p => p.name)) + "."); return; }
+            if (!(o.vmax >= 8 && o.vmax <= 20 && o.ramp >= 0.2f && o.ramp <= 1.5f && o.grip >= 15 && o.grip <= 45)) { Err("regras", L.T("Regras inválidas.")); return; }
 
-            var m = new NetMsg { t = "started", title = Clean(o.name, 40) is var t && t.Length > 0 ? t : $"Campeonato de {NameOf(b.MyId)}", rules = new NetRules { vmax = o.vmax, ramp = o.ramp, grip = o.grip, collide = o.collide, byTime = o.byTime, turbo = o.turbo, sorteio = o.sorteio, reslot = o.reslot >= 0.1f && o.reslot <= 1.5f ? o.reslot : 0.3f } };
+            var m = new NetMsg { t = "started", title = Clean(o.name, 40) is var t && t.Length > 0 ? t : L.F("Campeonato de {0}", NameOf(b.MyId)), rules = new NetRules { vmax = o.vmax, ramp = o.ramp, grip = o.grip, collide = o.collide, byTime = o.byTime, turbo = o.turbo, sorteio = o.sorteio, reslot = o.reslot >= 0.1f && o.reslot <= 1.5f ? o.reslot : 0.3f } };
             foreach (var p in room.players) m.pilots.Add(new NetPlayer { id = p.id, name = p.name, color = p.color, uid = p.uid });
             foreach (var s in stageData) m.stages.Add(new NetStage { name = s.name, laps = s.laps, secs = s.secs, tempo = s.tempo, faixas = s.faixas, hash = s.hash, json = s.json });
             var bytes = Encoding.UTF8.GetBytes(JsonUtility.ToJson(m));
-            if (bytes.Length > MaxReliable) { Err("etapas", "As pistas são grandes demais para a Steam. Tire alguma etapa."); return; }
+            if (bytes.Length > MaxReliable) { Err("etapas", L.T("As pistas são grandes demais para a Steam. Tire alguma etapa.")); return; }
 
             foreach (var p in room.players) if (p.id != Me && !NetGuest.Is(p.id)) b.SendTo(ulong.Parse(p.id), bytes, true);
             b.SetData("state", "racing");                // o lobby continua aberto: quem cair volta (o SteamID é o mesmo) e outros entram para assistir
             racing = true; raceHost = b.MyId; lobbyFlipSince = -1f;
-            Say($"{NameOf(b.MyId)} largou o campeonato \"{m.title}\".");
+            Say(L.F("{0} largou o campeonato \"{1}\".", NameOf(b.MyId), m.title));
             Emit(m);
             EmitRoom();
         }
@@ -537,7 +537,7 @@ namespace Autorama
         {
             if (!RequireHost()) return;
             if (!racing) return;
-            EndRace(Clean(text, 100) is var t && t.Length > 0 ? t : "O campeonato terminou.", true);
+            EndRace(Clean(text, 100) is var t && t.Length > 0 ? t : L.T("O campeonato terminou."), true);
         }
 
         // Volta ao lobby. Quem manda (o host, ou o novo dono se o host saiu) grava o estado e zera os prontos.
@@ -626,10 +626,10 @@ namespace Autorama
             foreach (var m in b.Members())
             {
                 cur.Add(m.id);
-                if (!known.Contains(m.id)) { names[m.id] = m.name; Say($"{m.name} entrou na sala."); }
+                if (!known.Contains(m.id)) { names[m.id] = m.name; Say(L.F("{0} entrou na sala.", m.name)); }
                 else names[m.id] = m.name;
             }
-            foreach (var id in known) if (!cur.Contains(id)) Say($"{NameOf(id)} saiu da sala.");
+            foreach (var id in known) if (!cur.Contains(id)) Say(L.F("{0} saiu da sala.", NameOf(id)));
             known = cur;
             AdoptRaceHost();
             EmitRoom();
@@ -640,7 +640,7 @@ namespace Autorama
         {
             if (!racing || known.Contains(raceHost) || b.Owner == 0 || !known.Contains(b.Owner)) return;
             raceHost = b.Owner;
-            Say($"{NameOf(raceHost)} agora é o host: a bateria da vez recomeça.");
+            Say(L.F("{0} agora é o host: a bateria da vez recomeça.", NameOf(raceHost)));
         }
 
         void OnChat(ulong from, string text)
@@ -657,7 +657,7 @@ namespace Autorama
         string NameOf(ulong id)
         {
             foreach (var m in b.Members()) if (m.id == id) return m.name;
-            return names.TryGetValue(id, out var n) ? n : "Jogador";
+            return names.TryGetValue(id, out var n) ? n : L.T("Jogador");
         }
 
         string ColorOf(ulong id) { var c = b.MemberData(id, "color"); return string.IsNullOrEmpty(c) ? "#8A948C" : c; }

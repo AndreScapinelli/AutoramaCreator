@@ -124,22 +124,24 @@ namespace Autorama
         public float Boost => (nitro == 1 ? NitroForteBoost : nitro == 2 ? NitroLongoBoost : RaceSim.TurboBoost) + LvBoost * Lv(lvNitro, nitro, 1);   // + velocidade máxima
         public float BurnTime => (nitro == 1 ? NitroForteTime : nitro == 2 ? NitroLongoTime : RaceSim.TurboTime) * (1f + LvTank * Lv(lvNitro, nitro, 2));   // s de tanque cheio
 
-        public static readonly string[] MotorNames = { "Padrão", "Curto", "Longo" }, BolhaNames = { "Padrão", "Asa", "Lisa" },
-                                        PneuNames = { "Médio", "Macio", "Duro" }, ChassiNames = { "Padrão", "Leve", "Pesado" },
-                                        NitroNames = { "Padrão", "Explosivo", "Eficiente" };
+        public static string[] MotorNames => new[] { L.T("Padrão"), L.T("Curto"), L.T("Longo") };
+        public static string[] BolhaNames => new[] { L.T("Padrão"), L.T("Asa"), L.T("Lisa") };
+        public static string[] PneuNames => new[] { L.T("Médio"), L.T("Macio"), L.T("Duro") };
+        public static string[] ChassiNames => new[] { L.T("Padrão"), L.T("Leve"), L.T("Pesado") };
+        public static string[] NitroNames => new[] { L.T("Padrão"), L.T("Explosivo"), L.T("Eficiente") };
         public bool Padrao => motor == 0 && bolha == 0 && pneu == 0 && chassi == 0 && nitro == 0;
         // "curto · asa · macio · leve": só as peças fora do padrão.
         public string Resumo
         {
             get
             {
-                if (Padrao) return "padrão";
+                if (Padrao) return L.T("padrão");
                 var l = new List<string>();
                 if (motor != 0) l.Add(MotorNames[motor].ToLowerInvariant());
                 if (bolha != 0) l.Add(BolhaNames[bolha].ToLowerInvariant());
                 if (pneu != 0) l.Add(PneuNames[pneu].ToLowerInvariant());
                 if (chassi != 0) l.Add(ChassiNames[chassi].ToLowerInvariant());
-                if (nitro != 0) l.Add("turbo " + NitroNames[nitro].ToLowerInvariant());
+                if (nitro != 0) l.Add(L.T("turbo ") + NitroNames[nitro].ToLowerInvariant());
                 return string.Join(" · ", l);
             }
         }

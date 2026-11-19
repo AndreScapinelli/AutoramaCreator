@@ -124,7 +124,7 @@ namespace Autorama
         public const float Cutoff = 30f;          // segundos depois da bandeirada do primeiro
         public const int MaxPilots = 8;
         public static readonly string[] Colors = { "#E0362C", "#2563EB", "#F2B705", "#16A34A", "#9333EA", "#F97316", "#0EA5B7", "#E04B95" };
-        public static readonly string[] ColorNames = { "Vermelho", "Azul", "Amarelo", "Verde", "Roxo", "Laranja", "Ciano", "Rosa" };
+        public static string[] ColorNames => new[] { L.T("Vermelho"), L.T("Azul"), L.T("Amarelo"), L.T("Verde"), L.T("Roxo"), L.T("Laranja"), L.T("Ciano"), L.T("Rosa") };
 
         // faixas: carrinhos por bateria (2 ou 4). Precisa de pelo menos esse tanto de pilotos (MinPilots).
         // byTime: uma bateria já passa por todos os trilhos (manches), então cada piloto corre uma vez por etapa.
@@ -301,8 +301,8 @@ namespace Autorama
         }
 
         public static string SkillWord(int s) =>
-            s <= 20 ? "Iniciante: freia cedo e erra bastante" : s <= 45 ? "Amador: anda seguro, às vezes passa do ponto"
-            : s <= 70 ? "Bom: entra forte nas curvas" : s <= 90 ? "Experiente: quase no limite, raramente sai" : "Profissional: no limite da aderência";
+            s <= 20 ? L.T("Iniciante: freia cedo e erra bastante") : s <= 45 ? L.T("Amador: anda seguro, às vezes passa do ponto")
+            : s <= 70 ? L.T("Bom: entra forte nas curvas") : s <= 90 ? L.T("Experiente: quase no limite, raramente sai") : L.T("Profissional: no limite da aderência");
 
         // Duração estimada: cada bateria ~ voltas × comprimento ÷ (60% da velocidade máxima), mais a largada.
         public static int EstimateMin(List<Stage> stages, int nPilots, float vmax, int faixas = 2, bool byTime = false)
@@ -384,7 +384,7 @@ namespace Autorama
 
         static void Clean(Pilot p)
         {
-            p.name = string.IsNullOrEmpty(p.name) ? "Piloto" : p.name.Length > 20 ? p.name.Substring(0, 20) : p.name;
+            p.name = string.IsNullOrEmpty(p.name) ? L.T("Piloto") : p.name.Length > 20 ? p.name.Substring(0, 20) : p.name;
             if (string.IsNullOrEmpty(Champ.TagOf(p.tag))) p.tag = Champ.TagOf(p.name);
             if (string.IsNullOrEmpty(p.tag)) p.tag = "P";
             if (!ColorUtility.TryParseHtmlString(p.color, out _)) p.color = Champ.Colors[0];

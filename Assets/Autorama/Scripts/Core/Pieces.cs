@@ -7,7 +7,9 @@ namespace Autorama
     // Uma peça do catálogo. Medidas em células (1 célula = largura da pista com os 2 trilhos).
     public sealed class PieceDef
     {
-        public readonly string Id, Name;
+        public readonly string Id;
+        readonly string nome;
+        public string Name => L.T(nome);
         public readonly PieceKind Kind;
         public readonly float Length, Angle, Radius;
         public readonly bool Banked, IsStart, IsCross;
@@ -26,8 +28,8 @@ namespace Autorama
         // Cópia com outro raio e reta de ajuste antes do arco; Reversed tem a reta depois.
         public PieceDef Fitted(float radius, float lead)
         {
-            var f = new PieceDef(Id, Name, Kind, 0f, Angle, Banked, false, radius: radius) { Lead = lead };
-            var r = new PieceDef(Id, Name, Kind, 0f, Angle, Banked, false, radius: radius) { Lead = lead, LeadLast = true };
+            var f = new PieceDef(Id, nome, Kind, 0f, Angle, Banked, false, radius: radius) { Lead = lead };
+            var r = new PieceDef(Id, nome, Kind, 0f, Angle, Banked, false, radius: radius) { Lead = lead, LeadLast = true };
             f.reversed = r; r.reversed = f;
             return f;
         }
@@ -39,7 +41,7 @@ namespace Autorama
         PieceDef(string id, string name, PieceKind kind, float length, float angle, bool banked, bool isStart, bool isCross = false, bool isLoop = false, bool isJump = false, float gap = 0f, float lip = 0f, float radius = 2.5f)
         {
             Gap = gap; Lip = lip;
-            Id = id; Name = name; Kind = kind; Length = length; Angle = angle; Radius = radius; Banked = banked; IsStart = isStart; IsCross = isCross;
+            Id = id; nome = name; Kind = kind; Length = length; Angle = angle; Radius = radius; Banked = banked; IsStart = isStart; IsCross = isCross;
             IsLoop = isLoop; IsJump = isJump;
         }
 
@@ -79,7 +81,7 @@ namespace Autorama
         {
             if (IsCurve || IsLoop || IsJump || IsStart) return this;
             if (Mathf.Abs(Mathf.Repeat(heading, 90f) - 45f) > 1f) return this;
-            return diag ??= new PieceDef(Id, Name, Kind, Length * Mathf.Sqrt(2f), 0f, false, false, IsCross);
+            return diag ??= new PieceDef(Id, nome, Kind, Length * Mathf.Sqrt(2f), 0f, false, false, IsCross);
         }
 
         public bool IsCurve => Kind == PieceKind.Curve;
@@ -134,27 +136,27 @@ namespace Autorama
         public const int MaxGap = 3;
         public static readonly float[] JumpLips = { 0.2f, 0.3f, 0.4f };     // altura da ponta por vão (1, 2, 3)
 
-        public static readonly PieceDef Start  = PieceDef.MakeStraight("largada", "Base de largada", 2f, isStart: true);
-        public static readonly PieceDef Short  = PieceDef.MakeStraight("reta-curta", "Reta curta", 2f);
-        public static readonly PieceDef Long   = PieceDef.MakeStraight("reta-comprida", "Reta comprida", 4f);
-        public static readonly PieceDef Tiny   = PieceDef.MakeStraight("reta-curtinha", "Reta curtinha", 1f);
-        public static readonly PieceDef Cross  = PieceDef.MakeStraight("cruzamento", "Cruzamento", 4f, isCross: true);
-        public static readonly PieceDef CrossS = PieceDef.MakeStraight("cruzamento-curto", "Cruzamento curto", 2f, isCross: true);   // S mais fechado
-        public static readonly PieceDef Curve  = PieceDef.MakeCurve("curva-longa", "Curva longa", 90f, false);
-        public static readonly PieceDef Half   = PieceDef.MakeCurve("meia-curva", "Meia curva", 45f, false);
-        public static readonly PieceDef CurveB = PieceDef.MakeCurve("curva-longa-inclinada", "Curva longa inclinada", 90f, true);
-        public static readonly PieceDef HalfB  = PieceDef.MakeCurve("curva-curta-inclinada", "Curva curta inclinada", 45f, true);
+        public static readonly PieceDef Start  = PieceDef.MakeStraight("largada", L.N("Base de largada"), 2f, isStart: true);
+        public static readonly PieceDef Short  = PieceDef.MakeStraight("reta-curta", L.N("Reta curta"), 2f);
+        public static readonly PieceDef Long   = PieceDef.MakeStraight("reta-comprida", L.N("Reta comprida"), 4f);
+        public static readonly PieceDef Tiny   = PieceDef.MakeStraight("reta-curtinha", L.N("Reta curtinha"), 1f);
+        public static readonly PieceDef Cross  = PieceDef.MakeStraight("cruzamento", L.N("Cruzamento"), 4f, isCross: true);
+        public static readonly PieceDef CrossS = PieceDef.MakeStraight("cruzamento-curto", L.N("Cruzamento curto"), 2f, isCross: true);   // S mais fechado
+        public static readonly PieceDef Curve  = PieceDef.MakeCurve("curva-longa", L.N("Curva longa"), 90f, false);
+        public static readonly PieceDef Half   = PieceDef.MakeCurve("meia-curva", L.N("Meia curva"), 45f, false);
+        public static readonly PieceDef CurveB = PieceDef.MakeCurve("curva-longa-inclinada", L.N("Curva longa inclinada"), 90f, true);
+        public static readonly PieceDef HalfB  = PieceDef.MakeCurve("curva-curta-inclinada", L.N("Curva curta inclinada"), 45f, true);
         // Curva em C (seção 50 do guia): 180° de raio 0,5 no eixo; a volta sai na fileira do lado, ocupa 1 × 2 células.
         public const float HairpinRadius = 0.5f;
-        public static readonly PieceDef Hairpin = PieceDef.MakeCurve("curva-c", "Curva em C", 180f, false, HairpinRadius);
+        public static readonly PieceDef Hairpin = PieceDef.MakeCurve("curva-c", L.N("Curva em C"), 180f, false, HairpinRadius);
         // Tamanho da C (seção 50.4): raio n·0,5, a saída fica n fileiras ao lado (2R inteiro: a ponta cai na grade).
         public const int MaxHairpin = 3;
-        static readonly PieceDef[] hairpins = { Hairpin, PieceDef.MakeCurve("curva-c", "Curva em C", 180f, false, 2f * HairpinRadius), PieceDef.MakeCurve("curva-c", "Curva em C", 180f, false, 3f * HairpinRadius) };
+        static readonly PieceDef[] hairpins = { Hairpin, PieceDef.MakeCurve("curva-c", L.N("Curva em C"), 180f, false, 2f * HairpinRadius), PieceDef.MakeCurve("curva-c", L.N("Curva em C"), 180f, false, 3f * HairpinRadius) };
         public static PieceDef HairpinOf(int raio) => hairpins[Mathf.Clamp(raio, 1, MaxHairpin) - 1];
 
-        public static readonly PieceDef Loop   = PieceDef.MakeLoop("loop", "Loop");
-        public static readonly PieceDef Jump   = PieceDef.MakeJump("salto", "Rampa de salto", 1f, JumpLips[0]);
-        static readonly PieceDef[] jumps = { Jump, PieceDef.MakeJump("salto", "Rampa de salto", 2f, JumpLips[1]), PieceDef.MakeJump("salto", "Rampa de salto", 3f, JumpLips[2]) };
+        public static readonly PieceDef Loop   = PieceDef.MakeLoop("loop", L.N("Loop"));
+        public static readonly PieceDef Jump   = PieceDef.MakeJump("salto", L.N("Rampa de salto"), 1f, JumpLips[0]);
+        static readonly PieceDef[] jumps = { Jump, PieceDef.MakeJump("salto", L.N("Rampa de salto"), 2f, JumpLips[1]), PieceDef.MakeJump("salto", L.N("Rampa de salto"), 3f, JumpLips[2]) };
         public static PieceDef JumpOf(int vao) => jumps[Mathf.Clamp(vao, 1, MaxGap) - 1];
 
         public static readonly PieceDef[] All = { Start, Short, Long, Tiny, Cross, CrossS, Curve, Half, CurveB, HalfB, Hairpin, Loop, Jump };
@@ -185,10 +187,10 @@ namespace Autorama
         {
             var d = Def;
             string s = d.Name;
-            if (dir != 0 && d.Sided) s += dir < 0 ? " · esquerda" : " · direita";
-            if (rise != 0) s += rise > 0 ? " · sobe" : " · desce";
-            if (d.IsJump) s += $" · vão {vao}";
-            if (d.IsHairpin && raio > 1) s += $" · {raio} fileiras";
+            if (dir != 0 && d.Sided) s += dir < 0 ? L.T(" · esquerda") : L.T(" · direita");
+            if (rise != 0) s += rise > 0 ? L.T(" · sobe") : L.T(" · desce");
+            if (d.IsJump) s += L.F(" · vão {0}", vao);
+            if (d.IsHairpin && raio > 1) s += L.F(" · {0} fileiras", raio);
             return s;
         }
     }

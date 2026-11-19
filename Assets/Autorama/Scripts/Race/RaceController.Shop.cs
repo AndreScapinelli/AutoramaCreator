@@ -36,7 +36,7 @@ namespace Autorama
             coinChip.style.top = raceScreen ? 52f : 12f;
             float target = CoinsNow, dt = Time.unscaledDeltaTime;
             if (coinShown != target) coinShown = Mathf.Abs(target - coinShown) < 1f ? target : Mathf.Lerp(coinShown, target, 1f - Mathf.Exp(-CoinCountRate * dt * 3f));
-            string t = Mathf.RoundToInt(coinShown).ToString("N0", new System.Globalization.CultureInfo("pt-BR"));
+            string t = Mathf.RoundToInt(coinShown).ToString("N0", L.Cultura);
             if (coinText.text != t) coinText.text = t;
             if (coinPulseT > 0f) coinPulseT -= dt;
             float pulse = coinPulseT > 0f ? 1f + 0.18f * Mathf.Sin(coinPulseT / 0.5f * Mathf.PI) : 1f;
@@ -58,32 +58,32 @@ namespace Autorama
             shopLayer = El("k-full k-dim", panel.Root);
             shopLayer.style.display = DisplayStyle.None;
             var card = El("k-panel k-shop", shopLayer);
-            Text("PEÇAS", "k-title", card);
-            Text("Peças novas para o construtor. Cada uma abre quando você termina, com pelo menos ★, a prova da carreira que a apresenta. Correr numa pista com peça fechada sempre pode — só não dá para colocar a peça.", "k-sub", card);
+            Text(L.T("PEÇAS"), "k-title", card);
+            Text(L.T("Peças novas para o construtor. Cada uma abre quando você termina, com pelo menos ★, a prova da carreira que a apresenta. Correr numa pista com peça fechada sempre pode — só não dá para colocar a peça."), "k-sub", card);
             shopList = El(null, card);
             if (Progresso.Teste)
                 shopAll = Btn("", () => { Progresso.P.tudo = !Progresso.P.tudo; Progresso.Save(); }, "btn start-btn", card);
-            Btn("Fechar (Esc)", () => ShowShop(false), "btn start-btn", card);
+            Btn(L.T("Fechar (Esc)"), () => ShowShop(false), "btn start-btn", card);
 
             // Garagem do carro (carreira).
             garLayer = El("k-full k-dim", panel.Root);
             garLayer.style.display = DisplayStyle.None;
             var gc = El("k-panel k-shop k-garage", garLayer);
             var head = El("k-shop-head", gc);
-            Text("GARAGEM DO CARRO", "k-title", head);
+            Text(L.T("GARAGEM DO CARRO"), "k-title", head);
             garCoins = Text("", "k-stars", head);
-            Text("Seu carro na carreira. Compre opções do ajuste e preparação com as moedas das provas. Fora da carreira o ajuste é livre e sem preparação.", "k-sub", gc);
+            Text(L.T("Seu carro na carreira. Compre opções do ajuste e preparação com as moedas das provas. Fora da carreira o ajuste é livre e sem preparação."), "k-sub", gc);
             var scroll = new ScrollView(ScrollViewMode.Vertical);
             scroll.AddToClassList("k-garage-scroll");
             gc.Add(scroll);
             garList = scroll.contentContainer;
-            Btn("Fechar (G · Esc)", () => ShowGarage(false), "btn start-btn", gc);
+            Btn(L.T("Fechar (G · Esc)"), () => ShowGarage(false), "btn start-btn", gc);
 
             // Selo das moedas (seção 74.1): canto de cima, à direita; anima ao ganhar. Clique abre a garagem.
             coinChip = El("coin-chip", panel.Root);
             coinChip.pickingMode = PickingMode.Position;
             coinChip.RegisterCallback<ClickEvent>(_ => { if (kScreen == KScreen.Map) ShowGarage(true); });
-            coinChip.tooltip = "Moedas da carreira · clique para abrir a garagem do carro";
+            coinChip.tooltip = L.T("Moedas da carreira · clique para abrir a garagem do carro");
             El("coin-disc", coinChip).Add(new Label("$") { pickingMode = PickingMode.Ignore });
             coinText = Text("0", "coin-text", coinChip);
             coinPop = Text("", "coin-pop", coinChip);
@@ -117,10 +117,10 @@ namespace Autorama
             {
                 var row = El("k-shop-row", shopList);
                 var texts = El("k-shop-texts", row);
-                Text(u.nome, "k-save-title", texts);
-                Text(u.pecas, "k-sub", texts);
-                if (Progresso.Owns(u.id)) Text(Progresso.All && !ReallyOpen(u) ? "liberada (teste)" : "✓ aberta", "k-shop-own", row);
-                else Text("Abre em " + Progresso.WhereText(u), "k-shop-why", row);
+                Text(L.T(u.nome), "k-save-title", texts);
+                Text(L.T(u.pecas), "k-sub", texts);
+                if (Progresso.Owns(u.id)) Text(Progresso.All && !ReallyOpen(u) ? L.T("liberada (teste)") : L.T("✓ aberta"), "k-shop-own", row);
+                else Text(L.T("Abre em ") + Progresso.WhereText(u), "k-shop-why", row);
             }
         }
 
@@ -137,7 +137,7 @@ namespace Autorama
             panel.RefreshAllowed();
             if (shopAll != null)
             {
-                shopAll.text = Progresso.P.tudo ? "Desbloquear tudo: LIGADO (teste, até o jogo sair)" : "Desbloquear tudo: desligado (teste, até o jogo sair)";
+                shopAll.text = Progresso.P.tudo ? L.T("Desbloquear tudo: LIGADO (teste, até o jogo sair)") : L.T("Desbloquear tudo: desligado (teste, até o jogo sair)");
                 shopAll.EnableInClassList("btn--on", Progresso.P.tudo);
             }
             if (ShopOpen) DrawShop();
@@ -165,7 +165,7 @@ namespace Autorama
             CarShop.Fix(g);
             garCoins.text = $"◎ {kSave.moedas}";
             garList.Clear();
-            Text($"Níveis à venda até o {CarShop.Cap(kSave)} (Garagem 3 · Clube 6 · Regional 8 · Nacional 10). O nível n custa {CarShop.LevelStep} × n.", "k-sub", garList);
+            Text(L.F("Níveis à venda até o {0} (Garagem 3 · Clube 6 · Regional 8 · Nacional 10). O nível n custa {1} × n.", CarShop.Cap(kSave), CarShop.LevelStep), "k-sub", garList);
             foreach (var peca in CarShop.Pecas)
             {
                 string pc = peca;
@@ -188,11 +188,11 @@ namespace Autorama
                         {
                             if (!CarShop.BuyOpt(kSave, pc, oo)) return;
                             g.carro = CarShop.With(g.carro, pc, oo);
-                            panel.Toast($"{CarShop.Title(pc)} {names[oo].ToLowerInvariant()}: é seu!");
+                            panel.Toast(L.F("{0} {1}: é seu!", CarShop.Title(pc), names[oo].ToLowerInvariant()));
                             GarageSave();
                         }, "btn k-gar-buy", row);
                         b.SetEnabled(why == "");
-                        b.tooltip = why == "" ? "Comprar" : why;
+                        b.tooltip = why == "" ? L.T("Comprar") : why;
                     }
                 }
                 if (pc == "bolha") ModelRow(garList, g.carro, v => { g.carro.modelo = v.modelo; GarageSave(); });
@@ -202,9 +202,9 @@ namespace Autorama
                 var texts = El("k-shop-texts", lr);
                 Text($"{names[cur]}  {new string('●', lv)}{new string('○', CarShop.MaxNivel - lv)}  {lv}/{CarShop.MaxNivel}", "k-gar-track", texts);
                 Text(CarShop.LevelText(pc, cur), "k-sub", texts);
-                if (lv >= CarShop.MaxNivel) { Text("✓ máximo", "k-shop-own", lr); continue; }
+                if (lv >= CarShop.MaxNivel) { Text(L.T("✓ máximo"), "k-shop-own", lr); continue; }
                 string whyL = CarShop.CanBuyLevel(kSave, pc, cur);
-                var bl = Btn($"Nível {lv + 1} · ◎ {CarShop.LevelPrice(lv + 1)}", () =>
+                var bl = Btn(L.F("Nível {0} · ◎ {1}", lv + 1, CarShop.LevelPrice(lv + 1)), () =>
                 {
                     if (!CarShop.BuyLevel(kSave, pc, cur)) return;
                     GarageSave();
@@ -212,7 +212,7 @@ namespace Autorama
                 bl.SetEnabled(whyL == "");
                 if (whyL != "") Text(whyL, "k-shop-why", lr);
             }
-            Text("COMO FICA", "k-gar-head", garList);
+            Text(L.T("COMO FICA"), "k-gar-head", garList);
             DrawCarCard(garList, CarShop.RaceCar(kSave, null), null, false, false);
         }
 

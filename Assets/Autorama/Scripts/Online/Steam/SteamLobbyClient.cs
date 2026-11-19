@@ -91,7 +91,7 @@ namespace Autorama
         // Partida rápida: a fila é um lobby público (achado pela busca mm/state) com limite de size membros.
         public void CreateMatch(int size)
         {
-            pendingName = $"Partida rápida · {size} carros"; pendingPub = false; pendingCode = NewCode(); pendingMm = size;
+            pendingName = L.F("Partida rápida · {0} carros", size); pendingPub = false; pendingCode = NewCode(); pendingMm = size;
             onCreated.Set(SteamMatchmaking.CreateLobby(ELobbyType.k_ELobbyTypePublic, size));
         }
 
@@ -184,7 +184,7 @@ namespace Autorama
             Lobby = new CSteamID(r.m_ulSteamIDLobby);
             SteamMatchmaking.SetLobbyData(Lobby, Tag, "1");
             SteamMatchmaking.SetLobbyData(Lobby, "ver", OnlineClient.Protocol.ToString());
-            SteamMatchmaking.SetLobbyData(Lobby, "name", string.IsNullOrWhiteSpace(pendingName) ? $"Sala de {SteamFriends.GetPersonaName()}" : pendingName.Trim());
+            SteamMatchmaking.SetLobbyData(Lobby, "name", string.IsNullOrWhiteSpace(pendingName) ? L.F("Sala de {0}", SteamFriends.GetPersonaName()) : pendingName.Trim());
             SteamMatchmaking.SetLobbyData(Lobby, "code", pendingCode);
             SteamMatchmaking.SetLobbyData(Lobby, "pub", pendingPub ? "1" : "0");
             SteamMatchmaking.SetLobbyData(Lobby, "state", pendingMm > 0 ? "fila" : "lobby");

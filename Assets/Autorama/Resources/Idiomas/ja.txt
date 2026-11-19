@@ -1,0 +1,1375 @@
+Termine o campeonato online (ou saia da sala) antes de trocar de aba.	タブを切り替える前に、オンライン選手権を終えてください(またはルームを出てください)。
+CORRIDA	レース
+CAMPEONATO	選手権
+ONLINE	オンライン
+CARREIRA	キャリア
+CONSTRUTOR	ビルダー
+{0}  ({1:0} s)	{0}  ({1:0} 秒)
+Como funciona	使い方
+{0} · {1} (tecla {2})	{0} · {1}(キー {2})
+Não vale aqui.	ここでは使えません。
+PISTA DE {0} TRILHOS	{0}レーンのコース
+Pista de {0} trilhos: abre na carreira.	{0}レーンのコース:キャリアで解放されます。
+Pista adaptada para {0} carros.	{0}台用にコースを調整しました。
+Pista de {0} carros.	{0}台用のコース。
+Célula —	マス —
+1 m	1 m
+Vista 3D · V volta para a de cima · botão direito gira	3D表示 · V で上からの表示に戻る · 右ボタンで回転
+PISTA DE 2 TRILHOS	2レーンのコース
+Termine o campeonato online (ou saia da sala) antes de voltar ao menu.	メニューに戻る前に、オンライン選手権を終えてください(またはルームを出てください)。
+Tela inicial	ホーム画面
+Esconder o painel (Tab)	パネルを隠す (Tab)
+Fechar circuito (Q)	コースを閉じる (Q)
+Completa a pista da ponta até a largada com o mínimo de peças, sem passar por cima da pista. Ctrl+Z desfaz.	コースの端からスタートまで、コースの上を通らずに最少のパーツでつなぎます。Ctrl+Z で元に戻せます。
+Cancelar (Esc)	キャンセル (Esc)
+Para a busca. A pista fica como estava.	検索を止めます。コースは元のままです。
+TAMANHO DA PISTA	コースのサイズ
+2 trilhos	2レーン
+4 trilhos	4レーン
+6 trilhos	6レーン
+Pista muito larga, de 6 trilhos (1 célula = o triplo da largura). Campeonatos não misturam os tipos.	とても広い6レーンのコース(1マス = 幅の3倍)。選手権では種類を混ぜられません。
+8 trilhos	8レーン
+Pista enorme, de 8 trilhos (1 célula = 4× a largura). Campeonatos não misturam os tipos.	巨大な8レーンのコース(1マス = 幅の4倍)。選手権では種類を混ぜられません。
+Pista estreita, de 2 trilhos. Adapta a pista aberta (Ctrl+Z desfaz).	狭い2レーンのコース。開いているコースを調整します(Ctrl+Z で元に戻せます)。
+Pista larga, de 4 trilhos (1 célula = o dobro da largura). Campeonatos não misturam os dois tipos.	広い4レーンのコース(1マス = 幅の2倍)。選手権では2種類を混ぜられません。
+PEÇAS	パーツ
+Frente ▸	前 ▸
+◂ Trás	◂ 後ろ
+Encaixa no fim da pista, na seta amarela (E alterna)	コースの終わり、黄色い矢印の位置につなぎます(E で切り替え)
+Encaixa atrás da largada (E alterna)	スタートの後ろにつなぎます(E で切り替え)
+RETAS	ストレート
+CURVAS	カーブ
+CURVAS INCLINADAS	バンクカーブ
+CRUZAMENTOS E RAMPAS	クロスとスロープ
+LOOP E SALTO	ループとジャンプ
+PEÇA SELECIONADA	選択中のパーツ
+RESUMO	概要
+SEQUÊNCIA	並び
+Da largada até a ponta, no sentido em que os carrinhos correm.	スタートから端まで、車が走る向きの順です。
+MINHAS PISTAS	マイコース
+Salvar	保存
+Exemplo: oval	例:オーバル
+Nova pista	新しいコース
+Pasta: {0}	フォルダー:{0}
+VISTA E EDIÇÃO	表示と編集
+Enquadrar (C)	全体表示 (C)
+Vista 3D (V)	3D表示 (V)
+Desfazer	元に戻す
+Refazer	やり直す
+ATALHOS	ショートカット
+<b>1–0, T</b> peças · <b>X/B</b> cruzamento · <b>U/D</b> rampa\n<b>Clique</b> seleciona · <b>F</b> inverte a curva · <b>R</b> gira a largada · <b>E</b> ponta: frente/trás\n<b>Del</b> remove a selecionada · <b>⌫</b> remove a última · <b>Esc</b> solta\n<b>Q</b> fecha o circuito · <b>Ctrl+Z / Ctrl+Y</b> desfazer / refazer\n<b>C</b> enquadra · <b>V</b> vista 3D\n<b>Botão direito</b> move a vista (gira na 3D) · <b>Roda</b> zoom · <b>Tab</b> painel\n<b>Arrastar a largada</b> move a pista inteira	<b>1–0, T</b> パーツ · <b>X/B</b> クロス · <b>U/D</b> スロープ\n<b>クリック</b> 選択 · <b>F</b> カーブを反転 · <b>R</b> スタートを回転 · <b>E</b> 端:前/後ろ\n<b>Del</b> 選択中を削除 · <b>⌫</b> 最後を削除 · <b>Esc</b> 選択解除\n<b>Q</b> コースを閉じる · <b>Ctrl+Z / Ctrl+Y</b> 元に戻す / やり直す\n<b>C</b> 全体表示 · <b>V</b> 3D表示\n<b>右ボタン</b> 視点を移動(3Dでは回転) · <b>ホイール</b> ズーム · <b>Tab</b> パネル\n<b>スタートをドラッグ</b> コース全体を移動
+Painel (Tab)	パネル (Tab)
+Carreira	キャリア
+Da garagem ao campeonato nacional	ガレージから全国選手権まで
+Corrida	レース
+Contra amigos no mesmo PC ou contra o robô	同じPCで友達と、またはボットと対戦
+Campeonato	選手権
+Pilotos, etapas, tabela e recordes	ドライバー、ラウンド、順位表、記録
+Online	オンライン
+Partida rápida ou sala com amigos	クイックマッチまたは友達とのルーム
+Construtor	ビルダー
+Encaixe as peças e feche o circuito	パーツをつないでコースを閉じよう
+Peças	パーツ
+Opções	オプション
+Sair	終了
+Parar o teste	テストを止める
+Testar a pista com um carro IA (anda mesmo com a pista aberta)	AIの車でコースをテスト(コースが開いていても走ります)
+Mostrar	表示
+Seleciona uma das peças sobrepostas	重なっているパーツの1つを選択します
+Correr nesta pista	このコースで走る
+Desfazer (Ctrl+Z)	元に戻す (Ctrl+Z)
+Refazer (Ctrl+Y)	やり直す (Ctrl+Y)
+Inverter a curva selecionada (F)	選択中のカーブを反転 (F)
+Girar a largada (R)	スタートを回転 (R)
+Remover a selecionada (Del) ou a última (⌫)	選択中 (Del) または最後 (⌫) のパーツを削除
+Enquadrar a pista (C)	コースを全体表示 (C)
+Afastar	ズームアウト
+Aproximar	ズームイン
+Circuito fechado, mas há {0} peças sobrepostas	コースは閉じていますが、{0}個のパーツが重なっています
+Há {0} peças sobrepostas	{0}個のパーツが重なっています
+Circuito fechado	コースが閉じました
+A ponta chega na largada, mas no nível {0}. Desça até o chão	端はスタートに届いていますが、高さ{0}です。地面まで下げてください
+Só a largada. Adicione peças	スタートだけです。パーツを追加してください
+Pista aberta · ponta a {0} cél. da largada	開いたコース · 端はスタートから{0}マス
+Encaixando na <b>ponta de trás</b>, atrás da largada (seta amarela atrás dela). A largada não sai do lugar.	<b>後ろの端</b>、スタートの後ろ(後ろの黄色い矢印)につなぎます。スタートは動きません。
+Clique para encaixar no <b>fim da pista</b>, onde está a seta amarela. Passe o mouse para ver a peça.	クリックすると<b>コースの終わり</b>、黄色い矢印の位置につなぎます。マウスを乗せるとパーツが見えます。
+Encaixando <b>depois da peça {0}</b> ({1}).	<b>パーツ{0}の後</b>につなぎます({1})。
+Nenhuma. Clique numa peça da mesa para inserir depois dela, trocar a altura ou remover.	なし。テーブルのパーツをクリックすると、その後に挿入したり、高さを変えたり、削除したりできます。
+<b>Peça {0} · {1}</b>	<b>パーツ{0} · {1}</b>
+{0}{1} cél. · {2}	{0}{1}マス · {2}
+Girar 90° (R)	90°回転 (R)
+Soltar (Esc)	選択解除 (Esc)
+Altura	高さ
+Descer	下げる
+Subir	上げる
+Arraste a largada na mesa para mover a pista inteira. Ela não pode ser removida.	テーブルでスタートをドラッグするとコース全体が動きます。スタートは削除できません。
+Inverter (F)	反転 (F)
+Remover (Del)	削除 (Del)
+Vão	隙間
+{0} células	{0}マス
+1 célula	1マス
+Tamanho	サイズ
+{0} fileiras	{0}列
+1 fileira	1列
+Sobe	上り
+Plana	平ら
+Desce	下り
+ m	 m
+ · {0} no alto	 · 高所に{0}個
+Linha central	センターライン
+Trilho {0}	レーン{0}
+Mais longo	最長
+iguais	同じ
+trilho {0} +{1} cm	レーン{0} +{1} cm
+ (sobre o {0})	(レーン{0}より)
+Área ocupada	占有面積
+{0} × {1} m	{0} × {1} m
+Na mesa	テーブル上
+cabe	収まる
+passa da borda	端からはみ出す
+ · {0} × {1} cél.	 · {0} × {1}マス
+Nenhuma pista salva ainda. Dê um nome e salve.	保存したコースはまだありません。名前を付けて保存してください。
+Abrir	開く
+Certeza?	本当に?
+Apagar	削除
+“{0}” apagada.	「{0}」を削除しました。
+Pista {0}	コース{0}
+“{0}” salva.	「{0}」を保存しました。
+“{0}” aberta.	「{0}」を開きました。
+Célula {0}	マス {0}
+ cm	 cm
+ · de {0}	 · 作成:{0}
+{0} trilhos · {1} peças · {2} m · 	{0}レーン · {1}パーツ · {2} m ·
+fechada	閉じている
+aberta	開いている
+não deu para ler	読み込めません
+Sai à {0} · 	{0}へ抜ける ·
+esquerda	左
+direita	右
+Salto · 	ジャンプ ·
+Reta · 	ストレート ·
+Vira à {0} · {1}° · 	{0}へ曲がる · {1}° ·
+chão	地面
+nível {0}	高さ{0}
+Esta prova deixa usar no máximo {0} peças.	このレースで使えるパーツは最大{0}個です。
+Rampa não encaixa atrás da largada: ela fica no chão.	スロープはスタートの後ろにはつなげません:スタートは地面にあります。
+Loop e rampa de salto não sobem nem descem de nível.	ループとジャンプ台は高さを上げ下げしません。
+{0} ({1} carros)	{0}({1}台)
+Não cabe: a mesa vai até 120 × 120 células.	収まりません:テーブルは最大120 × 120マスです。
+A pista já está fechada.	コースはもう閉じています。
+Coloque algumas peças antes: o fechamento parte da ponta da pista.	先にパーツをいくつか置いてください:コースの端からつなぎ始めます。
+Busca cancelada.	検索をキャンセルしました。
+Não deu para fechar o circuito.	コースを閉じられませんでした。
+Vencer	優勝
+Chegar até o {0:0}º	{0:0}位以内でゴール
+Sem sair da pista	コースアウトなし
+No máximo {0:0} saídas	コースアウトは最大{0:0}回
+Sem usar o turbo	ターボを使わない
+Volta abaixo de {0}	ラップ {0} 未満
+Prova abaixo de {0}	レース {0} 未満
+Vencer a série	シリーズに勝つ
+Vencer sem perder bateria	ヒートを落とさずに勝つ
+Vencer todas as etapas	全ラウンドで勝つ
+Pista molhada: 20% menos aderência	ウェット路面:グリップ20%減
+Carro imposto: {0}	指定の車:{0}
+padrão	標準
+Mais de {0} {1} e você está fora	{0}{1}を超えると失格
+saída	回のコースアウト
+saídas	回のコースアウト
+Você larga {0:0.#} s depois	{0:0.#}秒遅れてスタート
+Turbo sempre cheio, para todos	ターボは常に満タン、全員
+Monte a pista primeiro.	先にコースを作ってください。
+Passou do limite: {0} de {1} peças.	上限オーバー:{0} / {1}パーツ。
+{0}{1} não vale nesta prova.	{0}{1}はこのレースでは使えません。
+ com rampa	(スロープ付き)
+Falta usar: {0}.	まだ使っていません:{0}。
+Feche o circuito (Q fecha sozinho).	コースを閉じてください(Q で自動で閉じます)。
+A pista passa por cima dela mesma.	コースが自分の上を通っています。
+Motor	モーター
+Bolha	ボディ
+Pneu	タイヤ
+Chassi	シャーシ
+Turbo	ターボ
++{0}% de aceleração	加速 +{0}%
++{0}% de final	最高速 +{0}%
++{0}% de aderência	グリップ +{0}%
++{0}% de aerodinâmica	空力 +{0}%
++{0}% de resposta no gatilho e no freio	アクセルとブレーキの反応 +{0}%
+−{0}% na derrapagem	スライド −{0}%
++{0} ponto de velocidade do turbo	ターボ速度 +{0}ポイント
++{0}% de tanque	タンク +{0}%
+ por nível	(1レベルごと)
+metade de cada: {0} e {1}, a cada 2 níveis	それぞれ半分ずつ:{0} と {1}、2レベルごと
+Já é sua.	もう持っています。
+Abre na região {0}.	{0}地方で解放されます。
+Faltam {0} moedas.	コインがあと{0}枚必要です。
+Nível máximo.	最大レベル。
+Abra a opção primeiro.	先にオプションを解放してください。
+Nível {0} abre na região {1}.	レベル{0}は{1}地方で解放されます。
+níveis: 	レベル:
+Vermelho	赤
+Azul	青
+Amarelo	黄
+Verde	緑
+Roxo	紫
+Laranja	オレンジ
+Ciano	シアン
+Rosa	ピンク
+Iniciante: freia cedo e erra bastante	初心者:早めにブレーキ、ミスも多い
+Amador: anda seguro, às vezes passa do ponto	アマチュア:安全運転、ときどき突っ込みすぎる
+Bom: entra forte nas curvas	上級:カーブに強気で入る
+Experiente: quase no limite, raramente sai	ベテラン:ほぼ限界、めったにコースアウトしない
+Profissional: no limite da aderência	プロ:グリップの限界ぎりぎり
+Piloto	ドライバー
+Largar (Enter)	スタート (Enter)
+ · esquerda	 · 左
+ · direita	 · 右
+ · sobe	 · 上り
+ · desce	 · 下り
+ · vão {0}	 · 隙間 {0}
+ · {0} fileiras	 · {0}列
+Não achei um fechamento que funcione daqui. Leve a ponta mais perto da largada e tente de novo.	ここからうまく閉じる方法が見つかりません。端をスタートに近づけて、もう一度試してください。
+Todo fechamento curto passa por cima da pista. Mexa um pouco a ponta (ou faça uma ponte) e tente de novo.	短い閉じ方はどれもコースの上を通ります。端を少し動かして(または橋を作って)、もう一度試してください。
+Procurando com até {0} peças…	最大{0}パーツで検索中…
+A ponta já encosta na pista de trás.	端はもう後ろのコースに触れています。
+A ponta já está na largada.	端はもうスタートにあります。
+Não achei um fechamento com até {0} peças. Leve a ponta mais perto da largada e tente de novo.	最大{0}パーツで閉じる方法が見つかりません。端をスタートに近づけて、もう一度試してください。
+Procurando com até {0} peças… testando {1} de {2}	最大{0}パーツで検索中… {2}件中{1}件をテスト
+Circuito fechado com {0} {1}: {2}. Ctrl+Z desfaz.	{0}{1}でコースを閉じました:{2}。Ctrl+Z で元に戻せます。
+peça	個のパーツ
+peças	個のパーツ
+ (4 carros)	(4台)
+ (6 carros)	(6台)
+Oval	オーバル
+8 com ponte	橋つき8の字
+Endereço do servidor inválido.	サーバーのアドレスが正しくありません。
+A conexão com o servidor foi encerrada.	サーバーとの接続が切れました。
+O servidor encerrou a conexão.	サーバーが接続を切りました。
+O servidor mandou uma mensagem grande demais.	サーバーから大きすぎるメッセージが届きました。
+Não foi possível conectar: tempo esgotado. Confira o endereço do servidor.	接続できません:タイムアウトしました。サーバーのアドレスを確認してください。
+Não foi possível falar com o servidor: 	サーバーと通信できません:
+Não deu para carregar a biblioteca da Steam: 	Steamライブラリを読み込めません:
+O cliente da Steam não está aberto. Abra a Steam, entre na conta e tente de novo.	Steamクライアントが開いていません。Steamを開いてログインし、もう一度試してください。
+A Steam está desatualizada para esta versão da biblioteca. Atualize o cliente da Steam.	このバージョンのライブラリにはSteamが古すぎます。Steamクライアントを更新してください。
+A Steam não iniciou ({0}): {1}. Confira se o steam_appid.txt (480) está na raiz do projeto.	Steamが起動しませんでした ({0}):{1}。steam_appid.txt (480) がプロジェクトのルートにあるか確認してください。
+Partida rápida · {0} carros	クイックマッチ · {0}台
+Sala de {0}	{0}のルーム
+Você já está numa sala.	すでにルームにいます。
+Não deu para entrar na sala do amigo.	友達のルームに入れませんでした。
+Esse lobby não é de uma sala do Autorama (ou é de outra versão do jogo).	このロビーはAutoramaのルームではありません(または別のバージョンのゲームです)。
+{0} agora é o host.	{0}が新しいホストです。
+O campeonato terminou.	選手権が終わりました。
+O campeonato já começou.	選手権はもう始まっています。
+Tamanho de pista inválido.	コースのサイズが正しくありません。
+Pista inválida ou grande demais.	コースが正しくないか、大きすぎます。
+Pista	コース
+Não deu para criar a fila na Steam.	Steamでキューを作れませんでした。
+Partida rápida · 	クイックマッチ ·
+Pista sorteada: {0} (de {1}).	抽選されたコース:{0}({1}のコース)。
+Só o host pode fazer isso.	それができるのはホストだけです。
+Não deu para criar a sala na Steam.	Steamでルームを作れませんでした。
+Sala não encontrada. Confira o código.	ルームが見つかりません。コードを確認してください。
+A sala está cheia.	ルームは満員です。
+Não deu para entrar na sala.	ルームに入れませんでした。
+Cor inválida.	色が正しくありません。
+Essa cor já é de outro piloto.	その色はもう他のドライバーが使っています。
+Você sugeriu pistas demais em pouco tempo. Espere um minuto.	短時間にコースを提案しすぎです。1分待ってください。
+Calma, você está mandando mensagens rápido demais.	落ち着いて、メッセージの送信が速すぎます。
+No máximo {0} etapas.	ラウンドは最大{0}個です。
+Etapa inválida ou pista grande demais.	ラウンドが正しくないか、コースが大きすぎます。
+O host mudou as etapas: confirmem "pronto" de novo.	ホストがラウンドを変更しました:もう一度「準備OK」を押してください。
+Precisa de pelo menos 2 pilotos.	ドライバーが2人以上必要です。
+Escolha pelo menos uma pista.	コースを1つ以上選んでください。
+Falta ficar pronto: 	まだ準備ができていません:
+Regras inválidas.	ルールが正しくありません。
+Campeonato de {0}	{0}の選手権
+As pistas são grandes demais para a Steam. Tire alguma etapa.	コースがSteamには大きすぎます。ラウンドを減らしてください。
+{0} largou o campeonato "{1}".	{0}が選手権「{1}」を開始しました。
+{0} entrou na sala.	{0}がルームに入りました。
+{0} saiu da sala.	{0}がルームを出ました。
+{0} agora é o host: a bateria da vez recomeça.	{0}が新しいホストです:今のヒートはやり直しになります。
+Jogador	プレイヤー
+ · <color=#F5C542>★</color> {0} ({1})	 · <color=#F5C542>★</color> {0} ({1})
+Seja campeão da {0} na carreira.	キャリアで{0}のチャンピオンになろう。
+Vença {0} ({1}) na carreira.	キャリアで{0}({1})に勝とう。
+Abre na carreira.	キャリアで解放されます。
+{0} (bolha {1})	{0}({1}ボディ)
+{0}: abre na carreira ({1}).	{0}:キャリアで解放されます({1})。
+Esta peça abre na carreira (menu inicial › Peças mostra em que prova).	このパーツはキャリアで解放されます(ホーム画面 › パーツ で、どのレースか確認できます)。
+Acelerar	アクセル
+Meia	ハーフ
+Recolocar	復帰
+Meia −	ハーフ −
+Meia +	ハーフ +
+Espaço	スペース
+PgUp	PgUp
+PgDn	PgDn
+Shift dir.	右Shift
+Ctrl dir.	右Ctrl
+Shift esq.	左Shift
+8 num.	テンキー8
+5 num.	テンキー5
+7 num.	テンキー7
+0 num.	テンキー0
+6 num.	テンキー6
+4 num.	テンキー4
+Broca	ドリル
+Elétrico suave	ソフトな電気モーター
+Escovas	ブラシ
+Turbina	タービン
+Ronco	うなり
+Seu arquivo (motor.wav)	自分のファイル (motor.wav)
+Motor curto	ショートモーター
+Motor longo	ロングモーター
+Da garagem ao campeonato nacional.	ガレージから全国選手権まで。
+Voltar ao menu (Esc)	メニューに戻る (Esc)
+◀ Saves	◀ セーブ
+Garagem do carro (G)	車のガレージ (G)
+← → escolhe a prova · Enter abre e corre · Esc volta	← → でレースを選ぶ · Enter で開いて走る · Esc で戻る
+PAUSA	ポーズ
+Continuar (Esc)	続ける (Esc)
+Reiniciar	リスタート
+Voltar ao mapa	マップに戻る
+Cancelar	キャンセル
+Carreira {0}	キャリア {0}
+Nova carreira	新しいキャリア
+As outras regiões ainda não estão prontas.	他の地方はまだ準備中です。
+Seja campeão desta região para abrir a próxima.	この地方のチャンピオンになると次が解放されます。
+Faça {0} estrelas na região para abrir.	この地方で星を{0}個集めると解放されます。
+Termine a prova anterior para abrir esta.	前のレースを終えると解放されます。
+{0} · {1} faixas	{0} · {1}レーン
+{0} · {1} voltas	{0} · {1}周
+ · sem turbo	 · ターボなし
+ · contra {0} IA {1}	 · {0}台のAI(レベル{1})と対戦
+1 piloto	ドライバー1人
+{0} pilotos	ドライバー{0}人
+{0} · melhor de {1}, trocando de trilho	{0} · {1}本勝負、レーンを交代
+Seu carro: {0}	あなたの車:{0}
+ · garagem no G	 · ガレージは G
+Ainda não correu aqui.	まだここで走っていません。
+Seu melhor: {0}	自己ベスト:{0}
+ · volta {0}	 · ラップ {0}
+Remontar	作り直す
+Montar pista (Enter)	コースを作る (Enter)
+Correr na minha pista (Enter)	自分のコースで走る (Enter)
+Recomeçar	最初から
+Continuar (Enter)	続ける (Enter)
+Correr (Enter)	走る (Enter)
+Fechar (Esc)	閉じる (Esc)
+Não deu para salvar a carreira.	キャリアを保存できませんでした。
+<color={0}>{1}</color>  {2}  {3}	<color={0}>{1}</color>  {2}  {3}
+\n<color=#F5C21B>Bateria {0} de {1} · você {2} × {3} {4}</color>	\n<color=#F5C21B>ヒート {0}/{1} · あなた {2} × {3} {4}</color>
+\n<color={0}>Saídas {1} de {2}</color>	\n<color={0}>コースアウト {1}/{2}</color>
+\n<color=#F07A3A>Você sai em {0} s</color>	\n<color=#F07A3A>あと{0}秒で失格</color>
+\n<color=#50A0F0>Pista molhada</color>	\n<color=#50A0F0>ウェット路面</color>
+Campeão da {0}!	{0}のチャンピオン!
+Você terminou em {0}º · {1}	{0}位でゴール · {1}
+Você venceu a série · {0} × {1}	シリーズに勝ちました · {0} × {1}
+{0} venceu a série · {1} × {2}	{0}がシリーズに勝ちました · {1} × {2}
+Fora: mais de {0} {1}	失格:{0}{1}を超えました
+Melhor volta {0}	ベストラップ {0}
+Nenhuma volta completa	完走したラップなし
+Não terminou	未完走
+{0}º lugar · {1}	{0}位 · {1}
+Não foi desta vez.	今回はだめでした。
+estrela nova	個の新しい星
+estrelas novas	個の新しい星
+Sem estrela nova.	新しい星はありません。
++{0} moedas  ·  ◎ {1}  ·  gaste na garagem do carro (G no mapa)	+{0}コイン  ·  ◎ {1}  ·  車のガレージで使おう(マップで G)
+Abriu: {0}	解放:{0}
+Modelo novo: {0}. Vale em todos os modos (cartão Carro).	新しいモデル:{0}。すべてのモードで使えます(「車」カード)。
+Abriu: {0} ({1} faixas)	解放:{0}({1}レーン)
+As próximas regiões ainda estão sendo construídas.	次の地方はまだ作っているところです。
+Correr de novo	もう一度走る
+Mapa (Esc)	マップ (Esc)
+Próxima prova (Enter)	次のレース (Enter)
+Bateria {0} de {1}	ヒート {0}/{1}
+Você venceu a bateria	ヒートに勝ちました
+{0} venceu a bateria	{0}がヒートに勝ちました
+Você {0} × {1} {2}	あなた {0} × {1} {2}
+Na próxima, vocês trocam de trilho.	次はレーンを交代します。
+Desistir (Esc)	棄権 (Esc)
+Próxima bateria (Enter)	次のヒート (Enter)
+peça nova no construtor: {0}	ビルダーに新しいパーツ:{0}
+Contra o relógio	タイムアタック
+Desafio	チャレンジ
+Rival	ライバル
+Monte a pista: 	コースを作ろう:
+ e as peças que você já abriu	と、解放済みのパーツ
+ (com rampas)	(スロープあり)
+ (sem rampas)	(スロープなし)
+ · no máximo {0} peças	 · 最大{0}パーツ
+ · use pelo menos: 	 · 必ず使う:
+Esta peça não vale nesta prova.	このパーツはこのレースでは使えません。
+Não vale nesta prova.	このレースでは使えません。
+Carreira · {0}	キャリア · {0}
+{0} · monte a pista	{0} · コースを作ろう
+Peças: {0}{1}\n	パーツ:{0}{1}\n
+ de {0}	({0}のうち)
+<color=#3DBE74>✓ A pista vale. Pode correr.</color>	<color=#3DBE74>✓ コースはOKです。走れます。</color>
+VOCÊ	自分
+Você	あなた
+VOC	自分
+Tabela · {0} de {1} etapas	順位表 · {1}ラウンド中{0}
+{0}º  {1}  ·  {2} pts	{0}位  {1}  ·  {2} pt
+  ·  {0} vitória	  ·  {0}勝
+  ·  {0} vitórias	  ·  {0}勝
+Você ficou em {0}º	{0}位でした
+Você chegou em {0}º	{0}位でゴール
+Você não terminou	完走できませんでした
+Simulada · 	シミュレーション ·
+Próxima: {0}	次:{0}
+\n<color=#F5C21B>Etapa {0} de {1} · você é {2}º na tabela</color>	\n<color=#F5C21B>ラウンド {0}/{1} · 順位表で{2}位</color>
+{0} etapas: 	{0}ラウンド:
+\nPilotos: 	\nドライバー:
+{0} (IA {1})	{0}(AI {1})
+\nPor tempo: {0} s por etapa, passando por todos os trilhos ({1} {2} por etapa)	\nタイム制:1ラウンド{0}秒、全レーンを回ります(1ラウンド{1}{2})
+bateria	ヒート
+baterias	ヒート
+\n{0} baterias por etapa (você corre {1}; as outras são simuladas)	\n1ラウンド{0}ヒート(あなたは{1}ヒート走り、残りはシミュレーション)
+\nEm andamento: {0} de {1} etapas	\n進行中:{1}ラウンド中{0}
+Escolha do carro · etapa {0}: {1}	車の選択 · ラウンド{0}:{1}
+Motor, bolha e pneu para a etapa inteira. Cada peça dá uma coisa e tira outra.	モーター、ボディ、タイヤはラウンド全体で使います。どのパーツにも長所と短所があります。
+Pronto ✓	準備OK ✓
+Pronto	準備OK
+robô	ボット
+saiu	退出
+pronto	準備OK
+escolhendo	選択中
+<b>Enter</b>: todos prontos com o que está escolhido.	<b>Enter</b>:今の選択で全員準備OK。
+Fecha sozinho em {0} s (quem não confirmou corre com o que estiver escolhido).	{0}秒後に自動で締め切ります(確定していない人は今の選択で走ります)。
+O host fecha a escolha em até {0} s.	ホストが{0}秒以内に締め切ります。
+Fechar a escolha	選択を締め切る
+NOVO CAMPEONATO	新しい選手権
+Escolha os pilotos e as pistas. Em cada etapa, todo piloto corre uma bateria em cada trilho, em rodízio: ninguém leva vantagem por ficar sempre do lado de dentro.	ドライバーとコースを選びます。各ラウンドで、全員が各レーンを1ヒートずつ交代で走ります:いつもインコースで有利になる人はいません。
+Nome do campeonato	選手権の名前
+Todas as etapas correm nesse tamanho (qualquer pista é adaptada). Depois de começar, o tamanho não muda. Com menos pilotos que trilhos, sobra trilho vazio.	全ラウンドをこのサイズで走ります(どのコースも調整されます)。始まった後はサイズは変わりません。ドライバーがレーンより少ないと、空きレーンができます。
+FORMATO	形式
+Por voltas	周回制
+Por tempo	タイム制
+Cada bateria tem uma duração e se divide em uma manche por trilho. Vence quem andar mais.	各ヒートには時間があり、レーンごとの走行に分かれます。いちばん遠くまで走った人の勝ち。
+PILOTOS	ドライバー
+Marque quem vai correr: de 2 a 8. A ordem em que você marca é a ordem do rodízio. Piloto IA é dirigido pelo computador e não bate recorde da pista.	走る人にチェック:2〜8人。チェックした順が交代の順番です。AIドライバーはコンピューターが運転し、コースレコードは記録しません。
+NOVO PILOTO	新しいドライバー
+Nome	名前
+Sigla	略称
+Piloto IA (o computador dirige)	AIドライバー(コンピューターが運転)
+Adicionar piloto	ドライバーを追加
+ETAPAS	ラウンド
+Cada etapa é uma pista com um número de voltas. Clique numa pista abaixo para incluir.	各ラウンドは周回数を決めたコースです。下のコースをクリックして追加します。
+PISTAS DISPONÍVEIS	使えるコース
+REGRAS	ルール
+Começar campeonato	選手権を始める
+CAMPEONATOS ANTERIORES	過去の選手権
+Tempo de prova	レース時間
+0,00 s	0.00 秒
+TABELA GERAL	総合順位
+RECORDES DA PISTA	コースレコード
+Abandonar campeonato	選手権をやめる
+Abandonar? Clique de novo	やめますか?もう一度クリック
+Não deu para salvar o campeonato no disco.	選手権をディスクに保存できませんでした。
+Qualidade: {0}	レベル:{0}
+Robô {0}	ボット{0}
+Marque pelo menos 2 pilotos.	2人以上チェックしてください。
+No máximo {0} pilotos.	ドライバーは最大{0}人です。
+{0} e {1} estão com a mesma cor. Troque a cor de um deles.	{0}と{1}が同じ色です。どちらかの色を変えてください。
+Inclua pelo menos uma pista nas etapas.	ラウンドにコースを1つ以上入れてください。
+IA {0}	AI {0}
+Piloto IA, qualidade {0}	AIドライバー、レベル{0}
+{0} de {1}	{0} / {1}
+ · {0} {1} por bateria	 · ヒートごとに{0}{1}
+trilho vazio	空きレーン
+trilhos vazios	空きレーン
+Nenhum piloto cadastrado. Adicione abaixo.	ドライバーが登録されていません。下で追加してください。
+cor repetida	色が重複
+Editar	編集
+ (já usada)	(使用中)
+EDITAR PILOTO	ドライバーを編集
+Salvar piloto	ドライバーを保存
+{0} etapa	{0}ラウンド
+{0} etapas	{0}ラウンド
+Nenhuma etapa ainda.	まだラウンドがありません。
+{0} volta	{0}周
+{0} voltas	{0}周
+Tirar etapa	ラウンドを外す
+ · recorde {0} {1}	 · レコード {0} {1}
+1 pista aberta não aparece: feche o circuito no Construtor.	開いたコースが1つ表示されていません:ビルダーでコースを閉じてください。
+{0} pistas abertas não aparecem: feche os circuitos no Construtor.	開いたコースが{0}つ表示されていません:ビルダーでコースを閉じてください。
+• Usa as regras da corrida de Opções (menu inicial): velocidade <b>{0} cél/s</b>, até 100% em <b>{1} s</b>, aderência <b>{2}</b>, colisão <b>{3}</b>, turbo <b>{4}</b>, recolocar em <b>{5} s</b>. Ficam fixos até o fim.\n	• オプション(ホーム画面)のレースルールを使います:速度 <b>{0} マス/秒</b>、100%まで <b>{1} 秒</b>、グリップ <b>{2}</b>、衝突 <b>{3}</b>、ターボ <b>{4}</b>、復帰 <b>{5} 秒</b>。最後まで固定です。\n
+ligada	オン
+desligada	オフ
+ligado	オン
+desligado	オフ
+• <b>Por tempo</b>: cada etapa tem {0} de até {1} carros. A bateria se divide em <b>{2} manches</b>, uma em cada trilho. Vale a <b>distância</b> (voltas e fração).\n	• <b>タイム制</b>:各ラウンドは最大{1}台の{0}。ヒートはレーンごとに<b>{2}回の走行</b>に分かれます。<b>距離</b>(周回と端数)で競います。\n
+<b>{0} grupos</b>	<b>{0}グループ</b>
+<b>uma bateria</b>	<b>1ヒート</b>
+• Cada etapa: {0} de até <b>{1} carros</b>, e cada piloto corre uma vez em cada trilho. Vale o <b>tempo somado</b> de todas.\n• Quem não completar as voltas tem <b>{2:0} s</b> depois da bandeirada do primeiro; fica com as voltas que fez.\n	• 各ラウンド:最大<b>{1}台</b>の{0}で、全員が各レーンを1回ずつ走ります。全ヒートの<b>合計タイム</b>で競います。\n• 周回を終えられなかった人は、トップのチェッカーから<b>{2:0}秒</b>の猶予があり、走った周回数が記録されます。\n
+<b>{0} baterias</b>	<b>{0}ヒート</b>
+uma bateria por piloto	ドライバーごとに1ヒート
+• Pontos: <b>{0}</b>, mais 1 para a melhor volta da etapa.	• ポイント:<b>{0}</b>、ラウンドのファステストラップに+1。
+<b>{0} pilotos · {1} {2} · {3} baterias de {4}</b> · cerca de {5} min	<b>ドライバー{0}人 · {1}{2} · {4}の{3}ヒート</b> · 約{5}分
+etapa	ラウンド
+etapas	ラウンド
+Pts	Pt
+Vit.	勝
+Apagar do histórico	履歴から削除
+Pista do construtor	ビルダーのコース
+dentro	イン
+fora	アウト
+Etapa {0} de {1} · bateria {2} de {3}	ラウンド {0}/{1} · ヒート {2}/{3}
+Encerrado · {0} {1} · {2} baterias	終了 · {0}{1} · {2}ヒート
+×	×
+IA · qualidade {0}	AI · レベル{0}
+só com controle	コントローラーのみ
+acelera {0} · recoloca {1}	アクセル {0} · 復帰 {1}
+Arquivar e montar outro	保存して新しく作る
+Salvar e seguir (Enter)	保存して続ける (Enter)
+Recomeçar bateria	ヒートをやり直す
+Arquivar guarda a tabela final no histórico. Os recordes ficam salvos nas pistas.	保存すると最終順位が履歴に残ります。レコードは各コースに保存されています。
+Confira quem está em cada trilho e passe o controle. Depois, Largar e esperar as luzes.	各レーンに誰がいるか確認して、コントローラーを渡してください。そのあとスタートしてシグナルを待ちます。
+Salve para o resultado contar na tabela. Se algo deu errado, corra de novo: esta bateria é descartada.	結果を順位表に反映するには保存してください。うまくいかなかったら、もう一度走れます:このヒートは無効になります。
+Bateria de {0} em {1} manches: no fim de cada uma, todos trocam de trilho. Vence quem andar mais.	{0}のヒートを{1}回の走行で:各走行の終わりに全員がレーンを交代します。いちばん遠くまで走った人の勝ち。
+Vence a bateria quem completar {0} {1} primeiro. Quem não terminar tem {2:0} s depois da bandeirada.	最初に{0}{1}を走りきった人がヒートの勝者です。完走できなかった人はチェッカーから{2:0}秒の猶予があります。
+volta	周
+voltas	周
+ETAPA {0} · {1}{2}	ラウンド {0} · {1}{2}
+ ({0} de {1} baterias)	({1}ヒート中{0})
+Bat.	ヒート
+Distância	距離
+Voltas	周回
+Tempo	タイム
+Melhor	ベスト
+Melhores voltas	ベストラップ
+Pontos por etapa: {0}, mais 1 para a melhor volta. Desempate: vitórias, pódios, tempo total.	ラウンドごとのポイント:{0}、ファステストラップに+1。同点のとき:勝利数、表彰台、合計タイム。
+ online	 オンライン
+ninguém ainda	まだ誰もいません
+Volta	ラップ
+MELHOR VOLTA DE CADA UM	各ドライバーのベストラップ
+ venceu	 の勝ち
+{0} de {1} baterias	{1}ヒート中{0}
+próxima	次
+{0} baterias	{0}ヒート
+{0} pts	{0} pt
+Mão mais rápida	最速の手
+ {0} em {1}	 {1}で{0}
+Rei do muro	壁の王様
+ {0} {1} de pista	 {0}{1}
+Para-choque	バンパーカー
+ {0} toque	 {0}回の接触
+ {0} toques	 {0}回の接触
+Recordes batidos	更新されたレコード
+Última	最後
+Saídas	コースアウト
+Toques	接触
+Campeonato {0}	選手権 {0}
+Recorde da pista! {0}	コースレコード!{0}
+Melhor volta pessoal! {0}	自己ベストラップ!{0}
+TABELA GERAL · etapa {0} encerrada	総合順位 · ラウンド{0}終了
+TABELA GERAL · etapa {0}: {1} de {2} baterias	総合順位 · ラウンド{0}:{2}ヒート中{1}
+etapa {0}º · 	ラウンド{0}位 ·
+{0} v	{0}周
+{0} v {1}	{0}周 {1}
+recorde de volta de {0} ({1})	{0}のラップレコード({1})
+recorde de {0} voltas de {1} ({2})	{1}の{0}周レコード({2})
+Novo 	新しい
+ e novo 	と新しい
+Monte o campeonato: pilotos e etapas	選手権を作ろう:ドライバーとラウンド
+{0}: {1} venceu	{0}:{1}の勝ち
+{0} · troca de trilho	{0} · レーン交代
+{0} · {1} · faltam {2}	{0} · {1} · 残り{2}
+{0} · volta {1} de {2}	{0} · {2}周中{1}周目
+Bateria {0} encerrada · o host salva e segue	ヒート{0}終了 · ホストが保存して続けます
+Bateria {0} encerrada · salve para seguir	ヒート{0}終了 · 保存して続けてください
+Atenção à largada	スタートに注意
+{0} vence o campeonato	{0}が選手権優勝
+{0} pontos · {1} {2} · {3}	{0}ポイント · {1}{2} · {3}
+vitória	勝
+vitórias	勝
+{0} vence a bateria	{0}がヒートに勝利
+{0} · melhor volta {1}	{0} · ベストラップ {1}
+★  RECORDE DA PISTA  ·  {0}  {1}	★  コースレコード  ·  {0}  {1}
+{0} vence a etapa {1}	{0}がラウンド{1}に勝利
+Próxima: {0} · {1}	次:{0} · {1}
+ROBÔ · {0}	ボット · {0}
+JOGADOR {0}	プレイヤー{0}
+  <size=10><color=#9AA3A8>{0}</color></size>	  <size=10><color=#9AA3A8>{0}</color></size>
+IA PILOTANDO · {0}	AIが運転中 · {0}
+Recolocar  {0}	復帰  {0}
+ACELERAR  ·  controle	アクセル  ·  コントローラー
+PRECISA DE UM CONTROLE	コントローラーが必要です
+  ·  controle	  ·  コントローラー
+ACELERAR  {0}  ·  {1}% {2}{3}	アクセル  {0}  ·  {1}% {2}{3}
+Trilho 1	レーン1
+Trilho 2	レーン2
+Trilho 3	レーン3
+Trilho 4	レーン4
+Trilho 5	レーン5
+Trilho 6	レーン6
+Trilho 7	レーン7
+Trilho 8	レーン8
+Transmissão de TV	テレビ中継
+Perseguição	チェイス
+Primeira pessoa	一人称
+De cima	真上
+Câmeras em volta da mesa seguem o líder	テーブルのまわりのカメラが先頭を追います
+Atrás e acima do carrinho, olhando a curva	車の後ろ上から、カーブを見ます
+Dentro do carrinho; quando ele roda, vira a traseira	車の中から。スピンすると後ろを向きます
+Segue os jogadores; botão direito gira, roda aproxima	プレイヤーを追います。右ボタンで回転、ホイールでズーム
+Jogador 1	プレイヤー1
+Jogador 2	プレイヤー2
+Jogador 3	プレイヤー3
+Jogador 4	プレイヤー4
+Jogador 5	プレイヤー5
+Jogador 6	プレイヤー6
+Jogador 7	プレイヤー7
+Jogador 8	プレイヤー8
+Carrinho vermelho	赤い車
+Carrinho azul	青い車
+Carrinho verde	緑の車
+Carrinho amarelo	黄色い車
+Carrinho roxo	紫の車
+Carrinho ciano	シアンの車
+Carrinho laranja	オレンジの車
+Carrinho rosa	ピンクの車
+a que está aberta agora	いま開いているコース
+Exemplo: 8 com ponte	例:橋つき8の字
+PISTA	コース
+Escolha onde correr. Qualquer pista fechada serve, em qualquer tamanho. Trocar aqui não mexe na pista do construtor.	走る場所を選びます。閉じたコースならどれでも、どのサイズでも使えます。ここで変えてもビルダーのコースは変わりません。
+{0} trilhos	{0}レーン
+CARROS NA PISTA	コース上の車
+Voltar ao grid	グリッドに戻る
+COMO PILOTAR	運転のしかた
+<b>Controle:</b> gatilho direito acelera aos poucos (o 1º controle é do jogador 1, o 2º do jogador 2, e assim por diante) · <b>A/✕</b> recoloca · <b>X/□</b> ou <b>RB</b> turbo · <b>Start</b> larga\n<b>Enter</b> largar · câmera no menu do canto direito	<b>コントローラー:</b>右トリガーでじわじわ加速(1台目のコントローラーはプレイヤー1、2台目はプレイヤー2、以下同様) · <b>A/✕</b> 復帰 · <b>X/□</b> または <b>RB</b> ターボ · <b>Start</b> スタート\n<b>Enter</b> スタート · カメラは右隅のメニュー
+Colisão entre carrinhos	車同士の衝突
+Voltas: {0}	周回数:{0}
+Duração: {0} · {1} por trilho	時間:{0} · レーンごとに{1}
+Velocidade máx.: {0} cél/s	最高速:{0} マス/秒
+Tempo até 100%: {0} s	100%までの時間:{0} 秒
+Aderência: {0}	グリップ:{0}
+Meia aceleração (tecla de meia): {0}%	ハーフスロットル(ハーフキー):{0}%
+Tempo para recolocar: {0} s	復帰までの時間:{0} 秒
+Nas curvas planas, o carrinho segura até {0}% da velocidade máxima no trilho de dentro e {1}% no de fora. Nas inclinadas, até {2}% e {3}%.	平らなカーブでは、インレーンで最高速の{0}%、アウトレーンで{1}%まで耐えます。バンクカーブでは{2}%と{3}%まで。
+Som do motor: <b>{0}</b>  ▸	モーター音:<b>{0}</b>  ▸
+Clique para ouvir o próximo. Para usar uma gravação sua, ponha motor.wav (PCM 16 bits) em 	クリックで次の音を聞けます。自分の録音を使うには、motor.wav (16ビットPCM) を次の場所に置いてください:
+Som: {0}%	音量:{0}%
+Correr de novo  (Enter)	もう一度走る  (Enter)
+Trocar pista	コースを変える
+OPÇÕES	オプション
+IDIOMA	言語
+O novo idioma vale ao reabrir o jogo.	新しい言語はゲームを再起動すると反映されます。
+TECLAS DOS JOGADORES	プレイヤーのキー
+Clique num botão e aperte a tecla nova. Se ela já era de outra ação, as duas trocam. Esc cancela.	ボタンをクリックして新しいキーを押してください。他の操作に使われていたキーなら、2つが入れ替わります。Esc でキャンセル。
+Jogador {0}	プレイヤー{0}
+Jogadores 5 e 6 (pista de 6) jogam só com controle.	プレイヤー5と6(6レーンのコース)はコントローラーのみで遊びます。
+Restaurar padrão	初期設定に戻す
+REGRAS DA CORRIDA	レースのルール
+<b>Onde valem:</b>\n• <b>Corrida livre</b> e <b>carreira</b>: na hora (na carreira, a pista molhada tira aderência quando a prova pede).\n• <b>Campeonato offline</b>: são copiadas quando o campeonato é criado. Mudar aqui depois não mexe num campeonato em andamento.\n• <b>Campeonato online</b>: valem as do <b>host</b>, enviadas na largada e fixas até o fim. As dos outros jogadores não contam.\n• <b>Partida rápida</b>: não valem. Lá as regras são sempre as padrão: velocidade 14, 0,5 s até 100%, aderência 29, colisão e turbo ligados, recolocar em 0,3 s.	<b>適用される場所:</b>\n• <b>フリーレース</b>と<b>キャリア</b>:すぐに適用(キャリアでは、レースの指定があればウェット路面でグリップが下がります)。\n• <b>オフライン選手権</b>:選手権を作ったときにコピーされます。あとでここを変えても進行中の選手権には影響しません。\n• <b>オンライン選手権</b>:<b>ホスト</b>のルールが適用され、スタート時に送られて最後まで固定です。他のプレイヤーのルールは使われません。\n• <b>クイックマッチ</b>:適用されません。常に標準ルールです:速度14、100%まで0.5秒、グリップ29、衝突とターボはオン、復帰0.3秒。
+SEU CONTROLE E SOM	自分の操作と音
+Só seus, em qualquer modo, também no online: não vão para os outros jogadores.	自分だけの設定で、どのモードでも、オンラインでも使えます:他のプレイヤーには送られません。
+JOGO ONLINE	オンラインプレイ
+O jogo abre conectado à Steam. Desligue para jogar pelo servidor (Node) no endereço abaixo.	ゲームはSteamに接続した状態で始まります。オフにすると、下のアドレスのサーバー (Node) で遊べます。
+TODAS AS TECLAS	すべてのキー
+Fechar  (Esc)	閉じる  (Esc)
+reta curta · comprida · curtinha	ストレート 短 · 長 · 極短
+curva longa esquerda · direita	ロングカーブ 左 · 右
+meia curva esquerda · direita	ハーフカーブ 左 · 右
+curva longa inclinada esquerda · direita	ロングバンクカーブ 左 · 右
+curva curta inclinada esquerda · direita	ショートバンクカーブ 左 · 右
+curva em C esquerda · direita	ヘアピン 左 · 右
+rampa sobe · desce	スロープ 上り · 下り
+loop saindo à esquerda · à direita	ループ 左出口 · 右出口
+rampa de salto	ジャンプ台
+cruzamento · cruzamento curto	クロス · ショートクロス
+troca o lado (esquerda · direita) da peça selecionada	選択中のパーツの向き(左 · 右)を反転
+troca a ponta de encaixe: fim da pista · atrás da largada	つなぐ端を切り替え:コースの終わり · スタートの後ろ
+gira a pista 90° em volta da largada	スタートを中心にコースを90°回転
+fecha o circuito sozinho (Esc cancela)	コースを自動で閉じる(Esc でキャンセル)
+Delete · Backspace	Delete · Backspace
+apaga a selecionada · a última	選択中を削除 · 最後を削除
+Ctrl+Z · Ctrl+Y (Ctrl+Shift+Z)	Ctrl+Z · Ctrl+Y (Ctrl+Shift+Z)
+desfaz · refaz	元に戻す · やり直す
+Esc	Esc
+tira a seleção	選択を解除
+Clique	クリック
+seleciona a peça; arrastar a largada move a pista	パーツを選択。スタートをドラッグするとコースが動く
+CÂMERA E TELA	カメラと画面
+Roda do mouse	マウスホイール
+aproxima e afasta	ズームイン・アウト
+Botão direito · do meio	右ボタン · 中ボタン
+arrasta a mesa; com a câmera inclinada, o direito gira	テーブルを動かす。カメラを傾けているときは右ボタンで回転
+câmera de cima · inclinada	真上カメラ · 傾いたカメラ
+enquadra a pista	コースを全体表示
+Tab	Tab
+mostra e esconde o painel	パネルの表示・非表示
+1 · 2 · 3 · 4 (corrida)	1 · 2 · 3 · 4(レース)
+troca a câmera, na ordem do menu	カメラを切り替え(メニューの順)
+Enter (ou Start no controle)	Enter(またはコントローラーの Start)
+larga · próxima bateria	スタート · 次のヒート
+pausa (online: 3 por piloto, 60 s cada)	ポーズ(オンライン:1人3回、各60秒)
+o que aparece em cima dos carros	車の上に表示する内容
+liga e desliga a narração	実況のオン・オフ
+fecha esta tela	この画面を閉じる
+“{0}” é do jogo (Enter larga). Aperte outra tecla.	「{0}」はゲームで使います(Enter でスタート)。別のキーを押してください。
+{0}: <b>aperte…</b>	{0}:<b>キーを押して…</b>
+{0}: <b>{1}</b>	{0}:<b>{1}</b>
+Aperte a tecla nova (Esc cancela).	新しいキーを押してください(Esc でキャンセル)。
+<b>Segure</b> Acelerar e o acelerador sobe de 0 a 100%. <b>Soltou, zerou</b>: o carrinho freia.\nRápido demais na curva, a traseira escorrega e a barra de <b>derrapagem</b> enche. Cheia, o carrinho sai da pista.\n<b>Recolocar</b> devolve o carrinho ao trilho, um pouco antes de onde ele saiu.\n<b>Turbo</b>: começa vazio e enche um pouco a cada volta completa e um pouquinho a cada saída de pista (mais para quem está atrás). O tipo de turbo fica no ajuste do carro: explosivo ou eficiente. Segure para andar acima da velocidade máxima até o tanque acabar. Volta com turbo não vale como melhor volta.\n<b>Teclas</b> (acelerar 100% · meia {0}% · recolocar · turbo): jogador 1 {1} · {2} · {3} · {4}; jogador 2 {5} · {6} · {7} · {8}; jogador 3 {9} · {10} · {11} · {12}; jogador 4 {13} · {14} · {15} · {16}. Até onde a meia acelera: arraste o marcador na barra ACELERAR ou use meia − · meia + ({17} · {18} no jogador 1; ◀ ▶ do direcional no controle). Mude no menu inicial, em <b>Opções</b>.	アクセルを<b>押し続ける</b>と、0から100%まで上がります。<b>離すとゼロ</b>:車はブレーキをかけます。\nカーブで速すぎるとリアが滑り、<b>スライド</b>バーがたまります。いっぱいになると車はコースアウトします。\n<b>復帰</b>は、コースアウトした場所の少し手前で車をレーンに戻します。\n<b>ターボ</b>:最初は空で、1周するごとに少し、コースアウトするたびにほんの少したまります(後ろにいる人ほど多め)。ターボの種類は車のセッティングで選べます:爆発型か効率型。押し続けると、タンクが空になるまで最高速を超えて走れます。ターボを使った周はベストラップになりません。\n<b>キー</b>(アクセル100% · ハーフ{0}% · 復帰 · ターボ):プレイヤー1 {1} · {2} · {3} · {4}、プレイヤー2 {5} · {6} · {7} · {8}、プレイヤー3 {9} · {10} · {11} · {12}、プレイヤー4 {13} · {14} · {15} · {16}。ハーフの上限:アクセルバーのマーカーをドラッグするか、ハーフ − · ハーフ + を使います(プレイヤー1は {17} · {18}、コントローラーは十字キーの ◀ ▶)。ホーム画面の<b>オプション</b>で変更できます。
+Carro {0}	車{0}
+Robô	ボット
+ · controle {0}	 · コントローラー{0}
+Acelera {0} · meia {1} · recoloca {2} · turbo {3}{4}	アクセル {0} · ハーフ {1} · 復帰 {2} · ターボ {3}{4}
+Controle {0}	コントローラー{0}
+Só com controle: ligue mais um controle	コントローラーのみ:もう1台コントローラーをつないでください
+Carro: <b>{0}</b>  {1}	車:<b>{0}</b>  {1}
+1 trilho fica vazio.	空きレーンが1つあります。
+{0} trilhos ficam vazios.	空きレーンが{0}つあります。
+Treino: um carro só, contra o relógio.	練習:1台だけでタイムアタック。
+Modelo	モデル
+Final	最高速
+Velocidade máxima na reta. Motor longo, bolha lisa e pneu duro.	ストレートでの最高速度。ロングモーター、スリックボディ、ハードタイヤ。
+Aceleração	加速
+Quanto o carro embala ao sair da curva. Motor curto.	カーブの出口からの伸び。ショートモーター。
+Aderência	グリップ
+Pneu: segura o carro em qualquer curva, devagar ou rápido. Macio segura mais.	タイヤ:速くても遅くても、どのカーブでも車を支えます。ソフトほど強い。
+Aerodinâmica	空力
+Bolha com asa: segura o carro na curva, e mais quanto mais rápido ele vai. Não ajuda na curva feita devagar.	ウイングボディ:カーブで車を支え、速いほど効きます。遅いカーブでは効きません。
+Agilidade	俊敏さ
+Chassi leve: o gatilho e o freio respondem mais rápido.	軽いシャーシ:アクセルとブレーキの反応が速くなります。
+Estabilidade	安定性
+Chassi pesado: demora mais para escapar quando você passa do limite na curva.	重いシャーシ:カーブで限界を超えても、滑り出すまでに余裕があります。
+Do zero a 95% da final em {0:0.00} s (padrão {1:0.00} s).	最高速の95%まで {0:0.00} 秒(標準 {1:0.00} 秒)。
+Chassi leve: responde rápido, mas escapa fácil no limite da curva.	軽いシャーシ:反応は速いが、カーブの限界で滑りやすい。
+Chassi pesado: mais lento no gatilho, perdoa o exagero na curva.	重いシャーシ:アクセルの反応は遅いが、カーブでの無理を許してくれる。
+Turbo {0}: +{1:0}% de velocidade máxima por {2:0.#} s de tanque cheio	ターボ{0}:タンク満タンで{2:0.#}秒間、最高速 +{1:0}%
+ (mais explosão, menos volume).	(パワー大、容量小)。
+ (menos explosão, mais volume).	(パワー小、容量大)。
+Curva plana: segura até {0}% da final deste carro no trilho de dentro e {1}% no de fora. Meia aceleração: {2}%.	平らなカーブ:インレーンでこの車の最高速の{0}%、アウトレーンで{1}%まで耐えます。ハーフスロットル:{2}%。
+CÂMERA	カメラ
+<b>{0}  {1}</b>\n<size=10>{2}</size>	<b>{0}  {1}</b>\n<size=10>{2}</size>
+SEGUIR	追従
+No online, segue o seu carrinho.	オンラインでは自分の車を追います。
+Câmera: <b>{0}</b>  ▾	カメラ:<b>{0}</b>  ▾
+Câmera  ▾	カメラ  ▾
+Tela dividida: <b>{0}</b>\n<size=10>2 a 4 jogadores no mesmo computador: um quadro para cada</size>	画面分割:<b>{0}</b>\n<size=10>同じPCで2〜4人:1人に1画面</size>
+sim	はい
+não	いいえ
+Distância: {0}%	距離:{0}%
+No grid	グリッド上
+ACELERAR  {0}  ·  {1}% {2}	アクセル  {0}  ·  {1}% {2}
+Velocidade	速度
+Derrapagem	スライド
+TURBO	ターボ
+Trilho	レーン
+Esta pista não é um circuito fechado. Escolha outra acima ou feche o traçado no Construtor.	このコースは閉じていません。上で別のコースを選ぶか、ビルダーでコースを閉じてください。
+O carrinho está no grid.	車はグリッドにいます。
+Os dois carrinhos estão no grid.	2台ともグリッドにいます。
+Os {0} carrinhos estão no grid.	{0}台がグリッドにいます。
+ Aperte Largar e espere as luzes.	スタートを押してシグナルを待ってください。
+Pode segurar o acelerador: o carrinho sai quando a luz ficar verde.	アクセルを押したままでもOK:シグナルが青になると車が走り出します。
+Fim da manche: cada carrinho passa para o trilho seguinte.	走行終了:各車が次のレーンに移ります。
+Corrida por tempo, {0}: vence quem andar mais em {1}.	タイム制レース、{0}:{1}でいちばん遠くまで走った人の勝ち。
+Vence quem completar {0} {1} primeiro.	最初に{0}{1}を走りきった人の勝ち。
+Prova encerrada. Aperte Largar para correr de novo.	レース終了。スタートを押すともう一度走れます。
+Nova largada (Enter)	再スタート (Enter)
+Feche o circuito no Construtor para correr	走るにはビルダーでコースを閉じてください
+{0} venceu	{0}の勝ち
+Troca de trilho	レーン交代
+Corrida · {0} · faltam {1}	レース · {0} · 残り{1}
+Corrida · volta {0} de {1}	レース · {1}周中{0}周目
+Pronto para largar	スタート準備OK
+TURBO  {0}%	ターボ  {0}%
+TURBO  {0}  ·  {1}%	ターボ  {0}  ·  {1}%
+Venceu!	優勝!
+Chegou	ゴール
+Fora da pista!	コースアウト!
+Voltando ao trilho	レーンに復帰中
+Batida!	クラッシュ!
+Aguarde a luz verde	青シグナルを待ってください
+Vai para o trilho {0}	レーン{0}へ
+{0} voltas · trilho {1}	{0}周 · レーン{1}
+Volta {0} de {1}	{1}周中{0}周目
+{0} v · T{1}	{0}周 · L{1}
+Volta {0}/{1}	{0}/{1}周
+Melhor {0}	ベスト {0}
+LÍDER	トップ
++{0} v	+{0}周
+TROCA DE TRILHO\n<size=40%>{0}</size>	レーン交代\n<size=40%>{0}</size>
+manche {0} de {1}	走行 {0}/{1}
+VAI!	GO!
+líder	トップ
+−{0} do líder · −{1} do {2}º	トップまで −{0} · {2}位まで −{1}
+não terminou	未完走
+★ melhor volta 	★ ベストラップ
+melhor 	ベスト
+1 saída	コースアウト1回
+{0} saídas	コースアウト{0}回
+RECORDE	レコード
+Salvar e seguir  (Enter)	保存して続ける  (Enter)
+Sua nota para esta pista (clique para trocar)	このコースへのあなたの評価(クリックで変更)
+Que nota você dá para esta pista?	このコースを何点にしますか?
+Nota {0} enviada.	評価{0}を送信しました。
+{0} estrela	星{0}
+{0} estrelas	星{0}
+lendo as notas…	評価を読み込み中…
+média ★ {0} · {1} {2}	平均 ★ {0} · {1}{2}
+nota	件の評価
+notas	件の評価
+ainda sem notas: a sua é a primeira	まだ評価がありません:あなたが最初です
+Pista aberta	開いたコース
+Escolha um circuito fechado na lista.	リストから閉じたコースを選んでください。
+{0} voltas em {1} · melhor volta {2}	{0}周を{1} · ベストラップ {2}
+faltam · {0}	残り · {0}
+ÚLTIMA VOLTA	ファイナルラップ
+VOLTA {0}/{1}	ラップ {0}/{1}
+ · líder	 · トップ
+{0} min	{0}分
+ s	 秒
+FANTASMA	ゴースト
+Correr contra o fantasma	ゴーストと走る
+A melhor volta da pista corre ao seu lado, transparente, largando junto a cada volta.	コースのベストラップが半透明であなたの横を走り、毎周いっしょにスタートします。
+Esta pista ainda não tem fantasma. A primeira volta limpa de um piloto de gente vira o fantasma.	このコースにはまだゴーストがいません。人間のドライバーが最初にミスなく走った周がゴーストになります。
+Melhor volta: <b>{0}</b> · {1} · {2:dd/MM/yyyy}	ベストラップ:<b>{0}</b> · {1} · {2:yyyy/MM/dd}
+Gravado com velocidade máx. {0}, aderência {1} e tempo até 100% {2} s (agora {3}, {4} e {5} s).	記録時の設定:最高速{0}、グリップ{1}、100%までの時間{2}秒(現在は{3}、{4}、{5}秒)。
+O carro do fantasma:	ゴーストの車:
+Novo fantasma! {0}	新しいゴースト!{0}
+PARTIDA RÁPIDA	クイックマッチ
+Uma corrida de {0} contra quem estiver na fila. Cada um põe uma pista na disputa e o servidor sorteia qual vale. Só larga com a fila cheia. Funciona pelo servidor e pela Steam.	キューにいる人と{0}でレース。全員がコースを1つ出し、サーバーが抽選で決めます。キューが埋まるとスタートします。サーバーでもSteamでも遊べます。
+CARROS	台数
+Sua pista	あなたのコース
+Procurar partida	マッチを探す
+PROCURANDO PARTIDA	マッチを検索中
+PISTAS NA DISPUTA	抽選のコース
+Sair da fila	キューを抜ける
+{0} · {1} na fila	{0} · キューに{1}
+Nenhuma pista fechada. Monte uma no construtor.	閉じたコースがありません。ビルダーで作ってください。
+A pista entra adaptada para {0} carros. 	コースは{0}台用に調整されます。
+{0} de {1} na fila agora.	いまキューに{1}人中{0}人。
+Ninguém na fila agora: toque em Atualizar lista para ver de novo.	いまキューには誰もいません:「リストを更新」でもう一度確認できます。
+Essa pista é grande demais para o servidor.	このコースはサーバーには大きすぎます。
+Partida rápida · {0} carros · {1}	クイックマッチ · {0}台 · {1}
+ ×{0}	 ×{0}
+{0:00}:{1:00} esperando	{0:00}:{1:00} 待機中
+SORTEIO DA PISTA	コースの抽選
+vai para {0} (de {1})	{0}に決定({1}のコース)
+Narração: {0} (F2)	実況:{0} (F2)
+CAMPEONATO ONLINE	オンライン選手権
+Um jogador cria a sala e escolhe as pistas. Os outros entram pelo código ou pela lista de salas públicas.	1人がルームを作ってコースを選びます。他の人はコードか公開ルームのリストから入ります。
+Jogar pela Steam	Steamで遊ぶ
+Usa o lobby e a rede da Steam: precisa da Steam aberta e logada. O nome é o da sua conta.	Steamのロビーとネットワークを使います:Steamを開いてログインしている必要があります。名前はアカウント名になります。
+Servidor (ex.: ws://localhost:8080)	サーバー(例:ws://localhost:8080)
+Seu nome	あなたの名前
+CRIAR SALA	ルームを作る
+Nome da sala (opcional)	ルーム名(任意)
+Sala pública (aparece na lista)	公開ルーム(リストに表示)
+Criar sala	ルームを作る
+ENTRAR COM UM CÓDIGO	コードで入る
+Salas privadas só entram assim.	非公開ルームにはこの方法でしか入れません。
+Código da sala	ルームコード
+Entrar	入る
+SALAS PÚBLICAS	公開ルーム
+Atualizar lista	リストを更新
+SALA	ルーム
+Código	コード
+Copiar	コピー
+Código copiado.	コードをコピーしました。
+Convidar amigos (Steam)	友達を招待 (Steam)
+Abre a janela de convite da Steam. Ela só aparece no jogo instalado (não no Editor): lá, use a lista abaixo.	Steamの招待ウィンドウを開きます。インストールしたゲームでのみ表示されます(エディターでは出ません):その場合は下のリストを使ってください。
+Atualizar	更新
+SUA COR	あなたの色
+Mais um piloto jogando neste computador, com o seu nome e um 2. Ele usa o 2º conjunto de teclas (Opções) ou o 2º controle.	このPCでもう1人のドライバーが遊びます。名前はあなたの名前に「2」がつきます。2つ目のキー設定(オプション)か2台目のコントローラーを使います。
+COR DO JOGADOR 2	プレイヤー2の色
+Cada bateria tem uma duração e se divide em uma manche por trilho; vence quem andar mais.	各ヒートには時間があり、レーンごとの走行に分かれます。いちばん遠くまで走った人の勝ち。
+Pista de 6 trilhos. Com menos de 6 jogadores, sobra trilho vazio em cada bateria.	6レーンのコース。プレイヤーが6人より少ないと、各ヒートで空きレーンができます。
+Pista de 8 trilhos. Com menos de 8 jogadores, sobra trilho vazio em cada bateria.	8レーンのコース。プレイヤーが8人より少ないと、各ヒートで空きレーンができます。
+Pista de 4 trilhos. Com menos de 4 jogadores, sobra trilho vazio em cada bateria.	4レーンのコース。プレイヤーが4人より少ないと、各ヒートで空きレーンができます。
+SUGESTÕES DOS PILOTOS	ドライバーからの提案
+Pistas que os outros pilotos mandaram. Você decide: inclui como etapa, salva na sua biblioteca ou ignora.	他のドライバーが送ってきたコースです。ラウンドに追加する、ライブラリに保存する、無視する、から選べます。
+SUGERIR UMA PISTA AO HOST	ホストにコースを提案
+Escolha uma das suas pistas (fechada) para o host incluir. Até 3 por minuto.	ホストに追加してもらう自分のコース(閉じたもの)を選びます。1分に3つまで。
+CHAT	チャット
+Estou pronto	準備OK
+Sair da sala	ルームを出る
+Escreva uma mensagem	メッセージを書く
+Enviar	送信
+Você já está numa sala. Saia dela para entrar na do amigo.	すでにルームにいます。友達のルームに入るには、今のルームを出てください。
+Nenhum amigo online agora. Use o botão acima para convidar quem está offline ou em outro jogo.	いまオンラインの友達はいません。上のボタンで、オフラインや他のゲーム中の友達を招待できます。
+AMIGOS ONLINE · {0}	オンラインの友達 · {0}
+Convidado ✓	招待済み ✓
+Convidar	招待
+Convite enviado a {0}.	{0}に招待を送りました。
+Não deu para convidar. Confira se a Steam está aberta.	招待できませんでした。Steamが開いているか確認してください。
+Pela Steam, com o nome da sua conta. Para jogar pelo servidor, desligue a Steam em Opções, no menu inicial.	Steam経由、アカウント名で遊びます。サーバーで遊ぶには、ホーム画面のオプションでSteamをオフにしてください。
+Pelo servidor {0}. Mude em Opções, no menu inicial.	サーバー {0} 経由。ホーム画面のオプションで変更できます。
+Sala {0} · {1}/{2} pilotos	ルーム {0} · ドライバー {1}/{2}
+Conectando à Steam…	Steamに接続中…
+Conectando ao servidor…	サーバーに接続中…
+Online: crie uma sala ou entre numa	オンライン:ルームを作るか、ルームに入ろう
+Digite seu nome primeiro.	先に名前を入力してください。
+Digite o código da sala.	ルームコードを入力してください。
+Falta gente: são precisos pelo menos 2 pilotos.	人数が足りません:ドライバーが2人以上必要です。
+Aguardando ficar pronto: 	準備待ち:
+A conexão caiu. Tentando voltar à sala ({0} de {1})…	接続が切れました。ルームに戻ろうとしています({1}回中{0}回目)…
+Não deu para voltar à sala: 	ルームに戻れませんでした:
+. Confira o endereço ({0}) e se o servidor está rodando (cd servidor && npm start).	。アドレス ({0}) とサーバーが動いているか確認してください (cd servidor && npm start)。
+Você saiu da sala: 	ルームを出ました:
+Sem conexão com a Steam	Steamに接続していません
+Sem conexão com o servidor	サーバーに接続していません
+Você voltou à sala.	ルームに戻りました。
+{0} {1} neste computador e saiu da lista.	{0}{1}、リストから外れました。
+pista não está	個のコースがこのPCにありません
+pistas não estão	個のコースがこのPCにありません
+{0} sugeriu a pista “{1}”.	{0}がコース「{1}」を提案しました。
+{0} (de {1})	{0}({1}のコース)
+“{0}” salva na sua biblioteca.	「{0}」をライブラリに保存しました。
+PISTAS DO CAMPEONATO	選手権のコース
+As pistas da corrida ficam guardadas na sua biblioteca.	レースのコースはライブラリに保存されます。
+guardada agora na sua biblioteca	いまライブラリに保存しました
+já estava na sua biblioteca	すでにライブラリにあります
+1 pista nova na sua biblioteca.	ライブラリに新しいコースが1つ。
+{0} pistas novas na sua biblioteca.	ライブラリに新しいコースが{0}つ。
+ (online)	(オンライン)
+{0} (online {1})	{0}(オンライン {1})
+Essa pista é grande demais para sugerir.	このコースは提案するには大きすぎます。
+Pista enviada ao host.	コースをホストに送りました。
+Nenhuma sugestão ainda.	まだ提案はありません。
+de {0} · {1}	{0}から · {1}
+Incluir	追加
+Guarda na sua biblioteca de pistas	コースライブラリに保存します
+Ignorar	無視
+enviada ✓	送信済み ✓
+enviar	送る
+Você não tem pistas fechadas de {0} carros.	{0}台用の閉じたコースがありません。
+Você não tem pistas fechadas para sugerir.	提案できる閉じたコースがありません。
+“{0}” na mesa. Ctrl+Z volta a pista de antes.	「{0}」をテーブルに置きました。Ctrl+Z で前のコースに戻ります。
+Nenhuma sala pública agora. Toque em Atualizar, ou crie a sua.	いま公開ルームはありません。「更新」を押すか、自分で作ってください。
+{0} · {1}/{2} pilotos · {3} {4} · {5}	{0} · ドライバー {1}/{2} · {3}{4} · {5}
+ (de {0})	({0})
+Sala pública	公開ルーム
+Sala privada (só entra com o código)	非公開ルーム(コードでのみ参加可)
+ · você	 · あなた
+você	あなた
+jogador 2 deste computador	このPCのプレイヤー2
+✓ pronto	✓ 準備OK
+aguardando	待機中
+Tirar o jogador 2	プレイヤー2を外す
++ Jogador 2 neste computador	+ このPCでプレイヤー2
+<b>{0}</b> · <b>pistas de {1} trilhos</b>	<b>{0}</b> · <b>{1}レーンのコース</b>
+ · com {0} {1}, {2} {3} em cada bateria	 · {0}{1}なので、各ヒートで{2}{3}
+jogador	人のプレイヤー
+jogadores	人のプレイヤー
+trilho fica vazio	レーンが空き
+trilhos ficam vazios	レーンが空き
+Formato e tipo de pista: o host ainda não escolheu.	形式とコースの種類:ホストはまだ選んでいません。
+Escolha as pistas e {0} de cada etapa. As outras regras (velocidade, aderência, colisão) são as de Opções, no menu inicial. Os visitantes veem a lista, mas só você mexe nela.	コースと各ラウンドの{0}を選んでください。他のルール(速度、グリップ、衝突)はホーム画面のオプションのものです。参加者もリストを見られますが、変更できるのはあなただけです。
+a duração	時間
+as voltas	周回数
+O host escolhe as pistas. Você escolhe a cor do seu carrinho e conversa no chat.	コースはホストが選びます。あなたは車の色を選んで、チャットで話せます。
+Nenhuma etapa ainda. Clique numa pista abaixo.	まだラウンドがありません。下のコースをクリックしてください。
+O host ainda não escolheu as pistas.	ホストはまだコースを選んでいません。
+Clique para ver a pista na mesa	クリックでコースをテーブルに表示
+Regras da corrida, em Opções no menu inicial (velocidade {0} cél/s, até 100% em {1} s, aderência {2}, colisão {3}, turbo {4}, recolocar em {5} s). Ficam fixos até o fim.	レースのルールはホーム画面のオプションにあります(速度 {0} マス/秒、100%まで {1} 秒、グリップ {2}、衝突 {3}、ターボ {4}、復帰 {5} 秒)。最後まで固定です。
+Não estou pronto	準備できていません
+Todos prontos: {0} pilotos · {1} {2} · {3} baterias.	全員準備OK:ドライバー{0}人 · {1}{2} · {3}ヒート。
+Você está pronto. Aguardando o host largar.	準備OKです。ホストのスタートを待っています。
+Confirme quando estiver pronto: o host só larga com todos prontos.	準備ができたら確定してください:全員が準備OKになるとホストがスタートできます。
+<b><color={0}>{1}</color></b>: {2}	<b><color={0}>{1}</color></b>:{2}
+{0} · acelera {1} · recoloca {2}	{0} · アクセル {1} · 復帰 {2}
+é você	あなたです
+jogador 2 daqui	このPCのプレイヤー2
+saiu da sala	ルームを出ました
+Campeonato online	オンライン選手権
+Não deu para abrir as pistas do campeonato. Você saiu da sala.	選手権のコースを開けませんでした。ルームを出ました。
+Sair da partida	マッチを抜ける
+Encerrar campeonato	選手権を終える
+Você agora é o host: a bateria da vez recomeça.	あなたがホストになりました:今のヒートはやり直しです。
+Certeza? Clique de novo	本当に?もう一度クリック
+O host encerrou o campeonato.	ホストが選手権を終了しました。
+ (o jogador 2 daqui: {0} e {1}, ou o 2º controle)	(このPCのプレイヤー2:{0} と {1}、または2台目のコントローラー)
+Jogar de novo	もう一度遊ぶ
+A partida acabou. Jogar de novo volta para a fila com o mesmo tamanho e a mesma pista.	マッチが終わりました。「もう一度遊ぶ」で、同じサイズと同じコースでキューに戻ります。
+Voltar ao lobby	ロビーに戻る
+O campeonato acabou. Voltar ao lobby leva todos de volta para montar outro.	選手権が終わりました。「ロビーに戻る」で全員が戻り、次の選手権を作れます。
+O campeonato acabou. O host leva todos de volta ao lobby.	選手権が終わりました。ホストが全員をロビーに戻します。
+Espere os pilotos da bateria se prepararem e aperte Largar. Quem corre acelera com {0} e recoloca com {1}{2}.	ヒートのドライバーの準備ができたら、スタートを押してください。走る人は {0} でアクセル、{1} で復帰{2}。
+Aguardando o host largar. Quem corre acelera com {0} e recoloca com {1}{2}.	ホストのスタートを待っています。走る人は {0} でアクセル、{1} で復帰{2}。
+Salve para o resultado contar na tabela de todos. Se algo deu errado, corra de novo: esta bateria é descartada.	結果を全員の順位表に反映するには保存してください。うまくいかなかったら、もう一度走れます:このヒートは無効になります。
+Bateria encerrada. O host salva o resultado e segue.	ヒート終了。ホストが結果を保存して続けます。
+Vence a bateria quem completar {0} primeiro. Quem não terminar tem {1:0} s depois da bandeirada.	最初に{0}を走りきった人がヒートの勝者です。完走できなかった人はチェッカーから{1:0}秒の猶予があります。
+ Larga sozinho em {0} s.	{0}秒後に自動でスタート。
+ Salva e segue sozinho em {0} s.	{0}秒後に自動で保存して続けます。
+Continuar  (P)	続ける  (P)
+Você já pausou {0} vezes nesta bateria.	このヒートではもう{0}回ポーズしました。
+Volta em {0}	再開まで {0}
+Prepare o dedo no acelerador.	アクセルに指を置いて。
+Pausado	ポーズ中
+P continua.	P で再開。
+Por {0} · continua quem pausou ou o host (P) · volta sozinha em {1} s.	{0}がポーズ · ポーズした人かホストが再開 (P) · {1}秒後に自動で再開。
+ · online	 · オンライン
+Recordes da pista	コースレコード
+Recordes · {0}	レコード · {0}
+trilho 	レーン
+trilho sem recorde	レコードなしのレーン
+seu melhor {0}	自己ベスト {0}
+primeira vez aqui	はじめてのコース
+Peças novas para o construtor. Cada uma abre quando você termina, com pelo menos ★, a prova da carreira que a apresenta. Correr numa pista com peça fechada sempre pode — só não dá para colocar a peça.	ビルダー用の新しいパーツ。それぞれ、そのパーツが登場するキャリアのレースを★1つ以上で終えると解放されます。ロックされたパーツがあるコースでも走ることはいつでもできます — パーツを置けないだけです。
+GARAGEM DO CARRO	車のガレージ
+Seu carro na carreira. Compre opções do ajuste e preparação com as moedas das provas. Fora da carreira o ajuste é livre e sem preparação.	キャリアでのあなたの車。レースで得たコインで、セッティングのオプションとチューンを買えます。キャリア以外では、セッティングは自由でチューンはありません。
+Fechar (G · Esc)	閉じる (G · Esc)
+Moedas da carreira · clique para abrir a garagem do carro	キャリアのコイン · クリックで車のガレージを開く
+liberada (teste)	解放(テスト)
+✓ aberta	✓ 解放済み
+Abre em 	解放場所:
+Desbloquear tudo: LIGADO (teste, até o jogo sair)	すべて解放:オン(テスト用、発売まで)
+Desbloquear tudo: desligado (teste, até o jogo sair)	すべて解放:オフ(テスト用、発売まで)
+Níveis à venda até o {0} (Garagem 3 · Clube 6 · Regional 8 · Nacional 10). O nível n custa {1} × n.	販売レベルは{0}まで(ガレージ3 · クラブ6 · 地方8 · 全国10)。レベルnの値段は {1} × n。
+{0} {1}: é seu!	{0} {1}:あなたのものです!
+Comprar	購入
+✓ máximo	✓ 最大
+Nível {0} · ◎ {1}	レベル{0} · ◎ {1}
+COMO FICA	見た目
+Câmera: <b>{0}</b>  ⟳	カメラ:<b>{0}</b>  ⟳
+Etiqueta nos carros: {0} (F1)	車の上のラベル:{0} (F1)
+{0}º <size=75%>{1}</size>	{0}位 <size=75%>{1}</size>
+\n<size=70%>+{0} s</size>	\n<size=70%>+{0} 秒</size>
+\n<size=70%><color=#7CE38B>−{0} s</color></size>	\n<size=70%><color=#7CE38B>−{0} 秒</color></size>
+MINIMAPA	ミニマップ
+⠿ arraste	⠿ ドラッグ
+Pilotos ▸	ドライバー ▸
+Pilotos ▾	ドライバー ▾
+última {0} · melhor {1} · {2:0.0} m	前回 {0} · ベスト {1} · {2:0.0} m
+Padrão	標準
+Curto	ショート
+Longo	ロング
+Asa	ウイング
+Lisa	スリック
+Médio	ミディアム
+Macio	ソフト
+Duro	ハード
+Leve	軽量
+Pesado	重量
+Explosivo	爆発型
+Eficiente	効率型
+turbo 	ターボ
+Digite seu nome.	名前を入力してください。
+Esta versão do jogo não combina com o servidor. Atualize o jogo.	このバージョンのゲームはサーバーと合いません。ゲームを更新してください。
+O servidor está lotado. Tente mais tarde.	サーバーが満員です。後でもう一度試してください。
+Você criou muitas salas em pouco tempo. Espere um minuto.	短時間にルームを作りすぎです。1分待ってください。
+Já tem alguém com esse nome na sala.	ルームに同じ名前の人がいます。
+Já tem alguém com esse nome na fila.	キューに同じ名前の人がいます。
+Só o host começa o campeonato.	選手権を始められるのはホストだけです。
+Só o host encerra o campeonato.	選手権を終えられるのはホストだけです。
+Só o host escolhe as pistas.	コースを選べるのはホストだけです。
+Só o host muda a visibilidade.	公開設定を変えられるのはホストだけです。
+Muitas conexões deste endereço.	このアドレスからの接続が多すぎます。
+Mensagem inválida.	メッセージが正しくありません。
+Mensagem desconhecida.	不明なメッセージです。
+Erro no servidor.	サーバーエラー。
+Garagem	ガレージ
+Primeira Volta	はじめての1周
+Reta da Bancada	作業台ストレート
+Feijão	そら豆
+Oficina	工房
+Chuva na Garagem	ガレージに雨
+Cotovelo	ひじカーブ
+Serpentina	サーペンタイン
+Largada Atrasada	遅れたスタート
+Turbo Sem Fim	終わらないターボ
+Tio Beto	ベトおじさん
+Monto autorama desde antes de você nascer. Mostra o que sabe.	君が生まれる前からコースを作ってるんだ。腕前を見せてくれ。
+A garagem ainda é minha. Volte quando souber frear.	ガレージはまだ私のものだ。ブレーキを覚えたらまたおいで。
+Muito bem! A garagem ficou pequena para você.	お見事!もうガレージは君には狭すぎる。
+Copa Garagem	ガレージカップ
+Zé da Oficina	工房のゼー
+Lu Parafuso	ルー・ボルト
+Clube	クラブ
+Salão do Clube	クラブホール
+Troca de Faixa	レーンチェンジ
+Viaduto	高架
+Oficina do Clube	クラブの工房
+Noite de Chuva	雨の夜
+Inclinado Duplo	ダブルバンク
+Último de Pé	最後まで立っている者
+Largada do Fundo	最後尾スタート
+Marina Faísca	マリーナ・スパーク
+Turbo é para usar. Vem que eu largo na sua frente.	ターボは使うためにあるの。さあ、あなたより先にスタートするわ。
+Rápida demais para você. Volte para a garagem!	あなたには速すぎたわね。ガレージに帰りなさい!
+Ok, ok… você freia melhor que eu.	はいはい…ブレーキは私より上手ね。
+Taça Clube	クラブトロフィー
+Rafa Turbo	ラファ・ターボ
+Dona Célia	セリアさん
+Regional	地方
+Ginásio	体育館
+Rampa Curta	ショートスロープ
+Cotovelo em C	ヘアピンのひじ
+Oficina Regional	地方の工房
+Ziguezague Molhado	ウェットジグザグ
+Salto e Ponte	ジャンプと橋
+Mirante	展望台
+Largada Pesada	重いスタート
+Dr. Curva	ドクター・カーブ
+Curva inclinada não é sorte, é geometria.	バンクカーブは運じゃない、幾何学だ。
+Você ainda freia antes da hora. Estude.	まだブレーキが早すぎる。勉強しなさい。
+Brilhante. A geometria está do seu lado.	見事だ。幾何学は君の味方だ。
+Copa Regional	地方カップ
+Nacional	全国
+Estádio	スタジアム
+Grande Salto	大ジャンプ
+Looping	ルーピング
+Oficina Nacional	全国の工房
+Abismo	奈落
+Torre	タワー
+Serra Molhada	ウェットマウンテン
+Troca Final	ファイナルチェンジ
+O Campeão	チャンピオン
+Muitos chegaram até aqui. Nenhum passou.	ここまで来た者は大勢いる。だが誰も越えられなかった。
+Volte quando for campeão de verdade.	本物のチャンピオンになったら戻ってこい。
+Então é você. A mesa é sua.	君だったか。テーブルは君のものだ。
+Grande Prêmio Nacional	全国グランプリ
+Reta curta	ショートストレート
+2 células	2マス
+Reta comprida	ロングストレート
+4 células	4マス
+Reta curtinha	極短ストレート
+Cruzamento	クロス
+Cruzamento curto	ショートクロス
+Curva longa	ロングカーブ
+90° esquerda	90° 左
+90° direita	90° 右
+Meia curva	ハーフカーブ
+45° esquerda	45° 左
+45° direita	45° 右
+Curva longa inclinada	ロングバンクカーブ
+Curva curta inclinada	ショートバンクカーブ
+Curva em C	ヘアピン
+180° esquerda	180° 左
+180° direita	180° 右
+Rampa	スロープ
+sobe 1 nível	1段上り
+desce 1 nível	1段下り
+Loop	ループ
+sai à esquerda	左に抜ける
+sai à direita	右に抜ける
+Rampa de salto	ジャンプ台
+4 a 6 células	4〜6マス
+Base de largada	スタートパーツ
+Começando…	開始中…
+reta-curtinha	極短ストレート
+Curvas inclinadas	バンクカーブ
+curva longa e curta inclinadas	ロングとショートのバンクカーブ
+Troca de faixa	レーンチェンジ
+cruzamento e cruzamento curto	クロスとショートクロス
+Subida e descida	上りと下り
+rampas para ponte	橋用のスロープ
+salto de vão 1	隙間1のジャンプ
+curva em C (1 a 3 fileiras)	ヘアピン(1〜3列)
+loop	ループ
+Saltos grandes	大ジャンプ
+salto de vão 2 e 3	隙間2と3のジャンプ
+Apagaram as luzes! E lá vão eles!	シグナル消灯!さあ、スタートだ!
+Largada! Todo mundo de pé no fundo!	スタート!全員アクセル全開!
+Valendo! Que vença o melhor... ou o mais sortudo.	勝負開始!最強の者が勝つ…いや、いちばん運のいい者か。
+Largada limpa... por enquanto.	クリーンなスタート…今のところは。
+E foi dada a largada! O carpete que se cuide.	さあスタートが切られた!じゅうたんは覚悟しておけ。
+Bandeira verde! Os trilhos estão quentes!	グリーンフラッグ!レーンが熱い!
+Saíram! Agora é gatilho e coragem.	飛び出した!あとはトリガーと度胸だけ。
+Começou! Quem frear primeiro perde.	始まった!先にブレーキを踏んだほうが負け。
+E lá se vão eles, cheios de esperança e de pilha.	希望と電池を満タンにして、さあ出発だ。
+{A} passa {B}! Não pediu licença, não!	{A}が{B}を抜いた!あいさつもなしだ!
+{A} por dentro, e {B} só viu a placa do chassi.	{A}がインから、{B}にはシャーシのプレートしか見えなかった。
+Ultrapassagem! {A} deixa {B} para trás.	オーバーテイク!{A}が{B}を置き去りに。
+{A} pra cima de {B}... e passou!	{A}が{B}に襲いかかる…抜いた!
+{B} piscou e {A} foi embora.	{B}がまばたきした隙に{A}は行ってしまった。
+{A} mergulha e engole {B}!	{A}が飛び込んで{B}をのみ込んだ!
+Tchau, {B}! {A} sobe uma posição.	さよなら{B}!{A}がひとつ順位を上げる。
+{A} passou {B} como se fosse cone de treino.	{A}はまるで練習用のコーンのように{B}を抜いた。
+Manobra bonita de {A} em cima de {B}!	{A}、{B}に見事なアタック!
+{B} abriu a porta e {A} entrou sem bater.	{B}がドアを開けっぱなしにして、{A}がノックもせずに入った。
+{A} assume a liderança! {B} fica olhando a traseira.	{A}がトップに立った!{B}はリアを眺めるだけ。
+Tem líder novo: {A}!	新しいトップは{A}!
+{A} passa {B} e pula para a ponta!	{A}が{B}を抜いて先頭に躍り出た!
+Mudou tudo! {A} é o novo líder.	すべてが変わった!{A}が新しいトップだ。
+{A} toma a ponta de {B}! A mesa vai abaixo!	{A}が{B}からトップを奪った!テーブルが沸いている!
+Liderança trocada! {A} na frente, {B} no prejuízo.	トップ交代!{A}が前に、{B}は痛い。
+{A} chega lá na frente. {B}, a vista agora é outra.	{A}が先頭へ。{B}、景色が変わったね。
+{A} saiu da pista! O trilho estava ali, viu?	{A}がコースアウト!レーンはそこにあったのに。
+Lá vai {A} conhecer o carpete da sala.	{A}、リビングのじゅうたんを見学に。
+{A} voou! Alguém chama o fiscal.	{A}が飛んだ!誰かマーシャルを呼んで。
+Escapou! {A} foi dar uma volta fora da pista.	飛び出した!{A}がコースの外へお散歩。
+{A} errou o ponto de freada. Acontece nas melhores famílias.	{A}がブレーキングポイントを外した。誰にでもあること。
+{A} rodou! O carrinho foi parar longe.	{A}がスピン!車は遠くまで飛んでいった。
+Rodopio de {A}! Bonito de ver, péssimo para o cronômetro.	{A}のスピン!見ている分にはきれい、タイムには最悪。
+{A} entrou rápido demais e a curva não perdoou.	{A}は速すぎるスピードで入り、カーブは許してくれなかった。
+Fiscal! {A} está deitado no carpete.	マーシャル!{A}がじゅうたんに寝ている。
+{A} decolou! Ainda bem que não tem multa por voo baixo.	{A}が離陸!低空飛行の罰金がなくてよかった。
+{A} confundiu a curva com uma reta.	{A}はカーブをストレートと勘違いした。
+Que pião de {A}! Faltou só a música.	{A}、なんて見事なスピン!あとは音楽だけ。
+{A} perdeu o trilho. O trilho não perdeu {A}: ele está ali esperando.	{A}がレーンを見失った。レーンは{A}を見失っていない:ちゃんと待っている。
+Lá se foi {A}! A física cobrou a conta.	{A}が飛んでいった!物理法則が請求書を送ってきた。
+{A} sai da pista e vai fazer turismo na mesa.	{A}がコースアウトしてテーブル観光へ。
+Terceira vez, {A}. O fiscal já sabe seu nome.	3回目だよ、{A}。マーシャルはもう名前を覚えた。
+{A} sai de novo! Já é freguês do carpete.	{A}がまたコースアウト!じゅうたんの常連だ。
+Três saídas para {A}. Coleção bonita.	{A}、3回目のコースアウト。立派なコレクション。
+Terceira escapada de {A}. Já pode pedir música no Fantástico.	{A}の3回目のコースアウト。ハットトリック達成。
+{A} completa o trio de saídas. Ganha brinde?	{A}、コースアウト三冠達成。賞品はある?
+{A} fora outra vez! A essa altura é estratégia.	{A}がまた外へ!ここまで来ると作戦だな。
+Mais uma de {A}. Alguém segura esse acelerador!	{A}がまたやった。誰かアクセルを止めて!
+{A} já conhece cada canto da mesa.	{A}はもうテーブルのすみずみまで知っている。
+Quinta saída de {A}! O fiscal pediu aumento.	{A}、5回目のコースアウト!マーシャルが昇給を求めた。
+{A} de novo no carpete. Cinco vezes! Já tem cadeira cativa.	{A}がまたじゅうたんに。5回目!もう指定席だ。
+{A} sai pela {B}ª vez! A gente já parou de contar... não, não parou: {B}.	{A}、{B}回目のコースアウト!もう数えるのはやめた…いや、やっぱり数えてる:{B}。
+{B} saídas para {A}. Isso já é um recorde, só que do tipo errado.	{A}のコースアウトは{B}回。記録だけど、悪いほうの記録だ。
+{A}, {B} saídas! O carpete vai cobrar aluguel.	{A}、{B}回のコースアウト!じゅうたんが家賃を取りそうだ。
+Saída número {B} de {A}. O fiscal já está almoçando ali do lado.	{A}、{B}回目のコースアウト。マーシャルはもうすぐ横で昼ごはん中。
+{A} chega a {B} saídas. Alguém dá um manual para esse piloto!	{A}がコースアウト{B}回に到達。誰かこのドライバーにマニュアルを!
+De novo, {A}?! Mal voltou e já saiu!	また、{A}?!戻ったばかりなのにもう外だ!
+{A} voltou para a pista só para sair outra vez.	{A}は、また飛び出すためだけにコースに戻った。
+Nem esquentou o trilho e {A} já está fora de novo!	レーンが温まる前に、{A}はもう外!
+{A} gostou tanto do carpete que voltou lá.	{A}はじゅうたんが気に入りすぎて戻っていった。
+O fiscal nem largou o carrinho e {A} já saiu de novo.	マーシャルが車から手を離す前に、{A}はもう飛び出した。
+{A} repete a dose! Calma nesse gatilho!	{A}、おかわり!トリガーは落ち着いて!
+O líder rodou! {A} sai da pista!	トップがスピン!{A}がコースアウト!
+Que susto! {A}, na ponta, vai para o carpete!	ひやり!トップの{A}がじゅうたんへ!
+{A} jogou fora a liderança na curva!	{A}がカーブでトップを投げ捨てた!
+Liderança no chão! {A} saiu da pista!	トップ陥落!{A}がコースアウト!
+Abriu a corrida! O líder {A} escapou!	レースが動いた!トップの{A}が飛び出した!
+{A} estava voando na frente... e voou mesmo. Fora da pista!	{A}は先頭を飛ぶように走っていた…本当に飛んでしまった。コースアウト!
+Agora não, {A}! Saída na hora mais cara!	今じゃないよ、{A}!いちばん高くつく場面でコースアウト!
+{A} sai da pista na reta final! Que drama!	{A}が最後のストレートでコースアウト!なんというドラマ!
+Logo agora! {A} vai para o carpete no fim da prova!	よりによって今!{A}がレース終盤でじゅうたんへ!
+{A} escolheu o pior momento para rodar.	{A}はスピンするのに最悪のタイミングを選んだ。
+Pressão demais! {A} escapa no finalzinho!	プレッシャーに負けた!{A}が最後の最後で飛び出す!
+{A} ligou o turbo e esqueceu de fazer a curva!	{A}はターボを入れて、カーブを曲がるのを忘れた!
+Turbo demais, curva de menos! {A} fora!	ターボ多すぎ、カーブ足りず!{A}アウト!
+{A} foi de turbo direto para o carpete!	{A}はターボでじゅうたんに直行!
+O turbo levou {A} para fora da pista. Tinha que tirar o pé!	ターボで{A}がコースの外へ。アクセルを戻すべきだった!
+{A} usou o turbo para voar. Literalmente.	{A}はターボで空を飛んだ。文字どおりに。
+{A} e {B} saem juntos! Que confusão!	{A}と{B}がそろってコースアウト!大混乱!
+Dois de uma vez! {A} e {B} no carpete!	一度に2台!{A}と{B}がじゅうたんに!
+Saída dupla: {A} e {B} foram passear juntos.	ダブルコースアウト:{A}と{B}は仲よくお散歩。
+{A} e {B} se enroscaram e foram os dois para fora!	{A}と{B}が絡まって、2台とも外へ!
+Strike! {A} e {B} fora da pista!	ストライク!{A}と{B}がコースアウト!
+Encostou e voou! {A} sai da pista depois do toque!	当たって飛んだ!接触のあと{A}がコースアウト!
+Batida! {A} levou a pior e foi para fora!	クラッシュ!{A}がいちばん損をして外へ!
+Teve contato e {A} rodou!	接触があって{A}がスピン!
+{A} tomou uma pancada e saiu da pista!	{A}がぶつけられてコースアウト!
+Toque, rodada, carpete! {A} fora!	接触、スピン、じゅうたん!{A}アウト!
+Ninguém quis tirar o pé, e {A} pagou o pato.	誰もアクセルを戻さず、{A}が貧乏くじを引いた。
+{A} volta à pista em {B}. Foram {T} posições no carpete.	{A}が{B}でコースに復帰。じゅうたんで{T}つ順位を落とした。
+A saída custou caro: {A} cai para {B}.	高くついたコースアウト:{A}は{B}に後退。
+{A} volta, mas agora em {B}. Perdeu {T} posições.	{A}が戻ってきたが、今は{B}。{T}つ順位を落とした。
+{A} está de volta, só que em {B}. Hora de recuperar!	{A}が復帰、ただし{B}。ここから巻き返しだ!
+{T} posições a menos para {A}, que volta em {B}.	{A}は{T}つ順位を落として{B}で復帰。
+{A} volta à pista, mas a ponta agora é de {B}!	{A}はコースに戻ったが、トップは今や{B}!
+{B} herda a liderança da saída de {A}!	{A}のコースアウトで{B}がトップを受け継ぐ!
+Presente para {B}: a liderança caiu no colo depois do erro de {A}.	{B}にプレゼント:{A}のミスでトップが転がり込んできた。
+{A} perdeu a ponta no carpete. {B} agradece!	{A}はじゅうたんでトップを失った。{B}はありがとう!
+{B} não precisou passar ninguém: {A} saiu e {B} assumiu.	{B}は誰も抜く必要がなかった:{A}が飛び出して{B}が先頭に。
+{A} não segurou no loop! A gravidade manda lembranças.	{A}はループで耐えられなかった!重力からよろしく。
+Caiu no loop! {A} esqueceu de acelerar lá em cima.	ループで落下!{A}は上でアクセルを踏むのを忘れた。
+{A} deu meia volta no loop... e despencou.	{A}はループを半周…そして落ちた。
+{A} ficou de cabeça para baixo e a gravidade venceu.	{A}は逆さまになり、重力が勝った。
+Loop sem fôlego! {A} despenca lá de cima.	息切れループ!{A}が上から落ちる。
+{A} subiu o loop devagar demais. Newton agradece.	{A}はループを上るのが遅すぎた。ニュートンが喜んでいる。
+{A} pulou e não chegou! Faltou coragem!	{A}が跳んだけど届かない!度胸が足りなかった!
+{A} ficou no vão do salto. Aterrissagem cancelada.	{A}はジャンプの隙間に落ちた。着地は中止。
+Saltou, voou... e caiu! {A} fora.	跳んで、飛んで…落ちた!{A}アウト。
+{A} achou que sabia voar. Não sabia.	{A}は飛べると思っていた。飛べなかった。
+Faltou embalo! {A} cai no vão.	勢いが足りない!{A}が隙間に落ちる。
+{A} pulou com o freio de mão puxado!	{A}はサイドブレーキを引いたまま跳んだ!
+{A} soltou o turbo! Segura!	{A}がターボ発動!しっかりつかまって!
+Turbo ligado para {A}!	{A}のターボがオン!
+{A} apertou o botão mágico!	{A}が魔法のボタンを押した!
+Lá vai {A} de turbo. Cuidado na curva!	{A}がターボで行く。カーブに注意!
+{A} acende o turbo! Lá vai foguete!	{A}がターボ点火!ロケット発射だ!
+Turbo de {A}! Quem está na frente que se cuide.	{A}のターボ!前にいる者は気をつけろ。
+{A} no turbo! Agora é segurar o carrinho no trilho.	{A}がターボ中!あとはレーンから外れないように。
+RECORDE DA PISTA! {A} escreve o nome na história... desta mesa. {T}!	コースレコード!{A}が歴史に名を刻む…このテーブルの歴史に。{T}!
+Recorde! {A} faz {T}, a volta mais rápida que essa pista já viu!	レコード!{A}が{T}、このコース史上最速のラップだ!
+Que volta, {A}! {T}, recorde da pista!	なんというラップ、{A}!{T}、コースレコード!
+Segura essa: {T}! {A} quebra o recorde da pista!	どうだ:{T}!{A}がコースレコードを更新!
+Podem emoldurar: {A}, {T}, novo recorde da pista!	額に入れて飾ろう:{A}、{T}、新コースレコード!
+Inacreditável! {T}! {A} é o dono do recorde!	信じられない!{T}!{A}がレコードホルダーだ!
+Melhor volta pessoal de {A}!	{A}、自己ベストラップ!
+{A} se superou nessa volta.	{A}はこのラップで自分を超えた。
+Volta caprichada de {A}: a melhor da carreira nesta pista.	{A}の丁寧なラップ:このコースでの自己最高。
+{A} bate o próprio tempo. Evolução!	{A}が自分のタイムを更新。成長だ!
+{A} nunca andou tão rápido aqui.	{A}はここでこんなに速く走ったことはない。
+{A} crava {T}, a volta mais rápida da prova!	{A}が{T}を叩き出す、このレースの最速ラップ!
+Melhor volta da corrida para {A}: {T}!	レースのファステストラップは{A}:{T}!
+{A} acelerou forte: {T}, ninguém andou tão rápido hoje.	{A}が攻めた:{T}、今日いちばんの速さ。
+Cronômetro em chamas! {T} para {A}.	タイムが燃えている!{A}に{T}。
+{A} baixa o tempo para {T}. Que mão!	{A}がタイムを{T}まで縮めた。なんて腕だ!
+{T}! {A} manda a volta mais rápida da corrida.	{T}!{A}がレースのファステストラップ。
+{A} acha mais um décimo: {T}, a melhor da prova!	{A}がさらに0.1秒を見つけた:{T}、このレース最速!
+{A} e {B} colados há um tempão. Ninguém respira!	{A}と{B}はずっとくっついている。誰も息をするな!
+Que briga entre {A} e {B}!	{A}と{B}の激しいバトル!
+{B} está no cangote de {A}!	{B}が{A}の背後にぴったり!
+{A} e {B} dividem até o mesmo pensamento.	{A}と{B}は考えていることまで同じだ。
+{B} não desgruda de {A}! Vai ter troca?	{B}が{A}から離れない!入れ替わるか?
+{A} olha o retrovisor e só vê {B}.	{A}がミラーを見ると、{B}しか見えない。
+Duelo! {A} segura, {B} pressiona.	デュエル!{A}が守り、{B}が攻める。
+Última volta!	ファイナルラップ!
+Sino tocando: última volta!	鐘が鳴る:ファイナルラップ!
+É agora ou nunca: última volta!	今しかない:ファイナルラップ!
+Última volta! Quem guardou turbo, a hora é essa!	ファイナルラップ!ターボを残していた人は今だ!
+Última volta! Coração na mão!	ファイナルラップ!心臓がバクバク!
+Dez segundos! Quem quer, vai agora!	残り10秒!行くなら今だ!
+Faltam dez! Ninguém tira o pé!	あと10秒!誰もアクセルを戻すな!
+Dez segundinhos e acabou!	あと10秒で終わり!
+Cinco segundos!	残り5秒!
+Cinco! Segura o coração!	5秒!心臓を押さえて!
+Cinco segundos e é bandeira!	あと5秒でチェッカー!
+Quinze segundos! Tudo ou nada!	残り15秒!すべてか、無か!
+Faltam quinze segundos! Pé no fundo!	あと15秒!アクセル全開!
+Reta final: quinze segundos!	最終盤:残り15秒!
+Bandeirada! {A} vence!	チェッカーフラッグ!{A}の勝ち!
+{A} cruza na frente! Que corrida!	{A}が先頭でゴール!すごいレースだ!
+Vitória de {A}! Pode chamar a família!	{A}の勝利!家族を呼んで!
+É de {A}! Bandeira quadriculada!	{A}のものだ!チェッカーフラッグ!
+{A} vence! Pode estourar o refrigerante!	{A}の勝ち!ジュースで乾杯だ!
+Acabou! {A} é o grande vencedor!	終わった!{A}が大勝利!
+Quadriculada para {A}! Vitória com sabor de pódio!	{A}にチェッカー!表彰台の味がする勝利!
+{A} completa {B} voltas na frente de todo mundo!	{A}が全員の前で{B}周を走りきる!
+{B} voltas e {A} segue mandando na corrida!	{B}周を終えて、まだ{A}がレースを支配している!
+{A} na ponta depois de {B} voltas. Que pilotagem!	{B}周を終えて{A}がトップ。見事な走り!
+Passadas {B} voltas, quem dita o ritmo é {A}!	{B}周が過ぎて、ペースを作っているのは{A}!
+{B} voltas, e {A} ainda não viu ninguém pelo retrovisor.	{B}周、{A}はまだミラーに誰も見ていない。
+{A} lidera com {B} voltas. Os outros que corram atrás.	{A}が{B}周でトップ。他の人は追いかけるしかない。
+Volta {B}: {A} continua com o nariz na frente.	{B}周目:{A}はまだ鼻先が前。
+{A} fecha a volta {B} em último. Está apreciando a paisagem?	{A}が{B}周目を最後尾で終える。景色を楽しんでる?
+{B} voltas e {A} lá atrás. Alguém avisa que já começou!	{B}周、{A}ははるか後ろ。誰か、もう始まってると教えてあげて!
+{A} completa {B} voltas por último. Sem pressa, a mesa não vai fugir.	{A}が最後尾で{B}周を終える。急がなくていい、テーブルは逃げない。
+Volta {B}: {A} na lanterna. Pelo menos o carro está limpinho.	{B}周目:{A}が最後尾。少なくとも車はピカピカだ。
+{A} chega à volta {B} por último. Tá de passeio, {A}?	{A}は{B}周目を最後尾で。お散歩中かな、{A}?
+{A} na lanterna depois de {B} voltas. Ainda dá tempo... talvez.	{B}周を終えて{A}が最後尾。まだ時間はある…たぶん。
+E {A} chega em último, mas chega!	{A}は最下位、でもゴールした!
+{A} fecha o pelotão. O importante é competir.	{A}がしんがり。大事なのは参加すること。
+{A} chegou! Atrasado, mas com estilo.	{A}がゴール!遅れたけど、スタイルは満点。
+{A} cruza por último. Na próxima vai!	{A}が最後にゴール。次こそは!
+Lá vem {A}, fechando a porta e apagando a luz.	{A}が来た、ドアを閉めて電気を消しながら。
+Se terminar assim, {A} assume a liderança do campeonato!	このまま終われば、{A}が選手権トップに立つ!
+Do jeito que está, {A} vira líder do campeonato!	このままいけば、{A}が選手権のリーダーに!
+Atenção na tabela: {A} passa {B} no campeonato!	順位表に注目:{A}が選手権で{B}を抜く!
+A tabela está virando: {A} na frente de {B}!	順位表がひっくり返る:{A}が{B}の前に!
+{A} recupera a liderança do campeonato!	{A}が選手権トップを奪い返す!
+Do jeito que está, {A} volta para a ponta do campeonato.	このままいけば、{A}が選手権の首位に戻る。
+{A} reage e retoma o topo da tabela!	{A}が反撃して順位表のトップを取り戻す!
+{A} devolve o troco e volta ao topo do campeonato!	{A}がやり返して選手権の首位に返り咲く!
+{A}, líder do campeonato, está em {B}. Hoje não está fácil.	選手権リーダーの{A}は{B}。今日は苦しい。
+O líder do campeonato, {A}, só em {B}! A tabela está tremendo.	選手権リーダーの{A}が{B}どまり!順位表が揺れている。
+{A} lidera o campeonato, mas aqui está em {B}.	{A}は選手権をリードしているが、ここでは{B}。
+Dia difícil para {A}: líder do campeonato e só em {B}.	{A}にはつらい日:選手権リーダーなのに{B}どまり。
+O título é de {A} se terminar assim!	このまま終われば、タイトルは{A}のもの!
+O título está nas mãos de {A}! Só não pode errar.	タイトルは{A}の手の中!あとはミスしないだけ。
+Uma volta separa {A} da taça!	あと1周で{A}がトロフィーを手にする!
+{A} já sente o cheiro da taça!	{A}はもうトロフィーの香りを感じている!
+Clássico	クラシック
+Coupé GT	GTクーペ
+Rali	ラリー
+Fórmula	フォーミュラ
+Protótipo	プロトタイプ
+Asa dupla	ダブルウイング
+Gota	しずく
+Flecha	アロー
+Bala	バレット
+{0}º	{0}位

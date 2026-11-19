@@ -74,18 +74,18 @@ namespace Autorama
 
             // Antes de entrar numa sala
             oEntry = El(null, box);
-            var head = Section(oEntry, "CAMPEONATO ONLINE");
-            Text("Um jogador cria a sala e escolhe as pistas. Os outros entram pelo código ou pela lista de salas públicas.", "hint", head);
-            oSteam = new Toggle("Jogar pela Steam") { value = PlayerPrefs.GetInt(PrefSteam, 1) == 1 };   // a Steam é o padrão; o servidor fica nas Opções
+            var head = Section(oEntry, L.T("CAMPEONATO ONLINE"));
+            Text(L.T("Um jogador cria a sala e escolhe as pistas. Os outros entram pelo código ou pela lista de salas públicas."), "hint", head);
+            oSteam = new Toggle(L.T("Jogar pela Steam")) { value = PlayerPrefs.GetInt(PrefSteam, 1) == 1 };   // a Steam é o padrão; o servidor fica nas Opções
             oSteam.AddToClassList("setting");
-            oSteam.tooltip = "Usa o lobby e a rede da Steam: precisa da Steam aberta e logada. O nome é o da sua conta.";
+            oSteam.tooltip = L.T("Usa o lobby e a rede da Steam: precisa da Steam aberta e logada. O nome é o da sua conta.");
             oSteam.RegisterValueChangedCallback(e => SteamToggled(e.newValue));
             oVia = Text("", "small", head);
-            oServer = Field("Servidor (ex.: ws://localhost:8080)", 120, head);
+            oServer = Field(L.T("Servidor (ex.: ws://localhost:8080)"), 120, head);
             netOpts.Add(oSteam); netOpts.Add(oServer);                   // o toggle e o endereço ficam na tela de Opções (BuildKeysUI)
             oServer.SetValueWithoutNotify(PlayerPrefs.GetString(PrefServer, DefaultServer));
             oServer.RegisterValueChangedCallback(e => { PlayerPrefs.SetString(PrefServer, e.newValue); SteamToggled(oSteam.value, false); });
-            oName = Field("Seu nome", 20, head);
+            oName = Field(L.T("Seu nome"), 20, head);
             oName.style.marginTop = 6;
             oName.SetValueWithoutNotify(PlayerPrefs.GetString(PrefName, ""));
             oName.RegisterValueChangedCallback(e => { PlayerPrefs.SetString(PrefName, e.newValue); });
@@ -93,39 +93,39 @@ namespace Autorama
             oMsg.style.marginTop = 6;
 
             BuildMatchUI(oEntry);
-            var create = Section(oEntry, "CRIAR SALA");
-            oRoomName = Field("Nome da sala (opcional)", 30, create);
-            oPublic = new Toggle("Sala pública (aparece na lista)") { value = true };
+            var create = Section(oEntry, L.T("CRIAR SALA"));
+            oRoomName = Field(L.T("Nome da sala (opcional)"), 30, create);
+            oPublic = new Toggle(L.T("Sala pública (aparece na lista)")) { value = true };
             oPublic.AddToClassList("setting");
             oPublic.style.marginTop = 6;
             create.Add(oPublic);
-            Btn("Criar sala", CreateRoom, "btn btn--primary", create);
+            Btn(L.T("Criar sala"), CreateRoom, "btn btn--primary", create);
 
-            var join = Section(oEntry, "ENTRAR COM UM CÓDIGO");
-            Text("Salas privadas só entram assim.", "hint", join);
-            oCode = Field("Código da sala", 8, join);
+            var join = Section(oEntry, L.T("ENTRAR COM UM CÓDIGO"));
+            Text(L.T("Salas privadas só entram assim."), "hint", join);
+            oCode = Field(L.T("Código da sala"), 8, join);
             oCode.RegisterValueChangedCallback(e => oCode.SetValueWithoutNotify(e.newValue.ToUpperInvariant()));
             oCode.RegisterCallback<KeyDownEvent>(ev => { if (IsEnter(ev)) JoinByCode(); }, TrickleDown.TrickleDown);
-            var jb = Btn("Entrar", JoinByCode, "btn btn--primary", join);
+            var jb = Btn(L.T("Entrar"), JoinByCode, "btn btn--primary", join);
             jb.style.marginTop = 6;
 
-            var pubs = Section(oEntry, "SALAS PÚBLICAS");
-            Btn("Atualizar lista", RefreshRooms, "btn", pubs);
+            var pubs = Section(oEntry, L.T("SALAS PÚBLICAS"));
+            Btn(L.T("Atualizar lista"), RefreshRooms, "btn", pubs);
             oRooms = El(null, Caixa(pubs));
             oRooms.style.marginTop = 8;
             mmHide.Add(create); mmHide.Add(join); mmHide.Add(pubs);
 
             // Dentro da sala
             oLobby = El(null, box);
-            var sala = Section(oLobby, "SALA");
+            var sala = Section(oLobby, L.T("SALA"));
             oRoomTitle = Text("", "lib-name", sala);
             var codeRow = El("row", sala);
             codeRow.style.alignItems = Align.Center;
-            Text("Código", "small", codeRow).style.marginRight = 8;
+            Text(L.T("Código"), "small", codeRow).style.marginRight = 8;
             oRoomCode = Text("", "clock", codeRow);
-            var copy = Btn("Copiar", () => { GUIUtility.systemCopyBuffer = room?.code ?? ""; panel.Toast("Código copiado."); }, "btn", codeRow);
+            var copy = Btn(L.T("Copiar"), () => { GUIUtility.systemCopyBuffer = room?.code ?? ""; panel.Toast(L.T("Código copiado.")); }, "btn", codeRow);
             copy.style.marginLeft = 8;
-            oVisibility = new Toggle("Sala pública (aparece na lista)");
+            oVisibility = new Toggle(L.T("Sala pública (aparece na lista)"));
             oVisibility.AddToClassList("setting");
             oVisibility.style.marginTop = 6;
             oVisibility.RegisterValueChangedCallback(e => { if (IsHost && room != null && e.newValue != room.pub) net.Send(new NetOut { t = "visibility", pub = e.newValue }); });
@@ -135,75 +135,75 @@ namespace Autorama
             oInviteBox = El(null, sala);
             oInviteBox.style.marginTop = 8;
             var invRow = El("row", oInviteBox);
-            Btn("Convidar amigos (Steam)", () => steamNet?.OpenInviteDialog(), "btn btn--primary", invRow).tooltip =
-                "Abre a janela de convite da Steam. Ela só aparece no jogo instalado (não no Editor): lá, use a lista abaixo.";
-            var refresh = Btn("Atualizar", DrawFriends, "btn", invRow);
+            Btn(L.T("Convidar amigos (Steam)"), () => steamNet?.OpenInviteDialog(), "btn btn--primary", invRow).tooltip =
+                L.T("Abre a janela de convite da Steam. Ela só aparece no jogo instalado (não no Editor): lá, use a lista abaixo.");
+            var refresh = Btn(L.T("Atualizar"), DrawFriends, "btn", invRow);
             refresh.style.marginLeft = 6;
             oFriends = El(null, oInviteBox);
             oFriends.style.marginTop = 6;
 
-            var pl = Section(oLobby, "PILOTOS");
+            var pl = Section(oLobby, L.T("PILOTOS"));
             oPlayers = El(null, pl);
-            Text("SUA COR", "h3", pl);
+            Text(L.T("SUA COR"), "h3", pl);
             oColors = El("swatches", pl);
             // O segundo jogador neste computador (seção 44 do guia): entra com o meu nome e um 2, e joga com o 2º conjunto de teclas ou o 2º controle.
             oGuestBtn = Btn("", () => net.Send(new NetOut { t = "guest", on = room?.Player(NetGuest.Id(myId)) == null }), "btn", pl);
             oGuestBtn.style.marginTop = 8;
-            oGuestBtn.tooltip = "Mais um piloto jogando neste computador, com o seu nome e um 2. Ele usa o 2º conjunto de teclas (Opções) ou o 2º controle.";
-            oColors2Title = Text("COR DO JOGADOR 2", "h3", pl);
+            oGuestBtn.tooltip = L.T("Mais um piloto jogando neste computador, com o seu nome e um 2. Ele usa o 2º conjunto de teclas (Opções) ou o 2º controle.");
+            oColors2Title = Text(L.T("COR DO JOGADOR 2"), "h3", pl);
             oColors2 = El("swatches", pl);
 
-            var st = Section(oLobby, "ETAPAS");
+            var st = Section(oLobby, L.T("ETAPAS"));
             // Formato e tipo de pista à vista de todos: o host escolhe, os visitantes leem.
             oFormatText = Text("", "body", st);
             oFormat = El(null, st);
-            Text("FORMATO", "h3", oFormat);
+            Text(L.T("FORMATO"), "h3", oFormat);
             var fmt = El("segmented", oFormat);
-            oByLaps = Btn("Por voltas", () => OnlineFormat(false), "btn", fmt);
-            oByTime = Btn("Por tempo", () => OnlineFormat(true), "btn", fmt);
-            oByTime.tooltip = "Cada bateria tem uma duração e se divide em uma manche por trilho; vence quem andar mais.";
-            Text("TAMANHO DA PISTA", "h3", oFormat);
+            oByLaps = Btn(L.T("Por voltas"), () => OnlineFormat(false), "btn", fmt);
+            oByTime = Btn(L.T("Por tempo"), () => OnlineFormat(true), "btn", fmt);
+            oByTime.tooltip = L.T("Cada bateria tem uma duração e se divide em uma manche por trilho; vence quem andar mais.");
+            Text(L.T("TAMANHO DA PISTA"), "h3", oFormat);
             var kind = El("segmented", oFormat);
-            oKind2 = Btn("2 trilhos", () => OnlineKind(2), "btn", kind);
-            oKind4 = Btn("4 trilhos", () => OnlineKind(4), "btn", kind);
-            oKind6 = Btn("6 trilhos", () => OnlineKind(6), "btn", kind);
-            oKind6.tooltip = "Pista de 6 trilhos. Com menos de 6 jogadores, sobra trilho vazio em cada bateria.";
-            oKind8 = Btn("8 trilhos", () => OnlineKind(8), "btn", kind);
-            oKind8.tooltip = "Pista de 8 trilhos. Com menos de 8 jogadores, sobra trilho vazio em cada bateria.";
-            oKind4.tooltip = "Pista de 4 trilhos. Com menos de 4 jogadores, sobra trilho vazio em cada bateria.";
+            oKind2 = Btn(L.T("2 trilhos"), () => OnlineKind(2), "btn", kind);
+            oKind4 = Btn(L.T("4 trilhos"), () => OnlineKind(4), "btn", kind);
+            oKind6 = Btn(L.T("6 trilhos"), () => OnlineKind(6), "btn", kind);
+            oKind6.tooltip = L.T("Pista de 6 trilhos. Com menos de 6 jogadores, sobra trilho vazio em cada bateria.");
+            oKind8 = Btn(L.T("8 trilhos"), () => OnlineKind(8), "btn", kind);
+            oKind8.tooltip = L.T("Pista de 8 trilhos. Com menos de 8 jogadores, sobra trilho vazio em cada bateria.");
+            oKind4.tooltip = L.T("Pista de 4 trilhos. Com menos de 4 jogadores, sobra trilho vazio em cada bateria.");
             oStageHint = Text("", "hint", st);
             oStages = El(null, Caixa(st));
             oHostPick = El(null, st);
-            Text("PISTAS DISPONÍVEIS", "h3", oHostPick);
+            Text(L.T("PISTAS DISPONÍVEIS"), "h3", oHostPick);
             oPick = El(null, Caixa(oHostPick));
             // Host: o que os visitantes sugeriram. Visitante: as próprias pistas, para sugerir ao host.
             oSuggestBox = El(null, st);
-            Text("SUGESTÕES DOS PILOTOS", "h3", oSuggestBox);
-            Text("Pistas que os outros pilotos mandaram. Você decide: inclui como etapa, salva na sua biblioteca ou ignora.", "hint", oSuggestBox);
+            Text(L.T("SUGESTÕES DOS PILOTOS"), "h3", oSuggestBox);
+            Text(L.T("Pistas que os outros pilotos mandaram. Você decide: inclui como etapa, salva na sua biblioteca ou ignora."), "hint", oSuggestBox);
             oSuggest = El(null, Caixa(oSuggestBox));
             oSendBox = El(null, st);
-            Text("SUGERIR UMA PISTA AO HOST", "h3", oSendBox);
-            Text("Escolha uma das suas pistas (fechada) para o host incluir. Até 3 por minuto.", "hint", oSendBox);
+            Text(L.T("SUGERIR UMA PISTA AO HOST"), "h3", oSendBox);
+            Text(L.T("Escolha uma das suas pistas (fechada) para o host incluir. Até 3 por minuto."), "hint", oSendBox);
             oSend = El(null, Caixa(oSendBox));
 
-            var chat = Section(oLobby, "CHAT");
+            var chat = Section(oLobby, L.T("CHAT"));
             BuildChatBox(chat, out oChat, out oChatInput);
 
-            var acts = Section(oLobby, "CAMPEONATO");
+            var acts = Section(oLobby, L.T("CAMPEONATO"));
             oRulesHint = Text("", "small", acts);
             oRulesHint.style.marginBottom = 6;
             oLobbyMsg = Text("", "small bad", acts);
-            oReadyBtn = Btn("Estou pronto", ToggleReady, "btn btn--primary", acts);
-            oStartBtn = Btn("Começar campeonato", OnlineStartChamp, "btn btn--primary", acts);
+            oReadyBtn = Btn(L.T("Estou pronto"), ToggleReady, "btn btn--primary", acts);
+            oStartBtn = Btn(L.T("Começar campeonato"), OnlineStartChamp, "btn btn--primary", acts);
             oStartHint = Text("", "small", acts);
             oStartHint.style.marginTop = 4;
-            var leave = Btn("Sair da sala", LeaveRoom, "btn btn--danger", acts);
+            var leave = Btn(L.T("Sair da sala"), LeaveRoom, "btn btn--danger", acts);
             leave.style.marginTop = 8;
 
             // Campeonato em andamento: a tela do campeonato offline (cRun) com o chat no meio (BeginOnlineRun).
             oRun = El(null, box);
             oRunChatSec = El("section");
-            Text("CHAT", "h2", oRunChatSec);
+            Text(L.T("CHAT"), "h2", oRunChatSec);
             BuildChatBox(oRunChatSec, out oRunChat, out oRunChatInput);
             oRunTracks = El("section", oRun);
             var runActs = El("section", oRun);
@@ -221,9 +221,9 @@ namespace Autorama
             var row = El("row", parent);
             row.style.flexWrap = Wrap.NoWrap;
             row.style.marginTop = 6;
-            var f = input = Field("Escreva uma mensagem", 200, row);
+            var f = input = Field(L.T("Escreva uma mensagem"), 200, row);
             f.RegisterCallback<KeyDownEvent>(ev => { if (IsEnter(ev)) { SendChat(f); ev.StopPropagation(); } }, TrickleDown.TrickleDown);
-            Btn("Enviar", () => SendChat(f), "btn", row);
+            Btn(L.T("Enviar"), () => SendChat(f), "btn", row);
         }
 
         static bool IsEnter(KeyDownEvent ev) => ev.keyCode == KeyCode.Return || ev.keyCode == KeyCode.KeypadEnter;
@@ -240,7 +240,7 @@ namespace Autorama
         // Um amigo convidou (ou usou "Entrar no jogo"): liga a Steam, abre a aba e entra no lobby dele.
         void OnSteamJoinRequested(ulong lobbyId)
         {
-            if (room != null) { panel.Toast("Você já está numa sala. Saia dela para entrar na do amigo."); return; }
+            if (room != null) { panel.Toast(L.T("Você já está numa sala. Saia dela para entrar na do amigo.")); return; }
             oSteam.SetValueWithoutNotify(true);
             SteamToggled(true);
             if (!oSteam.value) return;                                   // a Steam não iniciou: SteamToggled já avisou
@@ -265,8 +265,8 @@ namespace Autorama
             oFriends.Clear();
             if (!SteamRoom) return;
             var list = steamNet.InvitableFriends();
-            if (list.Count == 0) { Text("Nenhum amigo online agora. Use o botão acima para convidar quem está offline ou em outro jogo.", "small", oFriends); return; }
-            Text($"AMIGOS ONLINE · {list.Count}", "h3", oFriends);
+            if (list.Count == 0) { Text(L.T("Nenhum amigo online agora. Use o botão acima para convidar quem está offline ou em outro jogo."), "small", oFriends); return; }
+            Text(L.F("AMIGOS ONLINE · {0}", list.Count), "h3", oFriends);
             // A lista pode ser grande: fica numa caixa com altura máxima e rolagem própria (o que passa é cortado).
             // Redesenhar (depois de convidar) mantém a posição da rolagem.
             float keep = friendsScroll != null ? friendsScroll.scrollOffset.y : 0f;
@@ -279,10 +279,10 @@ namespace Autorama
                 var row = El("lib-item", friendsScroll.contentContainer);
                 Text(Safe(f.name), "lib-name", El("lib-texts", row));
                 bool sent = invited.Contains(f.id);
-                var b = Btn(sent ? "Convidado ✓" : "Convidar", () =>
+                var b = Btn(sent ? L.T("Convidado ✓") : L.T("Convidar"), () =>
                 {
-                    if (steamNet.Invite(friend.id)) { invited.Add(friend.id); panel.Toast($"Convite enviado a {Safe(friend.name)}."); }
-                    else panel.Toast("Não deu para convidar. Confira se a Steam está aberta.");
+                    if (steamNet.Invite(friend.id)) { invited.Add(friend.id); panel.Toast(L.F("Convite enviado a {0}.", Safe(friend.name))); }
+                    else panel.Toast(L.T("Não deu para convidar. Confira se a Steam está aberta."));
                     DrawFriends();
                 }, "btn", row);
                 b.SetEnabled(!sent);
@@ -337,8 +337,8 @@ namespace Autorama
             }
             if (remember || on) PlayerPrefs.SetInt(PrefSteam, on ? 1 : 0);
             oServer.SetEnabled(!on);
-            oVia.text = on ? "Pela Steam, com o nome da sua conta. Para jogar pelo servidor, desligue a Steam em Opções, no menu inicial."
-                           : $"Pelo servidor {oServer.value}. Mude em Opções, no menu inicial.";
+            oVia.text = on ? L.T("Pela Steam, com o nome da sua conta. Para jogar pelo servidor, desligue a Steam em Opções, no menu inicial.")
+                           : L.F("Pelo servidor {0}. Mude em Opções, no menu inicial.", oServer.value);
             oName.SetEnabled(!on);
             DrawMatch();
             oName.SetValueWithoutNotify(on ? steamNet.LocalName : PlayerPrefs.GetString(PrefName, ""));
@@ -347,9 +347,9 @@ namespace Autorama
         void OnlineStatus()
         {
             if (!panel.OnlineMode || OnlineRun) return;
-            if (room != null) panel.SetStatus($"Sala {room.code} · {room.players.Count}/{room.max} pilotos", "status--ok");
-            else if (net.state == OnlineClient.State.Connecting) panel.SetStatus(oSteam.value ? "Conectando à Steam…" : "Conectando ao servidor…", "");
-            else panel.SetStatus("Online: crie uma sala ou entre numa", "");
+            if (room != null) panel.SetStatus(L.F("Sala {0} · {1}/{2} pilotos", room.code, room.players.Count, room.max), "status--ok");
+            else if (net.state == OnlineClient.State.Connecting) panel.SetStatus(oSteam.value ? L.T("Conectando à Steam…") : L.T("Conectando ao servidor…"), "");
+            else panel.SetStatus(L.T("Online: crie uma sala ou entre numa"), "");
         }
 
         // ---------- Ações do jogador ----------
@@ -367,7 +367,7 @@ namespace Autorama
         {
             if (oSteam.value && steamNet != null) return steamNet.LocalName;
             string n = (oName.value ?? "").Trim();
-            if (n.Length == 0) { SetOnlineMsg("Digite seu nome primeiro."); oName.Focus(); return null; }
+            if (n.Length == 0) { SetOnlineMsg(L.T("Digite seu nome primeiro.")); oName.Focus(); return null; }
             return n;
         }
 
@@ -393,7 +393,7 @@ namespace Autorama
         {
             string name = RequireName(); if (name == null) return;
             string code = (oCode.value ?? "").Trim().ToUpperInvariant();
-            if (code.Length == 0) { SetOnlineMsg("Digite o código da sala."); oCode.Focus(); return; }
+            if (code.Length == 0) { SetOnlineMsg(L.T("Digite o código da sala.")); oCode.Focus(); return; }
             JoinRoom(name, code);
         }
 
@@ -443,10 +443,10 @@ namespace Autorama
 
         string LobbyBlocker()
         {
-            if (room.players.Count < 2) return "Falta gente: são precisos pelo menos 2 pilotos.";
-            if (room.stages.Count == 0) return "Escolha pelo menos uma pista.";
+            if (room.players.Count < 2) return L.T("Falta gente: são precisos pelo menos 2 pilotos.");
+            if (room.stages.Count == 0) return L.T("Escolha pelo menos uma pista.");
             var wait = room.players.FindAll(p => p.id != room.host && !p.ready);
-            return wait.Count > 0 ? "Aguardando ficar pronto: " + string.Join(", ", wait.ConvertAll(p => Safe(p.name))) + "." : "";
+            return wait.Count > 0 ? L.T("Aguardando ficar pronto: ") + string.Join(", ", wait.ConvertAll(p => Safe(p.name))) + "." : "";
         }
 
         // ---------- Rede ----------
@@ -471,16 +471,16 @@ namespace Autorama
             {
                 rejoinAt = Time.realtimeSinceStartup + (rejoinTries == 0 ? 1f : 3f);
                 rejoinTries++;
-                panel.Toast($"A conexão caiu. Tentando voltar à sala ({rejoinTries} de {RejoinMax})…");
+                panel.Toast(L.F("A conexão caiu. Tentando voltar à sala ({0} de {1})…", rejoinTries, RejoinMax));
                 DrawOnline(); OnlineStatus();
                 return;
             }
-            if (rejoinCode != null) { rejoinCode = null; reason = "Não deu para voltar à sala: " + reason; }
-            if (wasConnecting && !oSteam.value) reason = reason.TrimEnd('.', ' ') + $". Confira o endereço ({oServer.value}) e se o servidor está rodando (cd servidor && npm start).";
+            if (rejoinCode != null) { rejoinCode = null; reason = L.T("Não deu para voltar à sala: ") + reason; }
+            if (wasConnecting && !oSteam.value) reason = reason.TrimEnd('.', ' ') + L.F(". Confira o endereço ({0}) e se o servidor está rodando (cd servidor && npm start).", oServer.value);
             SetOnlineMsg(reason);
-            if (wasInRoom) panel.Toast("Você saiu da sala: " + reason);
+            if (wasInRoom) panel.Toast(L.T("Você saiu da sala: ") + reason);
             DrawOnline(); OnlineStatus();
-            if (!wasInRoom && panel.OnlineMode) panel.SetStatus(oSteam.value ? "Sem conexão com a Steam" : "Sem conexão com o servidor", "status--warn");
+            if (!wasInRoom && panel.OnlineMode) panel.SetStatus(oSteam.value ? L.T("Sem conexão com a Steam") : L.T("Sem conexão com o servidor"), "status--warn");
         }
 
         void OnNetMessage(NetMsg m)
@@ -493,7 +493,7 @@ namespace Autorama
                     chatLog.Clear(); oChat.Clear(); oRunChat.Clear();
                     foreach (var c in m.chat) AddChat(c);
                     SetOnlineMsg("");
-                    if (rejoinCode != null) { rejoinCode = null; panel.Toast("Você voltou à sala."); }
+                    if (rejoinCode != null) { rejoinCode = null; panel.Toast(L.T("Você voltou à sala.")); }
                     // Campeonato andando (voltei de uma queda, ou entrei para assistir): o host manda o campeonato.
                     if (room.state == "racing" && !IsHost) { syncAskedAt = -10f; AskSync(); }
                     DrawOnline(); OnlineStatus();
@@ -515,13 +515,13 @@ namespace Autorama
                     DrawRooms();
                     break;
                 case "chat":
-                    AddChat(new NetChat { sys = m.sys, name = m.name, color = m.color, text = m.text, from = m.from, time = m.time });
+                    AddChat(new NetChat { sys = m.sys, name = m.name, color = m.color, text = m.sys ? L.T(m.text) : m.text, from = m.from, time = m.time });
                     break;
                 case "error":
                     if (rejoinCode != null && room == null) { rejoinCode = null; rejoinAt = -1f; }    // a sala acabou: desiste de voltar
                     if (room == null && mmIn > 0 && (m.code == "mm" || m.code == "nome-usado" || m.code == "sala" || m.code == "nome")) { mmIn = 0; DrawMatch(); }   // o servidor tirou da fila
-                    SetOnlineMsg(m.text);
-                    if (room != null) panel.Toast(m.text);
+                    SetOnlineMsg(L.T(m.text));             // o servidor fala português; o que é fixo tem tradução
+                    if (room != null) panel.Toast(L.T(m.text));
                     break;
                 case "started": if (room != null) { BeginOnlineRun(m); if (OnlineRun) ShowSorteio(m.mm); } break;
                 case "lobby":
@@ -557,7 +557,7 @@ namespace Autorama
                 var data = Adapted(o.save, f);
                 onlineStages.Add(new Stage { name = s.name, laps = s.laps, secs = s.secs > 0 ? s.secs : 120, data = data, hash = s.hash });
             }
-            if (lost > 0) panel.Toast($"{lost} {(lost == 1 ? "pista não está" : "pistas não estão")} neste computador e saiu da lista.");
+            if (lost > 0) panel.Toast(L.F("{0} {1} neste computador e saiu da lista.", lost, (lost == 1 ? L.T("pista não está") : L.T("pistas não estão"))));
             SendStages();                                // o novo host passa a ser quem guarda o JSON das pistas
         }
 
@@ -566,12 +566,12 @@ namespace Autorama
         void AddOnlineStage(Option o)
         {
             if (!IsHost) return;
-            if (onlineStages.Count >= MaxOnlineStages) { panel.Toast($"No máximo {MaxOnlineStages} etapas."); return; }
+            if (onlineStages.Count >= MaxOnlineStages) { panel.Toast(L.F("No máximo {0} etapas.", MaxOnlineStages)); return; }
             // Qualquer pista fechada serve: ela entra adaptada ao tamanho do campeonato.
             if (!o.closed) return;
             int want = onlineStages.Count > 0 ? onlineStages[0].data.Faixas : onlineFaixas;
             var data = Adapted(o.save, want);
-            if (data.ToJson(false).Length > MaxTrackJson) { panel.Toast("Essa pista é grande demais para o servidor."); return; }
+            if (data.ToJson(false).Length > MaxTrackJson) { panel.Toast(L.T("Essa pista é grande demais para o servidor.")); return; }
             onlineStages.Add(new Stage { name = data.nome, laps = set.laps, secs = Mathf.Clamp(set.secs, 60, 600), data = data, hash = Champ.TrackHash(data) });
             SendStages(); DrawLobby();
         }
@@ -618,9 +618,9 @@ namespace Autorama
             foreach (var s in suggestions) { if (s.hash == hash && s.from == m.from) return; if (s.from == m.from) mine++; }
             if (mine >= MaxSuggestionsPerPlayer) return;
             if (onlineStages.Exists(s => s.hash == hash)) return;                                    // já é uma etapa
-            string track = string.IsNullOrWhiteSpace(m.track) ? (string.IsNullOrWhiteSpace(save.nome) ? "Pista" : save.nome) : m.track;
+            string track = string.IsNullOrWhiteSpace(m.track) ? (string.IsNullOrWhiteSpace(save.nome) ? L.T("Pista") : save.nome) : m.track;
             suggestions.Add(new Suggestion { from = m.from, name = Safe(m.name), track = Safe(track), hash = hash, save = save });
-            panel.Toast($"{Safe(m.name)} sugeriu a pista “{Safe(track)}”.");
+            panel.Toast(L.F("{0} sugeriu a pista “{1}”.", Safe(m.name), Safe(track)));
             DrawOnline();
         }
 
@@ -639,9 +639,9 @@ namespace Autorama
         {
             var data = TrackSave.FromJson(s.save.ToJson(false));
             data.nome = s.track;
-            if (TrackLibrary.List().Exists(e => e.save.nome == data.nome)) data.nome = $"{s.track} (de {s.name})";
+            if (TrackLibrary.List().Exists(e => e.save.nome == data.nome)) data.nome = L.F("{0} (de {1})", s.track, s.name);
             TrackLibrary.Save(data);
-            panel.Toast($"“{data.nome}” salva na sua biblioteca.");
+            panel.Toast(L.F("“{0}” salva na sua biblioteca.", data.nome));
         }
 
         // Campeonato online e partida rápida: as pistas que chegaram na largada vão sozinhas para a biblioteca. A que já está lá
@@ -651,8 +651,8 @@ namespace Autorama
         {
             oRunTracks.Clear();
             var C = onlineChamp; if (C == null) return;
-            Text("PISTAS DO CAMPEONATO", "h2", oRunTracks);
-            Text("As pistas da corrida ficam guardadas na sua biblioteca.", "hint", oRunTracks);
+            Text(L.T("PISTAS DO CAMPEONATO"), "h2", oRunTracks);
+            Text(L.T("As pistas da corrida ficam guardadas na sua biblioteca."), "hint", oRunTracks);
             var box = El(null, Caixa(oRunTracks));
             var lib = TrackLibrary.List();
             var seen = new HashSet<string>();
@@ -667,19 +667,19 @@ namespace Autorama
                 var row = El("lib-item", box);
                 var texts = El("lib-texts", row);
                 Text(nome, "lib-name", texts);
-                Text(nova ? "guardada agora na sua biblioteca" : "já estava na sua biblioteca", "small", texts);
+                Text(nova ? L.T("guardada agora na sua biblioteca") : L.T("já estava na sua biblioteca"), "small", texts);
             }
-            if (novas > 0) panel.Toast(novas == 1 ? "1 pista nova na sua biblioteca." : $"{novas} pistas novas na sua biblioteca.");
+            if (novas > 0) panel.Toast(novas == 1 ? L.T("1 pista nova na sua biblioteca.") : L.F("{0} pistas novas na sua biblioteca.", novas));
         }
 
         string SaveRunTrack(Stage st, List<TrackLibrary.Entry> lib)
         {
             var data = TrackSave.FromJson(st.data.ToJson(false));
             string nome = st.name.Replace("​", "").Trim();   // tira o Safe do nome da etapa
-            string bas = nome.Length > 0 ? nome : "Pista";
+            string bas = nome.Length > 0 ? nome : L.T("Pista");
             data.nome = bas;
             for (int n = 2; lib.Exists(e => e.save.nome == data.nome); n++)   // outra pista com o mesmo nome: não sobrescreve
-                data.nome = n == 2 ? bas + " (online)" : $"{bas} (online {n - 1})";
+                data.nome = n == 2 ? bas + L.T(" (online)") : L.F("{0} (online {1})", bas, n - 1);
             TrackLibrary.Save(data);
             return data.nome;
         }
@@ -689,12 +689,12 @@ namespace Autorama
         {
             if (IsHost || room == null || !o.closed) return;
             string json = o.save.ToJson(false);
-            if (json.Length > MaxTrackJson) { panel.Toast("Essa pista é grande demais para sugerir."); return; }
+            if (json.Length > MaxTrackJson) { panel.Toast(L.T("Essa pista é grande demais para sugerir.")); return; }
             string hash = Champ.TrackHash(o.save);
             if (sentSuggestions.Contains(hash)) return;
             net.Send(new NetOut { t = "suggest", track = string.IsNullOrWhiteSpace(o.save.nome) ? o.name : o.save.nome, hash = hash, faixas = o.save.Faixas, json = json });
             sentSuggestions.Add(hash);
-            panel.Toast("Pista enviada ao host.");
+            panel.Toast(L.T("Pista enviada ao host."));
             DrawOnline();
         }
 
@@ -705,7 +705,7 @@ namespace Autorama
             oSuggest.Clear(); oSend.Clear();
             if (host)
             {
-                if (suggestions.Count == 0) Text("Nenhuma sugestão ainda.", "small", oSuggest);
+                if (suggestions.Count == 0) Text(L.T("Nenhuma sugestão ainda."), "small", oSuggest);
                 foreach (var sg in suggestions.ToArray())
                 {
                     var s = sg;
@@ -713,11 +713,11 @@ namespace Autorama
                     item.Add(new TrackThumb(s.save));
                     var texts = El("lib-texts", item);
                     Text(s.track, "lib-name", texts);
-                    Text($"de {s.name} · {TrackLine(s.save)}", "small", texts);
+                    Text(L.F("de {0} · {1}", s.name, TrackLine(s.save)), "small", texts);
                     var row = El("row", item);
-                    Btn("Incluir", () => AcceptSuggestion(s), "btn btn--primary", row);
-                    Btn("Salvar", () => SaveSuggestion(s), "btn", row).tooltip = "Guarda na sua biblioteca de pistas";
-                    Btn("Ignorar", () => { suggestions.Remove(s); DrawOnline(); }, "btn", row);
+                    Btn(L.T("Incluir"), () => AcceptSuggestion(s), "btn btn--primary", row);
+                    Btn(L.T("Salvar"), () => SaveSuggestion(s), "btn", row).tooltip = L.T("Guarda na sua biblioteca de pistas");
+                    Btn(L.T("Ignorar"), () => { suggestions.Remove(s); DrawOnline(); }, "btn", row);
                 }
                 return;
             }
@@ -737,11 +737,11 @@ namespace Autorama
                 var texts = El("lib-texts", item); texts.pickingMode = PickingMode.Ignore;
                 Text(string.IsNullOrWhiteSpace(o.save.nome) ? o.name : o.save.nome, "lib-name", texts).pickingMode = PickingMode.Ignore;
                 Text(TrackLine(o.save), "small", texts).pickingMode = PickingMode.Ignore;
-                Text(sent ? "enviada ✓" : "enviar", "pick-plus", item).pickingMode = PickingMode.Ignore;
+                Text(sent ? L.T("enviada ✓") : L.T("enviar"), "pick-plus", item).pickingMode = PickingMode.Ignore;
                 oSend.Add(item);
                 shown++;
             }
-            if (shown == 0) Text(want != 0 ? $"Você não tem pistas fechadas de {want} carros." : "Você não tem pistas fechadas para sugerir.", "small", oSend);
+            if (shown == 0) Text(want != 0 ? L.F("Você não tem pistas fechadas de {0} carros.", want) : L.T("Você não tem pistas fechadas para sugerir."), "small", oSend);
         }
 
         // ---------- Desenho das etapas (visitante, seção 23.4) ----------
@@ -793,7 +793,7 @@ namespace Autorama
             data.nome = name.Replace("​", "").Trim();
             builder.Load(data);
             panel.FrameTrack();
-            panel.Toast($"“{data.nome}” na mesa. Ctrl+Z volta a pista de antes.");
+            panel.Toast(L.F("“{0}” na mesa. Ctrl+Z volta a pista de antes.", data.nome));
         }
 
         void SendStages()
@@ -819,7 +819,7 @@ namespace Autorama
         void DrawRooms()
         {
             oRooms.Clear();
-            if (listed.Count == 0) { Text("Nenhuma sala pública agora. Toque em Atualizar, ou crie a sua.", "small", oRooms); return; }
+            if (listed.Count == 0) { Text(L.T("Nenhuma sala pública agora. Toque em Atualizar, ou crie a sua."), "small", oRooms); return; }
             foreach (var r in listed)
             {
                 var entry = r;
@@ -828,7 +828,7 @@ namespace Autorama
                 item.SetEnabled(r.players < r.max);
                 var texts = El("lib-texts", item); texts.pickingMode = PickingMode.Ignore;
                 Text(Safe(r.name), "lib-name", texts).pickingMode = PickingMode.Ignore;
-                Text($"{Safe(r.host)} · {r.players}/{r.max} pilotos · {r.stages} {(r.stages == 1 ? "etapa" : "etapas")} · {r.code}", "small", texts).pickingMode = PickingMode.Ignore;
+                Text(L.F("{0} · {1}/{2} pilotos · {3} {4} · {5}", Safe(r.host), r.players, r.max, r.stages, (r.stages == 1 ? L.T("etapa") : L.T("etapas")), r.code), "small", texts).pickingMode = PickingMode.Ignore;
                 Text("▸", "pick-plus", item).pickingMode = PickingMode.Ignore;
                 oRooms.Add(item);
             }
@@ -845,7 +845,7 @@ namespace Autorama
                 var sw = Btn("", () => net.Send(new NetOut { t = "color", color = hex, g = g }), "swatch", box);
                 ColorUtility.TryParseHtmlString(hex, out var col);
                 sw.style.backgroundColor = col;
-                sw.tooltip = Champ.ColorNames[i] + (taken ? $" (de {Safe(owner.name)})" : "");
+                sw.tooltip = Champ.ColorNames[i] + (taken ? L.F(" (de {0})", Safe(owner.name)) : "");
                 sw.EnableInClassList("swatch--on", mine);
                 sw.EnableInClassList("swatch--used", taken);
                 sw.SetEnabled(!taken);
@@ -860,7 +860,7 @@ namespace Autorama
             oRoomCode.text = room.code;
             oVisibility.SetEnabled(host);
             oVisibility.SetValueWithoutNotify(room.pub);
-            oVisibility.label = host ? "Sala pública (aparece na lista)" : room.pub ? "Sala pública" : "Sala privada (só entra com o código)";
+            oVisibility.label = host ? L.T("Sala pública (aparece na lista)") : room.pub ? L.T("Sala pública") : L.T("Sala privada (só entra com o código)");
             bool steamRoom = SteamRoom && room.state == "lobby";
             oInviteBox.style.display = steamRoom ? DisplayStyle.Flex : DisplayStyle.None;
             if (steamRoom) DrawFriends();
@@ -876,17 +876,17 @@ namespace Autorama
                 dot.style.backgroundColor = col;
                 var texts = El("lib-texts", row);
                 Text(Safe(p.name), "lib-name", texts);
-                string tag = (p.id == room.host ? "host" : "") + (p.id == myId ? (p.id == room.host ? " · você" : "você") : p.id == NetGuest.Id(myId) ? "jogador 2 deste computador" : "");
+                string tag = (p.id == room.host ? "host" : "") + (p.id == myId ? (p.id == room.host ? L.T(" · você") : L.T("você")) : p.id == NetGuest.Id(myId) ? L.T("jogador 2 deste computador") : "");
                 if (tag != "") Text(tag, "small", texts);
                 bool ok = p.ready || p.id == room.host;
-                Text(ok ? "✓ pronto" : "aguardando", ok ? "small ok" : "small", row);
+                Text(ok ? L.T("✓ pronto") : L.T("aguardando"), ok ? "small ok" : "small", row);
             }
 
             // Cores (a minha e, se tiver, a do segundo jogador)
             var me = room.Player(myId);
             DrawSwatches(oColors, myId, false);
             bool guest = room.Player(NetGuest.Id(myId)) != null, lobbyNow = room.state == "lobby";
-            oGuestBtn.text = guest ? "Tirar o jogador 2" : "+ Jogador 2 neste computador";
+            oGuestBtn.text = guest ? L.T("Tirar o jogador 2") : L.T("+ Jogador 2 neste computador");
             oGuestBtn.style.display = lobbyNow ? DisplayStyle.Flex : DisplayStyle.None;
             oGuestBtn.SetEnabled(guest || room.players.Count < room.max);
             oColors2Title.style.display = oColors2.style.display = guest ? DisplayStyle.Flex : DisplayStyle.None;
@@ -901,16 +901,16 @@ namespace Autorama
             oKind2.EnableInClassList("btn--on", faixasNow == 2); oKind4.EnableInClassList("btn--on", faixasNow == 4); oKind6.EnableInClassList("btn--on", faixasNow == 6); oKind8.EnableInClassList("btn--on", faixasNow == 8);
             int n = room.players.Count, gaps = faixasNow - Mathf.Min(n, faixasNow);
             oFormatText.text = (host || room.stages.Count > 0)
-                ? $"<b>{(byTimeNow ? "Por tempo" : "Por voltas")}</b> · <b>pistas de {faixasNow} trilhos</b>" + (faixasNow >= 4 && gaps > 0 ? $" · com {n} {(n == 1 ? "jogador" : "jogadores")}, {gaps} {(gaps == 1 ? "trilho fica vazio" : "trilhos ficam vazios")} em cada bateria" : "")
-                : "Formato e tipo de pista: o host ainda não escolheu.";
+                ? L.F("<b>{0}</b> · <b>pistas de {1} trilhos</b>", (byTimeNow ? L.T("Por tempo") : L.T("Por voltas")), faixasNow) + (faixasNow >= 4 && gaps > 0 ? L.F(" · com {0} {1}, {2} {3} em cada bateria", n, (n == 1 ? L.T("jogador") : L.T("jogadores")), gaps, (gaps == 1 ? L.T("trilho fica vazio") : L.T("trilhos ficam vazios"))) : "")
+                : L.T("Formato e tipo de pista: o host ainda não escolheu.");
 
             // Etapas
             oStageHint.text = host
-                ? $"Escolha as pistas e {(set.byTime ? "a duração" : "as voltas")} de cada etapa. As outras regras (velocidade, aderência, colisão) são as de Opções, no menu inicial. Os visitantes veem a lista, mas só você mexe nela."
-                : "O host escolhe as pistas. Você escolhe a cor do seu carrinho e conversa no chat.";
+                ? L.F("Escolha as pistas e {0} de cada etapa. As outras regras (velocidade, aderência, colisão) são as de Opções, no menu inicial. Os visitantes veem a lista, mas só você mexe nela.", (set.byTime ? L.T("a duração") : L.T("as voltas")))
+                : L.T("O host escolhe as pistas. Você escolhe a cor do seu carrinho e conversa no chat.");
             oStages.Clear();
             var list = room.stages;
-            if (list.Count == 0) Text(host ? "Nenhuma etapa ainda. Clique numa pista abaixo." : "O host ainda não escolheu as pistas.", "small", oStages);
+            if (list.Count == 0) Text(host ? L.T("Nenhuma etapa ainda. Clique numa pista abaixo.") : L.T("O host ainda não escolheu as pistas."), "small", oStages);
             var opts = host ? null : Options();
             string missing = "";
             for (int i = 0; i < list.Count; i++)
@@ -930,10 +930,10 @@ namespace Autorama
                     string nm = s.name;
                     EventCallback<ClickEvent> open = _ => OpenStageOnTable(draw, nm);
                     thumb.RegisterCallback(open); texts.RegisterCallback(open);
-                    thumb.tooltip = texts.tooltip = "Clique para ver a pista na mesa";
+                    thumb.tooltip = texts.tooltip = L.T("Clique para ver a pista na mesa");
                 }
                 Text($"{i + 1}. {Safe(s.name)}", "lib-name", texts);
-                string fmt = s.tempo ? Dur(s.secs > 0 ? s.secs : 120) : $"{s.laps} {(s.laps == 1 ? "volta" : "voltas")}";
+                string fmt = s.tempo ? Dur(s.secs > 0 ? s.secs : 120) : (s.laps == 1 ? L.F("{0} volta", s.laps) : L.F("{0} voltas", s.laps));
                 Text(local != null ? TrackLine(local.data) : draw != null ? fmt + " · " + TrackLine(draw) : fmt, "small", texts);
                 if (!host || local == null) continue;
                 var ctl = El("stage-ctl", item);
@@ -948,13 +948,13 @@ namespace Autorama
                 else
                 {
                     Btn("−", () => { local.laps = Mathf.Max(1, local.laps - 1); SendStages(); }, "btn step-btn", step);
-                    Text($"{local.laps} {(local.laps == 1 ? "volta" : "voltas")}", "step-val", step);
+                    Text((local.laps == 1 ? L.F("{0} volta", local.laps) : L.F("{0} voltas", local.laps)), "step-val", step);
                     Btn("+", () => { local.laps = Mathf.Min(30, local.laps + 1); SendStages(); }, "btn step-btn", step);
                 }
                 var mv = El("row", ctl);
                 Btn("▲", () => { (onlineStages[idx - 1], onlineStages[idx]) = (onlineStages[idx], onlineStages[idx - 1]); SendStages(); }, "btn step-btn", mv).SetEnabled(i > 0);
                 Btn("▼", () => { (onlineStages[idx + 1], onlineStages[idx]) = (onlineStages[idx], onlineStages[idx + 1]); SendStages(); }, "btn step-btn", mv).SetEnabled(i < list.Count - 1);
-                Btn("✕", () => { onlineStages.RemoveAt(idx); SendStages(); }, "btn step-btn", mv).tooltip = "Tirar etapa";
+                Btn("✕", () => { onlineStages.RemoveAt(idx); SendStages(); }, "btn step-btn", mv).tooltip = L.T("Tirar etapa");
             }
             AskPistas(missing);
 
@@ -981,14 +981,14 @@ namespace Autorama
             // Pronto e largada
             string blocker = LobbyBlocker();
             oRulesHint.style.display = host ? DisplayStyle.Flex : DisplayStyle.None;
-            oRulesHint.text = $"Regras da corrida, em Opções no menu inicial (velocidade {Num(set.vmax)} cél/s, até 100% em {Num(set.ramp, 2)} s, aderência {Mathf.RoundToInt(set.grip)}, colisão {(set.collide ? "ligada" : "desligada")}, turbo {(set.turbo ? "ligado" : "desligado")}, recolocar em {Num(set.reslotTime, 2)} s). Ficam fixos até o fim.";
+            oRulesHint.text = L.F("Regras da corrida, em Opções no menu inicial (velocidade {0} cél/s, até 100% em {1} s, aderência {2}, colisão {3}, turbo {4}, recolocar em {5} s). Ficam fixos até o fim.", Num(set.vmax), Num(set.ramp, 2), Mathf.RoundToInt(set.grip), (set.collide ? L.T("ligada") : L.T("desligada")), (set.turbo ? L.T("ligado") : L.T("desligado")), Num(set.reslotTime, 2));
             oReadyBtn.style.display = host ? DisplayStyle.None : DisplayStyle.Flex;
-            oReadyBtn.text = me != null && me.ready ? "Não estou pronto" : "Estou pronto";
+            oReadyBtn.text = me != null && me.ready ? L.T("Não estou pronto") : L.T("Estou pronto");
             oReadyBtn.EnableInClassList("btn--primary", !(me != null && me.ready));
             oStartBtn.style.display = host ? DisplayStyle.Flex : DisplayStyle.None;
             oStartBtn.SetEnabled(host && blocker == "");
-            oStartHint.text = host ? (blocker != "" ? blocker : $"Todos prontos: {room.players.Count} pilotos · {room.stages.Count} {(room.stages.Count == 1 ? "etapa" : "etapas")} · {room.players.Count * room.stages.Count} baterias.")
-                : me != null && me.ready ? "Você está pronto. Aguardando o host largar." : "Confirme quando estiver pronto: o host só larga com todos prontos.";
+            oStartHint.text = host ? (blocker != "" ? blocker : L.F("Todos prontos: {0} pilotos · {1} {2} · {3} baterias.", room.players.Count, room.stages.Count, (room.stages.Count == 1 ? L.T("etapa") : L.T("etapas")), room.players.Count * room.stages.Count))
+                : me != null && me.ready ? L.T("Você está pronto. Aguardando o host largar.") : L.T("Confirme quando estiver pronto: o host só larga com todos prontos.");
         }
 
         // ---------- Chat ----------
@@ -1004,7 +1004,7 @@ namespace Autorama
         {
             string text = Safe(c.text);
             string line = c.sys ? $"<i><color=#94A197>{text}</color></i>"
-                : $"<b><color={(ColorUtility.TryParseHtmlString(c.color, out _) ? c.color : "#E5EBE3")}>{Safe(c.name)}</color></b>: {text}";
+                : L.F("<b><color={0}>{1}</color></b>: {2}", (ColorUtility.TryParseHtmlString(c.color, out _) ? c.color : "#E5EBE3"), Safe(c.name), text);
             log.Add(Text(line, "chat-line"));
             while (log.contentContainer.childCount > ChatKeep) log.contentContainer.RemoveAt(0);
             log.schedule.Execute(() => log.scrollOffset = new Vector2(0f, log.contentContainer.layout.height)).ExecuteLater(30);

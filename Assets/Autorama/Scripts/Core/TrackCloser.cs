@@ -157,8 +157,8 @@ namespace Autorama
         static float StageSpan(int i) => StageWeights[i] / StageTotal;
         static float StageTotal { get { float t = 0f; foreach (float w in StageWeights) t += w; return t; } }
 
-        const string NotFound = "Não achei um fechamento que funcione daqui. Leve a ponta mais perto da largada e tente de novo.";
-        const string CrossesTrack = "Todo fechamento curto passa por cima da pista. Mexa um pouco a ponta (ou faça uma ponte) e tente de novo.";
+        static string NotFound => L.T("Não achei um fechamento que funcione daqui. Leve a ponta mais perto da largada e tente de novo.");
+        static string CrossesTrack => L.T("Todo fechamento curto passa por cima da pista. Mexa um pouco a ponta (ou faça uma ponte) e tente de novo.");
 
         // Uma busca em andamento. Ela anda aos poucos: quem chama dá Pump(ms) a cada quadro, mostra Progress/Status/Elapsed
         // e pode dar Cancel() a qualquer hora. Assim o editor não congela em pistas que não têm fechamento.
@@ -168,7 +168,7 @@ namespace Autorama
             public bool Cancelled { get; private set; }
             public Result Result { get; private set; }
             public float Progress { get; internal set; }       // 0..1
-            public string Status { get; internal set; } = "Começando…";
+            public string Status { get; internal set; } = L.N("Começando…");
             public double Elapsed => watch.Elapsed.TotalSeconds;
 
             internal Result step;                               // resultado da etapa (profundidade) em andamento
@@ -197,7 +197,7 @@ namespace Autorama
                 Done = Cancelled = true;
                 run = null;
                 watch.Stop();
-                Result = new Result { ok = false, message = "Busca cancelada." };
+                Result = new Result { ok = false, message = L.T("Busca cancelada.") };
             }
         }
 
@@ -253,7 +253,7 @@ namespace Autorama
             int depth = ProgressiveDepths[stage], maxChecks = ProgressiveChecks[stage];
             float from = StageFrom(stage), span = StageSpan(stage);
             job.Progress = from;
-            job.Status = $"Procurando com até {depth * 2} peças…";
+            job.Status = L.F("Procurando com até {0} peças…", depth * 2);
             int ho = Mod8(Mathf.RoundToInt(origin.heading / 45f));
             var start = new State { x = new Q((long)Mathf.Round(origin.pos.x * 8f), 0), y = new Q((long)Mathf.Round(origin.pos.y * 8f), 0), h = ho };
 
@@ -269,7 +269,7 @@ namespace Autorama
             if (cmp.Equals(end, goalFront))
             {
                 job.stop = true;
-                job.step = new Result { ok = false, message = tail.Count > 0 ? "A ponta já encosta na pista de trás." : "A ponta já está na largada." };
+                job.step = new Result { ok = false, message = tail.Count > 0 ? L.T("A ponta já encosta na pista de trás.") : L.T("A ponta já está na largada.") };
                 yield break;
             }
 
@@ -319,7 +319,7 @@ namespace Autorama
             }
             if (total == 0)
             {
-                job.step = new Result { ok = false, message = $"Não achei um fechamento com até {depth * 2} peças. Leve a ponta mais perto da largada e tente de novo." };
+                job.step = new Result { ok = false, message = L.F("Não achei um fechamento com até {0} peças. Leve a ponta mais perto da largada e tente de novo.", depth * 2) };
                 yield break;
             }
 
@@ -341,7 +341,7 @@ namespace Autorama
                     if (!seen.Add(key)) continue;
                     if (++checks > maxChecks) break;
                     job.Progress = from + span * (0.5f + 0.5f * checks / planned);
-                    job.Status = $"Procurando com até {depth * 2} peças… testando {checks} de {planned}";
+                    job.Status = L.F("Procurando com até {0} peças… testando {1} de {2}", depth * 2, checks, planned);
                     yield return null;
                     var add = ToPieces(seq, endZ - z0, preferBanked);
                     if (add == null) continue;                        // poucas peças para descer da ponte
@@ -538,7 +538,7 @@ namespace Autorama
         {
             var names = new List<string>();
             foreach (var p in add) names.Add(p.Describe().ToLowerInvariant());
-            return $"Circuito fechado com {add.Count} {(add.Count == 1 ? "peça" : "peças")}: {string.Join(", ", names)}. Ctrl+Z desfaz.";
+            return L.F("Circuito fechado com {0} {1}: {2}. Ctrl+Z desfaz.", add.Count, (add.Count == 1 ? L.T("peça") : L.T("peças")), string.Join(", ", names));
         }
     }
 }

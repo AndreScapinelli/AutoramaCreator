@@ -29,7 +29,7 @@ namespace Autorama
         Championship NewChamp(NodeDef n)
         {
             var C = new Championship { id = Champ.NewId("k"), name = n.nome, faixas = KRegion.faixas, created = Champ.Now, byTime = n.porTempo };
-            C.pilots.Add(new Pilot { id = "voce", name = "Você", tag = "VOC", color = "#E0362C" });
+            C.pilots.Add(new Pilot { id = "voce", name = L.T("Você"), tag = L.T("VOC"), color = "#E0362C" });
             for (int i = 0; i < n.pilotos.Length; i++)
             {
                 var d = n.pilotos[i];
@@ -108,13 +108,13 @@ namespace Autorama
             sim.set = NodeSettings(n);
             sim.cutoff = C.byTime ? (float?)null : Champ.Cutoff;
             builder.ShowTrack(TrackSave.FromJson(C.stages[h.s].data.ToJson(false)));
-            int L = h.p.Length, me = System.Array.IndexOf(h.p, 0), next = 1;
+            int nL = h.p.Length, me = System.Array.IndexOf(h.p, 0), next = 1;
             for (int k = 0; k < RaceSim.MaxCars; k++) { kLaneOf[k] = k; kPilotOf[k] = -1; }
             kLaneOf[0] = me; kPilotOf[0] = 0;
-            for (int l = 0; l < L; l++) if (l != me) { kLaneOf[next] = l; kPilotOf[next] = h.p[l]; next++; }
+            for (int l = 0; l < nL; l++) if (l != me) { kLaneOf[next] = l; kPilotOf[next] = h.p[l]; next++; }
             for (int k = 0; k < RaceSim.MaxCars; k++)
             {
-                int p = k < L ? kPilotOf[k] : -1;
+                int p = k < nL ? kPilotOf[k] : -1;
                 sim.present[k] = p >= 0;
                 sim.aiSkill[k] = p > 0 ? Mathf.Clamp(C.pilots[p].skill, 1, RaceSim.AiMaxSkill) : 0;
                 sim.setup[k] = p > 0 ? C.pilots[p].carro : p == 0 ? CarShop.RaceCar(kSave, n) : default;
@@ -124,7 +124,7 @@ namespace Autorama
             kTurbo = false; kSaved = false; kInterim = false; kOut = false; kObjSig = null;
             DrawPadHeads();
             StartRace();
-            for (int k = 0; k < L; k++) sim.cars[k].lane = kLaneOf[k];
+            for (int k = 0; k < nL; k++) sim.cars[k].lane = kLaneOf[k];
         }
 
         // Fim da bateria do jogador: grava, simula as que vêm até a próxima dele e diz se acabou.
@@ -173,11 +173,11 @@ namespace Autorama
         void ChampTable(VisualElement box, Championship C, List<StandRow> table)
         {
             int done = Champ.StagesDone(C);
-            Text($"Tabela · {done} de {C.stages.Count} etapas", "k-sub", box);
+            Text(L.F("Tabela · {0} de {1} etapas", done, C.stages.Count), "k-sub", box);
             foreach (var r in table)
             {
                 var p = C.pilots[r.i];
-                string line = $"{table.IndexOf(r) + 1}º  {p.name}  ·  {r.pts} pts" + (r.wins > 0 ? $"  ·  {r.wins} {(r.wins == 1 ? "vitória" : "vitórias")}" : "");
+                string line = L.F("{0}º  {1}  ·  {2} pts", table.IndexOf(r) + 1, p.name, r.pts) + (r.wins > 0 ? (r.wins == 1 ? L.F("  ·  {0} vitória", r.wins) : L.F("  ·  {0} vitórias", r.wins)) : "");
                 Text(r.i == 0 ? $"<b><color=#F5C21B>{line}</color></b>" : line, "k-goal", box);
             }
         }
@@ -187,14 +187,14 @@ namespace Autorama
         {
             var C = KChamp;
             int next = Champ.CurrentHeat(C);
-            Text(C.byTime ? $"Você ficou em {kRes.posicao}º" : kRes.terminou ? $"Você chegou em {kRes.posicao}º" : "Você não terminou", "k-title", box);
+            Text(C.byTime ? L.F("Você ficou em {0}º", kRes.posicao) : kRes.terminou ? L.F("Você chegou em {0}º", kRes.posicao) : L.T("Você não terminou"), "k-title", box);
             Text(kHeatLine, "k-sub", box);
-            foreach (var l in kSimLog) Text("Simulada · " + l, "k-sub", box);
+            foreach (var l in kSimLog) Text(L.T("Simulada · ") + l, "k-sub", box);
             ChampTable(box, C, Champ.Standings(C));
-            Text($"Próxima: {C.stages[C.heats[next].s].name}", "k-sub", box);
+            Text(L.F("Próxima: {0}", C.stages[C.heats[next].s].name), "k-sub", box);
             var row = El("row k-res-row", box);
-            Btn("Mapa (Esc)", () => CareerScreen(KScreen.Map), "btn", row);
-            Btn("Próxima bateria (Enter)", ChampGo, "btn btn--primary", row);
+            Btn(L.T("Mapa (Esc)"), () => CareerScreen(KScreen.Map), "btn", row);
+            Btn(L.T("Próxima bateria (Enter)"), ChampGo, "btn btn--primary", row);
         }
 
         // Linha dos objetivos ao vivo: a etapa e a posição atual na tabela.
@@ -204,19 +204,19 @@ namespace Autorama
             if (C == null) return "";
             int i = Champ.CurrentHeat(C);
             int pos = Champ.Standings(C).FindIndex(r => r.i == 0) + 1;
-            return i < 0 ? "" : $"\n<color=#F5C21B>Etapa {C.heats[i].s + 1} de {C.stages.Count} · você é {pos}º na tabela</color>";
+            return i < 0 ? "" : L.F("\n<color=#F5C21B>Etapa {0} de {1} · você é {2}º na tabela</color>", C.heats[i].s + 1, C.stages.Count, pos);
         }
 
         string ChampCard(NodeDef n)
         {
-            var sb = new System.Text.StringBuilder($"{n.etapas.Length} etapas: ");
+            var sb = new System.Text.StringBuilder(L.F("{0} etapas: ", n.etapas.Length));
             sb.Append(string.Join(" · ", System.Array.ConvertAll(n.etapas, id => Career.Track(id)?.nome ?? id)));
-            sb.Append("\nPilotos: ").Append(string.Join(", ", System.Array.ConvertAll(n.pilotos, p => $"{p.nome} (IA {p.ia})")));
+            sb.Append(L.T("\nPilotos: ")).Append(string.Join(", ", System.Array.ConvertAll(n.pilotos, p => L.F("{0} (IA {1})", p.nome, p.ia))));
             int heats = Champ.HeatsPerStage(n.pilotos.Length + 1, KRegion.faixas, n.porTempo);
-            if (n.porTempo) sb.Append($"\nPor tempo: {n.segundos} s por etapa, passando por todos os trilhos ({heats} {(heats == 1 ? "bateria" : "baterias")} por etapa)");
-            else sb.Append($"\n{heats} baterias por etapa (você corre {KRegion.faixas}; as outras são simuladas)");
+            if (n.porTempo) sb.Append(L.F("\nPor tempo: {0} s por etapa, passando por todos os trilhos ({1} {2} por etapa)", n.segundos, heats, (heats == 1 ? L.T("bateria") : L.T("baterias"))));
+            else sb.Append(L.F("\n{0} baterias por etapa (você corre {1}; as outras são simuladas)", heats, KRegion.faixas));
             var C = KChamp;
-            if (C != null) sb.Append($"\nEm andamento: {Champ.StagesDone(C)} de {C.stages.Count} etapas");
+            if (C != null) sb.Append(L.F("\nEm andamento: {0} de {1} etapas", Champ.StagesDone(C), C.stages.Count));
             return sb.ToString();
         }
 

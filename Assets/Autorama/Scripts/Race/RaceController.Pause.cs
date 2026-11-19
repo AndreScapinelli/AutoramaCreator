@@ -30,8 +30,8 @@ namespace Autorama
         {
             pauseBox = El("res-btns", banner);
             pauseBox.style.display = DisplayStyle.None;
-            pauseGo = Btn("Continuar  (P)", () => PausePressed(OnlineRun ? myId : null), "btn btn--accent res-btn", pauseBox);
-            pauseGrid = Btn("Voltar ao grid", () =>
+            pauseGo = Btn(L.T("Continuar  (P)"), () => PausePressed(OnlineRun ? myId : null), "btn btn--accent res-btn", pauseBox);
+            pauseGrid = Btn(L.T("Voltar ao grid"), () =>
             {
                 PauseClear();
                 if (ChampLike) ChampRestart(); else { sim.Reset(); scoreDirty = true; }
@@ -54,7 +54,7 @@ namespace Autorama
             {
                 if (who != myId && (!HeatNow(out _, out _, out _, out _, out var pl) || LaneOf(pl, who) < 0)) return;   // só quem corre (e o host)
                 int used = pauseUsed.TryGetValue(who, out int u) ? u : 0;
-                if (used >= PauseMax) { if (who == myId) panel.Toast($"Você já pausou {PauseMax} vezes nesta bateria."); return; }
+                if (used >= PauseMax) { if (who == myId) panel.Toast(L.F("Você já pausou {0} vezes nesta bateria.", PauseMax)); return; }
                 pauseUsed[who] = used + 1;
             }
             paused = true; pausedBy = who; pausedAt = Time.realtimeSinceStartup;
@@ -123,15 +123,15 @@ namespace Autorama
             bannerSub.style.display = DisplayStyle.Flex;
             if (!paused)
             {
-                bannerTitle.text = $"Volta em {Mathf.CeilToInt(resumeLeft)}";
-                bannerSub.text = "Prepare o dedo no acelerador.";
+                bannerTitle.text = L.F("Volta em {0}", Mathf.CeilToInt(resumeLeft));
+                bannerSub.text = L.T("Prepare o dedo no acelerador.");
                 pauseBox.style.display = DisplayStyle.None;
                 return true;
             }
-            bannerTitle.text = "Pausado";
+            bannerTitle.text = L.T("Pausado");
             int left = Mathf.Max(0, Mathf.CeilToInt(PauseLong - (Time.realtimeSinceStartup - pausedAt)));
-            bannerSub.text = !OnlineRun ? "P continua."
-                : $"Por {PauseWho()} · continua quem pausou ou o host (P) · volta sozinha em {left} s.";
+            bannerSub.text = !OnlineRun ? L.T("P continua.")
+                : L.F("Por {0} · continua quem pausou ou o host (P) · volta sozinha em {1} s.", PauseWho(), left);
             bool mayGo = !OnlineRun || IsHost || pausedBy == myId;
             pauseBox.style.display = DisplayStyle.Flex;
             pauseGo.style.display = mayGo ? DisplayStyle.Flex : DisplayStyle.None;

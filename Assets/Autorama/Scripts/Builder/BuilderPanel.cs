@@ -63,9 +63,9 @@ namespace Autorama
         {
             if (MenuOpen && !(OnlineRacing && m != Mode.Online)) ShowMenu(false);
             if (m == CurrentMode) return;
-            if (OnlineRacing && m != Mode.Online) { Say("Termine o campeonato online (ou saia da sala) antes de trocar de aba."); return; }
+            if (OnlineRacing && m != Mode.Online) { Say(L.T("Termine o campeonato online (ou saia da sala) antes de trocar de aba.")); return; }
             CurrentMode = m;
-            panelTitle.text = m switch { Mode.Race => "CORRIDA", Mode.Champ => "CAMPEONATO", Mode.Online => "ONLINE", Mode.Career => "CARREIRA", _ => "CONSTRUTOR" };
+            panelTitle.text = m switch { Mode.Race => L.T("CORRIDA"), Mode.Champ => L.T("CAMPEONATO"), Mode.Online => L.T("ONLINE"), Mode.Career => L.T("CARREIRA"), _ => L.T("CONSTRUTOR") };
             buildBox.style.display = m == Mode.Build ? DisplayStyle.Flex : DisplayStyle.None;
             raceBox.style.display = m == Mode.Race ? DisplayStyle.Flex : DisplayStyle.None;
             champBox.style.display = m == Mode.Champ ? DisplayStyle.Flex : DisplayStyle.None;
@@ -129,7 +129,7 @@ namespace Autorama
             if (on)
             {
                 closeBtn.style.display = DisplayStyle.None;
-                closeLabel.text = $"{job.Status}  ({job.Elapsed:0} s)";
+                closeLabel.text = L.F("{0}  ({1:0} s)", L.T(job.Status), job.Elapsed);
                 closeFill.style.width = Length.Percent(Mathf.Clamp01(job.Progress) * 100f);
             }
             if (wasClosing && !on) Refresh();                 // volta o botão de fechar
@@ -143,7 +143,6 @@ namespace Autorama
         bool sideVisible = true, framed;
         Vector2Int? hover;
 
-        static readonly CultureInfo PtBr = new CultureInfo("pt-BR");
 
         // ---------- Montagem ----------
 
@@ -156,6 +155,7 @@ namespace Autorama
             if (styles) root.styleSheets.Add(styles);
             root.AddToClassList("root");
             root.pickingMode = PickingMode.Ignore;
+            L.AplicaFonte(root);                      // japonês: fonte com kanji (seção 88)
             BuildLayout();
             builder.Changed += Refresh;
             builder.Notice += Say;
@@ -176,6 +176,7 @@ namespace Autorama
         {
             if (root.layout.width <= 0) return;
             root.UnregisterCallback<GeometryChangedEvent>(OnFirstLayout);
+            L.AplicaFonte(root.panel?.visualTree);    // as listas suspensas abrem na raiz do painel
             if (root.layout.width < 760f) SetSide(false);
             root.schedule.Execute(FrameTrack).ExecuteLater(30);
         }
@@ -274,7 +275,7 @@ namespace Autorama
                     foreach (var f in fixos) f.style.display = open ? DisplayStyle.Flex : DisplayStyle.None;
                     q.EnableInClassList("sec-q--on", open);
                 }, "btn sec-q", head);
-                q.tooltip = "Como funciona";
+                q.tooltip = L.T("Como funciona");
                 foreach (var f in fixos) f.style.display = DisplayStyle.None;
             });
         }
@@ -325,7 +326,7 @@ namespace Autorama
             {
                 bool ok = TrackBuilder.AllowedEntry == null || TrackBuilder.AllowedEntry(e);
                 tile.SetEnabled(ok);
-                tile.tooltip = ok ? $"{e.label} · {e.sub} (tecla {KeyName(e.key)})" : (TrackBuilder.LockTip?.Invoke(e) ?? "Não vale aqui.");
+                tile.tooltip = ok ? L.F("{0} · {1} (tecla {2})", L.T(e.label), L.T(e.sub), KeyName(e.key)) : (TrackBuilder.LockTip?.Invoke(e) ?? L.T("Não vale aqui."));
             }
         }
         Button kind2Btn, kind4Btn, kind6Btn, kind8Btn;
@@ -340,7 +341,7 @@ namespace Autorama
             kind4Btn.EnableInClassList("btn--on", f == 4);
             kind6Btn.EnableInClassList("btn--on", f == 6);
             kind8Btn.EnableInClassList("btn--on", f == 8);
-            subtitle.text = $"PISTA DE {f} TRILHOS";
+            subtitle.text = L.F("PISTA DE {0} TRILHOS", f);
             if (iconsFor == f) return;
             iconsFor = f;
             foreach (var (img, name) in paletteIcons) img.image = IconTex(name);
@@ -350,10 +351,10 @@ namespace Autorama
         void ChooseKind(int faixas)
         {
             if (builder.Faixas == faixas) return;
-            if (!Progresso.FaixasOk(faixas)) { Say($"Pista de {faixas} trilhos: abre na carreira."); return; }
+            if (!Progresso.FaixasOk(faixas)) { Say(L.F("Pista de {0} trilhos: abre na carreira.", faixas)); return; }
             builder.AdaptTo(faixas);
             FrameTrack();
-            Say(builder.pieces.Count > 1 ? $"Pista adaptada para {faixas} carros." : $"Pista de {faixas} carros.");
+            Say(builder.pieces.Count > 1 ? L.F("Pista adaptada para {0} carros.", faixas) : L.F("Pista de {0} carros.", faixas));
         }
 
         void BuildLayout()
@@ -362,10 +363,10 @@ namespace Autorama
             topRuler = El("ruler-top", root); topRuler.pickingMode = PickingMode.Ignore;
             leftRuler = El("ruler-left", root); leftRuler.pickingMode = PickingMode.Ignore;
             info = El("info", root); info.pickingMode = PickingMode.Ignore;
-            cellLabel = Text("Célula —", "info-text", info);
+            cellLabel = Text(L.T("Célula —"), "info-text", info);
             scaleBar = El("scale-bar", info);
-            scaleText = Text("1 m", "scale-text", info);
-            viewBadge = Text("Vista 3D · V volta para a de cima · botão direito gira", "view-badge", root);
+            scaleText = Text(L.T("1 m"), "scale-text", info);
+            viewBadge = Text(L.T("Vista 3D · V volta para a de cima · botão direito gira"), "view-badge", root);
             viewBadge.pickingMode = PickingMode.Ignore;
 
             side = El("side", root);
@@ -376,22 +377,22 @@ namespace Autorama
 
             var titleRow = El("title-row", content);
             var titles = El("titles", titleRow);
-            panelTitle = Text("CONSTRUTOR", "title", titles);
-            subtitle = Text("PISTA DE 2 TRILHOS", "subtitle", titles);
-            IconBtn(null, "inicio", () => { if (OnlineRacing) Say("Termine o campeonato online (ou saia da sala) antes de voltar ao menu."); else ShowMenu(true); }, "btn icon-btn", titleRow).tooltip = "Tela inicial";
-            IconBtn(null, "esconder", () => SetSide(false), "btn icon-btn", titleRow).tooltip = "Esconder o painel (Tab)";
+            panelTitle = Text(L.T("CONSTRUTOR"), "title", titles);
+            subtitle = Text(L.T("PISTA DE 2 TRILHOS"), "subtitle", titles);
+            IconBtn(null, "inicio", () => { if (OnlineRacing) Say(L.T("Termine o campeonato online (ou saia da sala) antes de voltar ao menu.")); else ShowMenu(true); }, "btn icon-btn", titleRow).tooltip = L.T("Tela inicial");
+            IconBtn(null, "esconder", () => SetSide(false), "btn icon-btn", titleRow).tooltip = L.T("Esconder o painel (Tab)");
 
 
             statusBox = El("status", content);
             statusDot = El("status-dot", statusBox);
             statusText = Text("", "status-text", statusBox);
-            closeBtn = Btn("Fechar circuito (Q)", AutoClose, "btn btn--accent close-btn", content);
-            closeBtn.tooltip = "Completa a pista da ponta até a largada com o mínimo de peças, sem passar por cima da pista. Ctrl+Z desfaz.";
+            closeBtn = Btn(L.T("Fechar circuito (Q)"), AutoClose, "btn btn--accent close-btn", content);
+            closeBtn.tooltip = L.T("Completa a pista da ponta até a largada com o mínimo de peças, sem passar por cima da pista. Ctrl+Z desfaz.");
 
             closeBox = El("close-box", content);
             closeLabel = Text("", "meter-label", closeBox);
             closeFill = El("meter-fill", El("meter", closeBox));
-            Btn("Cancelar (Esc)", () => builder.CancelAutoClose(), "btn", closeBox).tooltip = "Para a busca. A pista fica como estava.";
+            Btn(L.T("Cancelar (Esc)"), () => builder.CancelAutoClose(), "btn", closeBox).tooltip = L.T("Para a busca. A pista fica como estava.");
             closeBox.style.display = DisplayStyle.None;
 
             buildBox = El(null, content);
@@ -405,25 +406,25 @@ namespace Autorama
             careerBox.style.display = DisplayStyle.None;
 
             // Tipo da pista: 2, 4, 6 ou 8 carros. Trocar adapta a pista aberta, sem perder peças.
-            var kind = Section("TAMANHO DA PISTA");
+            var kind = Section(L.T("TAMANHO DA PISTA"));
             var kindRow = El("segmented", kind);
-            kind2Btn = Btn("2 trilhos", () => ChooseKind(2), "btn", kindRow);
-            kind4Btn = Btn("4 trilhos", () => ChooseKind(4), "btn", kindRow);
-            kind6Btn = Btn("6 trilhos", () => ChooseKind(6), "btn", kindRow);
-            kind6Btn.tooltip = "Pista muito larga, de 6 trilhos (1 célula = o triplo da largura). Campeonatos não misturam os tipos.";
-            kind8Btn = Btn("8 trilhos", () => ChooseKind(8), "btn", kindRow);
-            kind8Btn.tooltip = "Pista enorme, de 8 trilhos (1 célula = 4× a largura). Campeonatos não misturam os tipos.";
-            kind2Btn.tooltip = "Pista estreita, de 2 trilhos. Adapta a pista aberta (Ctrl+Z desfaz).";
-            kind4Btn.tooltip = "Pista larga, de 4 trilhos (1 célula = o dobro da largura). Campeonatos não misturam os dois tipos.";
+            kind2Btn = Btn(L.T("2 trilhos"), () => ChooseKind(2), "btn", kindRow);
+            kind4Btn = Btn(L.T("4 trilhos"), () => ChooseKind(4), "btn", kindRow);
+            kind6Btn = Btn(L.T("6 trilhos"), () => ChooseKind(6), "btn", kindRow);
+            kind6Btn.tooltip = L.T("Pista muito larga, de 6 trilhos (1 célula = o triplo da largura). Campeonatos não misturam os tipos.");
+            kind8Btn = Btn(L.T("8 trilhos"), () => ChooseKind(8), "btn", kindRow);
+            kind8Btn.tooltip = L.T("Pista enorme, de 8 trilhos (1 célula = 4× a largura). Campeonatos não misturam os tipos.");
+            kind2Btn.tooltip = L.T("Pista estreita, de 2 trilhos. Adapta a pista aberta (Ctrl+Z desfaz).");
+            kind4Btn.tooltip = L.T("Pista larga, de 4 trilhos (1 célula = o dobro da largura). Campeonatos não misturam os dois tipos.");
 
             // Paleta
-            var pal = Section("PEÇAS");
+            var pal = Section(L.T("PEÇAS"));
             hint = Text("", "hint", pal);
             var endRow = El("row", pal);
-            endFrontBtn = Btn("Frente ▸", () => builder.SetBack(false), "btn", endRow);
-            endBackBtn = Btn("◂ Trás", () => builder.SetBack(true), "btn", endRow);
-            endFrontBtn.tooltip = "Encaixa no fim da pista, na seta amarela (E alterna)";
-            endBackBtn.tooltip = "Encaixa atrás da largada (E alterna)";
+            endFrontBtn = Btn(L.T("Frente ▸"), () => builder.SetBack(false), "btn", endRow);
+            endBackBtn = Btn(L.T("◂ Trás"), () => builder.SetBack(true), "btn", endRow);
+            endFrontBtn.tooltip = L.T("Encaixa no fim da pista, na seta amarela (E alterna)");
+            endBackBtn.tooltip = L.T("Encaixa atrás da largada (E alterna)");
             // Paleta embaixo da mesa (proposta E): uma barra com os grupos em abas e as peças do grupo aberto.
             // As teclas 1–0 continuam valendo para todas as peças, com qualquer aba aberta.
             palBar = El("pal-bar", root);
@@ -431,7 +432,7 @@ namespace Autorama
             var palTiles = El("pal-tiles", palBar);
             var groups = new Dictionary<string, VisualElement>();
             var groupTabs = new List<(Button tab, VisualElement grid)>();
-            foreach (var g in new[] { "RETAS", "CURVAS", "CURVAS INCLINADAS", "CRUZAMENTOS E RAMPAS", "LOOP E SALTO" })
+            foreach (var g in new[] { L.T("RETAS"), L.T("CURVAS"), L.T("CURVAS INCLINADAS"), L.T("CRUZAMENTOS E RAMPAS"), L.T("LOOP E SALTO") })
             {
                 var grid = groups[g] = El("palette", palTiles);
                 Button tab = null;
@@ -454,25 +455,25 @@ namespace Autorama
                 paletteIcons.Add((tileIcon, e.icon));
                 tile.Add(tileIcon);
                 var texts = El("tile-texts", tile); texts.pickingMode = PickingMode.Ignore;
-                Text(e.label, "tile-name", texts).pickingMode = PickingMode.Ignore;
-                Text(e.sub, "tile-sub", texts).pickingMode = PickingMode.Ignore;
+                Text(L.T(e.label), "tile-name", texts).pickingMode = PickingMode.Ignore;
+                Text(L.T(e.sub), "tile-sub", texts).pickingMode = PickingMode.Ignore;
                 Text(KeyName(e.key), "key", tile).pickingMode = PickingMode.Ignore;
-                tile.tooltip = $"{e.label} · {e.sub} (tecla {KeyName(e.key)})";
+                tile.tooltip = L.F("{0} · {1} (tecla {2})", L.T(e.label), L.T(e.sub), KeyName(e.key));
                 paletteTiles.Add((tile, entry));
                 tile.RegisterCallback<PointerEnterEvent>(_ => builder.ShowGhost(entry));
                 tile.RegisterCallback<PointerLeaveEvent>(_ => builder.HideGhost());
                 grid.Add(tile);
             }
 
-            selectedBox = El(null, Section("PEÇA SELECIONADA"));
-            summaryBox = El(null, Section("RESUMO"));
+            selectedBox = El(null, Section(L.T("PEÇA SELECIONADA")));
+            summaryBox = El(null, Section(L.T("RESUMO")));
 
-            var seq = Section("SEQUÊNCIA");
-            Text("Da largada até a ponta, no sentido em que os carrinhos correm.", "hint", seq);
+            var seq = Section(L.T("SEQUÊNCIA"));
+            Text(L.T("Da largada até a ponta, no sentido em que os carrinhos correm."), "hint", seq);
             seqBox = El("seq", seq);
 
             // Minhas pistas
-            var lib = Section("MINHAS PISTAS");
+            var lib = Section(L.T("MINHAS PISTAS"));
             var nameRow = El("name-row", lib);
             nameField = new TextField { maxLength = 60 };
             nameField.AddToClassList("name-field");
@@ -483,36 +484,30 @@ namespace Autorama
                 if (ev.keyCode == KeyCode.Escape) nameField.Blur();
             }, TrickleDown.TrickleDown);
             nameRow.Add(nameField);
-            Btn("Salvar", SaveTrack, "btn btn--primary", nameRow).style.marginBottom = 0;
+            Btn(L.T("Salvar"), SaveTrack, "btn btn--primary", nameRow).style.marginBottom = 0;
             libList = El(null, Caixa(lib));
             var libRow = El("row", lib);
-            Btn("Exemplo: oval", () => Open(Kind(TrackSave.Oval())), "btn", libRow);
-            var newBtn = Btn("Nova pista", null, "btn btn--danger", libRow);
+            Btn(L.T("Exemplo: oval"), () => Open(Kind(TrackSave.Oval())), "btn", libRow);
+            var newBtn = Btn(L.T("Nova pista"), null, "btn btn--danger", libRow);
             newBtn.clicked += () => builder.NewTrack();     // do mesmo tipo da atual
-            Text("Pasta: " + TrackLibrary.Folder, "small", lib);
+            Text(L.F("Pasta: {0}", TrackLibrary.Folder), "small", lib);
 
             // Vista e edição
-            var view = Section("VISTA E EDIÇÃO");
+            var view = Section(L.T("VISTA E EDIÇÃO"));
             var viewRow = El("row", view);
-            Btn("Enquadrar (C)", FrameTrack, "btn", viewRow);
-            viewBtn = Btn("Vista 3D (V)", () => cam.ToggleTilt(), "btn", viewRow);
-            undoBtn = Btn("Desfazer", () => builder.Undo(), "btn", viewRow);
-            redoBtn = Btn("Refazer", () => builder.Redo(), "btn", viewRow);
+            Btn(L.T("Enquadrar (C)"), FrameTrack, "btn", viewRow);
+            viewBtn = Btn(L.T("Vista 3D (V)"), () => cam.ToggleTilt(), "btn", viewRow);
+            undoBtn = Btn(L.T("Desfazer"), () => builder.Undo(), "btn", viewRow);
+            redoBtn = Btn(L.T("Refazer"), () => builder.Redo(), "btn", viewRow);
 
-            var keys = new Foldout { text = "ATALHOS", value = false };     // recolhido: a lista completa fica em Opções
+            var keys = new Foldout { text = L.T("ATALHOS"), value = false };     // recolhido: a lista completa fica em Opções
             keys.AddToClassList("section"); keys.AddToClassList("fold");
             buildBox.Add(keys);
-            Text("<b>1–0, T</b> peças · <b>X/B</b> cruzamento · <b>U/D</b> rampa\n" +
-                 "<b>Clique</b> seleciona · <b>F</b> inverte a curva · <b>R</b> gira a largada · <b>E</b> ponta: frente/trás\n" +
-                 "<b>Del</b> remove a selecionada · <b>⌫</b> remove a última · <b>Esc</b> solta\n" +
-                 "<b>Q</b> fecha o circuito · <b>Ctrl+Z / Ctrl+Y</b> desfazer / refazer\n" +
-                 "<b>C</b> enquadra · <b>V</b> vista 3D\n" +
-                 "<b>Botão direito</b> move a vista (gira na 3D) · <b>Roda</b> zoom · <b>Tab</b> painel\n" +
-                 "<b>Arrastar a largada</b> move a pista inteira", "small", keys);
+            Text(L.T("<b>1–0, T</b> peças · <b>X/B</b> cruzamento · <b>U/D</b> rampa\n<b>Clique</b> seleciona · <b>F</b> inverte a curva · <b>R</b> gira a largada · <b>E</b> ponta: frente/trás\n<b>Del</b> remove a selecionada · <b>⌫</b> remove a última · <b>Esc</b> solta\n<b>Q</b> fecha o circuito · <b>Ctrl+Z / Ctrl+Y</b> desfazer / refazer\n<b>C</b> enquadra · <b>V</b> vista 3D\n<b>Botão direito</b> move a vista (gira na 3D) · <b>Roda</b> zoom · <b>Tab</b> painel\n<b>Arrastar a largada</b> move a pista inteira"), "small", keys);
 
             BuildTableTools();
 
-            showTab = IconBtn("Painel (Tab)", "painel", () => SetSide(true), "btn show-tab", root);
+            showTab = IconBtn(L.T("Painel (Tab)"), "painel", () => SetSide(true), "btn show-tab", root);
             showTab.style.display = DisplayStyle.None;
 
             BuildStartMenu();
@@ -548,15 +543,15 @@ namespace Autorama
                 Text(sub, "start-opt-sub", t).pickingMode = PickingMode.Ignore;
                 grid.Add(b);
             }
-            Opt("Carreira", "Da garagem ao campeonato nacional", "carreira", Mode.Career, "start-opt--big");
-            Opt("Corrida", "Contra amigos no mesmo PC ou contra o robô", "correr", Mode.Race);
-            Opt("Campeonato", "Pilotos, etapas, tabela e recordes", "campeonato", Mode.Champ);
-            Opt("Online", "Partida rápida ou sala com amigos", "online", Mode.Online);
-            Opt("Construtor", "Encaixe as peças e feche o circuito", "construir", Mode.Build);
+            Opt(L.T("Carreira"), L.T("Da garagem ao campeonato nacional"), "carreira", Mode.Career, "start-opt--big");
+            Opt(L.T("Corrida"), L.T("Contra amigos no mesmo PC ou contra o robô"), "correr", Mode.Race);
+            Opt(L.T("Campeonato"), L.T("Pilotos, etapas, tabela e recordes"), "campeonato", Mode.Champ);
+            Opt(L.T("Online"), L.T("Partida rápida ou sala com amigos"), "online", Mode.Online);
+            Opt(L.T("Construtor"), L.T("Encaixe as peças e feche o circuito"), "construir", Mode.Build);
             var extra = El("start-extra", startMenu);
-            IconBtn("Peças", "pecas", () => ShopRequested?.Invoke(), "btn start-btn", extra);
-            IconBtn("Opções", "opcoes", () => OptionsRequested?.Invoke(), "btn start-btn", extra);
-            IconBtn("Sair", "sair", QuitGame, "btn start-btn", extra);
+            IconBtn(L.T("Peças"), "pecas", () => ShopRequested?.Invoke(), "btn start-btn", extra);
+            IconBtn(L.T("Opções"), "opcoes", () => OptionsRequested?.Invoke(), "btn start-btn", extra);
+            IconBtn(L.T("Sair"), "sair", QuitGame, "btn start-btn", extra);
         }
 
         // Pedido do botão Opções da tela inicial: quem tem as opções (a RaceController, com as teclas) abre a tela.
@@ -571,7 +566,7 @@ namespace Autorama
         public void SetTestOn(bool on)
         {
             barTest.Q<UiIcon>().Set(on ? "parar" : "correr");
-            barTest.tooltip = on ? "Parar o teste" : "Testar a pista com um carro IA (anda mesmo com a pista aberta)";
+            barTest.tooltip = on ? L.T("Parar o teste") : L.T("Testar a pista com um carro IA (anda mesmo com a pista aberta)");
             barTest.EnableInClassList("btn--accent", on);
         }
 
@@ -601,11 +596,11 @@ namespace Autorama
 
         static string PaletteGroup(PaletteEntry e)
         {
-            if (e.def.GroundOnly) return "LOOP E SALTO";
-            if (e.rise != 0 || e.def == PieceCatalog.Cross || e.def == PieceCatalog.CrossS) return "CRUZAMENTOS E RAMPAS";
-            if (e.def == PieceCatalog.CurveB || e.def == PieceCatalog.HalfB) return "CURVAS INCLINADAS";
-            if (e.def == PieceCatalog.Curve || e.def == PieceCatalog.Half || e.def == PieceCatalog.Hairpin) return "CURVAS";
-            return "RETAS";
+            if (e.def.GroundOnly) return L.T("LOOP E SALTO");
+            if (e.rise != 0 || e.def == PieceCatalog.Cross || e.def == PieceCatalog.CrossS) return L.T("CRUZAMENTOS E RAMPAS");
+            if (e.def == PieceCatalog.CurveB || e.def == PieceCatalog.HalfB) return L.T("CURVAS INCLINADAS");
+            if (e.def == PieceCatalog.Curve || e.def == PieceCatalog.Half || e.def == PieceCatalog.Hairpin) return L.T("CURVAS");
+            return L.T("RETAS");
         }
 
         void BuildTableTools()
@@ -615,10 +610,10 @@ namespace Autorama
             tableStatus = El("table-status", tableWrap);
             tableDot = El("status-dot", tableStatus);
             tableText = Text("", "table-status-text", tableStatus);
-            tableClose = Btn("Fechar circuito (Q)", AutoClose, "btn btn--accent table-btn", tableStatus);
-            tableShow = Btn("Mostrar", ShowOverlap, "btn table-btn", tableStatus);
-            tableShow.tooltip = "Seleciona uma das peças sobrepostas";
-            tableRace = IconBtn("Correr nesta pista", "correr", () => RaceHereRequested?.Invoke(), "btn btn--accent table-btn", tableStatus);
+            tableClose = Btn(L.T("Fechar circuito (Q)"), AutoClose, "btn btn--accent table-btn", tableStatus);
+            tableShow = Btn(L.T("Mostrar"), ShowOverlap, "btn table-btn", tableStatus);
+            tableShow.tooltip = L.T("Seleciona uma das peças sobrepostas");
+            tableRace = IconBtn(L.T("Correr nesta pista"), "correr", () => RaceHereRequested?.Invoke(), "btn btn--accent table-btn", tableStatus);
 
             // Barra de ações, no canto de baixo à direita da mesa.
             actionBar = El("action-bar", root);
@@ -627,17 +622,17 @@ namespace Autorama
             barTest = B("correr", "", () => TestRequested?.Invoke());
             SetTestOn(false);
             Gap();
-            barUndo = B("desfazer", "Desfazer (Ctrl+Z)", () => builder.Undo());
-            barRedo = B("refazer", "Refazer (Ctrl+Y)", () => builder.Redo());
+            barUndo = B("desfazer", L.T("Desfazer (Ctrl+Z)"), () => builder.Undo());
+            barRedo = B("refazer", L.T("Refazer (Ctrl+Y)"), () => builder.Redo());
             Gap();
-            barFlip = B("inverter", "Inverter a curva selecionada (F)", () => builder.FlipSelected());
-            B("girar", "Girar a largada (R)", () => builder.RotateStart());
-            barRemove = B("apagar", "Remover a selecionada (Del) ou a última (⌫)", () => { if (builder.Selected >= 0) builder.RemoveSelected(); else builder.RemoveLast(); });
+            barFlip = B("inverter", L.T("Inverter a curva selecionada (F)"), () => builder.FlipSelected());
+            B("girar", L.T("Girar a largada (R)"), () => builder.RotateStart());
+            barRemove = B("apagar", L.T("Remover a selecionada (Del) ou a última (⌫)"), () => { if (builder.Selected >= 0) builder.RemoveSelected(); else builder.RemoveLast(); });
             Gap();
-            B("enquadrar", "Enquadrar a pista (C)", FrameTrack);
-            bar3D = Btn("3D", () => cam.ToggleTilt(), "btn bar-btn", actionBar); bar3D.tooltip = "Vista 3D (V)";
-            B("menos", "Afastar", () => cam.ZoomStep(1.25f));
-            B("mais", "Aproximar", () => cam.ZoomStep(0.8f));
+            B("enquadrar", L.T("Enquadrar a pista (C)"), FrameTrack);
+            bar3D = Btn("3D", () => cam.ToggleTilt(), "btn bar-btn", actionBar); bar3D.tooltip = L.T("Vista 3D (V)");
+            B("menos", L.T("Afastar"), () => cam.ZoomStep(1.25f));
+            B("mais", L.T("Aproximar"), () => cam.ZoomStep(0.8f));
         }
 
         void ShowOverlap()
@@ -673,11 +668,11 @@ namespace Autorama
 
             // Status
             string txt; string cls;
-            if (i.overlaps.Count > 0) { txt = (i.closed ? "Circuito fechado, mas há " : "Há ") + i.overlaps.Count + " peças sobrepostas"; cls = "status--warn"; }
-            else if (i.closed) { txt = "Circuito fechado"; cls = "status--ok"; }
-            else if (i.closedXY) { txt = $"A ponta chega na largada, mas no nível {i.endZ}. Desça até o chão"; cls = "status--warn"; }
-            else if (builder.pieces.Count == 1) { txt = "Só a largada. Adicione peças"; cls = ""; }
-            else { txt = $"Pista aberta · ponta a {Num(i.gap)} cél. da largada"; cls = ""; }
+            if (i.overlaps.Count > 0) { txt = i.closed ? L.F("Circuito fechado, mas há {0} peças sobrepostas", i.overlaps.Count) : L.F("Há {0} peças sobrepostas", i.overlaps.Count); cls = "status--warn"; }
+            else if (i.closed) { txt = L.T("Circuito fechado"); cls = "status--ok"; }
+            else if (i.closedXY) { txt = L.F("A ponta chega na largada, mas no nível {0}. Desça até o chão", i.endZ); cls = "status--warn"; }
+            else if (builder.pieces.Count == 1) { txt = L.T("Só a largada. Adicione peças"); cls = ""; }
+            else { txt = L.F("Pista aberta · ponta a {0} cél. da largada", Num(i.gap)); cls = ""; }
             statusBox.RemoveFromClassList("status--ok"); statusBox.RemoveFromClassList("status--warn");
             if (cls != "") statusBox.AddToClassList(cls);
             statusText.text = txt;
@@ -686,10 +681,10 @@ namespace Autorama
             closeBtn.style.display = !i.closed && builder.pieces.Count > 1 ? DisplayStyle.Flex : DisplayStyle.None;
 
             hint.text = builder.Back
-                ? "Encaixando na <b>ponta de trás</b>, atrás da largada (seta amarela atrás dela). A largada não sai do lugar."
+                ? L.T("Encaixando na <b>ponta de trás</b>, atrás da largada (seta amarela atrás dela). A largada não sai do lugar.")
                 : builder.Selected < 0
-                ? "Clique para encaixar no <b>fim da pista</b>, onde está a seta amarela. Passe o mouse para ver a peça."
-                : $"Encaixando <b>depois da peça {builder.Selected + 1}</b> ({builder.pieces[builder.Selected].Describe().ToLowerInvariant()}).";
+                ? L.T("Clique para encaixar no <b>fim da pista</b>, onde está a seta amarela. Passe o mouse para ver a peça.")
+                : L.F("Encaixando <b>depois da peça {0}</b> ({1}).", builder.Selected + 1, builder.pieces[builder.Selected].Describe().ToLowerInvariant());
             endFrontBtn.EnableInClassList("btn--on", !builder.Back);
             endBackBtn.EnableInClassList("btn--on", builder.Back);
 
@@ -710,7 +705,7 @@ namespace Autorama
             int sel = builder.Selected;
             if (sel < 0)
             {
-                Text("Nenhuma. Clique numa peça da mesa para inserir depois dela, trocar a altura ou remover.", "small", selectedBox);
+                Text(L.T("Nenhuma. Clique numa peça da mesa para inserir depois dela, trocar a altura ou remover."), "small", selectedBox);
                 return;
             }
             var p = builder.pieces[sel];
@@ -719,49 +714,49 @@ namespace Autorama
             var head = El("sel-head", selectedBox);
             head.Add(Icon(IconOf(p), "sel-icon"));
             var texts = El("sel-texts", head);
-            Text($"<b>Peça {sel + 1} · {p.Def.Name}</b>", "body", texts);
-            Text($"{Side(p)}{Num(p.Def.CenterLength)} cél. · {height}", "small", texts);
+            Text(L.F("<b>Peça {0} · {1}</b>", sel + 1, p.Def.Name), "body", texts);
+            Text(L.F("{0}{1} cél. · {2}", Side(p), Num(p.Def.CenterLength), height), "small", texts);
 
             var row = El("row", selectedBox);
             if (sel == 0)
             {
-                Btn("Girar 90° (R)", builder.RotateStart, "btn", row);
-                Btn("Soltar (Esc)", () => builder.Select(-1), "btn", row);
+                Btn(L.T("Girar 90° (R)"), builder.RotateStart, "btn", row);
+                Btn(L.T("Soltar (Esc)"), () => builder.Select(-1), "btn", row);
                 var lv = El("segmented", selectedBox);
-                Text("Altura", "seg-label", lv);
-                if (builder.StartZ > 0) Btn("Descer", () => builder.MoveStartLevel(-1), "btn", lv);
-                if (builder.StartZ < TrackMath.MaxLevel) Btn("Subir", () => builder.MoveStartLevel(1), "btn", lv);
-                Text("Arraste a largada na mesa para mover a pista inteira. Ela não pode ser removida.", "small", selectedBox);
+                Text(L.T("Altura"), "seg-label", lv);
+                if (builder.StartZ > 0) Btn(L.T("Descer"), () => builder.MoveStartLevel(-1), "btn", lv);
+                if (builder.StartZ < TrackMath.MaxLevel) Btn(L.T("Subir"), () => builder.MoveStartLevel(1), "btn", lv);
+                Text(L.T("Arraste a largada na mesa para mover a pista inteira. Ela não pode ser removida."), "small", selectedBox);
                 return;
             }
-            if (p.Def.Sided) Btn("Inverter (F)", builder.FlipSelected, "btn", row);
-            Btn("Remover (Del)", builder.RemoveSelected, "btn btn--danger", row);
-            Btn("Soltar (Esc)", () => builder.Select(-1), "btn", row);
+            if (p.Def.Sided) Btn(L.T("Inverter (F)"), builder.FlipSelected, "btn", row);
+            Btn(L.T("Remover (Del)"), builder.RemoveSelected, "btn btn--danger", row);
+            Btn(L.T("Soltar (Esc)"), () => builder.Select(-1), "btn", row);
             if (p.Def.IsJump)
             {
                 var gv = El("segmented", selectedBox);
-                Text("Vão", "seg-label", gv);
+                Text(L.T("Vão"), "seg-label", gv);
                 for (int v = 1; v <= PieceCatalog.MaxGap; v++)
                 {
                     int vao = v;
-                    Btn($"{v} célula{(v > 1 ? "s" : "")}", () => builder.SetGap(vao), p.vao == vao ? "btn btn--on" : "btn", gv);
+                    Btn((v > 1 ? L.F("{0} células", v) : L.T("1 célula")), () => builder.SetGap(vao), p.vao == vao ? "btn btn--on" : "btn", gv);
                 }
             }
             if (p.Def.IsHairpin)
             {
                 var rv = El("segmented", selectedBox);
-                Text("Tamanho", "seg-label", rv);
+                Text(L.T("Tamanho"), "seg-label", rv);
                 for (int v = 1; v <= PieceCatalog.MaxHairpin; v++)
                 {
                     int raio = v;
-                    Btn($"{v} fileira{(v > 1 ? "s" : "")}", () => builder.SetHairpin(raio), p.raio == raio ? "btn btn--on" : "btn", rv);
+                    Btn((v > 1 ? L.F("{0} fileiras", v) : L.T("1 fileira")), () => builder.SetHairpin(raio), p.raio == raio ? "btn btn--on" : "btn", rv);
                 }
             }
             if (p.Def.GroundOnly) return;      // loop e salto não sobem nem descem: sem botões de altura
 
             var seg2 = El("segmented", selectedBox);
-            Text("Altura", "seg-label", seg2);
-            foreach (var (r, t) in new[] { (1, "Sobe"), (0, "Plana"), (-1, "Desce") })
+            Text(L.T("Altura"), "seg-label", seg2);
+            foreach (var (r, t) in new[] { (1, L.T("Sobe")), (0, L.T("Plana")), (-1, L.T("Desce")) })
             {
                 int rise = r;
                 Btn(t, () => builder.SetRise(rise), p.rise == rise ? "btn btn--on" : "btn", seg2);
@@ -773,18 +768,18 @@ namespace Autorama
             summaryBox.Clear();
             var i = builder.Info;
             float cm = builder.cellCm * builder.Scale;     // na pista de 4, a célula tem o dobro da largura
-            string M(float cells) => Num(cells * cm / 100f, 2) + " m";
-            var L = i.laneLengths;
+            string M(float cells) => Num(cells * cm / 100f, 2) + L.T(" m");
+            var lens = i.laneLengths;
             int lo = 0, hi = 0;
-            for (int l = 1; l < L.Length; l++) { if (L[l] < L[lo]) lo = l; if (L[l] > L[hi]) hi = l; }
-            float diff = L[hi] - L[lo];
-            Stat("Peças", builder.pieces.Count + (i.highCount > 0 ? $" · {i.highCount} no alto" : ""));
-            Stat("Linha central", M(i.centerLength));
-            for (int l = 0; l < L.Length; l++) Stat($"Trilho {l + 1}", M(L[l]), LaneSwatch(l));
-            Stat("Mais longo", diff < 0.01f ? "iguais" : $"trilho {hi + 1} +{Num(diff * cm, 0)} cm" + (L.Length > 2 ? $" (sobre o {lo + 1})" : ""));
-            Stat("Área ocupada", $"{Num(i.bounds.width * cm / 100f, 2)} × {Num(i.bounds.height * cm / 100f, 2)} m");
+            for (int l = 1; l < lens.Length; l++) { if (lens[l] < lens[lo]) lo = l; if (lens[l] > lens[hi]) hi = l; }
+            float diff = lens[hi] - lens[lo];
+            Stat(L.T("Peças"), builder.pieces.Count + (i.highCount > 0 ? L.F(" · {0} no alto", i.highCount) : ""));
+            Stat(L.T("Linha central"), M(i.centerLength));
+            for (int l = 0; l < lens.Length; l++) Stat(L.F("Trilho {0}", l + 1), M(lens[l]), LaneSwatch(l));
+            Stat(L.T("Mais longo"), diff < 0.01f ? L.T("iguais") : L.F("trilho {0} +{1} cm", hi + 1, Num(diff * cm, 0)) + (lens.Length > 2 ? L.F(" (sobre o {0})", lo + 1) : ""));
+            Stat(L.T("Área ocupada"), L.F("{0} × {1} m", Num(i.bounds.width * cm / 100f, 2), Num(i.bounds.height * cm / 100f, 2)));
             bool fits = i.bounds.xMin >= -0.01f && i.bounds.yMin >= -0.01f && i.bounds.xMax <= builder.boardSize.x + 0.01f && i.bounds.yMax <= builder.boardSize.y + 0.01f;
-            Stat("Na mesa", (fits ? "cabe" : "passa da borda") + $" · {builder.boardSize.x} × {builder.boardSize.y} cél.");
+            Stat(L.T("Na mesa"), (fits ? L.T("cabe") : L.T("passa da borda")) + L.F(" · {0} × {1} cél.", builder.boardSize.x, builder.boardSize.y));
         }
 
         void Stat(string key, string value, string swatch = null)
@@ -819,7 +814,7 @@ namespace Autorama
         void DrawLibrary()
         {
             libList.Clear();
-            if (library.Count == 0) { Text("Nenhuma pista salva ainda. Dê um nome e salve.", "small", libList); return; }
+            if (library.Count == 0) { Text(L.T("Nenhuma pista salva ainda. Dê um nome e salve."), "small", libList); return; }
             foreach (var e in library)
             {
                 var entry = e;
@@ -829,15 +824,15 @@ namespace Autorama
                 var texts = El("lib-texts", item);
                 Text(e.save.nome, "lib-name", texts);
                 Text(TrackLine(e.save), "small", texts);
-                Btn("Abrir", () => Open(entry.save), "btn", item);
+                Btn(L.T("Abrir"), () => Open(entry.save), "btn", item);
                 string key = "apagar:" + e.path;
-                var del = Btn(IsArmed(key) ? "Certeza?" : "Apagar", null, "btn btn--danger", item);
+                var del = Btn(IsArmed(key) ? L.T("Certeza?") : L.T("Apagar"), null, "btn btn--danger", item);
                 del.clicked += () =>
                 {
-                    if (!Confirm(key)) { del.text = "Certeza?"; return; }
+                    if (!Confirm(key)) { del.text = L.T("Certeza?"); return; }
                     TrackLibrary.Delete(entry.path);
                     RefreshLibrary();
-                    Say($"“{entry.save.nome}” apagada.");
+                    Say(L.F("“{0}” apagada.", entry.save.nome));
                 };
             }
         }
@@ -846,11 +841,11 @@ namespace Autorama
 
         void SaveTrack()
         {
-            if (string.IsNullOrWhiteSpace(builder.TrackName)) builder.TrackName = $"Pista {library.Count + 1}";
+            if (string.IsNullOrWhiteSpace(builder.TrackName)) builder.TrackName = L.F("Pista {0}", library.Count + 1);
             if (string.IsNullOrWhiteSpace(builder.Author)) builder.Author = LocalAuthor;      // a pista é de quem a salvou primeiro
             TrackLibrary.Save(builder.ToSave());
             RefreshLibrary();
-            Say($"“{builder.TrackName}” salva.");
+            Say(L.F("“{0}” salva.", builder.TrackName));
         }
 
         // Os exemplos abrem no tipo da pista atual (a forma em células é a mesma).
@@ -860,7 +855,7 @@ namespace Autorama
         {
             builder.Load(s);
             FrameTrack();
-            Say($"“{s.nome}” aberta.");
+            Say(L.F("“{0}” aberta.", s.nome));
         }
 
         void RefreshLibrary()
@@ -979,7 +974,7 @@ namespace Autorama
             info.style.bottom = palBar.layout.height + 18f;
             tableWrap.style.left = left;
             bar3D.EnableInClassList("btn--on", cam.Tilted);
-            cellLabel.text = hover.HasValue ? $"Célula {CellName(hover.Value)}" : "Célula —";
+            cellLabel.text = hover.HasValue ? L.F("Célula {0}", CellName(hover.Value)) : L.T("Célula —");
             if (!top) { scaleBar.style.display = scaleText.style.display = DisplayStyle.None; return; }
             scaleBar.style.display = scaleText.style.display = DisplayStyle.Flex;
 
@@ -1028,7 +1023,7 @@ namespace Autorama
             int best = opts[0];
             foreach (int v in opts) if (v / cm * cellPx <= 120f) best = v;
             scaleBar.style.width = best / cm * cellPx;
-            scaleText.text = best >= 100 ? Num(best / 100f, best % 100 == 0 ? 0 : 1) + " m" : best + " cm";
+            scaleText.text = best >= 100 ? Num(best / 100f, best % 100 == 0 ? 0 : 1) + L.T(" m") : best + L.T(" cm");
         }
 
         void EnsureLabels(List<Label> list, VisualElement parent, int count)
@@ -1067,10 +1062,10 @@ namespace Autorama
                 var o = s.Origin;
                 var segs = TrackLayout.Build(o, s.Pieces(), s.Tail, s.StartZ);
                 var a = TrackLayout.Analyze(o, segs, s.Tail, s.Faixas);
-                string by = string.IsNullOrWhiteSpace(s.autor) ? "" : $" · de {s.autor.Replace("<", "<​")}";
-                return $"{s.Faixas} trilhos · {segs.Count} peças · {Num(a.centerLength * s.escalaCm * TrackMath.Scale(s.Faixas) / 100f)} m · " + (a.closed ? "fechada" : "<color=#F07A3A>aberta</color>") + by + TrackRatings.Line(s);
+                string by = string.IsNullOrWhiteSpace(s.autor) ? "" : L.F(" · de {0}", s.autor.Replace("<", "<​"));
+                return L.F("{0} trilhos · {1} peças · {2} m · ", s.Faixas, segs.Count, Num(a.centerLength * s.escalaCm * TrackMath.Scale(s.Faixas) / 100f)) + (a.closed ? L.T("fechada") : "<color=#F07A3A>" + L.T("aberta") + "</color>") + by + TrackRatings.Line(s);
             }
-            catch { return "não deu para ler"; }
+            catch { return L.T("não deu para ler"); }
         }
 
         // O nome de quem está jogando aqui: o da Steam, ou o que foi digitado no online (seção 83).
@@ -1096,10 +1091,10 @@ namespace Autorama
             return d == PieceCatalog.Half ? "icone-meia-curva-" + side : $"icone-{d.Id}-{side}";
         }
 
-        static string Side(TrackPiece p) => p.Def.IsLoop ? $"Sai à {(p.dir < 0 ? "esquerda" : "direita")} · " : p.Def.IsJump ? "Salto · " : !p.Def.IsCurve ? "Reta · " : $"Vira à {(p.dir < 0 ? "esquerda" : "direita")} · {p.Def.Angle}° · ";
+        static string Side(TrackPiece p) => p.Def.IsLoop ? L.F("Sai à {0} · ", (p.dir < 0 ? L.T("esquerda") : L.T("direita"))) : p.Def.IsJump ? L.T("Salto · ") : !p.Def.IsCurve ? L.T("Reta · ") : L.F("Vira à {0} · {1}° · ", p.dir < 0 ? L.T("esquerda") : L.T("direita"), p.Def.Angle);
         static string KeyName(Key k) { string s = k.ToString(); return s.StartsWith("Digit") ? s.Substring(5) : s; }
-        static string Level(int z) => z == 0 ? "chão" : "nível " + z;
-        internal static string Num(float v, int dec = 1) => v.ToString("N" + dec, PtBr);
+        static string Level(int z) => z == 0 ? L.T("chão") : L.F("nível {0}", z);
+        internal static string Num(float v, int dec = 1) => v.ToString("N" + dec, L.Cultura);
     }
 
     // Miniatura de uma pista salva: a linha central desenhada com Painter2D (trecho no alto em amarelo).

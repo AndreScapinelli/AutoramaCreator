@@ -1,0 +1,1375 @@
+Termine o campeonato online (ou saia da sala) antes de trocar de aba.	Termina el campeonato online (o sal de la sala) antes de cambiar de pestaña.
+CORRIDA	CARRERA
+CAMPEONATO	CAMPEONATO
+ONLINE	ONLINE
+CARREIRA	TRAYECTORIA
+CONSTRUTOR	CONSTRUCTOR
+{0}  ({1:0} s)	{0}  ({1:0} s)
+Como funciona	Cómo funciona
+{0} · {1} (tecla {2})	{0} · {1} (tecla {2})
+Não vale aqui.	No vale aquí.
+PISTA DE {0} TRILHOS	PISTA DE {0} CARRILES
+Pista de {0} trilhos: abre na carreira.	Pista de {0} carriles: se desbloquea en la trayectoria.
+Pista adaptada para {0} carros.	Pista adaptada para {0} coches.
+Pista de {0} carros.	Pista de {0} coches.
+Célula —	Celda —
+1 m	1 m
+Vista 3D · V volta para a de cima · botão direito gira	Vista 3D · V vuelve a la vista de arriba · botón derecho gira
+PISTA DE 2 TRILHOS	PISTA DE 2 CARRILES
+Termine o campeonato online (ou saia da sala) antes de voltar ao menu.	Termina el campeonato online (o sal de la sala) antes de volver al menú.
+Tela inicial	Pantalla de inicio
+Esconder o painel (Tab)	Ocultar el panel (Tab)
+Fechar circuito (Q)	Cerrar circuito (Q)
+Completa a pista da ponta até a largada com o mínimo de peças, sem passar por cima da pista. Ctrl+Z desfaz.	Completa la pista desde el extremo hasta la salida con el mínimo de piezas, sin pasar por encima de la pista. Ctrl+Z deshace.
+Cancelar (Esc)	Cancelar (Esc)
+Para a busca. A pista fica como estava.	Detiene la búsqueda. La pista queda como estaba.
+TAMANHO DA PISTA	TAMAÑO DE LA PISTA
+2 trilhos	2 carriles
+4 trilhos	4 carriles
+6 trilhos	6 carriles
+Pista muito larga, de 6 trilhos (1 célula = o triplo da largura). Campeonatos não misturam os tipos.	Pista muy ancha, de 6 carriles (1 celda = el triple del ancho). Los campeonatos no mezclan los tipos.
+8 trilhos	8 carriles
+Pista enorme, de 8 trilhos (1 célula = 4× a largura). Campeonatos não misturam os tipos.	Pista enorme, de 8 carriles (1 celda = 4× el ancho). Los campeonatos no mezclan los tipos.
+Pista estreita, de 2 trilhos. Adapta a pista aberta (Ctrl+Z desfaz).	Pista estrecha, de 2 carriles. Adapta la pista abierta (Ctrl+Z deshace).
+Pista larga, de 4 trilhos (1 célula = o dobro da largura). Campeonatos não misturam os dois tipos.	Pista ancha, de 4 carriles (1 celda = el doble del ancho). Los campeonatos no mezclan los dos tipos.
+PEÇAS	PIEZAS
+Frente ▸	Delante ▸
+◂ Trás	◂ Detrás
+Encaixa no fim da pista, na seta amarela (E alterna)	Encaja al final de la pista, en la flecha amarilla (E alterna)
+Encaixa atrás da largada (E alterna)	Encaja detrás de la salida (E alterna)
+RETAS	RECTAS
+CURVAS	CURVAS
+CURVAS INCLINADAS	CURVAS PERALTADAS
+CRUZAMENTOS E RAMPAS	CRUCES Y RAMPAS
+LOOP E SALTO	LOOP Y SALTO
+PEÇA SELECIONADA	PIEZA SELECCIONADA
+RESUMO	RESUMEN
+SEQUÊNCIA	SECUENCIA
+Da largada até a ponta, no sentido em que os carrinhos correm.	De la salida hasta el extremo, en el sentido en que corren los coches.
+MINHAS PISTAS	MIS PISTAS
+Salvar	Guardar
+Exemplo: oval	Ejemplo: óvalo
+Nova pista	Nueva pista
+Pasta: {0}	Carpeta: {0}
+VISTA E EDIÇÃO	VISTA Y EDICIÓN
+Enquadrar (C)	Encuadrar (C)
+Vista 3D (V)	Vista 3D (V)
+Desfazer	Deshacer
+Refazer	Rehacer
+ATALHOS	ATAJOS
+<b>1–0, T</b> peças · <b>X/B</b> cruzamento · <b>U/D</b> rampa\n<b>Clique</b> seleciona · <b>F</b> inverte a curva · <b>R</b> gira a largada · <b>E</b> ponta: frente/trás\n<b>Del</b> remove a selecionada · <b>⌫</b> remove a última · <b>Esc</b> solta\n<b>Q</b> fecha o circuito · <b>Ctrl+Z / Ctrl+Y</b> desfazer / refazer\n<b>C</b> enquadra · <b>V</b> vista 3D\n<b>Botão direito</b> move a vista (gira na 3D) · <b>Roda</b> zoom · <b>Tab</b> painel\n<b>Arrastar a largada</b> move a pista inteira	<b>1–0, T</b> piezas · <b>X/B</b> cruce · <b>U/D</b> rampa\n<b>Clic</b> selecciona · <b>F</b> invierte la curva · <b>R</b> gira la salida · <b>E</b> extremo: delante/detrás\n<b>Supr</b> quita la seleccionada · <b>⌫</b> quita la última · <b>Esc</b> suelta\n<b>Q</b> cierra el circuito · <b>Ctrl+Z / Ctrl+Y</b> deshacer / rehacer\n<b>C</b> encuadra · <b>V</b> vista 3D\n<b>Botón derecho</b> mueve la vista (gira en 3D) · <b>Rueda</b> zoom · <b>Tab</b> panel\n<b>Arrastrar la salida</b> mueve toda la pista
+Painel (Tab)	Panel (Tab)
+Carreira	Trayectoria
+Da garagem ao campeonato nacional	Del garaje al campeonato nacional
+Corrida	Carrera
+Contra amigos no mesmo PC ou contra o robô	Contra amigos en el mismo PC o contra el bot
+Campeonato	Campeonato
+Pilotos, etapas, tabela e recordes	Pilotos, rondas, clasificación y récords
+Online	Online
+Partida rápida ou sala com amigos	Partida rápida o sala con amigos
+Construtor	Constructor
+Encaixe as peças e feche o circuito	Encaja las piezas y cierra el circuito
+Peças	Piezas
+Opções	Opciones
+Sair	Salir
+Parar o teste	Detener la prueba
+Testar a pista com um carro IA (anda mesmo com a pista aberta)	Probar la pista con un coche IA (anda aunque la pista esté abierta)
+Mostrar	Mostrar
+Seleciona uma das peças sobrepostas	Selecciona una de las piezas superpuestas
+Correr nesta pista	Correr en esta pista
+Desfazer (Ctrl+Z)	Deshacer (Ctrl+Z)
+Refazer (Ctrl+Y)	Rehacer (Ctrl+Y)
+Inverter a curva selecionada (F)	Invertir la curva seleccionada (F)
+Girar a largada (R)	Girar la salida (R)
+Remover a selecionada (Del) ou a última (⌫)	Quitar la seleccionada (Supr) o la última (⌫)
+Enquadrar a pista (C)	Encuadrar la pista (C)
+Afastar	Alejar
+Aproximar	Acercar
+Circuito fechado, mas há {0} peças sobrepostas	Circuito cerrado, pero hay {0} piezas superpuestas
+Há {0} peças sobrepostas	Hay {0} piezas superpuestas
+Circuito fechado	Circuito cerrado
+A ponta chega na largada, mas no nível {0}. Desça até o chão	El extremo llega a la salida, pero en el nivel {0}. Baja hasta el suelo
+Só a largada. Adicione peças	Solo la salida. Añade piezas
+Pista aberta · ponta a {0} cél. da largada	Pista abierta · extremo a {0} celdas de la salida
+Encaixando na <b>ponta de trás</b>, atrás da largada (seta amarela atrás dela). A largada não sai do lugar.	Encajando en el <b>extremo trasero</b>, detrás de la salida (flecha amarilla detrás de ella). La salida no se mueve.
+Clique para encaixar no <b>fim da pista</b>, onde está a seta amarela. Passe o mouse para ver a peça.	Haz clic para encajar al <b>final de la pista</b>, donde está la flecha amarilla. Pasa el ratón para ver la pieza.
+Encaixando <b>depois da peça {0}</b> ({1}).	Encajando <b>después de la pieza {0}</b> ({1}).
+Nenhuma. Clique numa peça da mesa para inserir depois dela, trocar a altura ou remover.	Ninguna. Haz clic en una pieza de la mesa para insertar después de ella, cambiar la altura o quitarla.
+<b>Peça {0} · {1}</b>	<b>Pieza {0} · {1}</b>
+{0}{1} cél. · {2}	{0}{1} celdas · {2}
+Girar 90° (R)	Girar 90° (R)
+Soltar (Esc)	Soltar (Esc)
+Altura	Altura
+Descer	Bajar
+Subir	Subir
+Arraste a largada na mesa para mover a pista inteira. Ela não pode ser removida.	Arrastra la salida en la mesa para mover toda la pista. No se puede quitar.
+Inverter (F)	Invertir (F)
+Remover (Del)	Quitar (Supr)
+Vão	Hueco
+{0} células	{0} celdas
+1 célula	1 celda
+Tamanho	Tamaño
+{0} fileiras	{0} filas
+1 fileira	1 fila
+Sobe	Sube
+Plana	Plana
+Desce	Baja
+ m	 m
+ · {0} no alto	 · {0} en alto
+Linha central	Línea central
+Trilho {0}	Carril {0}
+Mais longo	Más largo
+iguais	iguales
+trilho {0} +{1} cm	carril {0} +{1} cm
+ (sobre o {0})	 (sobre el {0})
+Área ocupada	Área ocupada
+{0} × {1} m	{0} × {1} m
+Na mesa	En la mesa
+cabe	cabe
+passa da borda	se sale del borde
+ · {0} × {1} cél.	 · {0} × {1} celdas
+Nenhuma pista salva ainda. Dê um nome e salve.	Aún no hay pistas guardadas. Ponle un nombre y guárdala.
+Abrir	Abrir
+Certeza?	¿Seguro?
+Apagar	Borrar
+“{0}” apagada.	“{0}” borrada.
+Pista {0}	Pista {0}
+“{0}” salva.	“{0}” guardada.
+“{0}” aberta.	“{0}” abierta.
+Célula {0}	Celda {0}
+ cm	 cm
+ · de {0}	 · de {0}
+{0} trilhos · {1} peças · {2} m · 	{0} carriles · {1} piezas · {2} m ·
+fechada	cerrada
+aberta	abierta
+não deu para ler	no se pudo leer
+Sai à {0} · 	Sale a la {0} ·
+esquerda	izquierda
+direita	derecha
+Salto · 	Salto ·
+Reta · 	Recta ·
+Vira à {0} · {1}° · 	Gira a la {0} · {1}° ·
+chão	suelo
+nível {0}	nivel {0}
+Esta prova deixa usar no máximo {0} peças.	Esta prueba permite como máximo {0} piezas.
+Rampa não encaixa atrás da largada: ela fica no chão.	La rampa no encaja detrás de la salida: la salida queda en el suelo.
+Loop e rampa de salto não sobem nem descem de nível.	El loop y la rampa de salto no suben ni bajan de nivel.
+{0} ({1} carros)	{0} ({1} coches)
+Não cabe: a mesa vai até 120 × 120 células.	No cabe: la mesa llega hasta 120 × 120 celdas.
+A pista já está fechada.	La pista ya está cerrada.
+Coloque algumas peças antes: o fechamento parte da ponta da pista.	Pon algunas piezas antes: el cierre parte del extremo de la pista.
+Busca cancelada.	Búsqueda cancelada.
+Não deu para fechar o circuito.	No se pudo cerrar el circuito.
+Vencer	Ganar
+Chegar até o {0:0}º	Llegar entre los {0:0} primeros
+Sem sair da pista	Sin salirse de la pista
+No máximo {0:0} saídas	Como máximo {0:0} salidas
+Sem usar o turbo	Sin usar el turbo
+Volta abaixo de {0}	Vuelta por debajo de {0}
+Prova abaixo de {0}	Carrera por debajo de {0}
+Vencer a série	Ganar la serie
+Vencer sem perder bateria	Ganar sin perder ninguna manga
+Vencer todas as etapas	Ganar todas las rondas
+Pista molhada: 20% menos aderência	Pista mojada: 20% menos de agarre
+Carro imposto: {0}	Coche obligatorio: {0}
+padrão	estándar
+Mais de {0} {1} e você está fora	Más de {0} {1} y quedas fuera
+saída	salida
+saídas	salidas
+Você larga {0:0.#} s depois	Sales {0:0.#} s más tarde
+Turbo sempre cheio, para todos	Turbo siempre lleno, para todos
+Monte a pista primeiro.	Monta la pista primero.
+Passou do limite: {0} de {1} peças.	Pasaste el límite: {0} de {1} piezas.
+{0}{1} não vale nesta prova.	{0}{1} no vale en esta prueba.
+ com rampa	 con rampa
+Falta usar: {0}.	Falta usar: {0}.
+Feche o circuito (Q fecha sozinho).	Cierra el circuito (Q lo cierra solo).
+A pista passa por cima dela mesma.	La pista pasa por encima de sí misma.
+Motor	Motor
+Bolha	Carrocería
+Pneu	Neumático
+Chassi	Chasis
+Turbo	Turbo
++{0}% de aceleração	+{0}% de aceleración
++{0}% de final	+{0}% de velocidad final
++{0}% de aderência	+{0}% de agarre
++{0}% de aerodinâmica	+{0}% de aerodinámica
++{0}% de resposta no gatilho e no freio	+{0}% de respuesta en el gatillo y el freno
+−{0}% na derrapagem	−{0}% de derrape
++{0} ponto de velocidade do turbo	+{0} punto de velocidad del turbo
++{0}% de tanque	+{0}% de depósito
+ por nível	 por nivel
+metade de cada: {0} e {1}, a cada 2 níveis	la mitad de cada uno: {0} y {1}, cada 2 niveles
+Já é sua.	Ya es tuya.
+Abre na região {0}.	Se desbloquea en la región {0}.
+Faltam {0} moedas.	Faltan {0} monedas.
+Nível máximo.	Nivel máximo.
+Abra a opção primeiro.	Desbloquea la opción primero.
+Nível {0} abre na região {1}.	El nivel {0} se desbloquea en la región {1}.
+níveis: 	niveles:
+Vermelho	Rojo
+Azul	Azul
+Amarelo	Amarillo
+Verde	Verde
+Roxo	Morado
+Laranja	Naranja
+Ciano	Cian
+Rosa	Rosa
+Iniciante: freia cedo e erra bastante	Principiante: frena pronto y se equivoca bastante
+Amador: anda seguro, às vezes passa do ponto	Aficionado: va seguro, a veces se pasa de frenada
+Bom: entra forte nas curvas	Bueno: entra fuerte en las curvas
+Experiente: quase no limite, raramente sai	Experto: casi al límite, rara vez se sale
+Profissional: no limite da aderência	Profesional: al límite del agarre
+Piloto	Piloto
+Largar (Enter)	Salida (Enter)
+ · esquerda	 · izquierda
+ · direita	 · derecha
+ · sobe	 · sube
+ · desce	 · baja
+ · vão {0}	 · hueco {0}
+ · {0} fileiras	 · {0} filas
+Não achei um fechamento que funcione daqui. Leve a ponta mais perto da largada e tente de novo.	No encontré un cierre que funcione desde aquí. Acerca el extremo a la salida e inténtalo de nuevo.
+Todo fechamento curto passa por cima da pista. Mexa um pouco a ponta (ou faça uma ponte) e tente de novo.	Todo cierre corto pasa por encima de la pista. Mueve un poco el extremo (o haz un puente) e inténtalo de nuevo.
+Procurando com até {0} peças…	Buscando con hasta {0} piezas…
+A ponta já encosta na pista de trás.	El extremo ya toca la pista de atrás.
+A ponta já está na largada.	El extremo ya está en la salida.
+Não achei um fechamento com até {0} peças. Leve a ponta mais perto da largada e tente de novo.	No encontré un cierre con hasta {0} piezas. Acerca el extremo a la salida e inténtalo de nuevo.
+Procurando com até {0} peças… testando {1} de {2}	Buscando con hasta {0} piezas… probando {1} de {2}
+Circuito fechado com {0} {1}: {2}. Ctrl+Z desfaz.	Circuito cerrado con {0} {1}: {2}. Ctrl+Z deshace.
+peça	pieza
+peças	piezas
+ (4 carros)	 (4 coches)
+ (6 carros)	 (6 coches)
+Oval	Óvalo
+8 com ponte	Ocho con puente
+Endereço do servidor inválido.	Dirección del servidor no válida.
+A conexão com o servidor foi encerrada.	Se cerró la conexión con el servidor.
+O servidor encerrou a conexão.	El servidor cerró la conexión.
+O servidor mandou uma mensagem grande demais.	El servidor envió un mensaje demasiado grande.
+Não foi possível conectar: tempo esgotado. Confira o endereço do servidor.	No se pudo conectar: tiempo agotado. Revisa la dirección del servidor.
+Não foi possível falar com o servidor: 	No se pudo hablar con el servidor:
+Não deu para carregar a biblioteca da Steam: 	No se pudo cargar la biblioteca de Steam:
+O cliente da Steam não está aberto. Abra a Steam, entre na conta e tente de novo.	El cliente de Steam no está abierto. Abre Steam, inicia sesión e inténtalo de nuevo.
+A Steam está desatualizada para esta versão da biblioteca. Atualize o cliente da Steam.	Steam está desactualizado para esta versión de la biblioteca. Actualiza el cliente de Steam.
+A Steam não iniciou ({0}): {1}. Confira se o steam_appid.txt (480) está na raiz do projeto.	Steam no se inició ({0}): {1}. Comprueba que steam_appid.txt (480) está en la raíz del proyecto.
+Partida rápida · {0} carros	Partida rápida · {0} coches
+Sala de {0}	Sala de {0}
+Você já está numa sala.	Ya estás en una sala.
+Não deu para entrar na sala do amigo.	No se pudo entrar en la sala del amigo.
+Esse lobby não é de uma sala do Autorama (ou é de outra versão do jogo).	Este lobby no es una sala de Autorama (o es de otra versión del juego).
+{0} agora é o host.	{0} es ahora el anfitrión.
+O campeonato terminou.	El campeonato terminó.
+O campeonato já começou.	El campeonato ya empezó.
+Tamanho de pista inválido.	Tamaño de pista no válido.
+Pista inválida ou grande demais.	Pista no válida o demasiado grande.
+Pista	Pista
+Não deu para criar a fila na Steam.	No se pudo crear la cola en Steam.
+Partida rápida · 	Partida rápida ·
+Pista sorteada: {0} (de {1}).	Pista sorteada: {0} (de {1}).
+Só o host pode fazer isso.	Solo el anfitrión puede hacer eso.
+Não deu para criar a sala na Steam.	No se pudo crear la sala en Steam.
+Sala não encontrada. Confira o código.	Sala no encontrada. Revisa el código.
+A sala está cheia.	La sala está llena.
+Não deu para entrar na sala.	No se pudo entrar en la sala.
+Cor inválida.	Color no válido.
+Essa cor já é de outro piloto.	Ese color ya es de otro piloto.
+Você sugeriu pistas demais em pouco tempo. Espere um minuto.	Sugeriste demasiadas pistas en poco tiempo. Espera un minuto.
+Calma, você está mandando mensagens rápido demais.	Tranquilo, estás enviando mensajes demasiado rápido.
+No máximo {0} etapas.	Como máximo {0} rondas.
+Etapa inválida ou pista grande demais.	Ronda no válida o pista demasiado grande.
+O host mudou as etapas: confirmem "pronto" de novo.	El anfitrión cambió las rondas: confirmad "listo" de nuevo.
+Precisa de pelo menos 2 pilotos.	Se necesitan al menos 2 pilotos.
+Escolha pelo menos uma pista.	Elige al menos una pista.
+Falta ficar pronto: 	Falta estar listo:
+Regras inválidas.	Reglas no válidas.
+Campeonato de {0}	Campeonato de {0}
+As pistas são grandes demais para a Steam. Tire alguma etapa.	Las pistas son demasiado grandes para Steam. Quita alguna ronda.
+{0} largou o campeonato "{1}".	{0} empezó el campeonato "{1}".
+{0} entrou na sala.	{0} entró en la sala.
+{0} saiu da sala.	{0} salió de la sala.
+{0} agora é o host: a bateria da vez recomeça.	{0} es ahora el anfitrión: la manga actual vuelve a empezar.
+Jogador	Jugador
+ · <color=#F5C542>★</color> {0} ({1})	 · <color=#F5C542>★</color> {0} ({1})
+Seja campeão da {0} na carreira.	Sé campeón de la {0} en la trayectoria.
+Vença {0} ({1}) na carreira.	Gana {0} ({1}) en la trayectoria.
+Abre na carreira.	Se desbloquea en la trayectoria.
+{0} (bolha {1})	{0} (carrocería {1})
+{0}: abre na carreira ({1}).	{0}: se desbloquea en la trayectoria ({1}).
+Esta peça abre na carreira (menu inicial › Peças mostra em que prova).	Esta pieza se desbloquea en la trayectoria (menú inicial › Piezas muestra en qué prueba).
+Acelerar	Acelerar
+Meia	Media
+Recolocar	Recolocar
+Meia −	Media −
+Meia +	Media +
+Espaço	Espacio
+PgUp	RePág
+PgDn	AvPág
+Shift dir.	Mayús der.
+Ctrl dir.	Ctrl der.
+Shift esq.	Mayús izq.
+8 num.	Num 8
+5 num.	Num 5
+7 num.	Num 7
+0 num.	Num 0
+6 num.	Num 6
+4 num.	Num 4
+Broca	Taladro
+Elétrico suave	Eléctrico suave
+Escovas	Escobillas
+Turbina	Turbina
+Ronco	Rugido
+Seu arquivo (motor.wav)	Tu archivo (motor.wav)
+Motor curto	Motor corto
+Motor longo	Motor largo
+Da garagem ao campeonato nacional.	Del garaje al campeonato nacional.
+Voltar ao menu (Esc)	Volver al menú (Esc)
+◀ Saves	◀ Partidas
+Garagem do carro (G)	Garaje del coche (G)
+← → escolhe a prova · Enter abre e corre · Esc volta	← → elige la prueba · Enter abre y corre · Esc vuelve
+PAUSA	PAUSA
+Continuar (Esc)	Continuar (Esc)
+Reiniciar	Reiniciar
+Voltar ao mapa	Volver al mapa
+Cancelar	Cancelar
+Carreira {0}	Trayectoria {0}
+Nova carreira	Nueva trayectoria
+As outras regiões ainda não estão prontas.	Las otras regiones aún no están listas.
+Seja campeão desta região para abrir a próxima.	Sé campeón de esta región para desbloquear la siguiente.
+Faça {0} estrelas na região para abrir.	Consigue {0} estrellas en la región para desbloquearla.
+Termine a prova anterior para abrir esta.	Termina la prueba anterior para desbloquear esta.
+{0} · {1} faixas	{0} · {1} carriles
+{0} · {1} voltas	{0} · {1} vueltas
+ · sem turbo	 · sin turbo
+ · contra {0} IA {1}	 · contra {0} IA {1}
+1 piloto	1 piloto
+{0} pilotos	{0} pilotos
+{0} · melhor de {1}, trocando de trilho	{0} · al mejor de {1}, cambiando de carril
+Seu carro: {0}	Tu coche: {0}
+ · garagem no G	 · garaje en la G
+Ainda não correu aqui.	Aún no has corrido aquí.
+Seu melhor: {0}	Tu mejor: {0}
+ · volta {0}	 · vuelta {0}
+Remontar	Rehacer la pista
+Montar pista (Enter)	Montar la pista (Enter)
+Correr na minha pista (Enter)	Correr en mi pista (Enter)
+Recomeçar	Empezar de nuevo
+Continuar (Enter)	Continuar (Enter)
+Correr (Enter)	Correr (Enter)
+Fechar (Esc)	Cerrar (Esc)
+Não deu para salvar a carreira.	No se pudo guardar la trayectoria.
+<color={0}>{1}</color>  {2}  {3}	<color={0}>{1}</color>  {2}  {3}
+\n<color=#F5C21B>Bateria {0} de {1} · você {2} × {3} {4}</color>	\n<color=#F5C21B>Manga {0} de {1} · tú {2} × {3} {4}</color>
+\n<color={0}>Saídas {1} de {2}</color>	\n<color={0}>Salidas {1} de {2}</color>
+\n<color=#F07A3A>Você sai em {0} s</color>	\n<color=#F07A3A>Quedas fuera en {0} s</color>
+\n<color=#50A0F0>Pista molhada</color>	\n<color=#50A0F0>Pista mojada</color>
+Campeão da {0}!	¡Campeón de la {0}!
+Você terminou em {0}º · {1}	Terminaste {0}º · {1}
+Você venceu a série · {0} × {1}	Ganaste la serie · {0} × {1}
+{0} venceu a série · {1} × {2}	{0} ganó la serie · {1} × {2}
+Fora: mais de {0} {1}	Fuera: más de {0} {1}
+Melhor volta {0}	Mejor vuelta {0}
+Nenhuma volta completa	Ninguna vuelta completa
+Não terminou	No terminó
+{0}º lugar · {1}	{0}º puesto · {1}
+Não foi desta vez.	Esta vez no.
+estrela nova	estrella nueva
+estrelas novas	estrellas nuevas
+Sem estrela nova.	Ninguna estrella nueva.
++{0} moedas  ·  ◎ {1}  ·  gaste na garagem do carro (G no mapa)	+{0} monedas  ·  ◎ {1}  ·  gástalas en el garaje del coche (G en el mapa)
+Abriu: {0}	Desbloqueado: {0}
+Modelo novo: {0}. Vale em todos os modos (cartão Carro).	Modelo nuevo: {0}. Vale en todos los modos (tarjeta Coche).
+Abriu: {0} ({1} faixas)	Desbloqueado: {0} ({1} carriles)
+As próximas regiões ainda estão sendo construídas.	Las próximas regiones aún están en construcción.
+Correr de novo	Correr otra vez
+Mapa (Esc)	Mapa (Esc)
+Próxima prova (Enter)	Siguiente prueba (Enter)
+Bateria {0} de {1}	Manga {0} de {1}
+Você venceu a bateria	Ganaste la manga
+{0} venceu a bateria	{0} ganó la manga
+Você {0} × {1} {2}	Tú {0} × {1} {2}
+Na próxima, vocês trocam de trilho.	En la próxima, cambiáis de carril.
+Desistir (Esc)	Abandonar (Esc)
+Próxima bateria (Enter)	Siguiente manga (Enter)
+peça nova no construtor: {0}	pieza nueva en el constructor: {0}
+Contra o relógio	Contrarreloj
+Desafio	Desafío
+Rival	Rival
+Monte a pista: 	Monta la pista:
+ e as peças que você já abriu	 y las piezas que ya desbloqueaste
+ (com rampas)	 (con rampas)
+ (sem rampas)	 (sin rampas)
+ · no máximo {0} peças	 · como máximo {0} piezas
+ · use pelo menos: 	 · usa al menos:
+Esta peça não vale nesta prova.	Esta pieza no vale en esta prueba.
+Não vale nesta prova.	No vale en esta prueba.
+Carreira · {0}	Trayectoria · {0}
+{0} · monte a pista	{0} · monta la pista
+Peças: {0}{1}\n	Piezas: {0}{1}\n
+ de {0}	 de {0}
+<color=#3DBE74>✓ A pista vale. Pode correr.</color>	<color=#3DBE74>✓ La pista vale. Puedes correr.</color>
+VOCÊ	TÚ
+Você	Tú
+VOC	TÚ
+Tabela · {0} de {1} etapas	Clasificación · {0} de {1} rondas
+{0}º  {1}  ·  {2} pts	{0}º  {1}  ·  {2} pts
+  ·  {0} vitória	  ·  {0} victoria
+  ·  {0} vitórias	  ·  {0} victorias
+Você ficou em {0}º	Quedaste {0}º
+Você chegou em {0}º	Llegaste {0}º
+Você não terminou	No terminaste
+Simulada · 	Simulada ·
+Próxima: {0}	Siguiente: {0}
+\n<color=#F5C21B>Etapa {0} de {1} · você é {2}º na tabela</color>	\n<color=#F5C21B>Ronda {0} de {1} · eres {2}º en la clasificación</color>
+{0} etapas: 	{0} rondas:
+\nPilotos: 	\nPilotos:
+{0} (IA {1})	{0} (IA {1})
+\nPor tempo: {0} s por etapa, passando por todos os trilhos ({1} {2} por etapa)	\nPor tiempo: {0} s por ronda, pasando por todos los carriles ({1} {2} por ronda)
+bateria	manga
+baterias	mangas
+\n{0} baterias por etapa (você corre {1}; as outras são simuladas)	\n{0} mangas por ronda (tú corres {1}; las demás se simulan)
+\nEm andamento: {0} de {1} etapas	\nEn curso: {0} de {1} rondas
+Escolha do carro · etapa {0}: {1}	Elección del coche · ronda {0}: {1}
+Motor, bolha e pneu para a etapa inteira. Cada peça dá uma coisa e tira outra.	Motor, carrocería y neumáticos para toda la ronda. Cada pieza da algo y quita otra cosa.
+Pronto ✓	Listo ✓
+Pronto	Listo
+robô	bot
+saiu	salió
+pronto	listo
+escolhendo	eligiendo
+<b>Enter</b>: todos prontos com o que está escolhido.	<b>Enter</b>: todos listos con lo elegido.
+Fecha sozinho em {0} s (quem não confirmou corre com o que estiver escolhido).	Se cierra sola en {0} s (quien no confirmó corre con lo que tenga elegido).
+O host fecha a escolha em até {0} s.	El anfitrión cierra la elección en {0} s como máximo.
+Fechar a escolha	Cerrar la elección
+NOVO CAMPEONATO	NUEVO CAMPEONATO
+Escolha os pilotos e as pistas. Em cada etapa, todo piloto corre uma bateria em cada trilho, em rodízio: ninguém leva vantagem por ficar sempre do lado de dentro.	Elige los pilotos y las pistas. En cada ronda, cada piloto corre una manga en cada carril, por turnos: nadie tiene ventaja por ir siempre por dentro.
+Nome do campeonato	Nombre del campeonato
+Todas as etapas correm nesse tamanho (qualquer pista é adaptada). Depois de começar, o tamanho não muda. Com menos pilotos que trilhos, sobra trilho vazio.	Todas las rondas se corren en este tamaño (cualquier pista se adapta). Después de empezar, el tamaño no cambia. Con menos pilotos que carriles, sobra un carril vacío.
+FORMATO	FORMATO
+Por voltas	Por vueltas
+Por tempo	Por tiempo
+Cada bateria tem uma duração e se divide em uma manche por trilho. Vence quem andar mais.	Cada manga tiene una duración y se divide en una tanda por carril. Gana quien recorra más.
+PILOTOS	PILOTOS
+Marque quem vai correr: de 2 a 8. A ordem em que você marca é a ordem do rodízio. Piloto IA é dirigido pelo computador e não bate recorde da pista.	Marca quién va a correr: de 2 a 8. El orden en que marcas es el orden de los turnos. El piloto IA lo conduce el ordenador y no bate récords de la pista.
+NOVO PILOTO	NUEVO PILOTO
+Nome	Nombre
+Sigla	Sigla
+Piloto IA (o computador dirige)	Piloto IA (conduce el ordenador)
+Adicionar piloto	Añadir piloto
+ETAPAS	RONDAS
+Cada etapa é uma pista com um número de voltas. Clique numa pista abaixo para incluir.	Cada ronda es una pista con un número de vueltas. Haz clic en una pista de abajo para incluirla.
+PISTAS DISPONÍVEIS	PISTAS DISPONIBLES
+REGRAS	REGLAS
+Começar campeonato	Empezar campeonato
+CAMPEONATOS ANTERIORES	CAMPEONATOS ANTERIORES
+Tempo de prova	Tiempo de carrera
+0,00 s	0,00 s
+TABELA GERAL	CLASIFICACIÓN GENERAL
+RECORDES DA PISTA	RÉCORDS DE LA PISTA
+Abandonar campeonato	Abandonar campeonato
+Abandonar? Clique de novo	¿Abandonar? Haz clic otra vez
+Não deu para salvar o campeonato no disco.	No se pudo guardar el campeonato en el disco.
+Qualidade: {0}	Calidad: {0}
+Robô {0}	Bot {0}
+Marque pelo menos 2 pilotos.	Marca al menos 2 pilotos.
+No máximo {0} pilotos.	Como máximo {0} pilotos.
+{0} e {1} estão com a mesma cor. Troque a cor de um deles.	{0} y {1} tienen el mismo color. Cambia el color de uno de ellos.
+Inclua pelo menos uma pista nas etapas.	Incluye al menos una pista en las rondas.
+IA {0}	IA {0}
+Piloto IA, qualidade {0}	Piloto IA, calidad {0}
+{0} de {1}	{0} de {1}
+ · {0} {1} por bateria	 · {0} {1} por manga
+trilho vazio	carril vacío
+trilhos vazios	carriles vacíos
+Nenhum piloto cadastrado. Adicione abaixo.	No hay pilotos registrados. Añade uno abajo.
+cor repetida	color repetido
+Editar	Editar
+ (já usada)	 (ya usado)
+EDITAR PILOTO	EDITAR PILOTO
+Salvar piloto	Guardar piloto
+{0} etapa	{0} ronda
+{0} etapas	{0} rondas
+Nenhuma etapa ainda.	Aún no hay rondas.
+{0} volta	{0} vuelta
+{0} voltas	{0} vueltas
+Tirar etapa	Quitar ronda
+ · recorde {0} {1}	 · récord {0} {1}
+1 pista aberta não aparece: feche o circuito no Construtor.	1 pista abierta no aparece: cierra el circuito en el Constructor.
+{0} pistas abertas não aparecem: feche os circuitos no Construtor.	{0} pistas abiertas no aparecen: cierra los circuitos en el Constructor.
+• Usa as regras da corrida de Opções (menu inicial): velocidade <b>{0} cél/s</b>, até 100% em <b>{1} s</b>, aderência <b>{2}</b>, colisão <b>{3}</b>, turbo <b>{4}</b>, recolocar em <b>{5} s</b>. Ficam fixos até o fim.\n	• Usa las reglas de carrera de Opciones (menú inicial): velocidad <b>{0} celdas/s</b>, 100% en <b>{1} s</b>, agarre <b>{2}</b>, colisión <b>{3}</b>, turbo <b>{4}</b>, recolocar en <b>{5} s</b>. Quedan fijas hasta el final.\n
+ligada	activada
+desligada	desactivada
+ligado	activado
+desligado	desactivado
+• <b>Por tempo</b>: cada etapa tem {0} de até {1} carros. A bateria se divide em <b>{2} manches</b>, uma em cada trilho. Vale a <b>distância</b> (voltas e fração).\n	• <b>Por tiempo</b>: cada ronda tiene {0} de hasta {1} coches. La manga se divide en <b>{2} tandas</b>, una en cada carril. Cuenta la <b>distancia</b> (vueltas y fracción).\n
+<b>{0} grupos</b>	<b>{0} grupos</b>
+<b>uma bateria</b>	<b>una manga</b>
+• Cada etapa: {0} de até <b>{1} carros</b>, e cada piloto corre uma vez em cada trilho. Vale o <b>tempo somado</b> de todas.\n• Quem não completar as voltas tem <b>{2:0} s</b> depois da bandeirada do primeiro; fica com as voltas que fez.\n	• Cada ronda: {0} de hasta <b>{1} coches</b>, y cada piloto corre una vez en cada carril. Cuenta el <b>tiempo sumado</b> de todas.\n• Quien no complete las vueltas tiene <b>{2:0} s</b> tras la bandera del primero; se queda con las vueltas que hizo.\n
+<b>{0} baterias</b>	<b>{0} mangas</b>
+uma bateria por piloto	una manga por piloto
+• Pontos: <b>{0}</b>, mais 1 para a melhor volta da etapa.	• Puntos: <b>{0}</b>, más 1 por la vuelta rápida de la ronda.
+<b>{0} pilotos · {1} {2} · {3} baterias de {4}</b> · cerca de {5} min	<b>{0} pilotos · {1} {2} · {3} mangas de {4}</b> · unos {5} min
+etapa	ronda
+etapas	rondas
+Pts	Pts
+Vit.	Vic.
+Apagar do histórico	Borrar del historial
+Pista do construtor	Pista del constructor
+dentro	dentro
+fora	fuera
+Etapa {0} de {1} · bateria {2} de {3}	Ronda {0} de {1} · manga {2} de {3}
+Encerrado · {0} {1} · {2} baterias	Terminado · {0} {1} · {2} mangas
+×	×
+IA · qualidade {0}	IA · calidad {0}
+só com controle	solo con mando
+acelera {0} · recoloca {1}	acelera {0} · recoloca {1}
+Arquivar e montar outro	Archivar y montar otro
+Salvar e seguir (Enter)	Guardar y seguir (Enter)
+Recomeçar bateria	Reiniciar manga
+Arquivar guarda a tabela final no histórico. Os recordes ficam salvos nas pistas.	Archivar guarda la clasificación final en el historial. Los récords quedan guardados en las pistas.
+Confira quem está em cada trilho e passe o controle. Depois, Largar e esperar as luzes.	Comprueba quién está en cada carril y pasa el mando. Después, Salida y espera a las luces.
+Salve para o resultado contar na tabela. Se algo deu errado, corra de novo: esta bateria é descartada.	Guarda para que el resultado cuente en la clasificación. Si algo salió mal, corre otra vez: esta manga se descarta.
+Bateria de {0} em {1} manches: no fim de cada uma, todos trocam de trilho. Vence quem andar mais.	Manga de {0} en {1} tandas: al final de cada una, todos cambian de carril. Gana quien recorra más.
+Vence a bateria quem completar {0} {1} primeiro. Quem não terminar tem {2:0} s depois da bandeirada.	Gana la manga quien complete {0} {1} primero. Quien no termine tiene {2:0} s tras la bandera.
+volta	vuelta
+voltas	vueltas
+ETAPA {0} · {1}{2}	RONDA {0} · {1}{2}
+ ({0} de {1} baterias)	 ({0} de {1} mangas)
+Bat.	Mng.
+Distância	Distancia
+Voltas	Vueltas
+Tempo	Tiempo
+Melhor	Mejor
+Melhores voltas	Mejores vueltas
+Pontos por etapa: {0}, mais 1 para a melhor volta. Desempate: vitórias, pódios, tempo total.	Puntos por ronda: {0}, más 1 por la vuelta rápida. Desempate: victorias, podios, tiempo total.
+ online	 online
+ninguém ainda	nadie aún
+Volta	Vuelta
+MELHOR VOLTA DE CADA UM	MEJOR VUELTA DE CADA UNO
+ venceu	 ganó
+{0} de {1} baterias	{0} de {1} mangas
+próxima	siguiente
+{0} baterias	{0} mangas
+{0} pts	{0} pts
+Mão mais rápida	La mano más rápida
+ {0} em {1}	 {0} en {1}
+Rei do muro	Rey del muro
+ {0} {1} de pista	 {0} {1} de pista
+Para-choque	Parachoques
+ {0} toque	 {0} toque
+ {0} toques	 {0} toques
+Recordes batidos	Récords batidos
+Última	Última
+Saídas	Salidas
+Toques	Toques
+Campeonato {0}	Campeonato {0}
+Recorde da pista! {0}	¡Récord de la pista! {0}
+Melhor volta pessoal! {0}	¡Mejor vuelta personal! {0}
+TABELA GERAL · etapa {0} encerrada	CLASIFICACIÓN GENERAL · ronda {0} terminada
+TABELA GERAL · etapa {0}: {1} de {2} baterias	CLASIFICACIÓN GENERAL · ronda {0}: {1} de {2} mangas
+etapa {0}º · 	ronda {0}º ·
+{0} v	{0} v
+{0} v {1}	{0} v {1}
+recorde de volta de {0} ({1})	récord de vuelta de {0} ({1})
+recorde de {0} voltas de {1} ({2})	récord de {0} vueltas de {1} ({2})
+Novo 	Nuevo
+ e novo 	 y nuevo
+Monte o campeonato: pilotos e etapas	Monta el campeonato: pilotos y rondas
+{0}: {1} venceu	{0}: ganó {1}
+{0} · troca de trilho	{0} · cambio de carril
+{0} · {1} · faltam {2}	{0} · {1} · faltan {2}
+{0} · volta {1} de {2}	{0} · vuelta {1} de {2}
+Bateria {0} encerrada · o host salva e segue	Manga {0} terminada · el anfitrión guarda y sigue
+Bateria {0} encerrada · salve para seguir	Manga {0} terminada · guarda para seguir
+Atenção à largada	Atención a la salida
+{0} vence o campeonato	{0} gana el campeonato
+{0} pontos · {1} {2} · {3}	{0} puntos · {1} {2} · {3}
+vitória	victoria
+vitórias	victorias
+{0} vence a bateria	{0} gana la manga
+{0} · melhor volta {1}	{0} · mejor vuelta {1}
+★  RECORDE DA PISTA  ·  {0}  {1}	★  RÉCORD DE LA PISTA  ·  {0}  {1}
+{0} vence a etapa {1}	{0} gana la ronda {1}
+Próxima: {0} · {1}	Siguiente: {0} · {1}
+ROBÔ · {0}	BOT · {0}
+JOGADOR {0}	JUGADOR {0}
+  <size=10><color=#9AA3A8>{0}</color></size>	  <size=10><color=#9AA3A8>{0}</color></size>
+IA PILOTANDO · {0}	IA PILOTANDO · {0}
+Recolocar  {0}	Recolocar  {0}
+ACELERAR  ·  controle	ACELERAR  ·  mando
+PRECISA DE UM CONTROLE	NECESITA UN MANDO
+  ·  controle	  ·  mando
+ACELERAR  {0}  ·  {1}% {2}{3}	ACELERAR  {0}  ·  {1}% {2}{3}
+Trilho 1	Carril 1
+Trilho 2	Carril 2
+Trilho 3	Carril 3
+Trilho 4	Carril 4
+Trilho 5	Carril 5
+Trilho 6	Carril 6
+Trilho 7	Carril 7
+Trilho 8	Carril 8
+Transmissão de TV	Retransmisión de TV
+Perseguição	Persecución
+Primeira pessoa	Primera persona
+De cima	Desde arriba
+Câmeras em volta da mesa seguem o líder	Cámaras alrededor de la mesa siguen al líder
+Atrás e acima do carrinho, olhando a curva	Detrás y encima del coche, mirando la curva
+Dentro do carrinho; quando ele roda, vira a traseira	Dentro del coche; cuando trompea, mira hacia atrás
+Segue os jogadores; botão direito gira, roda aproxima	Sigue a los jugadores; botón derecho gira, rueda acerca
+Jogador 1	Jugador 1
+Jogador 2	Jugador 2
+Jogador 3	Jugador 3
+Jogador 4	Jugador 4
+Jogador 5	Jugador 5
+Jogador 6	Jugador 6
+Jogador 7	Jugador 7
+Jogador 8	Jugador 8
+Carrinho vermelho	Coche rojo
+Carrinho azul	Coche azul
+Carrinho verde	Coche verde
+Carrinho amarelo	Coche amarillo
+Carrinho roxo	Coche morado
+Carrinho ciano	Coche cian
+Carrinho laranja	Coche naranja
+Carrinho rosa	Coche rosa
+a que está aberta agora	la que está abierta ahora
+Exemplo: 8 com ponte	Ejemplo: ocho con puente
+PISTA	PISTA
+Escolha onde correr. Qualquer pista fechada serve, em qualquer tamanho. Trocar aqui não mexe na pista do construtor.	Elige dónde correr. Sirve cualquier pista cerrada, de cualquier tamaño. Cambiar aquí no toca la pista del constructor.
+{0} trilhos	{0} carriles
+CARROS NA PISTA	COCHES EN LA PISTA
+Voltar ao grid	Volver a la parrilla
+COMO PILOTAR	CÓMO PILOTAR
+<b>Controle:</b> gatilho direito acelera aos poucos (o 1º controle é do jogador 1, o 2º do jogador 2, e assim por diante) · <b>A/✕</b> recoloca · <b>X/□</b> ou <b>RB</b> turbo · <b>Start</b> larga\n<b>Enter</b> largar · câmera no menu do canto direito	<b>Mando:</b> el gatillo derecho acelera poco a poco (el 1.er mando es del jugador 1, el 2.º del jugador 2, y así sucesivamente) · <b>A/✕</b> recoloca · <b>X/□</b> o <b>RB</b> turbo · <b>Start</b> sale\n<b>Enter</b> salir · cámara en el menú de la esquina derecha
+Colisão entre carrinhos	Colisión entre coches
+Voltas: {0}	Vueltas: {0}
+Duração: {0} · {1} por trilho	Duración: {0} · {1} por carril
+Velocidade máx.: {0} cél/s	Velocidad máx.: {0} celdas/s
+Tempo até 100%: {0} s	Tiempo hasta 100%: {0} s
+Aderência: {0}	Agarre: {0}
+Meia aceleração (tecla de meia): {0}%	Media aceleración (tecla de media): {0}%
+Tempo para recolocar: {0} s	Tiempo para recolocar: {0} s
+Nas curvas planas, o carrinho segura até {0}% da velocidade máxima no trilho de dentro e {1}% no de fora. Nas inclinadas, até {2}% e {3}%.	En las curvas planas, el coche aguanta hasta el {0}% de la velocidad máxima en el carril interior y el {1}% en el exterior. En las peraltadas, hasta el {2}% y el {3}%.
+Som do motor: <b>{0}</b>  ▸	Sonido del motor: <b>{0}</b>  ▸
+Clique para ouvir o próximo. Para usar uma gravação sua, ponha motor.wav (PCM 16 bits) em 	Haz clic para oír el siguiente. Para usar una grabación tuya, pon motor.wav (PCM 16 bits) en
+Som: {0}%	Sonido: {0}%
+Correr de novo  (Enter)	Correr otra vez  (Enter)
+Trocar pista	Cambiar pista
+OPÇÕES	OPCIONES
+IDIOMA	IDIOMA
+O novo idioma vale ao reabrir o jogo.	El nuevo idioma se aplica al volver a abrir el juego.
+TECLAS DOS JOGADORES	TECLAS DE LOS JUGADORES
+Clique num botão e aperte a tecla nova. Se ela já era de outra ação, as duas trocam. Esc cancela.	Haz clic en un botón y pulsa la tecla nueva. Si ya era de otra acción, las dos se intercambian. Esc cancela.
+Jogador {0}	Jugador {0}
+Jogadores 5 e 6 (pista de 6) jogam só com controle.	Los jugadores 5 y 6 (pista de 6) juegan solo con mando.
+Restaurar padrão	Restaurar valores
+REGRAS DA CORRIDA	REGLAS DE LA CARRERA
+<b>Onde valem:</b>\n• <b>Corrida livre</b> e <b>carreira</b>: na hora (na carreira, a pista molhada tira aderência quando a prova pede).\n• <b>Campeonato offline</b>: são copiadas quando o campeonato é criado. Mudar aqui depois não mexe num campeonato em andamento.\n• <b>Campeonato online</b>: valem as do <b>host</b>, enviadas na largada e fixas até o fim. As dos outros jogadores não contam.\n• <b>Partida rápida</b>: não valem. Lá as regras são sempre as padrão: velocidade 14, 0,5 s até 100%, aderência 29, colisão e turbo ligados, recolocar em 0,3 s.	<b>Dónde valen:</b>\n• <b>Carrera libre</b> y <b>trayectoria</b>: al momento (en la trayectoria, la pista mojada quita agarre cuando la prueba lo pide).\n• <b>Campeonato offline</b>: se copian al crear el campeonato. Cambiarlas aquí después no afecta a un campeonato en curso.\n• <b>Campeonato online</b>: valen las del <b>anfitrión</b>, enviadas en la salida y fijas hasta el final. Las de los demás jugadores no cuentan.\n• <b>Partida rápida</b>: no valen. Allí las reglas son siempre las estándar: velocidad 14, 0,5 s hasta 100%, agarre 29, colisión y turbo activados, recolocar en 0,3 s.
+SEU CONTROLE E SOM	TU CONTROL Y SONIDO
+Só seus, em qualquer modo, também no online: não vão para os outros jogadores.	Solo tuyos, en cualquier modo, también online: no se envían a los demás jugadores.
+JOGO ONLINE	JUEGO ONLINE
+O jogo abre conectado à Steam. Desligue para jogar pelo servidor (Node) no endereço abaixo.	El juego se abre conectado a Steam. Desactívalo para jugar por el servidor (Node) en la dirección de abajo.
+TODAS AS TECLAS	TODAS LAS TECLAS
+Fechar  (Esc)	Cerrar  (Esc)
+reta curta · comprida · curtinha	recta corta · larga · cortita
+curva longa esquerda · direita	curva larga izquierda · derecha
+meia curva esquerda · direita	media curva izquierda · derecha
+curva longa inclinada esquerda · direita	curva larga peraltada izquierda · derecha
+curva curta inclinada esquerda · direita	curva corta peraltada izquierda · derecha
+curva em C esquerda · direita	horquilla izquierda · derecha
+rampa sobe · desce	rampa sube · baja
+loop saindo à esquerda · à direita	loop saliendo a la izquierda · a la derecha
+rampa de salto	rampa de salto
+cruzamento · cruzamento curto	cruce · cruce corto
+troca o lado (esquerda · direita) da peça selecionada	cambia el lado (izquierda · derecha) de la pieza seleccionada
+troca a ponta de encaixe: fim da pista · atrás da largada	cambia el extremo de encaje: final de la pista · detrás de la salida
+gira a pista 90° em volta da largada	gira la pista 90° alrededor de la salida
+fecha o circuito sozinho (Esc cancela)	cierra el circuito solo (Esc cancela)
+Delete · Backspace	Supr · Retroceso
+apaga a selecionada · a última	borra la seleccionada · la última
+Ctrl+Z · Ctrl+Y (Ctrl+Shift+Z)	Ctrl+Z · Ctrl+Y (Ctrl+Mayús+Z)
+desfaz · refaz	deshace · rehace
+Esc	Esc
+tira a seleção	quita la selección
+Clique	Clic
+seleciona a peça; arrastar a largada move a pista	selecciona la pieza; arrastrar la salida mueve la pista
+CÂMERA E TELA	CÁMARA Y PANTALLA
+Roda do mouse	Rueda del ratón
+aproxima e afasta	acerca y aleja
+Botão direito · do meio	Botón derecho · central
+arrasta a mesa; com a câmera inclinada, o direito gira	arrastra la mesa; con la cámara inclinada, el derecho gira
+câmera de cima · inclinada	cámara desde arriba · inclinada
+enquadra a pista	encuadra la pista
+Tab	Tab
+mostra e esconde o painel	muestra y oculta el panel
+1 · 2 · 3 · 4 (corrida)	1 · 2 · 3 · 4 (carrera)
+troca a câmera, na ordem do menu	cambia la cámara, en el orden del menú
+Enter (ou Start no controle)	Enter (o Start en el mando)
+larga · próxima bateria	salida · siguiente manga
+pausa (online: 3 por piloto, 60 s cada)	pausa (online: 3 por piloto, 60 s cada una)
+o que aparece em cima dos carros	lo que aparece encima de los coches
+liga e desliga a narração	activa y desactiva la narración
+fecha esta tela	cierra esta pantalla
+“{0}” é do jogo (Enter larga). Aperte outra tecla.	“{0}” es del juego (Enter da la salida). Pulsa otra tecla.
+{0}: <b>aperte…</b>	{0}: <b>pulsa…</b>
+{0}: <b>{1}</b>	{0}: <b>{1}</b>
+Aperte a tecla nova (Esc cancela).	Pulsa la tecla nueva (Esc cancela).
+<b>Segure</b> Acelerar e o acelerador sobe de 0 a 100%. <b>Soltou, zerou</b>: o carrinho freia.\nRápido demais na curva, a traseira escorrega e a barra de <b>derrapagem</b> enche. Cheia, o carrinho sai da pista.\n<b>Recolocar</b> devolve o carrinho ao trilho, um pouco antes de onde ele saiu.\n<b>Turbo</b>: começa vazio e enche um pouco a cada volta completa e um pouquinho a cada saída de pista (mais para quem está atrás). O tipo de turbo fica no ajuste do carro: explosivo ou eficiente. Segure para andar acima da velocidade máxima até o tanque acabar. Volta com turbo não vale como melhor volta.\n<b>Teclas</b> (acelerar 100% · meia {0}% · recolocar · turbo): jogador 1 {1} · {2} · {3} · {4}; jogador 2 {5} · {6} · {7} · {8}; jogador 3 {9} · {10} · {11} · {12}; jogador 4 {13} · {14} · {15} · {16}. Até onde a meia acelera: arraste o marcador na barra ACELERAR ou use meia − · meia + ({17} · {18} no jogador 1; ◀ ▶ do direcional no controle). Mude no menu inicial, em <b>Opções</b>.	<b>Mantén</b> Acelerar y el acelerador sube de 0 a 100%. <b>Si sueltas, vuelve a cero</b>: el coche frena.\nDemasiado rápido en la curva, la trasera se desliza y la barra de <b>derrape</b> se llena. Llena, el coche se sale de la pista.\n<b>Recolocar</b> devuelve el coche al carril, un poco antes de donde se salió.\n<b>Turbo</b>: empieza vacío y se llena un poco con cada vuelta completa y un poquito con cada salida de pista (más para quien va detrás). El tipo de turbo está en el ajuste del coche: explosivo o eficiente. Mantén para ir por encima de la velocidad máxima hasta que se acabe el depósito. Una vuelta con turbo no cuenta como mejor vuelta.\n<b>Teclas</b> (acelerar 100% · media {0}% · recolocar · turbo): jugador 1 {1} · {2} · {3} · {4}; jugador 2 {5} · {6} · {7} · {8}; jugador 3 {9} · {10} · {11} · {12}; jugador 4 {13} · {14} · {15} · {16}. Hasta dónde acelera la media: arrastra el marcador en la barra ACELERAR o usa media − · media + ({17} · {18} en el jugador 1; ◀ ▶ de la cruceta en el mando). Cámbialas en el menú inicial, en <b>Opciones</b>.
+Carro {0}	Coche {0}
+Robô	Bot
+ · controle {0}	 · mando {0}
+Acelera {0} · meia {1} · recoloca {2} · turbo {3}{4}	Acelera {0} · media {1} · recoloca {2} · turbo {3}{4}
+Controle {0}	Mando {0}
+Só com controle: ligue mais um controle	Solo con mando: conecta otro mando
+Carro: <b>{0}</b>  {1}	Coche: <b>{0}</b>  {1}
+1 trilho fica vazio.	1 carril queda vacío.
+{0} trilhos ficam vazios.	{0} carriles quedan vacíos.
+Treino: um carro só, contra o relógio.	Entrenamiento: un solo coche, contra el reloj.
+Modelo	Modelo
+Final	Velocidad final
+Velocidade máxima na reta. Motor longo, bolha lisa e pneu duro.	Velocidad máxima en la recta. Motor largo, carrocería lisa y neumático duro.
+Aceleração	Aceleración
+Quanto o carro embala ao sair da curva. Motor curto.	Cuánto coge el coche al salir de la curva. Motor corto.
+Aderência	Agarre
+Pneu: segura o carro em qualquer curva, devagar ou rápido. Macio segura mais.	Neumático: sujeta el coche en cualquier curva, despacio o rápido. El blando sujeta más.
+Aerodinâmica	Aerodinámica
+Bolha com asa: segura o carro na curva, e mais quanto mais rápido ele vai. Não ajuda na curva feita devagar.	Carrocería con alerón: sujeta el coche en la curva, y más cuanto más rápido va. No ayuda en las curvas lentas.
+Agilidade	Agilidad
+Chassi leve: o gatilho e o freio respondem mais rápido.	Chasis ligero: el gatillo y el freno responden más rápido.
+Estabilidade	Estabilidad
+Chassi pesado: demora mais para escapar quando você passa do limite na curva.	Chasis pesado: tarda más en irse cuando pasas del límite en la curva.
+Do zero a 95% da final em {0:0.00} s (padrão {1:0.00} s).	De cero al 95% de la final en {0:0.00} s (estándar {1:0.00} s).
+Chassi leve: responde rápido, mas escapa fácil no limite da curva.	Chasis ligero: responde rápido, pero se va fácil al límite de la curva.
+Chassi pesado: mais lento no gatilho, perdoa o exagero na curva.	Chasis pesado: más lento en el gatillo, perdona los excesos en la curva.
+Turbo {0}: +{1:0}% de velocidade máxima por {2:0.#} s de tanque cheio	Turbo {0}: +{1:0}% de velocidad máxima durante {2:0.#} s con el depósito lleno
+ (mais explosão, menos volume).	 (más explosión, menos volumen).
+ (menos explosão, mais volume).	 (menos explosión, más volumen).
+Curva plana: segura até {0}% da final deste carro no trilho de dentro e {1}% no de fora. Meia aceleração: {2}%.	Curva plana: aguanta hasta el {0}% de la final de este coche en el carril interior y el {1}% en el exterior. Media aceleración: {2}%.
+CÂMERA	CÁMARA
+<b>{0}  {1}</b>\n<size=10>{2}</size>	<b>{0}  {1}</b>\n<size=10>{2}</size>
+SEGUIR	SEGUIR
+No online, segue o seu carrinho.	Online, sigue a tu coche.
+Câmera: <b>{0}</b>  ▾	Cámara: <b>{0}</b>  ▾
+Câmera  ▾	Cámara  ▾
+Tela dividida: <b>{0}</b>\n<size=10>2 a 4 jogadores no mesmo computador: um quadro para cada</size>	Pantalla dividida: <b>{0}</b>\n<size=10>De 2 a 4 jugadores en el mismo ordenador: un cuadro para cada uno</size>
+sim	sí
+não	no
+Distância: {0}%	Distancia: {0}%
+No grid	En la parrilla
+ACELERAR  {0}  ·  {1}% {2}	ACELERAR  {0}  ·  {1}% {2}
+Velocidade	Velocidad
+Derrapagem	Derrape
+TURBO	TURBO
+Trilho	Carril
+Esta pista não é um circuito fechado. Escolha outra acima ou feche o traçado no Construtor.	Esta pista no es un circuito cerrado. Elige otra arriba o cierra el trazado en el Constructor.
+O carrinho está no grid.	El coche está en la parrilla.
+Os dois carrinhos estão no grid.	Los dos coches están en la parrilla.
+Os {0} carrinhos estão no grid.	Los {0} coches están en la parrilla.
+ Aperte Largar e espere as luzes.	 Pulsa Salida y espera a las luces.
+Pode segurar o acelerador: o carrinho sai quando a luz ficar verde.	Puedes mantener el acelerador: el coche sale cuando la luz se pone verde.
+Fim da manche: cada carrinho passa para o trilho seguinte.	Fin de la tanda: cada coche pasa al carril siguiente.
+Corrida por tempo, {0}: vence quem andar mais em {1}.	Carrera por tiempo, {0}: gana quien recorra más en {1}.
+Vence quem completar {0} {1} primeiro.	Gana quien complete {0} {1} primero.
+Prova encerrada. Aperte Largar para correr de novo.	Prueba terminada. Pulsa Salida para correr otra vez.
+Nova largada (Enter)	Nueva salida (Enter)
+Feche o circuito no Construtor para correr	Cierra el circuito en el Constructor para correr
+{0} venceu	{0} ganó
+Troca de trilho	Cambio de carril
+Corrida · {0} · faltam {1}	Carrera · {0} · faltan {1}
+Corrida · volta {0} de {1}	Carrera · vuelta {0} de {1}
+Pronto para largar	Listo para salir
+TURBO  {0}%	TURBO  {0}%
+TURBO  {0}  ·  {1}%	TURBO  {0}  ·  {1}%
+Venceu!	¡Ganó!
+Chegou	Llegó
+Fora da pista!	¡Fuera de la pista!
+Voltando ao trilho	Volviendo al carril
+Batida!	¡Choque!
+Aguarde a luz verde	Espera la luz verde
+Vai para o trilho {0}	Ve al carril {0}
+{0} voltas · trilho {1}	{0} vueltas · carril {1}
+Volta {0} de {1}	Vuelta {0} de {1}
+{0} v · T{1}	{0} v · C{1}
+Volta {0}/{1}	Vuelta {0}/{1}
+Melhor {0}	Mejor {0}
+LÍDER	LÍDER
++{0} v	+{0} v
+TROCA DE TRILHO\n<size=40%>{0}</size>	CAMBIO DE CARRIL\n<size=40%>{0}</size>
+manche {0} de {1}	tanda {0} de {1}
+VAI!	¡YA!
+líder	líder
+−{0} do líder · −{1} do {2}º	−{0} del líder · −{1} del {2}º
+não terminou	no terminó
+★ melhor volta 	★ mejor vuelta
+melhor 	mejor
+1 saída	1 salida
+{0} saídas	{0} salidas
+RECORDE	RÉCORD
+Salvar e seguir  (Enter)	Guardar y seguir  (Enter)
+Sua nota para esta pista (clique para trocar)	Tu nota para esta pista (haz clic para cambiarla)
+Que nota você dá para esta pista?	¿Qué nota le das a esta pista?
+Nota {0} enviada.	Nota {0} enviada.
+{0} estrela	{0} estrella
+{0} estrelas	{0} estrellas
+lendo as notas…	leyendo las notas…
+média ★ {0} · {1} {2}	media ★ {0} · {1} {2}
+nota	nota
+notas	notas
+ainda sem notas: a sua é a primeira	aún sin notas: la tuya es la primera
+Pista aberta	Pista abierta
+Escolha um circuito fechado na lista.	Elige un circuito cerrado de la lista.
+{0} voltas em {1} · melhor volta {2}	{0} vueltas en {1} · mejor vuelta {2}
+faltam · {0}	faltan · {0}
+ÚLTIMA VOLTA	ÚLTIMA VUELTA
+VOLTA {0}/{1}	VUELTA {0}/{1}
+ · líder	 · líder
+{0} min	{0} min
+ s	 s
+FANTASMA	FANTASMA
+Correr contra o fantasma	Correr contra el fantasma
+A melhor volta da pista corre ao seu lado, transparente, largando junto a cada volta.	La mejor vuelta de la pista corre a tu lado, transparente, saliendo contigo en cada vuelta.
+Esta pista ainda não tem fantasma. A primeira volta limpa de um piloto de gente vira o fantasma.	Esta pista aún no tiene fantasma. La primera vuelta limpia de un piloto humano se convierte en el fantasma.
+Melhor volta: <b>{0}</b> · {1} · {2:dd/MM/yyyy}	Mejor vuelta: <b>{0}</b> · {1} · {2:dd/MM/yyyy}
+Gravado com velocidade máx. {0}, aderência {1} e tempo até 100% {2} s (agora {3}, {4} e {5} s).	Grabado con velocidad máx. {0}, agarre {1} y tiempo hasta 100% {2} s (ahora {3}, {4} y {5} s).
+O carro do fantasma:	El coche del fantasma:
+Novo fantasma! {0}	¡Nuevo fantasma! {0}
+PARTIDA RÁPIDA	PARTIDA RÁPIDA
+Uma corrida de {0} contra quem estiver na fila. Cada um põe uma pista na disputa e o servidor sorteia qual vale. Só larga com a fila cheia. Funciona pelo servidor e pela Steam.	Una carrera de {0} contra quien esté en la cola. Cada uno pone una pista en el sorteo y el servidor elige cuál vale. Solo sale con la cola llena. Funciona por el servidor y por Steam.
+CARROS	COCHES
+Sua pista	Tu pista
+Procurar partida	Buscar partida
+PROCURANDO PARTIDA	BUSCANDO PARTIDA
+PISTAS NA DISPUTA	PISTAS EN EL SORTEO
+Sair da fila	Salir de la cola
+{0} · {1} na fila	{0} · {1} en la cola
+Nenhuma pista fechada. Monte uma no construtor.	Ninguna pista cerrada. Monta una en el constructor.
+A pista entra adaptada para {0} carros. 	La pista entra adaptada para {0} coches.
+{0} de {1} na fila agora.	{0} de {1} en la cola ahora.
+Ninguém na fila agora: toque em Atualizar lista para ver de novo.	Nadie en la cola ahora: toca Actualizar lista para ver otra vez.
+Essa pista é grande demais para o servidor.	Esa pista es demasiado grande para el servidor.
+Partida rápida · {0} carros · {1}	Partida rápida · {0} coches · {1}
+ ×{0}	 ×{0}
+{0:00}:{1:00} esperando	{0:00}:{1:00} esperando
+SORTEIO DA PISTA	SORTEO DE LA PISTA
+vai para {0} (de {1})	le toca a {0} (de {1})
+Narração: {0} (F2)	Narración: {0} (F2)
+CAMPEONATO ONLINE	CAMPEONATO ONLINE
+Um jogador cria a sala e escolhe as pistas. Os outros entram pelo código ou pela lista de salas públicas.	Un jugador crea la sala y elige las pistas. Los demás entran con el código o desde la lista de salas públicas.
+Jogar pela Steam	Jugar por Steam
+Usa o lobby e a rede da Steam: precisa da Steam aberta e logada. O nome é o da sua conta.	Usa el lobby y la red de Steam: necesita Steam abierto y con sesión iniciada. El nombre es el de tu cuenta.
+Servidor (ex.: ws://localhost:8080)	Servidor (ej.: ws://localhost:8080)
+Seu nome	Tu nombre
+CRIAR SALA	CREAR SALA
+Nome da sala (opcional)	Nombre de la sala (opcional)
+Sala pública (aparece na lista)	Sala pública (aparece en la lista)
+Criar sala	Crear sala
+ENTRAR COM UM CÓDIGO	ENTRAR CON UN CÓDIGO
+Salas privadas só entram assim.	A las salas privadas solo se entra así.
+Código da sala	Código de la sala
+Entrar	Entrar
+SALAS PÚBLICAS	SALAS PÚBLICAS
+Atualizar lista	Actualizar lista
+SALA	SALA
+Código	Código
+Copiar	Copiar
+Código copiado.	Código copiado.
+Convidar amigos (Steam)	Invitar amigos (Steam)
+Abre a janela de convite da Steam. Ela só aparece no jogo instalado (não no Editor): lá, use a lista abaixo.	Abre la ventana de invitación de Steam. Solo aparece en el juego instalado (no en el Editor): allí, usa la lista de abajo.
+Atualizar	Actualizar
+SUA COR	TU COLOR
+Mais um piloto jogando neste computador, com o seu nome e um 2. Ele usa o 2º conjunto de teclas (Opções) ou o 2º controle.	Un piloto más jugando en este ordenador, con tu nombre y un 2. Usa el 2.º juego de teclas (Opciones) o el 2.º mando.
+COR DO JOGADOR 2	COLOR DEL JUGADOR 2
+Cada bateria tem uma duração e se divide em uma manche por trilho; vence quem andar mais.	Cada manga tiene una duración y se divide en una tanda por carril; gana quien recorra más.
+Pista de 6 trilhos. Com menos de 6 jogadores, sobra trilho vazio em cada bateria.	Pista de 6 carriles. Con menos de 6 jugadores, sobra un carril vacío en cada manga.
+Pista de 8 trilhos. Com menos de 8 jogadores, sobra trilho vazio em cada bateria.	Pista de 8 carriles. Con menos de 8 jugadores, sobra un carril vacío en cada manga.
+Pista de 4 trilhos. Com menos de 4 jogadores, sobra trilho vazio em cada bateria.	Pista de 4 carriles. Con menos de 4 jugadores, sobra un carril vacío en cada manga.
+SUGESTÕES DOS PILOTOS	SUGERENCIAS DE LOS PILOTOS
+Pistas que os outros pilotos mandaram. Você decide: inclui como etapa, salva na sua biblioteca ou ignora.	Pistas que enviaron los otros pilotos. Tú decides: incluirla como ronda, guardarla en tu biblioteca o ignorarla.
+SUGERIR UMA PISTA AO HOST	SUGERIR UNA PISTA AL ANFITRIÓN
+Escolha uma das suas pistas (fechada) para o host incluir. Até 3 por minuto.	Elige una de tus pistas (cerrada) para que el anfitrión la incluya. Hasta 3 por minuto.
+CHAT	CHAT
+Estou pronto	Estoy listo
+Sair da sala	Salir de la sala
+Escreva uma mensagem	Escribe un mensaje
+Enviar	Enviar
+Você já está numa sala. Saia dela para entrar na do amigo.	Ya estás en una sala. Sal de ella para entrar en la de tu amigo.
+Nenhum amigo online agora. Use o botão acima para convidar quem está offline ou em outro jogo.	Ningún amigo online ahora. Usa el botón de arriba para invitar a quien esté desconectado o en otro juego.
+AMIGOS ONLINE · {0}	AMIGOS ONLINE · {0}
+Convidado ✓	Invitado ✓
+Convidar	Invitar
+Convite enviado a {0}.	Invitación enviada a {0}.
+Não deu para convidar. Confira se a Steam está aberta.	No se pudo invitar. Comprueba que Steam está abierto.
+Pela Steam, com o nome da sua conta. Para jogar pelo servidor, desligue a Steam em Opções, no menu inicial.	Por Steam, con el nombre de tu cuenta. Para jugar por el servidor, desactiva Steam en Opciones, en el menú inicial.
+Pelo servidor {0}. Mude em Opções, no menu inicial.	Por el servidor {0}. Cámbialo en Opciones, en el menú inicial.
+Sala {0} · {1}/{2} pilotos	Sala {0} · {1}/{2} pilotos
+Conectando à Steam…	Conectando a Steam…
+Conectando ao servidor…	Conectando al servidor…
+Online: crie uma sala ou entre numa	Online: crea una sala o entra en una
+Digite seu nome primeiro.	Escribe tu nombre primero.
+Digite o código da sala.	Escribe el código de la sala.
+Falta gente: são precisos pelo menos 2 pilotos.	Falta gente: se necesitan al menos 2 pilotos.
+Aguardando ficar pronto: 	Esperando que estén listos:
+A conexão caiu. Tentando voltar à sala ({0} de {1})…	Se cayó la conexión. Intentando volver a la sala ({0} de {1})…
+Não deu para voltar à sala: 	No se pudo volver a la sala:
+. Confira o endereço ({0}) e se o servidor está rodando (cd servidor && npm start).	. Comprueba la dirección ({0}) y si el servidor está en marcha (cd servidor && npm start).
+Você saiu da sala: 	Saliste de la sala:
+Sem conexão com a Steam	Sin conexión con Steam
+Sem conexão com o servidor	Sin conexión con el servidor
+Você voltou à sala.	Volviste a la sala.
+{0} {1} neste computador e saiu da lista.	{0} {1} en este ordenador y salió de la lista.
+pista não está	pista no está
+pistas não estão	pistas no están
+{0} sugeriu a pista “{1}”.	{0} sugirió la pista “{1}”.
+{0} (de {1})	{0} (de {1})
+“{0}” salva na sua biblioteca.	“{0}” guardada en tu biblioteca.
+PISTAS DO CAMPEONATO	PISTAS DEL CAMPEONATO
+As pistas da corrida ficam guardadas na sua biblioteca.	Las pistas de la carrera se guardan en tu biblioteca.
+guardada agora na sua biblioteca	guardada ahora en tu biblioteca
+já estava na sua biblioteca	ya estaba en tu biblioteca
+1 pista nova na sua biblioteca.	1 pista nueva en tu biblioteca.
+{0} pistas novas na sua biblioteca.	{0} pistas nuevas en tu biblioteca.
+ (online)	 (online)
+{0} (online {1})	{0} (online {1})
+Essa pista é grande demais para sugerir.	Esa pista es demasiado grande para sugerirla.
+Pista enviada ao host.	Pista enviada al anfitrión.
+Nenhuma sugestão ainda.	Aún no hay sugerencias.
+de {0} · {1}	de {0} · {1}
+Incluir	Incluir
+Guarda na sua biblioteca de pistas	La guarda en tu biblioteca de pistas
+Ignorar	Ignorar
+enviada ✓	enviada ✓
+enviar	enviar
+Você não tem pistas fechadas de {0} carros.	No tienes pistas cerradas de {0} coches.
+Você não tem pistas fechadas para sugerir.	No tienes pistas cerradas para sugerir.
+“{0}” na mesa. Ctrl+Z volta a pista de antes.	“{0}” en la mesa. Ctrl+Z vuelve a la pista anterior.
+Nenhuma sala pública agora. Toque em Atualizar, ou crie a sua.	Ninguna sala pública ahora. Toca Actualizar o crea la tuya.
+{0} · {1}/{2} pilotos · {3} {4} · {5}	{0} · {1}/{2} pilotos · {3} {4} · {5}
+ (de {0})	 (de {0})
+Sala pública	Sala pública
+Sala privada (só entra com o código)	Sala privada (solo se entra con el código)
+ · você	 · tú
+você	tú
+jogador 2 deste computador	jugador 2 de este ordenador
+✓ pronto	✓ listo
+aguardando	esperando
+Tirar o jogador 2	Quitar al jugador 2
++ Jogador 2 neste computador	+ Jugador 2 en este ordenador
+<b>{0}</b> · <b>pistas de {1} trilhos</b>	<b>{0}</b> · <b>pistas de {1} carriles</b>
+ · com {0} {1}, {2} {3} em cada bateria	 · con {0} {1}, {2} {3} en cada manga
+jogador	jugador
+jogadores	jugadores
+trilho fica vazio	carril queda vacío
+trilhos ficam vazios	carriles quedan vacíos
+Formato e tipo de pista: o host ainda não escolheu.	Formato y tipo de pista: el anfitrión aún no ha elegido.
+Escolha as pistas e {0} de cada etapa. As outras regras (velocidade, aderência, colisão) são as de Opções, no menu inicial. Os visitantes veem a lista, mas só você mexe nela.	Elige las pistas y {0} de cada ronda. Las demás reglas (velocidad, agarre, colisión) son las de Opciones, en el menú inicial. Los visitantes ven la lista, pero solo tú la cambias.
+a duração	la duración
+as voltas	las vueltas
+O host escolhe as pistas. Você escolhe a cor do seu carrinho e conversa no chat.	El anfitrión elige las pistas. Tú eliges el color de tu coche y charlas en el chat.
+Nenhuma etapa ainda. Clique numa pista abaixo.	Aún no hay rondas. Haz clic en una pista de abajo.
+O host ainda não escolheu as pistas.	El anfitrión aún no ha elegido las pistas.
+Clique para ver a pista na mesa	Haz clic para ver la pista en la mesa
+Regras da corrida, em Opções no menu inicial (velocidade {0} cél/s, até 100% em {1} s, aderência {2}, colisão {3}, turbo {4}, recolocar em {5} s). Ficam fixos até o fim.	Reglas de la carrera, en Opciones del menú inicial (velocidad {0} celdas/s, 100% en {1} s, agarre {2}, colisión {3}, turbo {4}, recolocar en {5} s). Quedan fijas hasta el final.
+Não estou pronto	No estoy listo
+Todos prontos: {0} pilotos · {1} {2} · {3} baterias.	Todos listos: {0} pilotos · {1} {2} · {3} mangas.
+Você está pronto. Aguardando o host largar.	Estás listo. Esperando que el anfitrión dé la salida.
+Confirme quando estiver pronto: o host só larga com todos prontos.	Confirma cuando estés listo: el anfitrión solo da la salida con todos listos.
+<b><color={0}>{1}</color></b>: {2}	<b><color={0}>{1}</color></b>: {2}
+{0} · acelera {1} · recoloca {2}	{0} · acelera {1} · recoloca {2}
+é você	eres tú
+jogador 2 daqui	jugador 2 de aquí
+saiu da sala	salió de la sala
+Campeonato online	Campeonato online
+Não deu para abrir as pistas do campeonato. Você saiu da sala.	No se pudieron abrir las pistas del campeonato. Saliste de la sala.
+Sair da partida	Salir de la partida
+Encerrar campeonato	Terminar campeonato
+Você agora é o host: a bateria da vez recomeça.	Ahora eres el anfitrión: la manga actual vuelve a empezar.
+Certeza? Clique de novo	¿Seguro? Haz clic otra vez
+O host encerrou o campeonato.	El anfitrión terminó el campeonato.
+ (o jogador 2 daqui: {0} e {1}, ou o 2º controle)	 (el jugador 2 de aquí: {0} y {1}, o el 2.º mando)
+Jogar de novo	Jugar otra vez
+A partida acabou. Jogar de novo volta para a fila com o mesmo tamanho e a mesma pista.	La partida terminó. Jugar otra vez vuelve a la cola con el mismo tamaño y la misma pista.
+Voltar ao lobby	Volver al lobby
+O campeonato acabou. Voltar ao lobby leva todos de volta para montar outro.	El campeonato terminó. Volver al lobby lleva a todos de vuelta para montar otro.
+O campeonato acabou. O host leva todos de volta ao lobby.	El campeonato terminó. El anfitrión lleva a todos de vuelta al lobby.
+Espere os pilotos da bateria se prepararem e aperte Largar. Quem corre acelera com {0} e recoloca com {1}{2}.	Espera a que los pilotos de la manga se preparen y pulsa Salida. Quien corre acelera con {0} y recoloca con {1}{2}.
+Aguardando o host largar. Quem corre acelera com {0} e recoloca com {1}{2}.	Esperando que el anfitrión dé la salida. Quien corre acelera con {0} y recoloca con {1}{2}.
+Salve para o resultado contar na tabela de todos. Se algo deu errado, corra de novo: esta bateria é descartada.	Guarda para que el resultado cuente en la clasificación de todos. Si algo salió mal, corre otra vez: esta manga se descarta.
+Bateria encerrada. O host salva o resultado e segue.	Manga terminada. El anfitrión guarda el resultado y sigue.
+Vence a bateria quem completar {0} primeiro. Quem não terminar tem {1:0} s depois da bandeirada.	Gana la manga quien complete {0} primero. Quien no termine tiene {1:0} s tras la bandera.
+ Larga sozinho em {0} s.	 Sale sola en {0} s.
+ Salva e segue sozinho em {0} s.	 Guarda y sigue sola en {0} s.
+Continuar  (P)	Continuar  (P)
+Você já pausou {0} vezes nesta bateria.	Ya pausaste {0} veces en esta manga.
+Volta em {0}	Vuelve en {0}
+Prepare o dedo no acelerador.	Prepara el dedo en el acelerador.
+Pausado	En pausa
+P continua.	P continúa.
+Por {0} · continua quem pausou ou o host (P) · volta sozinha em {1} s.	Por {0} · continúa quien pausó o el anfitrión (P) · se reanuda sola en {1} s.
+ · online	 · online
+Recordes da pista	Récords de la pista
+Recordes · {0}	Récords · {0}
+trilho 	carril
+trilho sem recorde	carril sin récord
+seu melhor {0}	tu mejor {0}
+primeira vez aqui	primera vez aquí
+Peças novas para o construtor. Cada uma abre quando você termina, com pelo menos ★, a prova da carreira que a apresenta. Correr numa pista com peça fechada sempre pode — só não dá para colocar a peça.	Piezas nuevas para el constructor. Cada una se desbloquea cuando terminas, con al menos ★, la prueba de la trayectoria que la presenta. Siempre puedes correr en una pista con una pieza bloqueada: solo no puedes colocar la pieza.
+GARAGEM DO CARRO	GARAJE DEL COCHE
+Seu carro na carreira. Compre opções do ajuste e preparação com as moedas das provas. Fora da carreira o ajuste é livre e sem preparação.	Tu coche en la trayectoria. Compra opciones de ajuste y preparación con las monedas de las pruebas. Fuera de la trayectoria el ajuste es libre y sin preparación.
+Fechar (G · Esc)	Cerrar (G · Esc)
+Moedas da carreira · clique para abrir a garagem do carro	Monedas de la trayectoria · haz clic para abrir el garaje del coche
+liberada (teste)	desbloqueada (prueba)
+✓ aberta	✓ desbloqueada
+Abre em 	Se desbloquea en
+Desbloquear tudo: LIGADO (teste, até o jogo sair)	Desbloquear todo: ACTIVADO (prueba, hasta que salga el juego)
+Desbloquear tudo: desligado (teste, até o jogo sair)	Desbloquear todo: desactivado (prueba, hasta que salga el juego)
+Níveis à venda até o {0} (Garagem 3 · Clube 6 · Regional 8 · Nacional 10). O nível n custa {1} × n.	Niveles a la venta hasta el {0} (Garaje 3 · Club 6 · Regional 8 · Nacional 10). El nivel n cuesta {1} × n.
+{0} {1}: é seu!	{0} {1}: ¡es tuyo!
+Comprar	Comprar
+✓ máximo	✓ máximo
+Nível {0} · ◎ {1}	Nivel {0} · ◎ {1}
+COMO FICA	CÓMO QUEDA
+Câmera: <b>{0}</b>  ⟳	Cámara: <b>{0}</b>  ⟳
+Etiqueta nos carros: {0} (F1)	Etiqueta en los coches: {0} (F1)
+{0}º <size=75%>{1}</size>	{0}º <size=75%>{1}</size>
+\n<size=70%>+{0} s</size>	\n<size=70%>+{0} s</size>
+\n<size=70%><color=#7CE38B>−{0} s</color></size>	\n<size=70%><color=#7CE38B>−{0} s</color></size>
+MINIMAPA	MINIMAPA
+⠿ arraste	⠿ arrastra
+Pilotos ▸	Pilotos ▸
+Pilotos ▾	Pilotos ▾
+última {0} · melhor {1} · {2:0.0} m	última {0} · mejor {1} · {2:0.0} m
+Padrão	Estándar
+Curto	Corto
+Longo	Largo
+Asa	Alerón
+Lisa	Lisa
+Médio	Medio
+Macio	Blando
+Duro	Duro
+Leve	Ligero
+Pesado	Pesado
+Explosivo	Explosivo
+Eficiente	Eficiente
+turbo 	turbo
+Digite seu nome.	Escribe tu nombre.
+Esta versão do jogo não combina com o servidor. Atualize o jogo.	Esta versión del juego no coincide con el servidor. Actualiza el juego.
+O servidor está lotado. Tente mais tarde.	El servidor está lleno. Inténtalo más tarde.
+Você criou muitas salas em pouco tempo. Espere um minuto.	Creaste demasiadas salas en poco tiempo. Espera un minuto.
+Já tem alguém com esse nome na sala.	Ya hay alguien con ese nombre en la sala.
+Já tem alguém com esse nome na fila.	Ya hay alguien con ese nombre en la cola.
+Só o host começa o campeonato.	Solo el anfitrión empieza el campeonato.
+Só o host encerra o campeonato.	Solo el anfitrión termina el campeonato.
+Só o host escolhe as pistas.	Solo el anfitrión elige las pistas.
+Só o host muda a visibilidade.	Solo el anfitrión cambia la visibilidad.
+Muitas conexões deste endereço.	Demasiadas conexiones desde esta dirección.
+Mensagem inválida.	Mensaje no válido.
+Mensagem desconhecida.	Mensaje desconocido.
+Erro no servidor.	Error en el servidor.
+Garagem	Garaje
+Primeira Volta	Primera Vuelta
+Reta da Bancada	Recta del Banco
+Feijão	La Judía
+Oficina	Taller
+Chuva na Garagem	Lluvia en el Garaje
+Cotovelo	El Codo
+Serpentina	Serpentina
+Largada Atrasada	Salida Retrasada
+Turbo Sem Fim	Turbo Sin Fin
+Tio Beto	Tío Beto
+Monto autorama desde antes de você nascer. Mostra o que sabe.	Monto pistas desde antes de que nacieras. Enséñame lo que sabes.
+A garagem ainda é minha. Volte quando souber frear.	El garaje sigue siendo mío. Vuelve cuando sepas frenar.
+Muito bem! A garagem ficou pequena para você.	¡Muy bien! El garaje se te quedó pequeño.
+Copa Garagem	Copa Garaje
+Zé da Oficina	Zé del Taller
+Lu Parafuso	Lu Tornillo
+Clube	Club
+Salão do Clube	Salón del Club
+Troca de Faixa	Cambio de Carril
+Viaduto	Viaducto
+Oficina do Clube	Taller del Club
+Noite de Chuva	Noche de Lluvia
+Inclinado Duplo	Doble Peralte
+Último de Pé	El Último en Pie
+Largada do Fundo	Salida desde el Fondo
+Marina Faísca	Marina Chispa
+Turbo é para usar. Vem que eu largo na sua frente.	El turbo está para usarlo. Ven, que salgo delante de ti.
+Rápida demais para você. Volte para a garagem!	Demasiado rápida para ti. ¡Vuelve al garaje!
+Ok, ok… você freia melhor que eu.	Vale, vale… frenas mejor que yo.
+Taça Clube	Trofeo Club
+Rafa Turbo	Rafa Turbo
+Dona Célia	Doña Célia
+Regional	Regional
+Ginásio	Gimnasio
+Rampa Curta	Rampa Corta
+Cotovelo em C	Codo en Horquilla
+Oficina Regional	Taller Regional
+Ziguezague Molhado	Zigzag Mojado
+Salto e Ponte	Salto y Puente
+Mirante	Mirador
+Largada Pesada	Salida Pesada
+Dr. Curva	Dr. Curva
+Curva inclinada não é sorte, é geometria.	Una curva peraltada no es suerte, es geometría.
+Você ainda freia antes da hora. Estude.	Todavía frenas antes de tiempo. Estudia.
+Brilhante. A geometria está do seu lado.	Brillante. La geometría está de tu lado.
+Copa Regional	Copa Regional
+Nacional	Nacional
+Estádio	Estadio
+Grande Salto	Gran Salto
+Looping	Looping
+Oficina Nacional	Taller Nacional
+Abismo	El Abismo
+Torre	Torre
+Serra Molhada	Sierra Mojada
+Troca Final	Cambio Final
+O Campeão	El Campeón
+Muitos chegaram até aqui. Nenhum passou.	Muchos llegaron hasta aquí. Ninguno pasó.
+Volte quando for campeão de verdade.	Vuelve cuando seas campeón de verdad.
+Então é você. A mesa é sua.	Así que eres tú. La mesa es tuya.
+Grande Prêmio Nacional	Gran Premio Nacional
+Reta curta	Recta corta
+2 células	2 celdas
+Reta comprida	Recta larga
+4 células	4 celdas
+Reta curtinha	Recta cortita
+Cruzamento	Cruce
+Cruzamento curto	Cruce corto
+Curva longa	Curva larga
+90° esquerda	90° izquierda
+90° direita	90° derecha
+Meia curva	Media curva
+45° esquerda	45° izquierda
+45° direita	45° derecha
+Curva longa inclinada	Curva larga peraltada
+Curva curta inclinada	Curva corta peraltada
+Curva em C	Horquilla
+180° esquerda	180° izquierda
+180° direita	180° derecha
+Rampa	Rampa
+sobe 1 nível	sube 1 nivel
+desce 1 nível	baja 1 nivel
+Loop	Loop
+sai à esquerda	sale a la izquierda
+sai à direita	sale a la derecha
+Rampa de salto	Rampa de salto
+4 a 6 células	4 a 6 celdas
+Base de largada	Pieza de salida
+Começando…	Empezando…
+reta-curtinha	recta cortita
+Curvas inclinadas	Curvas peraltadas
+curva longa e curta inclinadas	curva larga y corta peraltadas
+Troca de faixa	Cambio de carril
+cruzamento e cruzamento curto	cruce y cruce corto
+Subida e descida	Subida y bajada
+rampas para ponte	rampas para puente
+salto de vão 1	salto con hueco de 1
+curva em C (1 a 3 fileiras)	horquilla (1 a 3 filas)
+loop	loop
+Saltos grandes	Saltos grandes
+salto de vão 2 e 3	saltos con hueco de 2 y 3
+Apagaram as luzes! E lá vão eles!	¡Se apagan las luces! ¡Y allá van!
+Largada! Todo mundo de pé no fundo!	¡Salida! ¡Todos a fondo!
+Valendo! Que vença o melhor... ou o mais sortudo.	¡Vale todo! Que gane el mejor... o el más suertudo.
+Largada limpa... por enquanto.	Salida limpia... por ahora.
+E foi dada a largada! O carpete que se cuide.	¡Y se da la salida! Que se cuide la alfombra.
+Bandeira verde! Os trilhos estão quentes!	¡Bandera verde! ¡Los carriles están calientes!
+Saíram! Agora é gatilho e coragem.	¡Salieron! Ahora es gatillo y valor.
+Começou! Quem frear primeiro perde.	¡Empezó! El primero que frene pierde.
+E lá se vão eles, cheios de esperança e de pilha.	Y allá van, llenos de esperanza y de pilas.
+{A} passa {B}! Não pediu licença, não!	¡{A} adelanta a {B}! ¡Ni pidió permiso!
+{A} por dentro, e {B} só viu a placa do chassi.	{A} por dentro, y {B} solo vio la placa del chasis.
+Ultrapassagem! {A} deixa {B} para trás.	¡Adelantamiento! {A} deja atrás a {B}.
+{A} pra cima de {B}... e passou!	{A} se lanza sobre {B}... ¡y pasó!
+{B} piscou e {A} foi embora.	{B} parpadeó y {A} se fue.
+{A} mergulha e engole {B}!	¡{A} se tira y se come a {B}!
+Tchau, {B}! {A} sobe uma posição.	¡Adiós, {B}! {A} sube un puesto.
+{A} passou {B} como se fosse cone de treino.	{A} pasó a {B} como si fuera un cono de entrenamiento.
+Manobra bonita de {A} em cima de {B}!	¡Bonita maniobra de {A} sobre {B}!
+{B} abriu a porta e {A} entrou sem bater.	{B} dejó la puerta abierta y {A} entró sin llamar.
+{A} assume a liderança! {B} fica olhando a traseira.	¡{A} toma el liderato! {B} se queda mirando la trasera.
+Tem líder novo: {A}!	Hay nuevo líder: ¡{A}!
+{A} passa {B} e pula para a ponta!	¡{A} pasa a {B} y salta a la cabeza!
+Mudou tudo! {A} é o novo líder.	¡Cambió todo! {A} es el nuevo líder.
+{A} toma a ponta de {B}! A mesa vai abaixo!	¡{A} le quita la cabeza a {B}! ¡La mesa se viene abajo!
+Liderança trocada! {A} na frente, {B} no prejuízo.	¡Cambio de líder! {A} delante, {B} pierde.
+{A} chega lá na frente. {B}, a vista agora é outra.	{A} llega a la cabeza. {B}, ahora la vista es otra.
+{A} saiu da pista! O trilho estava ali, viu?	¡{A} se salió de la pista! El carril estaba ahí, ¿eh?
+Lá vai {A} conhecer o carpete da sala.	Allá va {A} a conocer la alfombra del salón.
+{A} voou! Alguém chama o fiscal.	¡{A} voló! Que alguien llame al comisario.
+Escapou! {A} foi dar uma volta fora da pista.	¡Se escapó! {A} fue a dar una vuelta fuera de la pista.
+{A} errou o ponto de freada. Acontece nas melhores famílias.	{A} se pasó de frenada. Pasa en las mejores familias.
+{A} rodou! O carrinho foi parar longe.	¡{A} trompeó! El coche acabó lejos.
+Rodopio de {A}! Bonito de ver, péssimo para o cronômetro.	¡Trompo de {A}! Bonito de ver, pésimo para el cronómetro.
+{A} entrou rápido demais e a curva não perdoou.	{A} entró demasiado rápido y la curva no perdonó.
+Fiscal! {A} está deitado no carpete.	¡Comisario! {A} está tirado en la alfombra.
+{A} decolou! Ainda bem que não tem multa por voo baixo.	¡{A} despegó! Menos mal que no hay multa por vuelo bajo.
+{A} confundiu a curva com uma reta.	{A} confundió la curva con una recta.
+Que pião de {A}! Faltou só a música.	¡Qué trompo de {A}! Solo faltó la música.
+{A} perdeu o trilho. O trilho não perdeu {A}: ele está ali esperando.	{A} perdió el carril. El carril no perdió a {A}: está ahí esperando.
+Lá se foi {A}! A física cobrou a conta.	¡Allá se fue {A}! La física pasó la factura.
+{A} sai da pista e vai fazer turismo na mesa.	{A} se sale de la pista y se va de turismo por la mesa.
+Terceira vez, {A}. O fiscal já sabe seu nome.	Tercera vez, {A}. El comisario ya sabe tu nombre.
+{A} sai de novo! Já é freguês do carpete.	¡{A} se sale otra vez! Ya es cliente fijo de la alfombra.
+Três saídas para {A}. Coleção bonita.	Tres salidas para {A}. Bonita colección.
+Terceira escapada de {A}. Já pode pedir música no Fantástico.	Tercera escapada de {A}. Eso ya es un triplete.
+{A} completa o trio de saídas. Ganha brinde?	{A} completa el trío de salidas. ¿Hay regalo?
+{A} fora outra vez! A essa altura é estratégia.	¡{A} fuera otra vez! A estas alturas es estrategia.
+Mais uma de {A}. Alguém segura esse acelerador!	Otra más de {A}. ¡Que alguien sujete ese acelerador!
+{A} já conhece cada canto da mesa.	{A} ya conoce cada rincón de la mesa.
+Quinta saída de {A}! O fiscal pediu aumento.	¡Quinta salida de {A}! El comisario pidió un aumento.
+{A} de novo no carpete. Cinco vezes! Já tem cadeira cativa.	{A} otra vez en la alfombra. ¡Cinco veces! Ya tiene asiento reservado.
+{A} sai pela {B}ª vez! A gente já parou de contar... não, não parou: {B}.	¡{A} se sale por {B}.ª vez! Ya dejamos de contar... no, no dejamos: {B}.
+{B} saídas para {A}. Isso já é um recorde, só que do tipo errado.	{B} salidas para {A}. Eso ya es un récord, pero del tipo equivocado.
+{A}, {B} saídas! O carpete vai cobrar aluguel.	¡{A}, {B} salidas! La alfombra va a cobrar alquiler.
+Saída número {B} de {A}. O fiscal já está almoçando ali do lado.	Salida número {B} de {A}. El comisario ya está comiendo ahí al lado.
+{A} chega a {B} saídas. Alguém dá um manual para esse piloto!	{A} llega a {B} salidas. ¡Que alguien le dé un manual a este piloto!
+De novo, {A}?! Mal voltou e já saiu!	¿Otra vez, {A}?! ¡Apenas volvió y ya se salió!
+{A} voltou para a pista só para sair outra vez.	{A} volvió a la pista solo para salirse otra vez.
+Nem esquentou o trilho e {A} já está fora de novo!	¡Ni calentó el carril y {A} ya está fuera otra vez!
+{A} gostou tanto do carpete que voltou lá.	A {A} le gustó tanto la alfombra que volvió.
+O fiscal nem largou o carrinho e {A} já saiu de novo.	El comisario ni soltó el coche y {A} ya se salió otra vez.
+{A} repete a dose! Calma nesse gatilho!	¡{A} repite! ¡Calma con ese gatillo!
+O líder rodou! {A} sai da pista!	¡El líder trompeó! ¡{A} se sale de la pista!
+Que susto! {A}, na ponta, vai para o carpete!	¡Qué susto! ¡{A}, en cabeza, se va a la alfombra!
+{A} jogou fora a liderança na curva!	¡{A} tiró el liderato en la curva!
+Liderança no chão! {A} saiu da pista!	¡Liderato por los suelos! ¡{A} se salió de la pista!
+Abriu a corrida! O líder {A} escapou!	¡Se abrió la carrera! ¡El líder {A} se escapó!
+{A} estava voando na frente... e voou mesmo. Fora da pista!	{A} iba volando delante... y voló de verdad. ¡Fuera de la pista!
+Agora não, {A}! Saída na hora mais cara!	¡Ahora no, {A}! ¡Salida en el peor momento!
+{A} sai da pista na reta final! Que drama!	¡{A} se sale en la recta final! ¡Qué drama!
+Logo agora! {A} vai para o carpete no fim da prova!	¡Justo ahora! ¡{A} se va a la alfombra al final de la prueba!
+{A} escolheu o pior momento para rodar.	{A} eligió el peor momento para trompear.
+Pressão demais! {A} escapa no finalzinho!	¡Demasiada presión! ¡{A} se escapa al final!
+{A} ligou o turbo e esqueceu de fazer a curva!	¡{A} activó el turbo y se olvidó de tomar la curva!
+Turbo demais, curva de menos! {A} fora!	¡Mucho turbo, poca curva! ¡{A} fuera!
+{A} foi de turbo direto para o carpete!	¡{A} fue con turbo directo a la alfombra!
+O turbo levou {A} para fora da pista. Tinha que tirar o pé!	El turbo sacó a {A} de la pista. ¡Tenía que levantar el pie!
+{A} usou o turbo para voar. Literalmente.	{A} usó el turbo para volar. Literalmente.
+{A} e {B} saem juntos! Que confusão!	¡{A} y {B} se salen juntos! ¡Qué lío!
+Dois de uma vez! {A} e {B} no carpete!	¡Dos de golpe! ¡{A} y {B} en la alfombra!
+Saída dupla: {A} e {B} foram passear juntos.	Salida doble: {A} y {B} se fueron de paseo juntos.
+{A} e {B} se enroscaram e foram os dois para fora!	¡{A} y {B} se enredaron y se fueron los dos fuera!
+Strike! {A} e {B} fora da pista!	¡Pleno! ¡{A} y {B} fuera de la pista!
+Encostou e voou! {A} sai da pista depois do toque!	¡Se tocaron y voló! ¡{A} se sale tras el toque!
+Batida! {A} levou a pior e foi para fora!	¡Choque! ¡{A} se llevó la peor parte y se fue fuera!
+Teve contato e {A} rodou!	¡Hubo contacto y {A} trompeó!
+{A} tomou uma pancada e saiu da pista!	¡{A} recibió un golpe y se salió de la pista!
+Toque, rodada, carpete! {A} fora!	¡Toque, trompo, alfombra! ¡{A} fuera!
+Ninguém quis tirar o pé, e {A} pagou o pato.	Nadie quiso levantar el pie, y {A} pagó el pato.
+{A} volta à pista em {B}. Foram {T} posições no carpete.	{A} vuelve a la pista en {B}. Fueron {T} puestos en la alfombra.
+A saída custou caro: {A} cai para {B}.	La salida salió cara: {A} cae a {B}.
+{A} volta, mas agora em {B}. Perdeu {T} posições.	{A} vuelve, pero ahora en {B}. Perdió {T} puestos.
+{A} está de volta, só que em {B}. Hora de recuperar!	{A} está de vuelta, pero en {B}. ¡Hora de remontar!
+{T} posições a menos para {A}, que volta em {B}.	{T} puestos menos para {A}, que vuelve en {B}.
+{A} volta à pista, mas a ponta agora é de {B}!	¡{A} vuelve a la pista, pero la cabeza ahora es de {B}!
+{B} herda a liderança da saída de {A}!	¡{B} hereda el liderato tras la salida de {A}!
+Presente para {B}: a liderança caiu no colo depois do erro de {A}.	Regalo para {B}: el liderato le cayó del cielo tras el error de {A}.
+{A} perdeu a ponta no carpete. {B} agradece!	{A} perdió la cabeza en la alfombra. ¡{B} lo agradece!
+{B} não precisou passar ninguém: {A} saiu e {B} assumiu.	{B} no tuvo que adelantar a nadie: {A} se salió y {B} tomó el mando.
+{A} não segurou no loop! A gravidade manda lembranças.	¡{A} no aguantó en el loop! La gravedad manda saludos.
+Caiu no loop! {A} esqueceu de acelerar lá em cima.	¡Se cayó en el loop! {A} se olvidó de acelerar arriba.
+{A} deu meia volta no loop... e despencou.	{A} dio media vuelta al loop... y se desplomó.
+{A} ficou de cabeça para baixo e a gravidade venceu.	{A} se quedó boca abajo y ganó la gravedad.
+Loop sem fôlego! {A} despenca lá de cima.	¡Loop sin aliento! {A} cae desde arriba.
+{A} subiu o loop devagar demais. Newton agradece.	{A} subió el loop demasiado despacio. Newton lo agradece.
+{A} pulou e não chegou! Faltou coragem!	¡{A} saltó y no llegó! ¡Faltó valor!
+{A} ficou no vão do salto. Aterrissagem cancelada.	{A} se quedó en el hueco del salto. Aterrizaje cancelado.
+Saltou, voou... e caiu! {A} fora.	Saltó, voló... ¡y se cayó! {A} fuera.
+{A} achou que sabia voar. Não sabia.	{A} creyó que sabía volar. No sabía.
+Faltou embalo! {A} cai no vão.	¡Faltó impulso! {A} cae en el hueco.
+{A} pulou com o freio de mão puxado!	¡{A} saltó con el freno de mano puesto!
+{A} soltou o turbo! Segura!	¡{A} suelta el turbo! ¡Agárrate!
+Turbo ligado para {A}!	¡Turbo activado para {A}!
+{A} apertou o botão mágico!	¡{A} pulsó el botón mágico!
+Lá vai {A} de turbo. Cuidado na curva!	Allá va {A} con turbo. ¡Cuidado en la curva!
+{A} acende o turbo! Lá vai foguete!	¡{A} enciende el turbo! ¡Ahí va el cohete!
+Turbo de {A}! Quem está na frente que se cuide.	¡Turbo de {A}! Que se cuide el de delante.
+{A} no turbo! Agora é segurar o carrinho no trilho.	¡{A} con turbo! Ahora hay que mantener el coche en el carril.
+RECORDE DA PISTA! {A} escreve o nome na história... desta mesa. {T}!	¡RÉCORD DE LA PISTA! {A} escribe su nombre en la historia... de esta mesa. ¡{T}!
+Recorde! {A} faz {T}, a volta mais rápida que essa pista já viu!	¡Récord! {A} hace {T}, la vuelta más rápida que ha visto esta pista.
+Que volta, {A}! {T}, recorde da pista!	¡Qué vuelta, {A}! {T}, ¡récord de la pista!
+Segura essa: {T}! {A} quebra o recorde da pista!	Toma ya: ¡{T}! ¡{A} bate el récord de la pista!
+Podem emoldurar: {A}, {T}, novo recorde da pista!	Pueden enmarcarlo: {A}, {T}, ¡nuevo récord de la pista!
+Inacreditável! {T}! {A} é o dono do recorde!	¡Increíble! ¡{T}! ¡{A} es el dueño del récord!
+Melhor volta pessoal de {A}!	¡Mejor vuelta personal de {A}!
+{A} se superou nessa volta.	{A} se superó en esa vuelta.
+Volta caprichada de {A}: a melhor da carreira nesta pista.	Vuelta cuidada de {A}: la mejor de su vida en esta pista.
+{A} bate o próprio tempo. Evolução!	{A} bate su propio tiempo. ¡Evolución!
+{A} nunca andou tão rápido aqui.	{A} nunca había ido tan rápido aquí.
+{A} crava {T}, a volta mais rápida da prova!	{A} clava {T}, ¡la vuelta más rápida de la prueba!
+Melhor volta da corrida para {A}: {T}!	Mejor vuelta de la carrera para {A}: ¡{T}!
+{A} acelerou forte: {T}, ninguém andou tão rápido hoje.	{A} apretó fuerte: {T}, nadie ha ido tan rápido hoy.
+Cronômetro em chamas! {T} para {A}.	¡Cronómetro en llamas! {T} para {A}.
+{A} baixa o tempo para {T}. Que mão!	{A} baja el tiempo a {T}. ¡Qué manos!
+{T}! {A} manda a volta mais rápida da corrida.	¡{T}! {A} marca la vuelta más rápida de la carrera.
+{A} acha mais um décimo: {T}, a melhor da prova!	{A} encuentra otra décima: {T}, ¡la mejor de la prueba!
+{A} e {B} colados há um tempão. Ninguém respira!	{A} y {B} pegados desde hace un buen rato. ¡Que nadie respire!
+Que briga entre {A} e {B}!	¡Qué pelea entre {A} y {B}!
+{B} está no cangote de {A}!	¡{B} le está respirando en la nuca a {A}!
+{A} e {B} dividem até o mesmo pensamento.	{A} y {B} hasta comparten el mismo pensamiento.
+{B} não desgruda de {A}! Vai ter troca?	¡{B} no se despega de {A}! ¿Habrá cambio?
+{A} olha o retrovisor e só vê {B}.	{A} mira el retrovisor y solo ve a {B}.
+Duelo! {A} segura, {B} pressiona.	¡Duelo! {A} aguanta, {B} presiona.
+Última volta!	¡Última vuelta!
+Sino tocando: última volta!	Suena la campana: ¡última vuelta!
+É agora ou nunca: última volta!	Ahora o nunca: ¡última vuelta!
+Última volta! Quem guardou turbo, a hora é essa!	¡Última vuelta! ¡Quien guardó turbo, este es el momento!
+Última volta! Coração na mão!	¡Última vuelta! ¡Con el corazón en un puño!
+Dez segundos! Quem quer, vai agora!	¡Diez segundos! ¡Quien quiera, que vaya ahora!
+Faltam dez! Ninguém tira o pé!	¡Faltan diez! ¡Nadie levanta el pie!
+Dez segundinhos e acabou!	¡Diez segunditos y se acabó!
+Cinco segundos!	¡Cinco segundos!
+Cinco! Segura o coração!	¡Cinco! ¡Sujeta el corazón!
+Cinco segundos e é bandeira!	¡Cinco segundos y es bandera!
+Quinze segundos! Tudo ou nada!	¡Quince segundos! ¡Todo o nada!
+Faltam quinze segundos! Pé no fundo!	¡Faltan quince segundos! ¡A fondo!
+Reta final: quinze segundos!	Recta final: ¡quince segundos!
+Bandeirada! {A} vence!	¡Bandera a cuadros! ¡{A} gana!
+{A} cruza na frente! Que corrida!	¡{A} cruza primero! ¡Qué carrera!
+Vitória de {A}! Pode chamar a família!	¡Victoria de {A}! ¡Que llamen a la familia!
+É de {A}! Bandeira quadriculada!	¡Es de {A}! ¡Bandera a cuadros!
+{A} vence! Pode estourar o refrigerante!	¡{A} gana! ¡A destapar el refresco!
+Acabou! {A} é o grande vencedor!	¡Se acabó! ¡{A} es el gran ganador!
+Quadriculada para {A}! Vitória com sabor de pódio!	¡Bandera a cuadros para {A}! ¡Victoria con sabor a podio!
+{A} completa {B} voltas na frente de todo mundo!	¡{A} completa {B} vueltas por delante de todos!
+{B} voltas e {A} segue mandando na corrida!	¡{B} vueltas y {A} sigue mandando en la carrera!
+{A} na ponta depois de {B} voltas. Que pilotagem!	{A} en cabeza tras {B} vueltas. ¡Qué pilotaje!
+Passadas {B} voltas, quem dita o ritmo é {A}!	Pasadas {B} vueltas, ¡quien marca el ritmo es {A}!
+{B} voltas, e {A} ainda não viu ninguém pelo retrovisor.	{B} vueltas, y {A} aún no ha visto a nadie por el retrovisor.
+{A} lidera com {B} voltas. Os outros que corram atrás.	{A} lidera con {B} vueltas. Que los demás corran detrás.
+Volta {B}: {A} continua com o nariz na frente.	Vuelta {B}: {A} sigue con el morro delante.
+{A} fecha a volta {B} em último. Está apreciando a paisagem?	{A} cierra la vuelta {B} el último. ¿Disfrutando del paisaje?
+{B} voltas e {A} lá atrás. Alguém avisa que já começou!	{B} vueltas y {A} allá atrás. ¡Que alguien le avise de que ya empezó!
+{A} completa {B} voltas por último. Sem pressa, a mesa não vai fugir.	{A} completa {B} vueltas el último. Sin prisa, la mesa no se va a escapar.
+Volta {B}: {A} na lanterna. Pelo menos o carro está limpinho.	Vuelta {B}: {A} es el farolillo rojo. Al menos el coche está limpito.
+{A} chega à volta {B} por último. Tá de passeio, {A}?	{A} llega a la vuelta {B} el último. ¿De paseo, {A}?
+{A} na lanterna depois de {B} voltas. Ainda dá tempo... talvez.	{A} el último tras {B} vueltas. Aún hay tiempo... quizá.
+E {A} chega em último, mas chega!	Y {A} llega el último, ¡pero llega!
+{A} fecha o pelotão. O importante é competir.	{A} cierra el pelotón. Lo importante es competir.
+{A} chegou! Atrasado, mas com estilo.	¡{A} llegó! Tarde, pero con estilo.
+{A} cruza por último. Na próxima vai!	{A} cruza el último. ¡La próxima será!
+Lá vem {A}, fechando a porta e apagando a luz.	Ahí viene {A}, cerrando la puerta y apagando la luz.
+Se terminar assim, {A} assume a liderança do campeonato!	¡Si termina así, {A} toma el liderato del campeonato!
+Do jeito que está, {A} vira líder do campeonato!	¡Tal como está, {A} se convierte en líder del campeonato!
+Atenção na tabela: {A} passa {B} no campeonato!	Atención a la clasificación: ¡{A} supera a {B} en el campeonato!
+A tabela está virando: {A} na frente de {B}!	La clasificación se da la vuelta: ¡{A} por delante de {B}!
+{A} recupera a liderança do campeonato!	¡{A} recupera el liderato del campeonato!
+Do jeito que está, {A} volta para a ponta do campeonato.	Tal como está, {A} vuelve a la cabeza del campeonato.
+{A} reage e retoma o topo da tabela!	¡{A} reacciona y retoma lo más alto de la clasificación!
+{A} devolve o troco e volta ao topo do campeonato!	¡{A} devuelve el golpe y vuelve a lo más alto del campeonato!
+{A}, líder do campeonato, está em {B}. Hoje não está fácil.	{A}, líder del campeonato, va {B}. Hoy no es fácil.
+O líder do campeonato, {A}, só em {B}! A tabela está tremendo.	El líder del campeonato, {A}, ¡solo {B}! La clasificación tiembla.
+{A} lidera o campeonato, mas aqui está em {B}.	{A} lidera el campeonato, pero aquí va {B}.
+Dia difícil para {A}: líder do campeonato e só em {B}.	Día difícil para {A}: líder del campeonato y solo {B}.
+O título é de {A} se terminar assim!	¡El título es de {A} si termina así!
+O título está nas mãos de {A}! Só não pode errar.	¡El título está en manos de {A}! Solo no puede fallar.
+Uma volta separa {A} da taça!	¡Una vuelta separa a {A} de la copa!
+{A} já sente o cheiro da taça!	¡{A} ya huele la copa!
+Clássico	Clásico
+Coupé GT	Coupé GT
+Rali	Rally
+Fórmula	Fórmula
+Protótipo	Prototipo
+Asa dupla	Doble alerón
+Gota	Gota
+Flecha	Flecha
+Bala	Bala
+{0}º	{0}º

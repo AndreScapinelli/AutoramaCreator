@@ -16,7 +16,7 @@ namespace Autorama
         readonly Label[,] tags = new Label[4, RaceSim.MaxCars];       // [quadro, carro]
         const float TagUp = 0.25f;                                     // altura acima do carrinho, em células × Scale
         const float TagSample = 0.05f;                                 // de quanto em quanto tempo guarda a distância de cada carro
-        static readonly string[] TagModeNames = { "desligada", "ligada" };
+        static string[] TagModeNames => new[] { L.T("desligada"), L.T("ligada") };
         // A distância (Dist) de cada carro ao longo da prova, para o tempo até o da frente: quanto tempo faz que ele
         // passou por onde eu estou agora.
         readonly List<float>[] tagT = new List<float>[RaceSim.MaxCars], tagD = new List<float>[RaceSim.MaxCars];
@@ -46,7 +46,7 @@ namespace Autorama
             var kb = Keyboard.current;
             if (kb == null || IsTyping || keysOpen || !kb.f1Key.wasPressedThisFrame || panel == null || !panel.RaceMode) return;
             set.carTagMode = set.carTagMode > 0 ? 0 : 1; set.Save();
-            panel.Toast($"Etiqueta nos carros: {TagModeNames[set.carTagMode]} (F1)");
+            panel.Toast(L.F("Etiqueta nos carros: {0} (F1)", TagModeNames[set.carTagMode]));
         }
 
         void PlaceTags()
@@ -84,12 +84,12 @@ namespace Autorama
         // "2º Ana" e, embaixo, "+0,8 s" para o da frente (só no carro do jogador). O líder leva a setinha.
         string TagText(int k, int pos, List<int> ord)
         {
-            string t = $"{pos + 1}º <size=75%>{hud[k].name.text}</size>";
+            string t = L.F("{0}º <size=75%>{1}</size>", pos + 1, hud[k].name.text);
             if (TagMine(k) && sim.cars[k].finish == null && sim.phase == RaceSim.Phase.Running)
             {
                 // Atrás: quanto falta para o da frente. Na frente: quanto o 2º está atrás (desde que o líder passou por onde o 2º está).
                 float g = pos > 0 ? TagGap(ord[pos - 1], k) : ord.Count > 1 ? TagGap(k, ord[1]) : -1f;
-                if (g >= 0f) t += pos > 0 ? $"\n<size=70%>+{Num(g, 1)} s</size>" : $"\n<size=70%><color=#7CE38B>−{Num(g, 1)} s</color></size>";
+                if (g >= 0f) t += pos > 0 ? L.F("\n<size=70%>+{0} s</size>", Num(g, 1)) : L.F("\n<size=70%><color=#7CE38B>−{0} s</color></size>", Num(g, 1));
             }
             if (pos == 0) t += "\n▼";
             return t;

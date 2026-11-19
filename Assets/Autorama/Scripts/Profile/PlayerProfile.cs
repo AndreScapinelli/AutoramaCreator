@@ -29,14 +29,14 @@ namespace Autorama
         // A prova que apresenta a peça abre a peça (seção 78): a primeira em que ela aparece.
         public static readonly PieceUnlock[] Pecas =
         {
-            new PieceUnlock("curtinha", "Reta curtinha", "reta-curtinha", "garagem-oficina"),
-            new PieceUnlock("inclinadas", "Curvas inclinadas", "curva longa e curta inclinadas", "clube-1"),
-            new PieceUnlock("troca", "Troca de faixa", "cruzamento e cruzamento curto", "clube-2"),
-            new PieceUnlock("rampas", "Subida e descida", "rampas para ponte", "clube-3"),
-            new PieceUnlock("salto", "Rampa de salto", "salto de vão 1", "regional-1"),
-            new PieceUnlock("curva-c", "Curva em C", "curva em C (1 a 3 fileiras)", "regional-3"),
-            new PieceUnlock("loop", "Loop", "loop", "nacional-1"),
-            new PieceUnlock("salto-grande", "Saltos grandes", "salto de vão 2 e 3", "nacional-2"),
+            new PieceUnlock("curtinha", L.N("Reta curtinha"), L.N("reta-curtinha"), "garagem-oficina"),
+            new PieceUnlock("inclinadas", L.N("Curvas inclinadas"), L.N("curva longa e curta inclinadas"), "clube-1"),
+            new PieceUnlock("troca", L.N("Troca de faixa"), L.N("cruzamento e cruzamento curto"), "clube-2"),
+            new PieceUnlock("rampas", L.N("Subida e descida"), L.N("rampas para ponte"), "clube-3"),
+            new PieceUnlock("salto", L.N("Rampa de salto"), L.N("salto de vão 1"), "regional-1"),
+            new PieceUnlock("curva-c", L.N("Curva em C"), L.N("curva em C (1 a 3 fileiras)"), "regional-3"),
+            new PieceUnlock("loop", L.N("Loop"), L.N("loop"), "nacional-1"),
+            new PieceUnlock("salto-grande", L.N("Saltos grandes"), L.N("salto de vão 2 e 3"), "nacional-2"),
         };
 
         // Modelos de bolha (seção 80): vencer o rival ou ser campeão da região abre um modelo em todos os modos.
@@ -68,14 +68,14 @@ namespace Autorama
             var u = UnlockOf(bolha, modelo);
             if (u == null) return "";
             foreach (var R in Career.Def.regioes) foreach (var n in R.nos)
-                if (n.id == u.no) return n.tipo == "campeonato" ? $"Seja campeão da {n.nome} na carreira." : $"Vença {n.nome} ({R.nome}) na carreira.";
-            return "Abre na carreira.";
+                if (n.id == u.no) return n.tipo == "campeonato" ? L.F("Seja campeão da {0} na carreira.", n.nome) : L.F("Vença {0} ({1}) na carreira.", n.nome, R.nome);
+            return L.T("Abre na carreira.");
         }
 
         // Modelos que o nó entrega (para o resultado da prova).
         public static IEnumerable<string> ModelsOf(string no, int estrelas)
         {
-            foreach (var u in Modelos) if (u.no == no && estrelas >= u.estrelas) yield return $"{CarView.ModelName(u.bolha, u.modelo)} (bolha {CarSetup.BolhaNames[u.bolha].ToLowerInvariant()})";
+            foreach (var u in Modelos) if (u.no == no && estrelas >= u.estrelas) yield return L.F("{0} (bolha {1})", CarView.ModelName(u.bolha, u.modelo), CarSetup.BolhaNames[u.bolha].ToLowerInvariant());
         }
 
         // Peça → grupo que a libera ("" = grátis).
@@ -164,14 +164,14 @@ namespace Autorama
         public static string LockText(string pieceId)
         {
             var u = UnlockOf(ItemOf(pieceId));
-            return u != null ? $"{u.nome}: abre na carreira ({WhereText(u)})." : "Abre na carreira.";
+            return u != null ? L.F("{0}: abre na carreira ({1}).", L.T(u.nome), WhereText(u)) : L.T("Abre na carreira.");
         }
 
         // Liga as travas da carreira no construtor e no Q (fora do construtor da carreira, que tem as regras da prova).
         public static void ApplyGate()
         {
             TrackBuilder.AllowedEntry = All ? null : EntryOk;
-            TrackBuilder.RuleNotice = "Esta peça abre na carreira (menu inicial › Peças mostra em que prova).";
+            TrackBuilder.RuleNotice = L.T("Esta peça abre na carreira (menu inicial › Peças mostra em que prova).");
             TrackBuilder.MaxPieces = 0;
             TrackBuilder.GapOk = v => v <= 1 || Owns("salto-grande");
             TrackBuilder.RiseOk = () => Owns("rampas");

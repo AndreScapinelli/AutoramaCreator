@@ -30,7 +30,7 @@ namespace Autorama
             var kb = Keyboard.current;
             if (kb == null || IsTyping || keysOpen || !kb.f2Key.wasPressedThisFrame || panel == null || !panel.RaceMode) return;
             set.narra = !set.narra; set.Save();
-            panel.Toast($"Narração: {(set.narra ? "ligada" : "desligada")} (F2)");
+            panel.Toast(L.F("Narração: {0} (F2)", (set.narra ? L.T("ligada") : L.T("desligada"))));
         }
 
         void NarraTick()

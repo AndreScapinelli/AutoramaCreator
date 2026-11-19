@@ -1,0 +1,1375 @@
+Termine o campeonato online (ou saia da sala) antes de trocar de aba.	Finish the online championship (or leave the room) before switching tabs.
+CORRIDA	RACE
+CAMPEONATO	CHAMPIONSHIP
+ONLINE	ONLINE
+CARREIRA	CAREER
+CONSTRUTOR	BUILDER
+{0}  ({1:0} s)	{0}  ({1:0} s)
+Como funciona	How it works
+{0} · {1} (tecla {2})	{0} · {1} (key {2})
+Não vale aqui.	Not allowed here.
+PISTA DE {0} TRILHOS	{0}-LANE TRACK
+Pista de {0} trilhos: abre na carreira.	{0}-lane track: unlocks in the career.
+Pista adaptada para {0} carros.	Track adapted for {0} cars.
+Pista de {0} carros.	{0}-car track.
+Célula —	Cell —
+1 m	1 m
+Vista 3D · V volta para a de cima · botão direito gira	3D view · V goes back to the top view · right button rotates
+PISTA DE 2 TRILHOS	2-LANE TRACK
+Termine o campeonato online (ou saia da sala) antes de voltar ao menu.	Finish the online championship (or leave the room) before going back to the menu.
+Tela inicial	Home screen
+Esconder o painel (Tab)	Hide the panel (Tab)
+Fechar circuito (Q)	Close circuit (Q)
+Completa a pista da ponta até a largada com o mínimo de peças, sem passar por cima da pista. Ctrl+Z desfaz.	Completes the track from the open end to the start with the fewest pieces, without crossing over the track. Ctrl+Z undoes.
+Cancelar (Esc)	Cancel (Esc)
+Para a busca. A pista fica como estava.	Stops the search. The track stays as it was.
+TAMANHO DA PISTA	TRACK SIZE
+2 trilhos	2 lanes
+4 trilhos	4 lanes
+6 trilhos	6 lanes
+Pista muito larga, de 6 trilhos (1 célula = o triplo da largura). Campeonatos não misturam os tipos.	Very wide 6-lane track (1 cell = three times the width). Championships don't mix the types.
+8 trilhos	8 lanes
+Pista enorme, de 8 trilhos (1 célula = 4× a largura). Campeonatos não misturam os tipos.	Huge 8-lane track (1 cell = 4× the width). Championships don't mix the types.
+Pista estreita, de 2 trilhos. Adapta a pista aberta (Ctrl+Z desfaz).	Narrow 2-lane track. Adapts the open track (Ctrl+Z undoes).
+Pista larga, de 4 trilhos (1 célula = o dobro da largura). Campeonatos não misturam os dois tipos.	Wide 4-lane track (1 cell = twice the width). Championships don't mix the two types.
+PEÇAS	PIECES
+Frente ▸	Front ▸
+◂ Trás	◂ Back
+Encaixa no fim da pista, na seta amarela (E alterna)	Attaches at the end of the track, on the yellow arrow (E toggles)
+Encaixa atrás da largada (E alterna)	Attaches behind the start (E toggles)
+RETAS	STRAIGHTS
+CURVAS	CURVES
+CURVAS INCLINADAS	BANKED CURVES
+CRUZAMENTOS E RAMPAS	CROSSOVERS AND RAMPS
+LOOP E SALTO	LOOP AND JUMP
+PEÇA SELECIONADA	SELECTED PIECE
+RESUMO	SUMMARY
+SEQUÊNCIA	SEQUENCE
+Da largada até a ponta, no sentido em que os carrinhos correm.	From the start to the open end, in the direction the cars race.
+MINHAS PISTAS	MY TRACKS
+Salvar	Save
+Exemplo: oval	Example: oval
+Nova pista	New track
+Pasta: {0}	Folder: {0}
+VISTA E EDIÇÃO	VIEW AND EDITING
+Enquadrar (C)	Frame (C)
+Vista 3D (V)	3D view (V)
+Desfazer	Undo
+Refazer	Redo
+ATALHOS	SHORTCUTS
+<b>1–0, T</b> peças · <b>X/B</b> cruzamento · <b>U/D</b> rampa\n<b>Clique</b> seleciona · <b>F</b> inverte a curva · <b>R</b> gira a largada · <b>E</b> ponta: frente/trás\n<b>Del</b> remove a selecionada · <b>⌫</b> remove a última · <b>Esc</b> solta\n<b>Q</b> fecha o circuito · <b>Ctrl+Z / Ctrl+Y</b> desfazer / refazer\n<b>C</b> enquadra · <b>V</b> vista 3D\n<b>Botão direito</b> move a vista (gira na 3D) · <b>Roda</b> zoom · <b>Tab</b> painel\n<b>Arrastar a largada</b> move a pista inteira	<b>1–0, T</b> pieces · <b>X/B</b> crossover · <b>U/D</b> ramp\n<b>Click</b> selects · <b>F</b> flips the curve · <b>R</b> rotates the start · <b>E</b> end: front/back\n<b>Del</b> removes the selected one · <b>⌫</b> removes the last one · <b>Esc</b> deselects\n<b>Q</b> closes the circuit · <b>Ctrl+Z / Ctrl+Y</b> undo / redo\n<b>C</b> frames · <b>V</b> 3D view\n<b>Right button</b> moves the view (rotates in 3D) · <b>Wheel</b> zoom · <b>Tab</b> panel\n<b>Dragging the start</b> moves the whole track
+Painel (Tab)	Panel (Tab)
+Carreira	Career
+Da garagem ao campeonato nacional	From the garage to the national championship
+Corrida	Race
+Contra amigos no mesmo PC ou contra o robô	Against friends on the same PC or against the bot
+Campeonato	Championship
+Pilotos, etapas, tabela e recordes	Drivers, rounds, standings and records
+Online	Online
+Partida rápida ou sala com amigos	Quick match or a room with friends
+Construtor	Builder
+Encaixe as peças e feche o circuito	Snap the pieces together and close the circuit
+Peças	Pieces
+Opções	Options
+Sair	Quit
+Parar o teste	Stop the test
+Testar a pista com um carro IA (anda mesmo com a pista aberta)	Test the track with an AI car (runs even with the track open)
+Mostrar	Show
+Seleciona uma das peças sobrepostas	Selects one of the overlapping pieces
+Correr nesta pista	Race on this track
+Desfazer (Ctrl+Z)	Undo (Ctrl+Z)
+Refazer (Ctrl+Y)	Redo (Ctrl+Y)
+Inverter a curva selecionada (F)	Flip the selected curve (F)
+Girar a largada (R)	Rotate the start (R)
+Remover a selecionada (Del) ou a última (⌫)	Remove the selected one (Del) or the last one (⌫)
+Enquadrar a pista (C)	Frame the track (C)
+Afastar	Zoom out
+Aproximar	Zoom in
+Circuito fechado, mas há {0} peças sobrepostas	Circuit closed, but {0} pieces overlap
+Há {0} peças sobrepostas	{0} pieces overlap
+Circuito fechado	Circuit closed
+A ponta chega na largada, mas no nível {0}. Desça até o chão	The end reaches the start, but on level {0}. Go down to the ground
+Só a largada. Adicione peças	Just the start. Add pieces
+Pista aberta · ponta a {0} cél. da largada	Open track · end {0} cells from the start
+Encaixando na <b>ponta de trás</b>, atrás da largada (seta amarela atrás dela). A largada não sai do lugar.	Attaching at the <b>back end</b>, behind the start (yellow arrow behind it). The start stays in place.
+Clique para encaixar no <b>fim da pista</b>, onde está a seta amarela. Passe o mouse para ver a peça.	Click to attach at the <b>end of the track</b>, where the yellow arrow is. Hover to preview the piece.
+Encaixando <b>depois da peça {0}</b> ({1}).	Attaching <b>after piece {0}</b> ({1}).
+Nenhuma. Clique numa peça da mesa para inserir depois dela, trocar a altura ou remover.	None. Click a piece on the table to insert after it, change its height or remove it.
+<b>Peça {0} · {1}</b>	<b>Piece {0} · {1}</b>
+{0}{1} cél. · {2}	{0}{1} cells · {2}
+Girar 90° (R)	Rotate 90° (R)
+Soltar (Esc)	Deselect (Esc)
+Altura	Height
+Descer	Lower
+Subir	Raise
+Arraste a largada na mesa para mover a pista inteira. Ela não pode ser removida.	Drag the start on the table to move the whole track. It can't be removed.
+Inverter (F)	Flip (F)
+Remover (Del)	Remove (Del)
+Vão	Gap
+{0} células	{0} cells
+1 célula	1 cell
+Tamanho	Size
+{0} fileiras	{0} rows
+1 fileira	1 row
+Sobe	Up
+Plana	Flat
+Desce	Down
+ m	 m
+ · {0} no alto	 · {0} raised
+Linha central	Center line
+Trilho {0}	Lane {0}
+Mais longo	Longest
+iguais	equal
+trilho {0} +{1} cm	lane {0} +{1} cm
+ (sobre o {0})	 (over lane {0})
+Área ocupada	Footprint
+{0} × {1} m	{0} × {1} m
+Na mesa	On the table
+cabe	fits
+passa da borda	goes past the edge
+ · {0} × {1} cél.	 · {0} × {1} cells
+Nenhuma pista salva ainda. Dê um nome e salve.	No saved tracks yet. Give it a name and save.
+Abrir	Open
+Certeza?	Sure?
+Apagar	Delete
+“{0}” apagada.	“{0}” deleted.
+Pista {0}	Track {0}
+“{0}” salva.	“{0}” saved.
+“{0}” aberta.	“{0}” opened.
+Célula {0}	Cell {0}
+ cm	 cm
+ · de {0}	 · by {0}
+{0} trilhos · {1} peças · {2} m · 	{0} lanes · {1} pieces · {2} m ·
+fechada	closed
+aberta	open
+não deu para ler	couldn't read it
+Sai à {0} · 	Exits to the {0} ·
+esquerda	left
+direita	right
+Salto · 	Jump ·
+Reta · 	Straight ·
+Vira à {0} · {1}° · 	Turns {0} · {1}° ·
+chão	ground
+nível {0}	level {0}
+Esta prova deixa usar no máximo {0} peças.	This event allows at most {0} pieces.
+Rampa não encaixa atrás da largada: ela fica no chão.	A ramp can't attach behind the start: the start stays on the ground.
+Loop e rampa de salto não sobem nem descem de nível.	Loops and jump ramps don't go up or down a level.
+{0} ({1} carros)	{0} ({1} cars)
+Não cabe: a mesa vai até 120 × 120 células.	It doesn't fit: the table goes up to 120 × 120 cells.
+A pista já está fechada.	The track is already closed.
+Coloque algumas peças antes: o fechamento parte da ponta da pista.	Place some pieces first: the closing starts from the open end of the track.
+Busca cancelada.	Search canceled.
+Não deu para fechar o circuito.	Couldn't close the circuit.
+Vencer	Win
+Chegar até o {0:0}º	Finish P{0:0} or better
+Sem sair da pista	Without leaving the track
+No máximo {0:0} saídas	At most {0:0} offs
+Sem usar o turbo	Without using the turbo
+Volta abaixo de {0}	Lap under {0}
+Prova abaixo de {0}	Race under {0}
+Vencer a série	Win the series
+Vencer sem perder bateria	Win without losing a heat
+Vencer todas as etapas	Win every round
+Pista molhada: 20% menos aderência	Wet track: 20% less grip
+Carro imposto: {0}	Mandatory car: {0}
+padrão	default
+Mais de {0} {1} e você está fora	More than {0} {1} and you're out
+saída	off
+saídas	offs
+Você larga {0:0.#} s depois	You start {0:0.#} s later
+Turbo sempre cheio, para todos	Turbo always full, for everyone
+Monte a pista primeiro.	Build the track first.
+Passou do limite: {0} de {1} peças.	Over the limit: {0} of {1} pieces.
+{0}{1} não vale nesta prova.	{0}{1} isn't allowed in this event.
+ com rampa	 with ramp
+Falta usar: {0}.	Still need to use: {0}.
+Feche o circuito (Q fecha sozinho).	Close the circuit (Q closes it for you).
+A pista passa por cima dela mesma.	The track crosses over itself.
+Motor	Motor
+Bolha	Body
+Pneu	Tire
+Chassi	Chassis
+Turbo	Turbo
++{0}% de aceleração	+{0}% acceleration
++{0}% de final	+{0}% top speed
++{0}% de aderência	+{0}% grip
++{0}% de aerodinâmica	+{0}% aerodynamics
++{0}% de resposta no gatilho e no freio	+{0}% throttle and brake response
+−{0}% na derrapagem	−{0}% sliding
++{0} ponto de velocidade do turbo	+{0} turbo speed point
++{0}% de tanque	+{0}% tank
+ por nível	 per level
+metade de cada: {0} e {1}, a cada 2 níveis	half of each: {0} and {1}, every 2 levels
+Já é sua.	Already yours.
+Abre na região {0}.	Unlocks in the {0} region.
+Faltam {0} moedas.	{0} more coins needed.
+Nível máximo.	Max level.
+Abra a opção primeiro.	Unlock the option first.
+Nível {0} abre na região {1}.	Level {0} unlocks in the {1} region.
+níveis: 	levels:
+Vermelho	Red
+Azul	Blue
+Amarelo	Yellow
+Verde	Green
+Roxo	Purple
+Laranja	Orange
+Ciano	Cyan
+Rosa	Pink
+Iniciante: freia cedo e erra bastante	Beginner: brakes early and makes plenty of mistakes
+Amador: anda seguro, às vezes passa do ponto	Amateur: drives safely, sometimes overshoots
+Bom: entra forte nas curvas	Good: attacks the curves hard
+Experiente: quase no limite, raramente sai	Experienced: almost at the limit, rarely crashes out
+Profissional: no limite da aderência	Professional: right at the limit of grip
+Piloto	Driver
+Largar (Enter)	Start (Enter)
+ · esquerda	 · left
+ · direita	 · right
+ · sobe	 · up
+ · desce	 · down
+ · vão {0}	 · gap {0}
+ · {0} fileiras	 · {0} rows
+Não achei um fechamento que funcione daqui. Leve a ponta mais perto da largada e tente de novo.	I couldn't find a closing that works from here. Bring the end closer to the start and try again.
+Todo fechamento curto passa por cima da pista. Mexa um pouco a ponta (ou faça uma ponte) e tente de novo.	Every short closing crosses over the track. Move the end a little (or build a bridge) and try again.
+Procurando com até {0} peças…	Searching with up to {0} pieces…
+A ponta já encosta na pista de trás.	The end already touches the track behind.
+A ponta já está na largada.	The end is already at the start.
+Não achei um fechamento com até {0} peças. Leve a ponta mais perto da largada e tente de novo.	I couldn't find a closing with up to {0} pieces. Bring the end closer to the start and try again.
+Procurando com até {0} peças… testando {1} de {2}	Searching with up to {0} pieces… testing {1} of {2}
+Circuito fechado com {0} {1}: {2}. Ctrl+Z desfaz.	Circuit closed with {0} {1}: {2}. Ctrl+Z undoes.
+peça	piece
+peças	pieces
+ (4 carros)	 (4 cars)
+ (6 carros)	 (6 cars)
+Oval	Oval
+8 com ponte	Figure 8 with bridge
+Endereço do servidor inválido.	Invalid server address.
+A conexão com o servidor foi encerrada.	The connection to the server was closed.
+O servidor encerrou a conexão.	The server closed the connection.
+O servidor mandou uma mensagem grande demais.	The server sent a message that is too large.
+Não foi possível conectar: tempo esgotado. Confira o endereço do servidor.	Couldn't connect: timed out. Check the server address.
+Não foi possível falar com o servidor: 	Couldn't talk to the server:
+Não deu para carregar a biblioteca da Steam: 	Couldn't load the Steam library:
+O cliente da Steam não está aberto. Abra a Steam, entre na conta e tente de novo.	The Steam client isn't open. Open Steam, log in and try again.
+A Steam está desatualizada para esta versão da biblioteca. Atualize o cliente da Steam.	Steam is out of date for this version of the library. Update the Steam client.
+A Steam não iniciou ({0}): {1}. Confira se o steam_appid.txt (480) está na raiz do projeto.	Steam didn't start ({0}): {1}. Check that steam_appid.txt (480) is in the project root.
+Partida rápida · {0} carros	Quick match · {0} cars
+Sala de {0}	{0}'s room
+Você já está numa sala.	You're already in a room.
+Não deu para entrar na sala do amigo.	Couldn't join your friend's room.
+Esse lobby não é de uma sala do Autorama (ou é de outra versão do jogo).	This lobby isn't an Autorama room (or it's from another version of the game).
+{0} agora é o host.	{0} is now the host.
+O campeonato terminou.	The championship is over.
+O campeonato já começou.	The championship has already started.
+Tamanho de pista inválido.	Invalid track size.
+Pista inválida ou grande demais.	Invalid or too large track.
+Pista	Track
+Não deu para criar a fila na Steam.	Couldn't create the queue on Steam.
+Partida rápida · 	Quick match ·
+Pista sorteada: {0} (de {1}).	Track drawn: {0} (from {1}).
+Só o host pode fazer isso.	Only the host can do that.
+Não deu para criar a sala na Steam.	Couldn't create the room on Steam.
+Sala não encontrada. Confira o código.	Room not found. Check the code.
+A sala está cheia.	The room is full.
+Não deu para entrar na sala.	Couldn't join the room.
+Cor inválida.	Invalid color.
+Essa cor já é de outro piloto.	That color already belongs to another driver.
+Você sugeriu pistas demais em pouco tempo. Espere um minuto.	You suggested too many tracks in a short time. Wait a minute.
+Calma, você está mandando mensagens rápido demais.	Easy, you're sending messages too fast.
+No máximo {0} etapas.	At most {0} rounds.
+Etapa inválida ou pista grande demais.	Invalid round or track too large.
+O host mudou as etapas: confirmem "pronto" de novo.	The host changed the rounds: confirm "ready" again.
+Precisa de pelo menos 2 pilotos.	At least 2 drivers are needed.
+Escolha pelo menos uma pista.	Pick at least one track.
+Falta ficar pronto: 	Still not ready:
+Regras inválidas.	Invalid rules.
+Campeonato de {0}	{0}'s Championship
+As pistas são grandes demais para a Steam. Tire alguma etapa.	The tracks are too large for Steam. Remove a round.
+{0} largou o campeonato "{1}".	{0} started the championship "{1}".
+{0} entrou na sala.	{0} joined the room.
+{0} saiu da sala.	{0} left the room.
+{0} agora é o host: a bateria da vez recomeça.	{0} is now the host: the current heat restarts.
+Jogador	Player
+ · <color=#F5C542>★</color> {0} ({1})	 · <color=#F5C542>★</color> {0} ({1})
+Seja campeão da {0} na carreira.	Become champion of the {0} in the career.
+Vença {0} ({1}) na carreira.	Win {0} ({1}) in the career.
+Abre na carreira.	Unlocks in the career.
+{0} (bolha {1})	{0} ({1} body)
+{0}: abre na carreira ({1}).	{0}: unlocks in the career ({1}).
+Esta peça abre na carreira (menu inicial › Peças mostra em que prova).	This piece unlocks in the career (home screen › Pieces shows which event).
+Acelerar	Throttle
+Meia	Half
+Recolocar	Reslot
+Meia −	Half −
+Meia +	Half +
+Espaço	Space
+PgUp	PgUp
+PgDn	PgDn
+Shift dir.	Right Shift
+Ctrl dir.	Right Ctrl
+Shift esq.	Left Shift
+8 num.	Num 8
+5 num.	Num 5
+7 num.	Num 7
+0 num.	Num 0
+6 num.	Num 6
+4 num.	Num 4
+Broca	Drill
+Elétrico suave	Soft electric
+Escovas	Brushes
+Turbina	Turbine
+Ronco	Rumble
+Seu arquivo (motor.wav)	Your file (motor.wav)
+Motor curto	Short motor
+Motor longo	Long motor
+Da garagem ao campeonato nacional.	From the garage to the national championship.
+Voltar ao menu (Esc)	Back to the menu (Esc)
+◀ Saves	◀ Saves
+Garagem do carro (G)	Car garage (G)
+← → escolhe a prova · Enter abre e corre · Esc volta	← → picks the event · Enter opens and races · Esc goes back
+PAUSA	PAUSE
+Continuar (Esc)	Continue (Esc)
+Reiniciar	Restart
+Voltar ao mapa	Back to the map
+Cancelar	Cancel
+Carreira {0}	Career {0}
+Nova carreira	New career
+As outras regiões ainda não estão prontas.	The other regions aren't ready yet.
+Seja campeão desta região para abrir a próxima.	Become champion of this region to unlock the next one.
+Faça {0} estrelas na região para abrir.	Earn {0} stars in the region to unlock.
+Termine a prova anterior para abrir esta.	Finish the previous event to unlock this one.
+{0} · {1} faixas	{0} · {1} lanes
+{0} · {1} voltas	{0} · {1} laps
+ · sem turbo	 · no turbo
+ · contra {0} IA {1}	 · against {0} AI {1}
+1 piloto	1 driver
+{0} pilotos	{0} drivers
+{0} · melhor de {1}, trocando de trilho	{0} · best of {1}, switching lanes
+Seu carro: {0}	Your car: {0}
+ · garagem no G	 · garage on G
+Ainda não correu aqui.	Haven't raced here yet.
+Seu melhor: {0}	Your best: {0}
+ · volta {0}	 · lap {0}
+Remontar	Rebuild
+Montar pista (Enter)	Build the track (Enter)
+Correr na minha pista (Enter)	Race on my track (Enter)
+Recomeçar	Start over
+Continuar (Enter)	Continue (Enter)
+Correr (Enter)	Race (Enter)
+Fechar (Esc)	Close (Esc)
+Não deu para salvar a carreira.	Couldn't save the career.
+<color={0}>{1}</color>  {2}  {3}	<color={0}>{1}</color>  {2}  {3}
+\n<color=#F5C21B>Bateria {0} de {1} · você {2} × {3} {4}</color>	\n<color=#F5C21B>Heat {0} of {1} · you {2} × {3} {4}</color>
+\n<color={0}>Saídas {1} de {2}</color>	\n<color={0}>Offs {1} of {2}</color>
+\n<color=#F07A3A>Você sai em {0} s</color>	\n<color=#F07A3A>You're out in {0} s</color>
+\n<color=#50A0F0>Pista molhada</color>	\n<color=#50A0F0>Wet track</color>
+Campeão da {0}!	{0} champion!
+Você terminou em {0}º · {1}	You finished P{0} · {1}
+Você venceu a série · {0} × {1}	You won the series · {0} × {1}
+{0} venceu a série · {1} × {2}	{0} won the series · {1} × {2}
+Fora: mais de {0} {1}	Out: more than {0} {1}
+Melhor volta {0}	Best lap {0}
+Nenhuma volta completa	No complete lap
+Não terminou	Didn't finish
+{0}º lugar · {1}	P{0} · {1}
+Não foi desta vez.	Not this time.
+estrela nova	new star
+estrelas novas	new stars
+Sem estrela nova.	No new star.
++{0} moedas  ·  ◎ {1}  ·  gaste na garagem do carro (G no mapa)	+{0} coins  ·  ◎ {1}  ·  spend them in the car garage (G on the map)
+Abriu: {0}	Unlocked: {0}
+Modelo novo: {0}. Vale em todos os modos (cartão Carro).	New model: {0}. Works in every mode (Car card).
+Abriu: {0} ({1} faixas)	Unlocked: {0} ({1} lanes)
+As próximas regiões ainda estão sendo construídas.	The next regions are still being built.
+Correr de novo	Race again
+Mapa (Esc)	Map (Esc)
+Próxima prova (Enter)	Next event (Enter)
+Bateria {0} de {1}	Heat {0} of {1}
+Você venceu a bateria	You won the heat
+{0} venceu a bateria	{0} won the heat
+Você {0} × {1} {2}	You {0} × {1} {2}
+Na próxima, vocês trocam de trilho.	Next time, you switch lanes.
+Desistir (Esc)	Give up (Esc)
+Próxima bateria (Enter)	Next heat (Enter)
+peça nova no construtor: {0}	new piece in the builder: {0}
+Contra o relógio	Time trial
+Desafio	Challenge
+Rival	Rival
+Monte a pista: 	Build the track:
+ e as peças que você já abriu	 and the pieces you've already unlocked
+ (com rampas)	 (with ramps)
+ (sem rampas)	 (without ramps)
+ · no máximo {0} peças	 · at most {0} pieces
+ · use pelo menos: 	 · use at least:
+Esta peça não vale nesta prova.	This piece isn't allowed in this event.
+Não vale nesta prova.	Not allowed in this event.
+Carreira · {0}	Career · {0}
+{0} · monte a pista	{0} · build the track
+Peças: {0}{1}\n	Pieces: {0}{1}\n
+ de {0}	 of {0}
+<color=#3DBE74>✓ A pista vale. Pode correr.</color>	<color=#3DBE74>✓ The track is valid. You can race.</color>
+VOCÊ	YOU
+Você	You
+VOC	YOU
+Tabela · {0} de {1} etapas	Standings · {0} of {1} rounds
+{0}º  {1}  ·  {2} pts	{0}  {1}  ·  {2} pts
+  ·  {0} vitória	  ·  {0} win
+  ·  {0} vitórias	  ·  {0} wins
+Você ficou em {0}º	You finished P{0}
+Você chegou em {0}º	You came in P{0}
+Você não terminou	You didn't finish
+Simulada · 	Simulated ·
+Próxima: {0}	Next: {0}
+\n<color=#F5C21B>Etapa {0} de {1} · você é {2}º na tabela</color>	\n<color=#F5C21B>Round {0} of {1} · you're P{2} in the standings</color>
+{0} etapas: 	{0} rounds:
+\nPilotos: 	\nDrivers:
+{0} (IA {1})	{0} (AI {1})
+\nPor tempo: {0} s por etapa, passando por todos os trilhos ({1} {2} por etapa)	\nBy time: {0} s per round, going through every lane ({1} {2} per round)
+bateria	heat
+baterias	heats
+\n{0} baterias por etapa (você corre {1}; as outras são simuladas)	\n{0} heats per round (you race {1}; the others are simulated)
+\nEm andamento: {0} de {1} etapas	\nIn progress: {0} of {1} rounds
+Escolha do carro · etapa {0}: {1}	Car choice · round {0}: {1}
+Motor, bolha e pneu para a etapa inteira. Cada peça dá uma coisa e tira outra.	Motor, body and tires for the whole round. Each part gives something and takes something away.
+Pronto ✓	Ready ✓
+Pronto	Ready
+robô	bot
+saiu	left
+pronto	ready
+escolhendo	choosing
+<b>Enter</b>: todos prontos com o que está escolhido.	<b>Enter</b>: everyone ready with what is chosen.
+Fecha sozinho em {0} s (quem não confirmou corre com o que estiver escolhido).	Closes on its own in {0} s (whoever didn't confirm races with what is chosen).
+O host fecha a escolha em até {0} s.	The host closes the choice within {0} s.
+Fechar a escolha	Close the choice
+NOVO CAMPEONATO	NEW CHAMPIONSHIP
+Escolha os pilotos e as pistas. Em cada etapa, todo piloto corre uma bateria em cada trilho, em rodízio: ninguém leva vantagem por ficar sempre do lado de dentro.	Choose the drivers and the tracks. In each round, every driver races one heat in each lane, in rotation: nobody gets an advantage from always being on the inside.
+Nome do campeonato	Championship name
+Todas as etapas correm nesse tamanho (qualquer pista é adaptada). Depois de começar, o tamanho não muda. Com menos pilotos que trilhos, sobra trilho vazio.	Every round is raced in this size (any track is adapted). Once it starts, the size doesn't change. With fewer drivers than lanes, a lane stays empty.
+FORMATO	FORMAT
+Por voltas	By laps
+Por tempo	By time
+Cada bateria tem uma duração e se divide em uma manche por trilho. Vence quem andar mais.	Each heat has a duration and is split into one leg per lane. Whoever goes farthest wins.
+PILOTOS	DRIVERS
+Marque quem vai correr: de 2 a 8. A ordem em que você marca é a ordem do rodízio. Piloto IA é dirigido pelo computador e não bate recorde da pista.	Check who will race: from 2 to 8. The order you check them in is the rotation order. AI drivers are driven by the computer and don't set track records.
+NOVO PILOTO	NEW DRIVER
+Nome	Name
+Sigla	Tag
+Piloto IA (o computador dirige)	AI driver (the computer drives)
+Adicionar piloto	Add driver
+ETAPAS	ROUNDS
+Cada etapa é uma pista com um número de voltas. Clique numa pista abaixo para incluir.	Each round is a track with a number of laps. Click a track below to add it.
+PISTAS DISPONÍVEIS	AVAILABLE TRACKS
+REGRAS	RULES
+Começar campeonato	Start championship
+CAMPEONATOS ANTERIORES	PAST CHAMPIONSHIPS
+Tempo de prova	Race time
+0,00 s	0.00 s
+TABELA GERAL	OVERALL STANDINGS
+RECORDES DA PISTA	TRACK RECORDS
+Abandonar campeonato	Abandon championship
+Abandonar? Clique de novo	Abandon? Click again
+Não deu para salvar o campeonato no disco.	Couldn't save the championship to disk.
+Qualidade: {0}	Skill: {0}
+Robô {0}	Bot {0}
+Marque pelo menos 2 pilotos.	Check at least 2 drivers.
+No máximo {0} pilotos.	At most {0} drivers.
+{0} e {1} estão com a mesma cor. Troque a cor de um deles.	{0} and {1} have the same color. Change the color of one of them.
+Inclua pelo menos uma pista nas etapas.	Add at least one track to the rounds.
+IA {0}	AI {0}
+Piloto IA, qualidade {0}	AI driver, skill {0}
+{0} de {1}	{0} of {1}
+ · {0} {1} por bateria	 · {0} {1} per heat
+trilho vazio	empty lane
+trilhos vazios	empty lanes
+Nenhum piloto cadastrado. Adicione abaixo.	No drivers registered. Add one below.
+cor repetida	repeated color
+Editar	Edit
+ (já usada)	 (already used)
+EDITAR PILOTO	EDIT DRIVER
+Salvar piloto	Save driver
+{0} etapa	{0} round
+{0} etapas	{0} rounds
+Nenhuma etapa ainda.	No rounds yet.
+{0} volta	{0} lap
+{0} voltas	{0} laps
+Tirar etapa	Remove round
+ · recorde {0} {1}	 · record {0} {1}
+1 pista aberta não aparece: feche o circuito no Construtor.	1 open track isn't shown: close the circuit in the Builder.
+{0} pistas abertas não aparecem: feche os circuitos no Construtor.	{0} open tracks aren't shown: close the circuits in the Builder.
+• Usa as regras da corrida de Opções (menu inicial): velocidade <b>{0} cél/s</b>, até 100% em <b>{1} s</b>, aderência <b>{2}</b>, colisão <b>{3}</b>, turbo <b>{4}</b>, recolocar em <b>{5} s</b>. Ficam fixos até o fim.\n	• Uses the race rules from Options (home screen): speed <b>{0} cells/s</b>, 100% in <b>{1} s</b>, grip <b>{2}</b>, collision <b>{3}</b>, turbo <b>{4}</b>, reslot in <b>{5} s</b>. They stay fixed until the end.\n
+ligada	on
+desligada	off
+ligado	on
+desligado	off
+• <b>Por tempo</b>: cada etapa tem {0} de até {1} carros. A bateria se divide em <b>{2} manches</b>, uma em cada trilho. Vale a <b>distância</b> (voltas e fração).\n	• <b>By time</b>: each round has {0} of up to {1} cars. The heat is split into <b>{2} legs</b>, one in each lane. What counts is the <b>distance</b> (laps and fraction).\n
+<b>{0} grupos</b>	<b>{0} groups</b>
+<b>uma bateria</b>	<b>one heat</b>
+• Cada etapa: {0} de até <b>{1} carros</b>, e cada piloto corre uma vez em cada trilho. Vale o <b>tempo somado</b> de todas.\n• Quem não completar as voltas tem <b>{2:0} s</b> depois da bandeirada do primeiro; fica com as voltas que fez.\n	• Each round: {0} of up to <b>{1} cars</b>, and every driver races once in each lane. What counts is the <b>total time</b> of all of them.\n• Whoever doesn't complete the laps gets <b>{2:0} s</b> after the leader's chequered flag and keeps the laps done.\n
+<b>{0} baterias</b>	<b>{0} heats</b>
+uma bateria por piloto	one heat per driver
+• Pontos: <b>{0}</b>, mais 1 para a melhor volta da etapa.	• Points: <b>{0}</b>, plus 1 for the best lap of the round.
+<b>{0} pilotos · {1} {2} · {3} baterias de {4}</b> · cerca de {5} min	<b>{0} drivers · {1} {2} · {3} heats of {4}</b> · about {5} min
+etapa	round
+etapas	rounds
+Pts	Pts
+Vit.	Wins
+Apagar do histórico	Delete from history
+Pista do construtor	Builder track
+dentro	inside
+fora	outside
+Etapa {0} de {1} · bateria {2} de {3}	Round {0} of {1} · heat {2} of {3}
+Encerrado · {0} {1} · {2} baterias	Finished · {0} {1} · {2} heats
+×	×
+IA · qualidade {0}	AI · skill {0}
+só com controle	controller only
+acelera {0} · recoloca {1}	throttle {0} · reslot {1}
+Arquivar e montar outro	Archive and set up another
+Salvar e seguir (Enter)	Save and continue (Enter)
+Recomeçar bateria	Restart heat
+Arquivar guarda a tabela final no histórico. Os recordes ficam salvos nas pistas.	Archiving keeps the final standings in the history. Records stay saved on the tracks.
+Confira quem está em cada trilho e passe o controle. Depois, Largar e esperar as luzes.	Check who is in each lane and hand over the controller. Then Start and wait for the lights.
+Salve para o resultado contar na tabela. Se algo deu errado, corra de novo: esta bateria é descartada.	Save so the result counts in the standings. If something went wrong, race again: this heat is discarded.
+Bateria de {0} em {1} manches: no fim de cada uma, todos trocam de trilho. Vence quem andar mais.	{0} heat in {1} legs: at the end of each one, everybody switches lanes. Whoever goes farthest wins.
+Vence a bateria quem completar {0} {1} primeiro. Quem não terminar tem {2:0} s depois da bandeirada.	The heat goes to whoever completes {0} {1} first. Those who don't finish get {2:0} s after the chequered flag.
+volta	lap
+voltas	laps
+ETAPA {0} · {1}{2}	ROUND {0} · {1}{2}
+ ({0} de {1} baterias)	 ({0} of {1} heats)
+Bat.	Ht.
+Distância	Distance
+Voltas	Laps
+Tempo	Time
+Melhor	Best
+Melhores voltas	Best laps
+Pontos por etapa: {0}, mais 1 para a melhor volta. Desempate: vitórias, pódios, tempo total.	Points per round: {0}, plus 1 for the best lap. Tiebreak: wins, podiums, total time.
+ online	 online
+ninguém ainda	nobody yet
+Volta	Lap
+MELHOR VOLTA DE CADA UM	EVERYONE'S BEST LAP
+ venceu	 won
+{0} de {1} baterias	{0} of {1} heats
+próxima	next
+{0} baterias	{0} heats
+{0} pts	{0} pts
+Mão mais rápida	Fastest hands
+ {0} em {1}	 {0} on {1}
+Rei do muro	King of the wall
+ {0} {1} de pista	 {0} {1} off the track
+Para-choque	Bumper car
+ {0} toque	 {0} hit
+ {0} toques	 {0} hits
+Recordes batidos	Records broken
+Última	Last
+Saídas	Offs
+Toques	Hits
+Campeonato {0}	Championship {0}
+Recorde da pista! {0}	Track record! {0}
+Melhor volta pessoal! {0}	Personal best lap! {0}
+TABELA GERAL · etapa {0} encerrada	OVERALL STANDINGS · round {0} finished
+TABELA GERAL · etapa {0}: {1} de {2} baterias	OVERALL STANDINGS · round {0}: {1} of {2} heats
+etapa {0}º · 	round P{0} ·
+{0} v	{0} laps
+{0} v {1}	{0} laps {1}
+recorde de volta de {0} ({1})	lap record by {0} ({1})
+recorde de {0} voltas de {1} ({2})	{0}-lap record by {1} ({2})
+Novo 	New
+ e novo 	 and new
+Monte o campeonato: pilotos e etapas	Set up the championship: drivers and rounds
+{0}: {1} venceu	{0}: {1} won
+{0} · troca de trilho	{0} · lane switch
+{0} · {1} · faltam {2}	{0} · {1} · {2} left
+{0} · volta {1} de {2}	{0} · lap {1} of {2}
+Bateria {0} encerrada · o host salva e segue	Heat {0} finished · the host saves and continues
+Bateria {0} encerrada · salve para seguir	Heat {0} finished · save to continue
+Atenção à largada	Get ready for the start
+{0} vence o campeonato	{0} wins the championship
+{0} pontos · {1} {2} · {3}	{0} points · {1} {2} · {3}
+vitória	win
+vitórias	wins
+{0} vence a bateria	{0} wins the heat
+{0} · melhor volta {1}	{0} · best lap {1}
+★  RECORDE DA PISTA  ·  {0}  {1}	★  TRACK RECORD  ·  {0}  {1}
+{0} vence a etapa {1}	{0} wins round {1}
+Próxima: {0} · {1}	Next: {0} · {1}
+ROBÔ · {0}	BOT · {0}
+JOGADOR {0}	PLAYER {0}
+  <size=10><color=#9AA3A8>{0}</color></size>	  <size=10><color=#9AA3A8>{0}</color></size>
+IA PILOTANDO · {0}	AI DRIVING · {0}
+Recolocar  {0}	Reslot  {0}
+ACELERAR  ·  controle	THROTTLE  ·  controller
+PRECISA DE UM CONTROLE	NEEDS A CONTROLLER
+  ·  controle	  ·  controller
+ACELERAR  {0}  ·  {1}% {2}{3}	THROTTLE  {0}  ·  {1}% {2}{3}
+Trilho 1	Lane 1
+Trilho 2	Lane 2
+Trilho 3	Lane 3
+Trilho 4	Lane 4
+Trilho 5	Lane 5
+Trilho 6	Lane 6
+Trilho 7	Lane 7
+Trilho 8	Lane 8
+Transmissão de TV	TV broadcast
+Perseguição	Chase
+Primeira pessoa	First person
+De cima	Top
+Câmeras em volta da mesa seguem o líder	Cameras around the table follow the leader
+Atrás e acima do carrinho, olhando a curva	Behind and above the car, looking at the curve
+Dentro do carrinho; quando ele roda, vira a traseira	Inside the car; when it spins, it turns to the rear
+Segue os jogadores; botão direito gira, roda aproxima	Follows the players; right button rotates, wheel zooms
+Jogador 1	Player 1
+Jogador 2	Player 2
+Jogador 3	Player 3
+Jogador 4	Player 4
+Jogador 5	Player 5
+Jogador 6	Player 6
+Jogador 7	Player 7
+Jogador 8	Player 8
+Carrinho vermelho	Red car
+Carrinho azul	Blue car
+Carrinho verde	Green car
+Carrinho amarelo	Yellow car
+Carrinho roxo	Purple car
+Carrinho ciano	Cyan car
+Carrinho laranja	Orange car
+Carrinho rosa	Pink car
+a que está aberta agora	the one open right now
+Exemplo: 8 com ponte	Example: figure 8 with bridge
+PISTA	TRACK
+Escolha onde correr. Qualquer pista fechada serve, em qualquer tamanho. Trocar aqui não mexe na pista do construtor.	Choose where to race. Any closed track works, in any size. Changing it here doesn't touch the builder's track.
+{0} trilhos	{0} lanes
+CARROS NA PISTA	CARS ON THE TRACK
+Voltar ao grid	Back to the grid
+COMO PILOTAR	HOW TO DRIVE
+<b>Controle:</b> gatilho direito acelera aos poucos (o 1º controle é do jogador 1, o 2º do jogador 2, e assim por diante) · <b>A/✕</b> recoloca · <b>X/□</b> ou <b>RB</b> turbo · <b>Start</b> larga\n<b>Enter</b> largar · câmera no menu do canto direito	<b>Controller:</b> right trigger accelerates gradually (controller 1 is player 1, controller 2 is player 2, and so on) · <b>A/✕</b> reslots · <b>X/□</b> or <b>RB</b> turbo · <b>Start</b> starts\n<b>Enter</b> start · camera in the menu at the right corner
+Colisão entre carrinhos	Collision between cars
+Voltas: {0}	Laps: {0}
+Duração: {0} · {1} por trilho	Duration: {0} · {1} per lane
+Velocidade máx.: {0} cél/s	Top speed: {0} cells/s
+Tempo até 100%: {0} s	Time to 100%: {0} s
+Aderência: {0}	Grip: {0}
+Meia aceleração (tecla de meia): {0}%	Half throttle (half key): {0}%
+Tempo para recolocar: {0} s	Reslot time: {0} s
+Nas curvas planas, o carrinho segura até {0}% da velocidade máxima no trilho de dentro e {1}% no de fora. Nas inclinadas, até {2}% e {3}%.	On flat curves, the car holds up to {0}% of top speed in the inside lane and {1}% in the outside one. On banked ones, up to {2}% and {3}%.
+Som do motor: <b>{0}</b>  ▸	Motor sound: <b>{0}</b>  ▸
+Clique para ouvir o próximo. Para usar uma gravação sua, ponha motor.wav (PCM 16 bits) em 	Click to hear the next one. To use your own recording, put motor.wav (16-bit PCM) in
+Som: {0}%	Sound: {0}%
+Correr de novo  (Enter)	Race again  (Enter)
+Trocar pista	Change track
+OPÇÕES	OPTIONS
+IDIOMA	LANGUAGE
+O novo idioma vale ao reabrir o jogo.	The new language takes effect when you reopen the game.
+TECLAS DOS JOGADORES	PLAYER KEYS
+Clique num botão e aperte a tecla nova. Se ela já era de outra ação, as duas trocam. Esc cancela.	Click a button and press the new key. If it already belonged to another action, the two swap. Esc cancels.
+Jogador {0}	Player {0}
+Jogadores 5 e 6 (pista de 6) jogam só com controle.	Players 5 and 6 (6-lane track) play with a controller only.
+Restaurar padrão	Restore defaults
+REGRAS DA CORRIDA	RACE RULES
+<b>Onde valem:</b>\n• <b>Corrida livre</b> e <b>carreira</b>: na hora (na carreira, a pista molhada tira aderência quando a prova pede).\n• <b>Campeonato offline</b>: são copiadas quando o campeonato é criado. Mudar aqui depois não mexe num campeonato em andamento.\n• <b>Campeonato online</b>: valem as do <b>host</b>, enviadas na largada e fixas até o fim. As dos outros jogadores não contam.\n• <b>Partida rápida</b>: não valem. Lá as regras são sempre as padrão: velocidade 14, 0,5 s até 100%, aderência 29, colisão e turbo ligados, recolocar em 0,3 s.	<b>Where they apply:</b>\n• <b>Free race</b> and <b>career</b>: right away (in the career, the wet track takes away grip when the event calls for it).\n• <b>Offline championship</b>: they're copied when the championship is created. Changing them here later doesn't affect a championship in progress.\n• <b>Online championship</b>: the <b>host</b>'s apply, sent at the start and fixed until the end. The other players' don't count.\n• <b>Quick match</b>: they don't apply. There the rules are always the defaults: speed 14, 0.5 s to 100%, grip 29, collision and turbo on, reslot in 0.3 s.
+SEU CONTROLE E SOM	YOUR CONTROLS AND SOUND
+Só seus, em qualquer modo, também no online: não vão para os outros jogadores.	Yours only, in any mode, online too: they aren't sent to the other players.
+JOGO ONLINE	ONLINE PLAY
+O jogo abre conectado à Steam. Desligue para jogar pelo servidor (Node) no endereço abaixo.	The game opens connected to Steam. Turn it off to play through the server (Node) at the address below.
+TODAS AS TECLAS	ALL KEYS
+Fechar  (Esc)	Close  (Esc)
+reta curta · comprida · curtinha	short · long · tiny straight
+curva longa esquerda · direita	long curve left · right
+meia curva esquerda · direita	half curve left · right
+curva longa inclinada esquerda · direita	long banked curve left · right
+curva curta inclinada esquerda · direita	short banked curve left · right
+curva em C esquerda · direita	hairpin left · right
+rampa sobe · desce	ramp up · down
+loop saindo à esquerda · à direita	loop exiting left · right
+rampa de salto	jump ramp
+cruzamento · cruzamento curto	crossover · short crossover
+troca o lado (esquerda · direita) da peça selecionada	flips the side (left · right) of the selected piece
+troca a ponta de encaixe: fim da pista · atrás da largada	switches the attaching end: end of the track · behind the start
+gira a pista 90° em volta da largada	rotates the track 90° around the start
+fecha o circuito sozinho (Esc cancela)	closes the circuit by itself (Esc cancels)
+Delete · Backspace	Delete · Backspace
+apaga a selecionada · a última	deletes the selected one · the last one
+Ctrl+Z · Ctrl+Y (Ctrl+Shift+Z)	Ctrl+Z · Ctrl+Y (Ctrl+Shift+Z)
+desfaz · refaz	undo · redo
+Esc	Esc
+tira a seleção	clears the selection
+Clique	Click
+seleciona a peça; arrastar a largada move a pista	selects the piece; dragging the start moves the track
+CÂMERA E TELA	CAMERA AND SCREEN
+Roda do mouse	Mouse wheel
+aproxima e afasta	zooms in and out
+Botão direito · do meio	Right button · middle button
+arrasta a mesa; com a câmera inclinada, o direito gira	drags the table; with the camera tilted, the right one rotates
+câmera de cima · inclinada	top · tilted camera
+enquadra a pista	frames the track
+Tab	Tab
+mostra e esconde o painel	shows and hides the panel
+1 · 2 · 3 · 4 (corrida)	1 · 2 · 3 · 4 (race)
+troca a câmera, na ordem do menu	switches the camera, in menu order
+Enter (ou Start no controle)	Enter (or Start on the controller)
+larga · próxima bateria	start · next heat
+pausa (online: 3 por piloto, 60 s cada)	pause (online: 3 per driver, 60 s each)
+o que aparece em cima dos carros	what shows above the cars
+liga e desliga a narração	turns the commentary on and off
+fecha esta tela	closes this screen
+“{0}” é do jogo (Enter larga). Aperte outra tecla.	“{0}” belongs to the game (Enter starts). Press another key.
+{0}: <b>aperte…</b>	{0}: <b>press…</b>
+{0}: <b>{1}</b>	{0}: <b>{1}</b>
+Aperte a tecla nova (Esc cancela).	Press the new key (Esc cancels).
+<b>Segure</b> Acelerar e o acelerador sobe de 0 a 100%. <b>Soltou, zerou</b>: o carrinho freia.\nRápido demais na curva, a traseira escorrega e a barra de <b>derrapagem</b> enche. Cheia, o carrinho sai da pista.\n<b>Recolocar</b> devolve o carrinho ao trilho, um pouco antes de onde ele saiu.\n<b>Turbo</b>: começa vazio e enche um pouco a cada volta completa e um pouquinho a cada saída de pista (mais para quem está atrás). O tipo de turbo fica no ajuste do carro: explosivo ou eficiente. Segure para andar acima da velocidade máxima até o tanque acabar. Volta com turbo não vale como melhor volta.\n<b>Teclas</b> (acelerar 100% · meia {0}% · recolocar · turbo): jogador 1 {1} · {2} · {3} · {4}; jogador 2 {5} · {6} · {7} · {8}; jogador 3 {9} · {10} · {11} · {12}; jogador 4 {13} · {14} · {15} · {16}. Até onde a meia acelera: arraste o marcador na barra ACELERAR ou use meia − · meia + ({17} · {18} no jogador 1; ◀ ▶ do direcional no controle). Mude no menu inicial, em <b>Opções</b>.	<b>Hold</b> Throttle and it rises from 0 to 100%. <b>Let go and it drops to zero</b>: the car brakes.\nToo fast in a curve, the rear slides and the <b>slide</b> bar fills. When it's full, the car leaves the track.\n<b>Reslot</b> puts the car back in its lane, a little before where it came off.\n<b>Turbo</b>: starts empty and fills a bit with every completed lap and a little with every off (more for those behind). The turbo type is in the car setup: explosive or efficient. Hold it to go above top speed until the tank runs out. A lap with turbo doesn't count as best lap.\n<b>Keys</b> (throttle 100% · half {0}% · reslot · turbo): player 1 {1} · {2} · {3} · {4}; player 2 {5} · {6} · {7} · {8}; player 3 {9} · {10} · {11} · {12}; player 4 {13} · {14} · {15} · {16}. How far half throttle goes: drag the marker on the THROTTLE bar or use half − · half + ({17} · {18} for player 1; ◀ ▶ on the controller's d-pad). Change them on the home screen, in <b>Options</b>.
+Carro {0}	Car {0}
+Robô	Bot
+ · controle {0}	 · controller {0}
+Acelera {0} · meia {1} · recoloca {2} · turbo {3}{4}	Throttle {0} · half {1} · reslot {2} · turbo {3}{4}
+Controle {0}	Controller {0}
+Só com controle: ligue mais um controle	Controller only: plug in another controller
+Carro: <b>{0}</b>  {1}	Car: <b>{0}</b>  {1}
+1 trilho fica vazio.	1 lane stays empty.
+{0} trilhos ficam vazios.	{0} lanes stay empty.
+Treino: um carro só, contra o relógio.	Practice: a single car, against the clock.
+Modelo	Model
+Final	Top speed
+Velocidade máxima na reta. Motor longo, bolha lisa e pneu duro.	Top speed on the straight. Long motor, slick body and hard tires.
+Aceleração	Acceleration
+Quanto o carro embala ao sair da curva. Motor curto.	How much the car picks up coming out of a curve. Short motor.
+Aderência	Grip
+Pneu: segura o carro em qualquer curva, devagar ou rápido. Macio segura mais.	Tires: hold the car in any curve, slow or fast. Soft holds more.
+Aerodinâmica	Aerodynamics
+Bolha com asa: segura o carro na curva, e mais quanto mais rápido ele vai. Não ajuda na curva feita devagar.	Wing body: holds the car in the curve, more the faster it goes. Doesn't help in slow curves.
+Agilidade	Agility
+Chassi leve: o gatilho e o freio respondem mais rápido.	Light chassis: the trigger and the brake respond faster.
+Estabilidade	Stability
+Chassi pesado: demora mais para escapar quando você passa do limite na curva.	Heavy chassis: takes longer to slide out when you go past the limit in a curve.
+Do zero a 95% da final em {0:0.00} s (padrão {1:0.00} s).	From zero to 95% of top speed in {0:0.00} s (default {1:0.00} s).
+Chassi leve: responde rápido, mas escapa fácil no limite da curva.	Light chassis: responds fast, but slides out easily at the curve's limit.
+Chassi pesado: mais lento no gatilho, perdoa o exagero na curva.	Heavy chassis: slower on the trigger, forgives overdoing it in the curve.
+Turbo {0}: +{1:0}% de velocidade máxima por {2:0.#} s de tanque cheio	Turbo {0}: +{1:0}% top speed for {2:0.#} s with a full tank
+ (mais explosão, menos volume).	 (more punch, less volume).
+ (menos explosão, mais volume).	 (less punch, more volume).
+Curva plana: segura até {0}% da final deste carro no trilho de dentro e {1}% no de fora. Meia aceleração: {2}%.	Flat curve: holds up to {0}% of this car's top speed in the inside lane and {1}% in the outside one. Half throttle: {2}%.
+CÂMERA	CAMERA
+<b>{0}  {1}</b>\n<size=10>{2}</size>	<b>{0}  {1}</b>\n<size=10>{2}</size>
+SEGUIR	FOLLOW
+No online, segue o seu carrinho.	Online, it follows your car.
+Câmera: <b>{0}</b>  ▾	Camera: <b>{0}</b>  ▾
+Câmera  ▾	Camera  ▾
+Tela dividida: <b>{0}</b>\n<size=10>2 a 4 jogadores no mesmo computador: um quadro para cada</size>	Split screen: <b>{0}</b>\n<size=10>2 to 4 players on the same computer: one view each</size>
+sim	yes
+não	no
+Distância: {0}%	Distance: {0}%
+No grid	On the grid
+ACELERAR  {0}  ·  {1}% {2}	THROTTLE  {0}  ·  {1}% {2}
+Velocidade	Speed
+Derrapagem	Slide
+TURBO	TURBO
+Trilho	Lane
+Esta pista não é um circuito fechado. Escolha outra acima ou feche o traçado no Construtor.	This track isn't a closed circuit. Pick another one above or close the layout in the Builder.
+O carrinho está no grid.	The car is on the grid.
+Os dois carrinhos estão no grid.	Both cars are on the grid.
+Os {0} carrinhos estão no grid.	The {0} cars are on the grid.
+ Aperte Largar e espere as luzes.	 Press Start and wait for the lights.
+Pode segurar o acelerador: o carrinho sai quando a luz ficar verde.	You can hold the throttle: the car goes when the light turns green.
+Fim da manche: cada carrinho passa para o trilho seguinte.	End of the leg: each car moves to the next lane.
+Corrida por tempo, {0}: vence quem andar mais em {1}.	Timed race, {0}: whoever goes farthest in {1} wins.
+Vence quem completar {0} {1} primeiro.	Whoever completes {0} {1} first wins.
+Prova encerrada. Aperte Largar para correr de novo.	Race over. Press Start to race again.
+Nova largada (Enter)	New start (Enter)
+Feche o circuito no Construtor para correr	Close the circuit in the Builder to race
+{0} venceu	{0} won
+Troca de trilho	Lane switch
+Corrida · {0} · faltam {1}	Race · {0} · {1} left
+Corrida · volta {0} de {1}	Race · lap {0} of {1}
+Pronto para largar	Ready to start
+TURBO  {0}%	TURBO  {0}%
+TURBO  {0}  ·  {1}%	TURBO  {0}  ·  {1}%
+Venceu!	Winner!
+Chegou	Finished
+Fora da pista!	Off the track!
+Voltando ao trilho	Back to the lane
+Batida!	Crash!
+Aguarde a luz verde	Wait for the green light
+Vai para o trilho {0}	Go to lane {0}
+{0} voltas · trilho {1}	{0} laps · lane {1}
+Volta {0} de {1}	Lap {0} of {1}
+{0} v · T{1}	{0} laps · L{1}
+Volta {0}/{1}	Lap {0}/{1}
+Melhor {0}	Best {0}
+LÍDER	LEADER
++{0} v	+{0} L
+TROCA DE TRILHO\n<size=40%>{0}</size>	LANE SWITCH\n<size=40%>{0}</size>
+manche {0} de {1}	leg {0} of {1}
+VAI!	GO!
+líder	leader
+−{0} do líder · −{1} do {2}º	−{0} to the leader · −{1} to P{2}
+não terminou	didn't finish
+★ melhor volta 	★ best lap
+melhor 	best
+1 saída	1 off
+{0} saídas	{0} offs
+RECORDE	RECORD
+Salvar e seguir  (Enter)	Save and continue  (Enter)
+Sua nota para esta pista (clique para trocar)	Your rating for this track (click to change)
+Que nota você dá para esta pista?	How would you rate this track?
+Nota {0} enviada.	Rating {0} sent.
+{0} estrela	{0} star
+{0} estrelas	{0} stars
+lendo as notas…	reading the ratings…
+média ★ {0} · {1} {2}	average ★ {0} · {1} {2}
+nota	rating
+notas	ratings
+ainda sem notas: a sua é a primeira	no ratings yet: yours is the first
+Pista aberta	Open track
+Escolha um circuito fechado na lista.	Pick a closed circuit from the list.
+{0} voltas em {1} · melhor volta {2}	{0} laps in {1} · best lap {2}
+faltam · {0}	left · {0}
+ÚLTIMA VOLTA	FINAL LAP
+VOLTA {0}/{1}	LAP {0}/{1}
+ · líder	 · leader
+{0} min	{0} min
+ s	 s
+FANTASMA	GHOST
+Correr contra o fantasma	Race against the ghost
+A melhor volta da pista corre ao seu lado, transparente, largando junto a cada volta.	The track's best lap runs beside you, transparent, starting with you on every lap.
+Esta pista ainda não tem fantasma. A primeira volta limpa de um piloto de gente vira o fantasma.	This track has no ghost yet. The first clean lap by a human driver becomes the ghost.
+Melhor volta: <b>{0}</b> · {1} · {2:dd/MM/yyyy}	Best lap: <b>{0}</b> · {1} · {2:dd/MM/yyyy}
+Gravado com velocidade máx. {0}, aderência {1} e tempo até 100% {2} s (agora {3}, {4} e {5} s).	Recorded with top speed {0}, grip {1} and time to 100% {2} s (now {3}, {4} and {5} s).
+O carro do fantasma:	The ghost's car:
+Novo fantasma! {0}	New ghost! {0}
+PARTIDA RÁPIDA	QUICK MATCH
+Uma corrida de {0} contra quem estiver na fila. Cada um põe uma pista na disputa e o servidor sorteia qual vale. Só larga com a fila cheia. Funciona pelo servidor e pela Steam.	A {0} race against whoever is in the queue. Everyone puts a track in the draw and the server picks which one counts. It only starts with a full queue. Works through the server and through Steam.
+CARROS	CARS
+Sua pista	Your track
+Procurar partida	Find a match
+PROCURANDO PARTIDA	FINDING A MATCH
+PISTAS NA DISPUTA	TRACKS IN THE DRAW
+Sair da fila	Leave the queue
+{0} · {1} na fila	{0} · {1} in the queue
+Nenhuma pista fechada. Monte uma no construtor.	No closed tracks. Build one in the builder.
+A pista entra adaptada para {0} carros. 	The track will be adapted for {0} cars.
+{0} de {1} na fila agora.	{0} of {1} in the queue now.
+Ninguém na fila agora: toque em Atualizar lista para ver de novo.	Nobody in the queue right now: tap Refresh list to check again.
+Essa pista é grande demais para o servidor.	This track is too large for the server.
+Partida rápida · {0} carros · {1}	Quick match · {0} cars · {1}
+ ×{0}	 ×{0}
+{0:00}:{1:00} esperando	{0:00}:{1:00} waiting
+SORTEIO DA PISTA	TRACK DRAW
+vai para {0} (de {1})	goes to {0} (from {1})
+Narração: {0} (F2)	Commentary: {0} (F2)
+CAMPEONATO ONLINE	ONLINE CHAMPIONSHIP
+Um jogador cria a sala e escolhe as pistas. Os outros entram pelo código ou pela lista de salas públicas.	One player creates the room and picks the tracks. The others join with the code or from the list of public rooms.
+Jogar pela Steam	Play through Steam
+Usa o lobby e a rede da Steam: precisa da Steam aberta e logada. O nome é o da sua conta.	Uses Steam's lobby and network: Steam must be open and logged in. Your name is your account's.
+Servidor (ex.: ws://localhost:8080)	Server (e.g. ws://localhost:8080)
+Seu nome	Your name
+CRIAR SALA	CREATE ROOM
+Nome da sala (opcional)	Room name (optional)
+Sala pública (aparece na lista)	Public room (shows in the list)
+Criar sala	Create room
+ENTRAR COM UM CÓDIGO	JOIN WITH A CODE
+Salas privadas só entram assim.	Private rooms can only be joined this way.
+Código da sala	Room code
+Entrar	Join
+SALAS PÚBLICAS	PUBLIC ROOMS
+Atualizar lista	Refresh list
+SALA	ROOM
+Código	Code
+Copiar	Copy
+Código copiado.	Code copied.
+Convidar amigos (Steam)	Invite friends (Steam)
+Abre a janela de convite da Steam. Ela só aparece no jogo instalado (não no Editor): lá, use a lista abaixo.	Opens Steam's invite window. It only shows up in the installed game (not in the Editor): there, use the list below.
+Atualizar	Refresh
+SUA COR	YOUR COLOR
+Mais um piloto jogando neste computador, com o seu nome e um 2. Ele usa o 2º conjunto de teclas (Opções) ou o 2º controle.	One more driver playing on this computer, with your name and a 2. They use the 2nd set of keys (Options) or the 2nd controller.
+COR DO JOGADOR 2	PLAYER 2 COLOR
+Cada bateria tem uma duração e se divide em uma manche por trilho; vence quem andar mais.	Each heat has a duration and is split into one leg per lane; whoever goes farthest wins.
+Pista de 6 trilhos. Com menos de 6 jogadores, sobra trilho vazio em cada bateria.	6-lane track. With fewer than 6 players, a lane stays empty in each heat.
+Pista de 8 trilhos. Com menos de 8 jogadores, sobra trilho vazio em cada bateria.	8-lane track. With fewer than 8 players, a lane stays empty in each heat.
+Pista de 4 trilhos. Com menos de 4 jogadores, sobra trilho vazio em cada bateria.	4-lane track. With fewer than 4 players, a lane stays empty in each heat.
+SUGESTÕES DOS PILOTOS	DRIVERS' SUGGESTIONS
+Pistas que os outros pilotos mandaram. Você decide: inclui como etapa, salva na sua biblioteca ou ignora.	Tracks the other drivers sent. You decide: add it as a round, save it to your library or ignore it.
+SUGERIR UMA PISTA AO HOST	SUGGEST A TRACK TO THE HOST
+Escolha uma das suas pistas (fechada) para o host incluir. Até 3 por minuto.	Pick one of your (closed) tracks for the host to add. Up to 3 per minute.
+CHAT	CHAT
+Estou pronto	I'm ready
+Sair da sala	Leave the room
+Escreva uma mensagem	Write a message
+Enviar	Send
+Você já está numa sala. Saia dela para entrar na do amigo.	You're already in a room. Leave it to join your friend's.
+Nenhum amigo online agora. Use o botão acima para convidar quem está offline ou em outro jogo.	No friends online right now. Use the button above to invite those who are offline or in another game.
+AMIGOS ONLINE · {0}	FRIENDS ONLINE · {0}
+Convidado ✓	Invited ✓
+Convidar	Invite
+Convite enviado a {0}.	Invite sent to {0}.
+Não deu para convidar. Confira se a Steam está aberta.	Couldn't send the invite. Check that Steam is open.
+Pela Steam, com o nome da sua conta. Para jogar pelo servidor, desligue a Steam em Opções, no menu inicial.	Through Steam, with your account name. To play through the server, turn Steam off in Options, on the home screen.
+Pelo servidor {0}. Mude em Opções, no menu inicial.	Through the server {0}. Change it in Options, on the home screen.
+Sala {0} · {1}/{2} pilotos	Room {0} · {1}/{2} drivers
+Conectando à Steam…	Connecting to Steam…
+Conectando ao servidor…	Connecting to the server…
+Online: crie uma sala ou entre numa	Online: create a room or join one
+Digite seu nome primeiro.	Type your name first.
+Digite o código da sala.	Type the room code.
+Falta gente: são precisos pelo menos 2 pilotos.	Not enough people: at least 2 drivers are needed.
+Aguardando ficar pronto: 	Waiting to be ready:
+A conexão caiu. Tentando voltar à sala ({0} de {1})…	The connection dropped. Trying to get back to the room ({0} of {1})…
+Não deu para voltar à sala: 	Couldn't get back to the room:
+. Confira o endereço ({0}) e se o servidor está rodando (cd servidor && npm start).	. Check the address ({0}) and whether the server is running (cd servidor && npm start).
+Você saiu da sala: 	You left the room:
+Sem conexão com a Steam	No connection to Steam
+Sem conexão com o servidor	No connection to the server
+Você voltou à sala.	You're back in the room.
+{0} {1} neste computador e saiu da lista.	{0} {1} on this computer and left the list.
+pista não está	track isn't
+pistas não estão	tracks aren't
+{0} sugeriu a pista “{1}”.	{0} suggested the track “{1}”.
+{0} (de {1})	{0} (from {1})
+“{0}” salva na sua biblioteca.	“{0}” saved to your library.
+PISTAS DO CAMPEONATO	CHAMPIONSHIP TRACKS
+As pistas da corrida ficam guardadas na sua biblioteca.	The race tracks are kept in your library.
+guardada agora na sua biblioteca	saved to your library now
+já estava na sua biblioteca	was already in your library
+1 pista nova na sua biblioteca.	1 new track in your library.
+{0} pistas novas na sua biblioteca.	{0} new tracks in your library.
+ (online)	 (online)
+{0} (online {1})	{0} (online {1})
+Essa pista é grande demais para sugerir.	This track is too large to suggest.
+Pista enviada ao host.	Track sent to the host.
+Nenhuma sugestão ainda.	No suggestions yet.
+de {0} · {1}	from {0} · {1}
+Incluir	Add
+Guarda na sua biblioteca de pistas	Keeps it in your track library
+Ignorar	Ignore
+enviada ✓	sent ✓
+enviar	send
+Você não tem pistas fechadas de {0} carros.	You have no closed {0}-car tracks.
+Você não tem pistas fechadas para sugerir.	You have no closed tracks to suggest.
+“{0}” na mesa. Ctrl+Z volta a pista de antes.	“{0}” on the table. Ctrl+Z brings back the previous track.
+Nenhuma sala pública agora. Toque em Atualizar, ou crie a sua.	No public rooms right now. Tap Refresh, or create your own.
+{0} · {1}/{2} pilotos · {3} {4} · {5}	{0} · {1}/{2} drivers · {3} {4} · {5}
+ (de {0})	 (from {0})
+Sala pública	Public room
+Sala privada (só entra com o código)	Private room (join with the code only)
+ · você	 · you
+você	you
+jogador 2 deste computador	player 2 on this computer
+✓ pronto	✓ ready
+aguardando	waiting
+Tirar o jogador 2	Remove player 2
++ Jogador 2 neste computador	+ Player 2 on this computer
+<b>{0}</b> · <b>pistas de {1} trilhos</b>	<b>{0}</b> · <b>{1}-lane tracks</b>
+ · com {0} {1}, {2} {3} em cada bateria	 · with {0} {1}, {2} {3} in each heat
+jogador	player
+jogadores	players
+trilho fica vazio	lane stays empty
+trilhos ficam vazios	lanes stay empty
+Formato e tipo de pista: o host ainda não escolheu.	Format and track type: the host hasn't chosen yet.
+Escolha as pistas e {0} de cada etapa. As outras regras (velocidade, aderência, colisão) são as de Opções, no menu inicial. Os visitantes veem a lista, mas só você mexe nela.	Choose the tracks and {0} of each round. The other rules (speed, grip, collision) come from Options, on the home screen. Visitors see the list, but only you change it.
+a duração	the duration
+as voltas	the laps
+O host escolhe as pistas. Você escolhe a cor do seu carrinho e conversa no chat.	The host picks the tracks. You pick your car's color and chat.
+Nenhuma etapa ainda. Clique numa pista abaixo.	No rounds yet. Click a track below.
+O host ainda não escolheu as pistas.	The host hasn't picked the tracks yet.
+Clique para ver a pista na mesa	Click to see the track on the table
+Regras da corrida, em Opções no menu inicial (velocidade {0} cél/s, até 100% em {1} s, aderência {2}, colisão {3}, turbo {4}, recolocar em {5} s). Ficam fixos até o fim.	Race rules, in Options on the home screen (speed {0} cells/s, 100% in {1} s, grip {2}, collision {3}, turbo {4}, reslot in {5} s). They stay fixed until the end.
+Não estou pronto	I'm not ready
+Todos prontos: {0} pilotos · {1} {2} · {3} baterias.	Everyone ready: {0} drivers · {1} {2} · {3} heats.
+Você está pronto. Aguardando o host largar.	You're ready. Waiting for the host to start.
+Confirme quando estiver pronto: o host só larga com todos prontos.	Confirm when you're ready: the host only starts when everyone is ready.
+<b><color={0}>{1}</color></b>: {2}	<b><color={0}>{1}</color></b>: {2}
+{0} · acelera {1} · recoloca {2}	{0} · throttle {1} · reslot {2}
+é você	it's you
+jogador 2 daqui	player 2 here
+saiu da sala	left the room
+Campeonato online	Online championship
+Não deu para abrir as pistas do campeonato. Você saiu da sala.	Couldn't open the championship tracks. You left the room.
+Sair da partida	Leave the match
+Encerrar campeonato	End championship
+Você agora é o host: a bateria da vez recomeça.	You're the host now: the current heat restarts.
+Certeza? Clique de novo	Sure? Click again
+O host encerrou o campeonato.	The host ended the championship.
+ (o jogador 2 daqui: {0} e {1}, ou o 2º controle)	 (player 2 here: {0} and {1}, or the 2nd controller)
+Jogar de novo	Play again
+A partida acabou. Jogar de novo volta para a fila com o mesmo tamanho e a mesma pista.	The match is over. Play again goes back to the queue with the same size and the same track.
+Voltar ao lobby	Back to the lobby
+O campeonato acabou. Voltar ao lobby leva todos de volta para montar outro.	The championship is over. Back to the lobby takes everyone back to set up another one.
+O campeonato acabou. O host leva todos de volta ao lobby.	The championship is over. The host takes everyone back to the lobby.
+Espere os pilotos da bateria se prepararem e aperte Largar. Quem corre acelera com {0} e recoloca com {1}{2}.	Wait for the heat's drivers to get ready and press Start. Racers accelerate with {0} and reslot with {1}{2}.
+Aguardando o host largar. Quem corre acelera com {0} e recoloca com {1}{2}.	Waiting for the host to start. Racers accelerate with {0} and reslot with {1}{2}.
+Salve para o resultado contar na tabela de todos. Se algo deu errado, corra de novo: esta bateria é descartada.	Save so the result counts in everyone's standings. If something went wrong, race again: this heat is discarded.
+Bateria encerrada. O host salva o resultado e segue.	Heat finished. The host saves the result and continues.
+Vence a bateria quem completar {0} primeiro. Quem não terminar tem {1:0} s depois da bandeirada.	The heat goes to whoever completes {0} first. Those who don't finish get {1:0} s after the chequered flag.
+ Larga sozinho em {0} s.	 Starts on its own in {0} s.
+ Salva e segue sozinho em {0} s.	 Saves and continues on its own in {0} s.
+Continuar  (P)	Continue  (P)
+Você já pausou {0} vezes nesta bateria.	You've already paused {0} times in this heat.
+Volta em {0}	Back in {0}
+Prepare o dedo no acelerador.	Get your finger on the throttle.
+Pausado	Paused
+P continua.	P continues.
+Por {0} · continua quem pausou ou o host (P) · volta sozinha em {1} s.	By {0} · whoever paused or the host continues (P) · resumes on its own in {1} s.
+ · online	 · online
+Recordes da pista	Track records
+Recordes · {0}	Records · {0}
+trilho 	lane
+trilho sem recorde	lane without a record
+seu melhor {0}	your best {0}
+primeira vez aqui	first time here
+Peças novas para o construtor. Cada uma abre quando você termina, com pelo menos ★, a prova da carreira que a apresenta. Correr numa pista com peça fechada sempre pode — só não dá para colocar a peça.	New pieces for the builder. Each one unlocks when you finish, with at least ★, the career event that introduces it. You can always race on a track with a locked piece — you just can't place the piece.
+GARAGEM DO CARRO	CAR GARAGE
+Seu carro na carreira. Compre opções do ajuste e preparação com as moedas das provas. Fora da carreira o ajuste é livre e sem preparação.	Your car in the career. Buy setup options and tuning with the coins from the events. Outside the career the setup is free and without tuning.
+Fechar (G · Esc)	Close (G · Esc)
+Moedas da carreira · clique para abrir a garagem do carro	Career coins · click to open the car garage
+liberada (teste)	unlocked (test)
+✓ aberta	✓ unlocked
+Abre em 	Unlocks in
+Desbloquear tudo: LIGADO (teste, até o jogo sair)	Unlock everything: ON (test, until the game is released)
+Desbloquear tudo: desligado (teste, até o jogo sair)	Unlock everything: off (test, until the game is released)
+Níveis à venda até o {0} (Garagem 3 · Clube 6 · Regional 8 · Nacional 10). O nível n custa {1} × n.	Levels on sale up to {0} (Garage 3 · Club 6 · Regional 8 · National 10). Level n costs {1} × n.
+{0} {1}: é seu!	{0} {1}: it's yours!
+Comprar	Buy
+✓ máximo	✓ max
+Nível {0} · ◎ {1}	Level {0} · ◎ {1}
+COMO FICA	HOW IT LOOKS
+Câmera: <b>{0}</b>  ⟳	Camera: <b>{0}</b>  ⟳
+Etiqueta nos carros: {0} (F1)	Car labels: {0} (F1)
+{0}º <size=75%>{1}</size>	P{0} <size=75%>{1}</size>
+\n<size=70%>+{0} s</size>	\n<size=70%>+{0} s</size>
+\n<size=70%><color=#7CE38B>−{0} s</color></size>	\n<size=70%><color=#7CE38B>−{0} s</color></size>
+MINIMAPA	MINIMAP
+⠿ arraste	⠿ drag
+Pilotos ▸	Drivers ▸
+Pilotos ▾	Drivers ▾
+última {0} · melhor {1} · {2:0.0} m	last {0} · best {1} · {2:0.0} m
+Padrão	Default
+Curto	Short
+Longo	Long
+Asa	Wing
+Lisa	Slick
+Médio	Medium
+Macio	Soft
+Duro	Hard
+Leve	Light
+Pesado	Heavy
+Explosivo	Explosive
+Eficiente	Efficient
+turbo 	turbo
+Digite seu nome.	Type your name.
+Esta versão do jogo não combina com o servidor. Atualize o jogo.	This version of the game doesn't match the server. Update the game.
+O servidor está lotado. Tente mais tarde.	The server is full. Try again later.
+Você criou muitas salas em pouco tempo. Espere um minuto.	You created too many rooms in a short time. Wait a minute.
+Já tem alguém com esse nome na sala.	Someone in the room already has that name.
+Já tem alguém com esse nome na fila.	Someone in the queue already has that name.
+Só o host começa o campeonato.	Only the host starts the championship.
+Só o host encerra o campeonato.	Only the host ends the championship.
+Só o host escolhe as pistas.	Only the host picks the tracks.
+Só o host muda a visibilidade.	Only the host changes the visibility.
+Muitas conexões deste endereço.	Too many connections from this address.
+Mensagem inválida.	Invalid message.
+Mensagem desconhecida.	Unknown message.
+Erro no servidor.	Server error.
+Garagem	Garage
+Primeira Volta	First Lap
+Reta da Bancada	Bench Straight
+Feijão	The Bean
+Oficina	Workshop
+Chuva na Garagem	Rain in the Garage
+Cotovelo	The Elbow
+Serpentina	Serpentine
+Largada Atrasada	Late Start
+Turbo Sem Fim	Endless Turbo
+Tio Beto	Uncle Beto
+Monto autorama desde antes de você nascer. Mostra o que sabe.	I've been building slot car tracks since before you were born. Show me what you've got.
+A garagem ainda é minha. Volte quando souber frear.	The garage is still mine. Come back when you know how to brake.
+Muito bem! A garagem ficou pequena para você.	Well done! The garage is too small for you now.
+Copa Garagem	Garage Cup
+Zé da Oficina	Zé from the Workshop
+Lu Parafuso	Lu Bolt
+Clube	Club
+Salão do Clube	Club Hall
+Troca de Faixa	Lane Change
+Viaduto	Overpass
+Oficina do Clube	Club Workshop
+Noite de Chuva	Rainy Night
+Inclinado Duplo	Double Banking
+Último de Pé	Last One Standing
+Largada do Fundo	Starting from the Back
+Marina Faísca	Marina Spark
+Turbo é para usar. Vem que eu largo na sua frente.	Turbo is meant to be used. Come on, I'll start ahead of you.
+Rápida demais para você. Volte para a garagem!	Too fast for you. Back to the garage!
+Ok, ok… você freia melhor que eu.	Okay, okay… you brake better than I do.
+Taça Clube	Club Trophy
+Rafa Turbo	Rafa Turbo
+Dona Célia	Miss Célia
+Regional	Regional
+Ginásio	Gymnasium
+Rampa Curta	Short Ramp
+Cotovelo em C	Hairpin Elbow
+Oficina Regional	Regional Workshop
+Ziguezague Molhado	Wet Zigzag
+Salto e Ponte	Jump and Bridge
+Mirante	Lookout
+Largada Pesada	Heavy Start
+Dr. Curva	Dr. Curve
+Curva inclinada não é sorte, é geometria.	A banked curve isn't luck, it's geometry.
+Você ainda freia antes da hora. Estude.	You still brake too early. Study.
+Brilhante. A geometria está do seu lado.	Brilliant. Geometry is on your side.
+Copa Regional	Regional Cup
+Nacional	National
+Estádio	Stadium
+Grande Salto	Big Jump
+Looping	Looping
+Oficina Nacional	National Workshop
+Abismo	The Abyss
+Torre	Tower
+Serra Molhada	Wet Mountains
+Troca Final	Final Switch
+O Campeão	The Champion
+Muitos chegaram até aqui. Nenhum passou.	Many have made it this far. None got past.
+Volte quando for campeão de verdade.	Come back when you're a real champion.
+Então é você. A mesa é sua.	So it's you. The table is yours.
+Grande Prêmio Nacional	National Grand Prix
+Reta curta	Short straight
+2 células	2 cells
+Reta comprida	Long straight
+4 células	4 cells
+Reta curtinha	Tiny straight
+Cruzamento	Crossover
+Cruzamento curto	Short crossover
+Curva longa	Long curve
+90° esquerda	90° left
+90° direita	90° right
+Meia curva	Half curve
+45° esquerda	45° left
+45° direita	45° right
+Curva longa inclinada	Long banked curve
+Curva curta inclinada	Short banked curve
+Curva em C	Hairpin
+180° esquerda	180° left
+180° direita	180° right
+Rampa	Ramp
+sobe 1 nível	up 1 level
+desce 1 nível	down 1 level
+Loop	Loop
+sai à esquerda	exits left
+sai à direita	exits right
+Rampa de salto	Jump ramp
+4 a 6 células	4 to 6 cells
+Base de largada	Start piece
+Começando…	Starting…
+reta-curtinha	tiny straight
+Curvas inclinadas	Banked curves
+curva longa e curta inclinadas	long and short banked curves
+Troca de faixa	Lane change
+cruzamento e cruzamento curto	crossover and short crossover
+Subida e descida	Up and down
+rampas para ponte	ramps for bridges
+salto de vão 1	jump with a 1-cell gap
+curva em C (1 a 3 fileiras)	hairpin (1 to 3 rows)
+loop	loop
+Saltos grandes	Big jumps
+salto de vão 2 e 3	jumps with 2- and 3-cell gaps
+Apagaram as luzes! E lá vão eles!	Lights out! And away they go!
+Largada! Todo mundo de pé no fundo!	Go! Everyone flat out!
+Valendo! Que vença o melhor... ou o mais sortudo.	It's on! May the best win... or the luckiest.
+Largada limpa... por enquanto.	Clean start... for now.
+E foi dada a largada! O carpete que se cuide.	And they're off! The carpet had better watch out.
+Bandeira verde! Os trilhos estão quentes!	Green flag! The lanes are hot!
+Saíram! Agora é gatilho e coragem.	They're away! Now it's all trigger and courage.
+Começou! Quem frear primeiro perde.	It's started! First to brake loses.
+E lá se vão eles, cheios de esperança e de pilha.	And off they go, full of hope and fresh batteries.
+{A} passa {B}! Não pediu licença, não!	{A} passes {B}! Didn't even say excuse me!
+{A} por dentro, e {B} só viu a placa do chassi.	{A} up the inside, and {B} only saw the chassis plate.
+Ultrapassagem! {A} deixa {B} para trás.	Overtake! {A} leaves {B} behind.
+{A} pra cima de {B}... e passou!	{A} goes for {B}... and makes it!
+{B} piscou e {A} foi embora.	{B} blinked and {A} was gone.
+{A} mergulha e engole {B}!	{A} dives in and swallows {B}!
+Tchau, {B}! {A} sobe uma posição.	Bye, {B}! {A} moves up a place.
+{A} passou {B} como se fosse cone de treino.	{A} passed {B} like a training cone.
+Manobra bonita de {A} em cima de {B}!	Lovely move by {A} on {B}!
+{B} abriu a porta e {A} entrou sem bater.	{B} left the door open and {A} walked right in.
+{A} assume a liderança! {B} fica olhando a traseira.	{A} takes the lead! {B} is left staring at the rear.
+Tem líder novo: {A}!	We have a new leader: {A}!
+{A} passa {B} e pula para a ponta!	{A} passes {B} and jumps to the front!
+Mudou tudo! {A} é o novo líder.	Everything changed! {A} is the new leader.
+{A} toma a ponta de {B}! A mesa vai abaixo!	{A} takes the lead from {B}! The table goes wild!
+Liderança trocada! {A} na frente, {B} no prejuízo.	Change at the top! {A} in front, {B} losing out.
+{A} chega lá na frente. {B}, a vista agora é outra.	{A} gets to the front. {B}, the view is different now.
+{A} saiu da pista! O trilho estava ali, viu?	{A} is off the track! The lane was right there, you know?
+Lá vai {A} conhecer o carpete da sala.	There goes {A} to get to know the living room carpet.
+{A} voou! Alguém chama o fiscal.	{A} flew! Someone call the marshal.
+Escapou! {A} foi dar uma volta fora da pista.	Gone! {A} went for a stroll off the track.
+{A} errou o ponto de freada. Acontece nas melhores famílias.	{A} missed the braking point. Happens to the best of us.
+{A} rodou! O carrinho foi parar longe.	{A} spun! The car ended up far away.
+Rodopio de {A}! Bonito de ver, péssimo para o cronômetro.	A spin from {A}! Nice to watch, terrible for the stopwatch.
+{A} entrou rápido demais e a curva não perdoou.	{A} came in too fast and the curve didn't forgive.
+Fiscal! {A} está deitado no carpete.	Marshal! {A} is lying on the carpet.
+{A} decolou! Ainda bem que não tem multa por voo baixo.	{A} took off! Good thing there's no fine for flying low.
+{A} confundiu a curva com uma reta.	{A} mistook the curve for a straight.
+Que pião de {A}! Faltou só a música.	What a spin from {A}! All it needed was music.
+{A} perdeu o trilho. O trilho não perdeu {A}: ele está ali esperando.	{A} lost the lane. The lane didn't lose {A}: it's right there waiting.
+Lá se foi {A}! A física cobrou a conta.	There goes {A}! Physics sent the bill.
+{A} sai da pista e vai fazer turismo na mesa.	{A} leaves the track for a sightseeing tour of the table.
+Terceira vez, {A}. O fiscal já sabe seu nome.	Third time, {A}. The marshal knows your name by now.
+{A} sai de novo! Já é freguês do carpete.	{A} is off again! A regular on the carpet.
+Três saídas para {A}. Coleção bonita.	Three offs for {A}. Quite a collection.
+Terceira escapada de {A}. Já pode pedir música no Fantástico.	Third escape for {A}. That's a hat trick.
+{A} completa o trio de saídas. Ganha brinde?	{A} completes a trio of offs. Is there a prize?
+{A} fora outra vez! A essa altura é estratégia.	{A} off once again! At this point it's strategy.
+Mais uma de {A}. Alguém segura esse acelerador!	Another one from {A}. Somebody hold that throttle!
+{A} já conhece cada canto da mesa.	{A} already knows every corner of the table.
+Quinta saída de {A}! O fiscal pediu aumento.	Fifth off for {A}! The marshal asked for a raise.
+{A} de novo no carpete. Cinco vezes! Já tem cadeira cativa.	{A} on the carpet again. Five times! They've got a reserved seat.
+{A} sai pela {B}ª vez! A gente já parou de contar... não, não parou: {B}.	{A} goes off for the {B}th time! We've stopped counting... no, we haven't: {B}.
+{B} saídas para {A}. Isso já é um recorde, só que do tipo errado.	{B} offs for {A}. That's a record, just the wrong kind.
+{A}, {B} saídas! O carpete vai cobrar aluguel.	{A}, {B} offs! The carpet is going to charge rent.
+Saída número {B} de {A}. O fiscal já está almoçando ali do lado.	Off number {B} for {A}. The marshal is having lunch right next to it.
+{A} chega a {B} saídas. Alguém dá um manual para esse piloto!	{A} reaches {B} offs. Someone give this driver a manual!
+De novo, {A}?! Mal voltou e já saiu!	Again, {A}?! Barely back and already off!
+{A} voltou para a pista só para sair outra vez.	{A} came back on the track just to leave it again.
+Nem esquentou o trilho e {A} já está fora de novo!	The lane didn't even warm up and {A} is off again!
+{A} gostou tanto do carpete que voltou lá.	{A} liked the carpet so much they went back.
+O fiscal nem largou o carrinho e {A} já saiu de novo.	The marshal hadn't even let go of the car and {A} is off again.
+{A} repete a dose! Calma nesse gatilho!	{A} does it again! Easy on that trigger!
+O líder rodou! {A} sai da pista!	The leader spun! {A} is off the track!
+Que susto! {A}, na ponta, vai para o carpete!	What a scare! {A}, in the lead, heads for the carpet!
+{A} jogou fora a liderança na curva!	{A} threw away the lead in the curve!
+Liderança no chão! {A} saiu da pista!	Lead on the floor! {A} is off the track!
+Abriu a corrida! O líder {A} escapou!	The race is wide open! Leader {A} slipped away!
+{A} estava voando na frente... e voou mesmo. Fora da pista!	{A} was flying out front... and really flew. Off the track!
+Agora não, {A}! Saída na hora mais cara!	Not now, {A}! An off at the worst possible moment!
+{A} sai da pista na reta final! Que drama!	{A} goes off on the final stretch! What drama!
+Logo agora! {A} vai para o carpete no fim da prova!	Of all times! {A} hits the carpet at the end of the race!
+{A} escolheu o pior momento para rodar.	{A} picked the worst moment to spin.
+Pressão demais! {A} escapa no finalzinho!	Too much pressure! {A} slips away at the very end!
+{A} ligou o turbo e esqueceu de fazer a curva!	{A} hit the turbo and forgot to take the curve!
+Turbo demais, curva de menos! {A} fora!	Too much turbo, too little curve! {A} is out!
+{A} foi de turbo direto para o carpete!	{A} went turbo straight into the carpet!
+O turbo levou {A} para fora da pista. Tinha que tirar o pé!	The turbo took {A} off the track. Should have lifted!
+{A} usou o turbo para voar. Literalmente.	{A} used the turbo to fly. Literally.
+{A} e {B} saem juntos! Que confusão!	{A} and {B} go off together! What a mess!
+Dois de uma vez! {A} e {B} no carpete!	Two at once! {A} and {B} on the carpet!
+Saída dupla: {A} e {B} foram passear juntos.	Double off: {A} and {B} went for a walk together.
+{A} e {B} se enroscaram e foram os dois para fora!	{A} and {B} got tangled up and both went off!
+Strike! {A} e {B} fora da pista!	Strike! {A} and {B} off the track!
+Encostou e voou! {A} sai da pista depois do toque!	Touched and flew! {A} goes off after the contact!
+Batida! {A} levou a pior e foi para fora!	Crash! {A} got the worst of it and went off!
+Teve contato e {A} rodou!	There was contact and {A} spun!
+{A} tomou uma pancada e saiu da pista!	{A} took a hit and left the track!
+Toque, rodada, carpete! {A} fora!	Touch, spin, carpet! {A} is out!
+Ninguém quis tirar o pé, e {A} pagou o pato.	Nobody wanted to lift, and {A} paid the price.
+{A} volta à pista em {B}. Foram {T} posições no carpete.	{A} is back on the track in {B}. That's {T} places lost on the carpet.
+A saída custou caro: {A} cai para {B}.	The off was costly: {A} drops to {B}.
+{A} volta, mas agora em {B}. Perdeu {T} posições.	{A} is back, but now in {B}. Lost {T} places.
+{A} está de volta, só que em {B}. Hora de recuperar!	{A} is back, only in {B} now. Time to recover!
+{T} posições a menos para {A}, que volta em {B}.	{T} places down for {A}, who comes back in {B}.
+{A} volta à pista, mas a ponta agora é de {B}!	{A} is back on the track, but the lead now belongs to {B}!
+{B} herda a liderança da saída de {A}!	{B} inherits the lead from {A}'s off!
+Presente para {B}: a liderança caiu no colo depois do erro de {A}.	A gift for {B}: the lead fell into their lap after {A}'s mistake.
+{A} perdeu a ponta no carpete. {B} agradece!	{A} lost the lead on the carpet. {B} says thanks!
+{B} não precisou passar ninguém: {A} saiu e {B} assumiu.	{B} didn't have to pass anyone: {A} went off and {B} took over.
+{A} não segurou no loop! A gravidade manda lembranças.	{A} couldn't hold on in the loop! Gravity sends its regards.
+Caiu no loop! {A} esqueceu de acelerar lá em cima.	Fell in the loop! {A} forgot to accelerate at the top.
+{A} deu meia volta no loop... e despencou.	{A} went halfway around the loop... and came crashing down.
+{A} ficou de cabeça para baixo e a gravidade venceu.	{A} ended up upside down and gravity won.
+Loop sem fôlego! {A} despenca lá de cima.	Out of breath in the loop! {A} drops from the top.
+{A} subiu o loop devagar demais. Newton agradece.	{A} went up the loop too slowly. Newton says thanks.
+{A} pulou e não chegou! Faltou coragem!	{A} jumped and didn't make it! Not enough courage!
+{A} ficou no vão do salto. Aterrissagem cancelada.	{A} stayed in the jump's gap. Landing canceled.
+Saltou, voou... e caiu! {A} fora.	Jumped, flew... and fell! {A} is out.
+{A} achou que sabia voar. Não sabia.	{A} thought they could fly. They couldn't.
+Faltou embalo! {A} cai no vão.	Not enough speed! {A} falls into the gap.
+{A} pulou com o freio de mão puxado!	{A} jumped with the handbrake on!
+{A} soltou o turbo! Segura!	{A} fires the turbo! Hold on!
+Turbo ligado para {A}!	Turbo on for {A}!
+{A} apertou o botão mágico!	{A} pressed the magic button!
+Lá vai {A} de turbo. Cuidado na curva!	There goes {A} on turbo. Careful in the curve!
+{A} acende o turbo! Lá vai foguete!	{A} lights the turbo! There goes the rocket!
+Turbo de {A}! Quem está na frente que se cuide.	Turbo from {A}! Whoever's in front had better watch out.
+{A} no turbo! Agora é segurar o carrinho no trilho.	{A} on turbo! Now it's all about keeping the car in the lane.
+RECORDE DA PISTA! {A} escreve o nome na história... desta mesa. {T}!	TRACK RECORD! {A} writes their name in history... of this table. {T}!
+Recorde! {A} faz {T}, a volta mais rápida que essa pista já viu!	Record! {A} does {T}, the fastest lap this track has ever seen!
+Que volta, {A}! {T}, recorde da pista!	What a lap, {A}! {T}, track record!
+Segura essa: {T}! {A} quebra o recorde da pista!	Take that: {T}! {A} breaks the track record!
+Podem emoldurar: {A}, {T}, novo recorde da pista!	Frame it: {A}, {T}, new track record!
+Inacreditável! {T}! {A} é o dono do recorde!	Unbelievable! {T}! {A} owns the record!
+Melhor volta pessoal de {A}!	Personal best lap for {A}!
+{A} se superou nessa volta.	{A} outdid themselves on that lap.
+Volta caprichada de {A}: a melhor da carreira nesta pista.	A careful lap by {A}: their best ever on this track.
+{A} bate o próprio tempo. Evolução!	{A} beats their own time. Progress!
+{A} nunca andou tão rápido aqui.	{A} has never gone this fast here.
+{A} crava {T}, a volta mais rápida da prova!	{A} nails {T}, the fastest lap of the race!
+Melhor volta da corrida para {A}: {T}!	Fastest lap of the race for {A}: {T}!
+{A} acelerou forte: {T}, ninguém andou tão rápido hoje.	{A} pushed hard: {T}, nobody has gone this fast today.
+Cronômetro em chamas! {T} para {A}.	Stopwatch on fire! {T} for {A}.
+{A} baixa o tempo para {T}. Que mão!	{A} brings the time down to {T}. What hands!
+{T}! {A} manda a volta mais rápida da corrida.	{T}! {A} sets the fastest lap of the race.
+{A} acha mais um décimo: {T}, a melhor da prova!	{A} finds another tenth: {T}, the best of the race!
+{A} e {B} colados há um tempão. Ninguém respira!	{A} and {B} have been glued together for ages. Nobody breathe!
+Que briga entre {A} e {B}!	What a fight between {A} and {B}!
+{B} está no cangote de {A}!	{B} is breathing down {A}'s neck!
+{A} e {B} dividem até o mesmo pensamento.	{A} and {B} even share the same thoughts.
+{B} não desgruda de {A}! Vai ter troca?	{B} won't let go of {A}! Will there be a pass?
+{A} olha o retrovisor e só vê {B}.	{A} looks in the mirror and only sees {B}.
+Duelo! {A} segura, {B} pressiona.	Duel! {A} holds on, {B} pushes.
+Última volta!	Final lap!
+Sino tocando: última volta!	The bell is ringing: final lap!
+É agora ou nunca: última volta!	Now or never: final lap!
+Última volta! Quem guardou turbo, a hora é essa!	Final lap! If you saved some turbo, now's the time!
+Última volta! Coração na mão!	Final lap! Hearts in mouths!
+Dez segundos! Quem quer, vai agora!	Ten seconds! If you want it, go now!
+Faltam dez! Ninguém tira o pé!	Ten to go! Nobody lifts!
+Dez segundinhos e acabou!	Ten little seconds and it's over!
+Cinco segundos!	Five seconds!
+Cinco! Segura o coração!	Five! Hold on to your heart!
+Cinco segundos e é bandeira!	Five seconds to the flag!
+Quinze segundos! Tudo ou nada!	Fifteen seconds! All or nothing!
+Faltam quinze segundos! Pé no fundo!	Fifteen seconds left! Flat out!
+Reta final: quinze segundos!	Final stretch: fifteen seconds!
+Bandeirada! {A} vence!	Chequered flag! {A} wins!
+{A} cruza na frente! Que corrida!	{A} crosses first! What a race!
+Vitória de {A}! Pode chamar a família!	Victory for {A}! Call the family!
+É de {A}! Bandeira quadriculada!	It's {A}'s! Chequered flag!
+{A} vence! Pode estourar o refrigerante!	{A} wins! Pop the soda!
+Acabou! {A} é o grande vencedor!	It's over! {A} is the big winner!
+Quadriculada para {A}! Vitória com sabor de pódio!	Chequered flag for {A}! A victory that tastes like the podium!
+{A} completa {B} voltas na frente de todo mundo!	{A} completes {B} laps ahead of everyone!
+{B} voltas e {A} segue mandando na corrida!	{B} laps and {A} is still running the show!
+{A} na ponta depois de {B} voltas. Que pilotagem!	{A} leads after {B} laps. What driving!
+Passadas {B} voltas, quem dita o ritmo é {A}!	{B} laps gone, and {A} sets the pace!
+{B} voltas, e {A} ainda não viu ninguém pelo retrovisor.	{B} laps, and {A} still hasn't seen anyone in the mirror.
+{A} lidera com {B} voltas. Os outros que corram atrás.	{A} leads after {B} laps. The others had better chase.
+Volta {B}: {A} continua com o nariz na frente.	Lap {B}: {A} still has their nose in front.
+{A} fecha a volta {B} em último. Está apreciando a paisagem?	{A} closes lap {B} in last. Enjoying the scenery?
+{B} voltas e {A} lá atrás. Alguém avisa que já começou!	{B} laps and {A} way back there. Someone tell them it's started!
+{A} completa {B} voltas por último. Sem pressa, a mesa não vai fugir.	{A} completes {B} laps in last. No rush, the table isn't going anywhere.
+Volta {B}: {A} na lanterna. Pelo menos o carro está limpinho.	Lap {B}: {A} brings up the rear. At least the car is nice and clean.
+{A} chega à volta {B} por último. Tá de passeio, {A}?	{A} reaches lap {B} in last. Out for a stroll, {A}?
+{A} na lanterna depois de {B} voltas. Ainda dá tempo... talvez.	{A} at the back after {B} laps. There's still time... maybe.
+E {A} chega em último, mas chega!	And {A} finishes last, but finishes!
+{A} fecha o pelotão. O importante é competir.	{A} closes the pack. Taking part is what matters.
+{A} chegou! Atrasado, mas com estilo.	{A} made it! Late, but in style.
+{A} cruza por último. Na próxima vai!	{A} crosses last. Next time!
+Lá vem {A}, fechando a porta e apagando a luz.	Here comes {A}, closing the door and turning off the lights.
+Se terminar assim, {A} assume a liderança do campeonato!	If it ends like this, {A} takes the championship lead!
+Do jeito que está, {A} vira líder do campeonato!	The way things stand, {A} becomes championship leader!
+Atenção na tabela: {A} passa {B} no campeonato!	Watch the standings: {A} passes {B} in the championship!
+A tabela está virando: {A} na frente de {B}!	The standings are flipping: {A} ahead of {B}!
+{A} recupera a liderança do campeonato!	{A} takes back the championship lead!
+Do jeito que está, {A} volta para a ponta do campeonato.	The way things stand, {A} goes back to the top of the championship.
+{A} reage e retoma o topo da tabela!	{A} fights back and retakes the top of the standings!
+{A} devolve o troco e volta ao topo do campeonato!	{A} strikes back and returns to the top of the championship!
+{A}, líder do campeonato, está em {B}. Hoje não está fácil.	{A}, the championship leader, is in {B}. Not an easy day.
+O líder do campeonato, {A}, só em {B}! A tabela está tremendo.	The championship leader, {A}, only in {B}! The standings are shaking.
+{A} lidera o campeonato, mas aqui está em {B}.	{A} leads the championship, but here they're in {B}.
+Dia difícil para {A}: líder do campeonato e só em {B}.	Tough day for {A}: championship leader and only in {B}.
+O título é de {A} se terminar assim!	The title is {A}'s if it ends like this!
+O título está nas mãos de {A}! Só não pode errar.	The title is in {A}'s hands! Just don't make a mistake.
+Uma volta separa {A} da taça!	One lap separates {A} from the trophy!
+{A} já sente o cheiro da taça!	{A} can already smell the trophy!
+Clássico	Classic
+Coupé GT	GT Coupé
+Rali	Rally
+Fórmula	Formula
+Protótipo	Prototype
+Asa dupla	Double wing
+Gota	Drop
+Flecha	Arrow
+Bala	Bullet
+{0}º	P{0}

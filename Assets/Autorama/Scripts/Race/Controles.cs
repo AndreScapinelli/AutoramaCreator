@@ -12,7 +12,7 @@ namespace Autorama
         public const int Jogadores = 4;
         public const int Acoes = 6;
         public enum Acao { Acelerar = 0, Meia = 1, Recolocar = 2, Turbo = 3, MeiaMenos = 4, MeiaMais = 5 }
-        public static readonly string[] AcaoNomes = { "Acelerar", "Meia", "Recolocar", "Turbo", "Meia −", "Meia +" };
+        public static string[] AcaoNomes => new[] { L.T("Acelerar"), L.T("Meia"), L.T("Recolocar"), L.T("Turbo"), L.T("Meia −"), L.T("Meia +") };
 
         // Padrão (acelerar · meia · recolocar · turbo): jogador 1 A · S · Espaço · D; jogador 2 L · K · ; · J;
         // jogador 3 ↑ · ↓ · Shift direito · Ctrl direito; jogador 4 8 · 5 · 0 · 6 do numérico. Meia − · meia + (até onde a meia
@@ -94,8 +94,8 @@ namespace Autorama
         public static string Nome(Key k) => k switch
         {
             Key.UpArrow => "↑", Key.DownArrow => "↓", Key.LeftArrow => "←", Key.RightArrow => "→",
-            Key.Space => "Espaço", Key.PageUp => "PgUp", Key.PageDown => "PgDn", Key.Semicolon => ";", Key.RightShift => "Shift dir.", Key.RightCtrl => "Ctrl dir.", Key.LeftShift => "Shift esq.",
-            Key.Numpad8 => "8 num.", Key.Numpad5 => "5 num.", Key.Numpad7 => "7 num.", Key.Numpad0 => "0 num.", Key.Numpad6 => "6 num.", Key.Numpad4 => "4 num.",
+            Key.Space => L.T("Espaço"), Key.PageUp => L.T("PgUp"), Key.PageDown => L.T("PgDn"), Key.Semicolon => ";", Key.RightShift => L.T("Shift dir."), Key.RightCtrl => L.T("Ctrl dir."), Key.LeftShift => L.T("Shift esq."),
+            Key.Numpad8 => L.T("8 num."), Key.Numpad5 => L.T("5 num."), Key.Numpad7 => L.T("7 num."), Key.Numpad0 => L.T("0 num."), Key.Numpad6 => L.T("6 num."), Key.Numpad4 => L.T("4 num."),
             Key.None => "controle",
             _ => k.ToString(),
         };

@@ -1,0 +1,1375 @@
+Termine o campeonato online (ou saia da sala) antes de trocar de aba.	Beende die Online-Meisterschaft (oder verlasse den Raum), bevor du den Tab wechselst.
+CORRIDA	RENNEN
+CAMPEONATO	MEISTERSCHAFT
+ONLINE	ONLINE
+CARREIRA	KARRIERE
+CONSTRUTOR	STRECKENBAU
+{0}  ({1:0} s)	{0}  ({1:0} s)
+Como funciona	So funktioniert's
+{0} · {1} (tecla {2})	{0} · {1} (Taste {2})
+Não vale aqui.	Hier nicht erlaubt.
+PISTA DE {0} TRILHOS	{0}-SPURIGE STRECKE
+Pista de {0} trilhos: abre na carreira.	{0}-spurige Strecke: wird in der Karriere freigeschaltet.
+Pista adaptada para {0} carros.	Strecke für {0} Autos angepasst.
+Pista de {0} carros.	Strecke für {0} Autos.
+Célula —	Feld —
+1 m	1 m
+Vista 3D · V volta para a de cima · botão direito gira	3D-Ansicht · V wechselt zurück zur Draufsicht · rechte Maustaste dreht
+PISTA DE 2 TRILHOS	2-SPURIGE STRECKE
+Termine o campeonato online (ou saia da sala) antes de voltar ao menu.	Beende die Online-Meisterschaft (oder verlasse den Raum), bevor du zum Menü zurückkehrst.
+Tela inicial	Startbildschirm
+Esconder o painel (Tab)	Seitenleiste ausblenden (Tab)
+Fechar circuito (Q)	Rundkurs schließen (Q)
+Completa a pista da ponta até a largada com o mínimo de peças, sem passar por cima da pista. Ctrl+Z desfaz.	Ergänzt die Strecke vom offenen Ende bis zum Start mit möglichst wenigen Teilen, ohne über die Strecke zu führen. Strg+Z macht es rückgängig.
+Cancelar (Esc)	Abbrechen (Esc)
+Para a busca. A pista fica como estava.	Bricht die Suche ab. Die Strecke bleibt, wie sie war.
+TAMANHO DA PISTA	STRECKENGRÖSSE
+2 trilhos	2 Spuren
+4 trilhos	4 Spuren
+6 trilhos	6 Spuren
+Pista muito larga, de 6 trilhos (1 célula = o triplo da largura). Campeonatos não misturam os tipos.	Sehr breite Strecke mit 6 Spuren (1 Feld = dreifache Breite). Meisterschaften mischen die Typen nicht.
+8 trilhos	8 Spuren
+Pista enorme, de 8 trilhos (1 célula = 4× a largura). Campeonatos não misturam os tipos.	Riesige Strecke mit 8 Spuren (1 Feld = 4-fache Breite). Meisterschaften mischen die Typen nicht.
+Pista estreita, de 2 trilhos. Adapta a pista aberta (Ctrl+Z desfaz).	Schmale Strecke mit 2 Spuren. Passt die offene Strecke an (Strg+Z macht es rückgängig).
+Pista larga, de 4 trilhos (1 célula = o dobro da largura). Campeonatos não misturam os dois tipos.	Breite Strecke mit 4 Spuren (1 Feld = doppelte Breite). Meisterschaften mischen die beiden Typen nicht.
+PEÇAS	TEILE
+Frente ▸	Vorne ▸
+◂ Trás	◂ Hinten
+Encaixa no fim da pista, na seta amarela (E alterna)	Wird am Ende der Strecke angesetzt, am gelben Pfeil (E wechselt)
+Encaixa atrás da largada (E alterna)	Wird hinter dem Start angesetzt (E wechselt)
+RETAS	GERADEN
+CURVAS	KURVEN
+CURVAS INCLINADAS	ÜBERHÖHTE KURVEN
+CRUZAMENTOS E RAMPAS	KREUZUNGEN UND RAMPEN
+LOOP E SALTO	LOOPING UND SPRUNG
+PEÇA SELECIONADA	AUSGEWÄHLTES TEIL
+RESUMO	ÜBERSICHT
+SEQUÊNCIA	REIHENFOLGE
+Da largada até a ponta, no sentido em que os carrinhos correm.	Vom Start bis zum offenen Ende, in Fahrtrichtung der Autos.
+MINHAS PISTAS	MEINE STRECKEN
+Salvar	Speichern
+Exemplo: oval	Beispiel: Oval
+Nova pista	Neue Strecke
+Pasta: {0}	Ordner: {0}
+VISTA E EDIÇÃO	ANSICHT UND BEARBEITUNG
+Enquadrar (C)	Einpassen (C)
+Vista 3D (V)	3D-Ansicht (V)
+Desfazer	Rückgängig
+Refazer	Wiederholen
+ATALHOS	TASTENKÜRZEL
+<b>1–0, T</b> peças · <b>X/B</b> cruzamento · <b>U/D</b> rampa\n<b>Clique</b> seleciona · <b>F</b> inverte a curva · <b>R</b> gira a largada · <b>E</b> ponta: frente/trás\n<b>Del</b> remove a selecionada · <b>⌫</b> remove a última · <b>Esc</b> solta\n<b>Q</b> fecha o circuito · <b>Ctrl+Z / Ctrl+Y</b> desfazer / refazer\n<b>C</b> enquadra · <b>V</b> vista 3D\n<b>Botão direito</b> move a vista (gira na 3D) · <b>Roda</b> zoom · <b>Tab</b> painel\n<b>Arrastar a largada</b> move a pista inteira	<b>1–0, T</b> Teile · <b>X/B</b> Kreuzung · <b>U/D</b> Rampe\n<b>Klick</b> wählt aus · <b>F</b> spiegelt die Kurve · <b>R</b> dreht den Start · <b>E</b> Ende: vorne/hinten\n<b>Entf</b> entfernt das ausgewählte · <b>⌫</b> entfernt das letzte · <b>Esc</b> hebt die Auswahl auf\n<b>Q</b> schließt den Rundkurs · <b>Strg+Z / Strg+Y</b> rückgängig / wiederholen\n<b>C</b> einpassen · <b>V</b> 3D-Ansicht\n<b>Rechte Maustaste</b> verschiebt die Ansicht (dreht in 3D) · <b>Mausrad</b> Zoom · <b>Tab</b> Seitenleiste\n<b>Start ziehen</b> verschiebt die ganze Strecke
+Painel (Tab)	Seitenleiste (Tab)
+Carreira	Karriere
+Da garagem ao campeonato nacional	Von der Garage bis zur nationalen Meisterschaft
+Corrida	Rennen
+Contra amigos no mesmo PC ou contra o robô	Gegen Freunde am selben PC oder gegen den Bot
+Campeonato	Meisterschaft
+Pilotos, etapas, tabela e recordes	Fahrer, Etappen, Tabelle und Rekorde
+Online	Online
+Partida rápida ou sala com amigos	Schnelles Spiel oder ein Raum mit Freunden
+Construtor	Streckenbau
+Encaixe as peças e feche o circuito	Setze die Teile zusammen und schließe den Rundkurs
+Peças	Teile
+Opções	Optionen
+Sair	Beenden
+Parar o teste	Test beenden
+Testar a pista com um carro IA (anda mesmo com a pista aberta)	Die Strecke mit einem KI-Auto testen (fährt auch bei offener Strecke)
+Mostrar	Zeigen
+Seleciona uma das peças sobrepostas	Wählt eines der überlappenden Teile aus
+Correr nesta pista	Auf dieser Strecke fahren
+Desfazer (Ctrl+Z)	Rückgängig (Strg+Z)
+Refazer (Ctrl+Y)	Wiederholen (Strg+Y)
+Inverter a curva selecionada (F)	Ausgewählte Kurve spiegeln (F)
+Girar a largada (R)	Start drehen (R)
+Remover a selecionada (Del) ou a última (⌫)	Ausgewähltes (Entf) oder letztes Teil (⌫) entfernen
+Enquadrar a pista (C)	Strecke einpassen (C)
+Afastar	Herauszoomen
+Aproximar	Hineinzoomen
+Circuito fechado, mas há {0} peças sobrepostas	Rundkurs geschlossen, aber {0} Teile überlappen
+Há {0} peças sobrepostas	{0} Teile überlappen
+Circuito fechado	Rundkurs geschlossen
+A ponta chega na largada, mas no nível {0}. Desça até o chão	Das Ende erreicht den Start, aber auf Ebene {0}. Geh bis zum Boden hinunter
+Só a largada. Adicione peças	Nur der Start. Füge Teile hinzu
+Pista aberta · ponta a {0} cél. da largada	Offene Strecke · Ende {0} Felder vom Start entfernt
+Encaixando na <b>ponta de trás</b>, atrás da largada (seta amarela atrás dela). A largada não sai do lugar.	Ansetzen am <b>hinteren Ende</b>, hinter dem Start (gelber Pfeil dahinter). Der Start bleibt an seinem Platz.
+Clique para encaixar no <b>fim da pista</b>, onde está a seta amarela. Passe o mouse para ver a peça.	Klicke, um am <b>Ende der Strecke</b> anzusetzen, wo der gelbe Pfeil ist. Fahre mit der Maus darüber, um das Teil zu sehen.
+Encaixando <b>depois da peça {0}</b> ({1}).	Ansetzen <b>nach Teil {0}</b> ({1}).
+Nenhuma. Clique numa peça da mesa para inserir depois dela, trocar a altura ou remover.	Keines. Klicke auf ein Teil auf dem Tisch, um dahinter einzufügen, die Höhe zu ändern oder es zu entfernen.
+<b>Peça {0} · {1}</b>	<b>Teil {0} · {1}</b>
+{0}{1} cél. · {2}	{0}{1} Felder · {2}
+Girar 90° (R)	Um 90° drehen (R)
+Soltar (Esc)	Abwählen (Esc)
+Altura	Höhe
+Descer	Absenken
+Subir	Anheben
+Arraste a largada na mesa para mover a pista inteira. Ela não pode ser removida.	Ziehe den Start auf dem Tisch, um die ganze Strecke zu verschieben. Er kann nicht entfernt werden.
+Inverter (F)	Spiegeln (F)
+Remover (Del)	Entfernen (Entf)
+Vão	Lücke
+{0} células	{0} Felder
+1 célula	1 Feld
+Tamanho	Größe
+{0} fileiras	{0} Reihen
+1 fileira	1 Reihe
+Sobe	Hoch
+Plana	Flach
+Desce	Runter
+ m	 m
+ · {0} no alto	 · {0} erhöht
+Linha central	Mittellinie
+Trilho {0}	Spur {0}
+Mais longo	Am längsten
+iguais	gleich
+trilho {0} +{1} cm	Spur {0} +{1} cm
+ (sobre o {0})	 (gegenüber Spur {0})
+Área ocupada	Belegte Fläche
+{0} × {1} m	{0} × {1} m
+Na mesa	Auf dem Tisch
+cabe	passt
+passa da borda	ragt über den Rand
+ · {0} × {1} cél.	 · {0} × {1} Felder
+Nenhuma pista salva ainda. Dê um nome e salve.	Noch keine Strecken gespeichert. Gib einen Namen ein und speichere.
+Abrir	Öffnen
+Certeza?	Sicher?
+Apagar	Löschen
+“{0}” apagada.	„{0}“ gelöscht.
+Pista {0}	Strecke {0}
+“{0}” salva.	„{0}“ gespeichert.
+“{0}” aberta.	„{0}“ geöffnet.
+Célula {0}	Feld {0}
+ cm	 cm
+ · de {0}	 · von {0}
+{0} trilhos · {1} peças · {2} m · 	{0} Spuren · {1} Teile · {2} m ·
+fechada	geschlossen
+aberta	offen
+não deu para ler	nicht lesbar
+Sai à {0} · 	Ausfahrt {0} ·
+esquerda	links
+direita	rechts
+Salto · 	Sprung ·
+Reta · 	Gerade ·
+Vira à {0} · {1}° · 	Biegt {0} ab · {1}° ·
+chão	Boden
+nível {0}	Ebene {0}
+Esta prova deixa usar no máximo {0} peças.	Dieses Event erlaubt höchstens {0} Teile.
+Rampa não encaixa atrás da largada: ela fica no chão.	Eine Rampe passt nicht hinter den Start: Der Start bleibt auf dem Boden.
+Loop e rampa de salto não sobem nem descem de nível.	Looping und Sprungschanze gehen keine Ebene hoch oder runter.
+{0} ({1} carros)	{0} ({1} Autos)
+Não cabe: a mesa vai até 120 × 120 células.	Passt nicht: Der Tisch reicht bis 120 × 120 Felder.
+A pista já está fechada.	Die Strecke ist bereits geschlossen.
+Coloque algumas peças antes: o fechamento parte da ponta da pista.	Setze zuerst ein paar Teile: Das Schließen beginnt am offenen Ende der Strecke.
+Busca cancelada.	Suche abgebrochen.
+Não deu para fechar o circuito.	Der Rundkurs ließ sich nicht schließen.
+Vencer	Gewinnen
+Chegar até o {0:0}º	Unter die ersten {0:0} kommen
+Sem sair da pista	Ohne Abflug
+No máximo {0:0} saídas	Höchstens {0:0} Abflüge
+Sem usar o turbo	Ohne Turbo
+Volta abaixo de {0}	Runde unter {0}
+Prova abaixo de {0}	Rennen unter {0}
+Vencer a série	Die Serie gewinnen
+Vencer sem perder bateria	Gewinnen, ohne einen Lauf zu verlieren
+Vencer todas as etapas	Alle Etappen gewinnen
+Pista molhada: 20% menos aderência	Nasse Strecke: 20 % weniger Grip
+Carro imposto: {0}	Vorgeschriebenes Auto: {0}
+padrão	Standard
+Mais de {0} {1} e você está fora	Mehr als {0} {1} und du bist raus
+saída	Abflug
+saídas	Abflüge
+Você larga {0:0.#} s depois	Du startest {0:0.#} s später
+Turbo sempre cheio, para todos	Turbo immer voll, für alle
+Monte a pista primeiro.	Baue zuerst die Strecke.
+Passou do limite: {0} de {1} peças.	Über dem Limit: {0} von {1} Teilen.
+{0}{1} não vale nesta prova.	{0}{1} ist in diesem Event nicht erlaubt.
+ com rampa	 mit Rampe
+Falta usar: {0}.	Noch zu verwenden: {0}.
+Feche o circuito (Q fecha sozinho).	Schließe den Rundkurs (Q schließt ihn automatisch).
+A pista passa por cima dela mesma.	Die Strecke führt über sich selbst.
+Motor	Motor
+Bolha	Karosserie
+Pneu	Reifen
+Chassi	Chassis
+Turbo	Turbo
++{0}% de aceleração	+{0} % Beschleunigung
++{0}% de final	+{0} % Endgeschwindigkeit
++{0}% de aderência	+{0} % Grip
++{0}% de aerodinâmica	+{0} % Aerodynamik
++{0}% de resposta no gatilho e no freio	+{0} % Ansprechverhalten von Gas und Bremse
+−{0}% na derrapagem	−{0} % Rutschen
++{0} ponto de velocidade do turbo	+{0} Punkt Turbogeschwindigkeit
++{0}% de tanque	+{0} % Tank
+ por nível	 pro Stufe
+metade de cada: {0} e {1}, a cada 2 níveis	je die Hälfte: {0} und {1}, alle 2 Stufen
+Já é sua.	Gehört schon dir.
+Abre na região {0}.	Wird in der Region {0} freigeschaltet.
+Faltam {0} moedas.	Es fehlen {0} Münzen.
+Nível máximo.	Höchste Stufe.
+Abra a opção primeiro.	Schalte zuerst die Option frei.
+Nível {0} abre na região {1}.	Stufe {0} wird in der Region {1} freigeschaltet.
+níveis: 	Stufen:
+Vermelho	Rot
+Azul	Blau
+Amarelo	Gelb
+Verde	Grün
+Roxo	Lila
+Laranja	Orange
+Ciano	Cyan
+Rosa	Rosa
+Iniciante: freia cedo e erra bastante	Anfänger: bremst früh und macht viele Fehler
+Amador: anda seguro, às vezes passa do ponto	Amateur: fährt sicher, verbremst sich manchmal
+Bom: entra forte nas curvas	Gut: geht hart in die Kurven
+Experiente: quase no limite, raramente sai	Erfahren: fast am Limit, fliegt selten ab
+Profissional: no limite da aderência	Profi: am Limit der Haftung
+Piloto	Fahrer
+Largar (Enter)	Starten (Enter)
+ · esquerda	 · links
+ · direita	 · rechts
+ · sobe	 · hoch
+ · desce	 · runter
+ · vão {0}	 · Lücke {0}
+ · {0} fileiras	 · {0} Reihen
+Não achei um fechamento que funcione daqui. Leve a ponta mais perto da largada e tente de novo.	Ich habe von hier aus keinen passenden Abschluss gefunden. Bring das Ende näher an den Start und versuche es noch einmal.
+Todo fechamento curto passa por cima da pista. Mexa um pouco a ponta (ou faça uma ponte) e tente de novo.	Jeder kurze Abschluss führt über die Strecke. Verschiebe das Ende ein wenig (oder baue eine Brücke) und versuche es noch einmal.
+Procurando com até {0} peças…	Suche mit bis zu {0} Teilen …
+A ponta já encosta na pista de trás.	Das Ende berührt schon die Strecke dahinter.
+A ponta já está na largada.	Das Ende ist schon am Start.
+Não achei um fechamento com até {0} peças. Leve a ponta mais perto da largada e tente de novo.	Ich habe keinen Abschluss mit bis zu {0} Teilen gefunden. Bring das Ende näher an den Start und versuche es noch einmal.
+Procurando com até {0} peças… testando {1} de {2}	Suche mit bis zu {0} Teilen … teste {1} von {2}
+Circuito fechado com {0} {1}: {2}. Ctrl+Z desfaz.	Rundkurs mit {0} {1} geschlossen: {2}. Strg+Z macht es rückgängig.
+peça	Teil
+peças	Teilen
+ (4 carros)	 (4 Autos)
+ (6 carros)	 (6 Autos)
+Oval	Oval
+8 com ponte	Acht mit Brücke
+Endereço do servidor inválido.	Ungültige Serveradresse.
+A conexão com o servidor foi encerrada.	Die Verbindung zum Server wurde beendet.
+O servidor encerrou a conexão.	Der Server hat die Verbindung beendet.
+O servidor mandou uma mensagem grande demais.	Der Server hat eine zu große Nachricht geschickt.
+Não foi possível conectar: tempo esgotado. Confira o endereço do servidor.	Verbindung fehlgeschlagen: Zeitüberschreitung. Prüfe die Serveradresse.
+Não foi possível falar com o servidor: 	Keine Verbindung zum Server möglich:
+Não deu para carregar a biblioteca da Steam: 	Die Steam-Bibliothek konnte nicht geladen werden:
+O cliente da Steam não está aberto. Abra a Steam, entre na conta e tente de novo.	Der Steam-Client ist nicht geöffnet. Öffne Steam, melde dich an und versuche es noch einmal.
+A Steam está desatualizada para esta versão da biblioteca. Atualize o cliente da Steam.	Steam ist für diese Version der Bibliothek veraltet. Aktualisiere den Steam-Client.
+A Steam não iniciou ({0}): {1}. Confira se o steam_appid.txt (480) está na raiz do projeto.	Steam ist nicht gestartet ({0}): {1}. Prüfe, ob steam_appid.txt (480) im Projektordner liegt.
+Partida rápida · {0} carros	Schnelles Spiel · {0} Autos
+Sala de {0}	Raum von {0}
+Você já está numa sala.	Du bist schon in einem Raum.
+Não deu para entrar na sala do amigo.	Konnte dem Raum deines Freundes nicht beitreten.
+Esse lobby não é de uma sala do Autorama (ou é de outra versão do jogo).	Diese Lobby ist kein Autorama-Raum (oder stammt von einer anderen Spielversion).
+{0} agora é o host.	{0} ist jetzt der Host.
+O campeonato terminou.	Die Meisterschaft ist vorbei.
+O campeonato já começou.	Die Meisterschaft hat schon begonnen.
+Tamanho de pista inválido.	Ungültige Streckengröße.
+Pista inválida ou grande demais.	Ungültige oder zu große Strecke.
+Pista	Strecke
+Não deu para criar a fila na Steam.	Die Warteschlange auf Steam konnte nicht erstellt werden.
+Partida rápida · 	Schnelles Spiel ·
+Pista sorteada: {0} (de {1}).	Ausgeloste Strecke: {0} (von {1}).
+Só o host pode fazer isso.	Nur der Host kann das tun.
+Não deu para criar a sala na Steam.	Der Raum auf Steam konnte nicht erstellt werden.
+Sala não encontrada. Confira o código.	Raum nicht gefunden. Prüfe den Code.
+A sala está cheia.	Der Raum ist voll.
+Não deu para entrar na sala.	Konnte dem Raum nicht beitreten.
+Cor inválida.	Ungültige Farbe.
+Essa cor já é de outro piloto.	Diese Farbe gehört schon einem anderen Fahrer.
+Você sugeriu pistas demais em pouco tempo. Espere um minuto.	Du hast in kurzer Zeit zu viele Strecken vorgeschlagen. Warte eine Minute.
+Calma, você está mandando mensagens rápido demais.	Langsam, du schickst Nachrichten zu schnell.
+No máximo {0} etapas.	Höchstens {0} Etappen.
+Etapa inválida ou pista grande demais.	Ungültige Etappe oder zu große Strecke.
+O host mudou as etapas: confirmem "pronto" de novo.	Der Host hat die Etappen geändert: Bestätigt „bereit“ noch einmal.
+Precisa de pelo menos 2 pilotos.	Mindestens 2 Fahrer sind nötig.
+Escolha pelo menos uma pista.	Wähle mindestens eine Strecke.
+Falta ficar pronto: 	Noch nicht bereit:
+Regras inválidas.	Ungültige Regeln.
+Campeonato de {0}	Meisterschaft von {0}
+As pistas são grandes demais para a Steam. Tire alguma etapa.	Die Strecken sind zu groß für Steam. Entferne eine Etappe.
+{0} largou o campeonato "{1}".	{0} hat die Meisterschaft „{1}“ gestartet.
+{0} entrou na sala.	{0} ist dem Raum beigetreten.
+{0} saiu da sala.	{0} hat den Raum verlassen.
+{0} agora é o host: a bateria da vez recomeça.	{0} ist jetzt der Host: Der aktuelle Lauf beginnt neu.
+Jogador	Spieler
+ · <color=#F5C542>★</color> {0} ({1})	 · <color=#F5C542>★</color> {0} ({1})
+Seja campeão da {0} na carreira.	Werde Meister der {0} in der Karriere.
+Vença {0} ({1}) na carreira.	Gewinne {0} ({1}) in der Karriere.
+Abre na carreira.	Wird in der Karriere freigeschaltet.
+{0} (bolha {1})	{0} (Karosserie {1})
+{0}: abre na carreira ({1}).	{0}: wird in der Karriere freigeschaltet ({1}).
+Esta peça abre na carreira (menu inicial › Peças mostra em que prova).	Dieses Teil wird in der Karriere freigeschaltet (Startbildschirm › Teile zeigt, in welchem Event).
+Acelerar	Gas
+Meia	Halbgas
+Recolocar	Zurücksetzen
+Meia −	Halbgas −
+Meia +	Halbgas +
+Espaço	Leertaste
+PgUp	Bild↑
+PgDn	Bild↓
+Shift dir.	Umschalt rechts
+Ctrl dir.	Strg rechts
+Shift esq.	Umschalt links
+8 num.	Num 8
+5 num.	Num 5
+7 num.	Num 7
+0 num.	Num 0
+6 num.	Num 6
+4 num.	Num 4
+Broca	Bohrer
+Elétrico suave	Sanfter Elektromotor
+Escovas	Bürsten
+Turbina	Turbine
+Ronco	Grollen
+Seu arquivo (motor.wav)	Deine Datei (motor.wav)
+Motor curto	Kurzer Motor
+Motor longo	Langer Motor
+Da garagem ao campeonato nacional.	Von der Garage bis zur nationalen Meisterschaft.
+Voltar ao menu (Esc)	Zurück zum Menü (Esc)
+◀ Saves	◀ Spielstände
+Garagem do carro (G)	Autowerkstatt (G)
+← → escolhe a prova · Enter abre e corre · Esc volta	← → wählt das Event · Enter öffnet und fährt · Esc geht zurück
+PAUSA	PAUSE
+Continuar (Esc)	Weiter (Esc)
+Reiniciar	Neu starten
+Voltar ao mapa	Zurück zur Karte
+Cancelar	Abbrechen
+Carreira {0}	Karriere {0}
+Nova carreira	Neue Karriere
+As outras regiões ainda não estão prontas.	Die anderen Regionen sind noch nicht fertig.
+Seja campeão desta região para abrir a próxima.	Werde Meister dieser Region, um die nächste freizuschalten.
+Faça {0} estrelas na região para abrir.	Hol {0} Sterne in der Region, um sie freizuschalten.
+Termine a prova anterior para abrir esta.	Beende das vorige Event, um dieses freizuschalten.
+{0} · {1} faixas	{0} · {1} Spuren
+{0} · {1} voltas	{0} · {1} Runden
+ · sem turbo	 · ohne Turbo
+ · contra {0} IA {1}	 · gegen {0} KI {1}
+1 piloto	1 Fahrer
+{0} pilotos	{0} Fahrer
+{0} · melhor de {1}, trocando de trilho	{0} · Best-of-{1}, mit Spurwechsel
+Seu carro: {0}	Dein Auto: {0}
+ · garagem no G	 · Werkstatt auf G
+Ainda não correu aqui.	Hier noch nicht gefahren.
+Seu melhor: {0}	Deine Bestzeit: {0}
+ · volta {0}	 · Runde {0}
+Remontar	Neu bauen
+Montar pista (Enter)	Strecke bauen (Enter)
+Correr na minha pista (Enter)	Auf meiner Strecke fahren (Enter)
+Recomeçar	Von vorn beginnen
+Continuar (Enter)	Weiter (Enter)
+Correr (Enter)	Fahren (Enter)
+Fechar (Esc)	Schließen (Esc)
+Não deu para salvar a carreira.	Die Karriere konnte nicht gespeichert werden.
+<color={0}>{1}</color>  {2}  {3}	<color={0}>{1}</color>  {2}  {3}
+\n<color=#F5C21B>Bateria {0} de {1} · você {2} × {3} {4}</color>	\n<color=#F5C21B>Lauf {0} von {1} · du {2} × {3} {4}</color>
+\n<color={0}>Saídas {1} de {2}</color>	\n<color={0}>Abflüge {1} von {2}</color>
+\n<color=#F07A3A>Você sai em {0} s</color>	\n<color=#F07A3A>Du bist in {0} s raus</color>
+\n<color=#50A0F0>Pista molhada</color>	\n<color=#50A0F0>Nasse Strecke</color>
+Campeão da {0}!	Meister der {0}!
+Você terminou em {0}º · {1}	Du bist {0}. geworden · {1}
+Você venceu a série · {0} × {1}	Du hast die Serie gewonnen · {0} × {1}
+{0} venceu a série · {1} × {2}	{0} hat die Serie gewonnen · {1} × {2}
+Fora: mais de {0} {1}	Raus: mehr als {0} {1}
+Melhor volta {0}	Beste Runde {0}
+Nenhuma volta completa	Keine volle Runde
+Não terminou	Nicht beendet
+{0}º lugar · {1}	{0}. Platz · {1}
+Não foi desta vez.	Diesmal nicht.
+estrela nova	neuer Stern
+estrelas novas	neue Sterne
+Sem estrela nova.	Kein neuer Stern.
++{0} moedas  ·  ◎ {1}  ·  gaste na garagem do carro (G no mapa)	+{0} Münzen  ·  ◎ {1}  ·  gib sie in der Autowerkstatt aus (G auf der Karte)
+Abriu: {0}	Freigeschaltet: {0}
+Modelo novo: {0}. Vale em todos os modos (cartão Carro).	Neues Modell: {0}. Gilt in allen Modi (Karte „Auto“).
+Abriu: {0} ({1} faixas)	Freigeschaltet: {0} ({1} Spuren)
+As próximas regiões ainda estão sendo construídas.	Die nächsten Regionen sind noch im Bau.
+Correr de novo	Noch einmal fahren
+Mapa (Esc)	Karte (Esc)
+Próxima prova (Enter)	Nächstes Event (Enter)
+Bateria {0} de {1}	Lauf {0} von {1}
+Você venceu a bateria	Du hast den Lauf gewonnen
+{0} venceu a bateria	{0} hat den Lauf gewonnen
+Você {0} × {1} {2}	Du {0} × {1} {2}
+Na próxima, vocês trocam de trilho.	Beim nächsten Mal tauscht ihr die Spuren.
+Desistir (Esc)	Aufgeben (Esc)
+Próxima bateria (Enter)	Nächster Lauf (Enter)
+peça nova no construtor: {0}	neues Teil im Streckenbau: {0}
+Contra o relógio	Zeitfahren
+Desafio	Herausforderung
+Rival	Rivale
+Monte a pista: 	Baue die Strecke:
+ e as peças que você já abriu	 und die Teile, die du schon freigeschaltet hast
+ (com rampas)	 (mit Rampen)
+ (sem rampas)	 (ohne Rampen)
+ · no máximo {0} peças	 · höchstens {0} Teile
+ · use pelo menos: 	 · verwende mindestens:
+Esta peça não vale nesta prova.	Dieses Teil ist in diesem Event nicht erlaubt.
+Não vale nesta prova.	In diesem Event nicht erlaubt.
+Carreira · {0}	Karriere · {0}
+{0} · monte a pista	{0} · baue die Strecke
+Peças: {0}{1}\n	Teile: {0}{1}\n
+ de {0}	 von {0}
+<color=#3DBE74>✓ A pista vale. Pode correr.</color>	<color=#3DBE74>✓ Die Strecke ist gültig. Du kannst fahren.</color>
+VOCÊ	DU
+Você	Du
+VOC	DU
+Tabela · {0} de {1} etapas	Tabelle · {0} von {1} Etappen
+{0}º  {1}  ·  {2} pts	{0}.  {1}  ·  {2} Pkt.
+  ·  {0} vitória	  ·  {0} Sieg
+  ·  {0} vitórias	  ·  {0} Siege
+Você ficou em {0}º	Du bist {0}. geworden
+Você chegou em {0}º	Du bist als {0}. angekommen
+Você não terminou	Du hast nicht beendet
+Simulada · 	Simuliert ·
+Próxima: {0}	Nächste: {0}
+\n<color=#F5C21B>Etapa {0} de {1} · você é {2}º na tabela</color>	\n<color=#F5C21B>Etappe {0} von {1} · du bist {2}. in der Tabelle</color>
+{0} etapas: 	{0} Etappen:
+\nPilotos: 	\nFahrer:
+{0} (IA {1})	{0} (KI {1})
+\nPor tempo: {0} s por etapa, passando por todos os trilhos ({1} {2} por etapa)	\nNach Zeit: {0} s pro Etappe, über alle Spuren ({1} {2} pro Etappe)
+bateria	Lauf
+baterias	Läufe
+\n{0} baterias por etapa (você corre {1}; as outras são simuladas)	\n{0} Läufe pro Etappe (du fährst {1}; die anderen werden simuliert)
+\nEm andamento: {0} de {1} etapas	\nLaufend: {0} von {1} Etappen
+Escolha do carro · etapa {0}: {1}	Autowahl · Etappe {0}: {1}
+Motor, bolha e pneu para a etapa inteira. Cada peça dá uma coisa e tira outra.	Motor, Karosserie und Reifen für die ganze Etappe. Jedes Teil gibt etwas und nimmt etwas anderes.
+Pronto ✓	Bereit ✓
+Pronto	Bereit
+robô	Bot
+saiu	weg
+pronto	bereit
+escolhendo	wählt
+<b>Enter</b>: todos prontos com o que está escolhido.	<b>Enter</b>: alle bereit mit der aktuellen Wahl.
+Fecha sozinho em {0} s (quem não confirmou corre com o que estiver escolhido).	Schließt sich in {0} s von selbst (wer nicht bestätigt hat, fährt mit der aktuellen Wahl).
+O host fecha a escolha em até {0} s.	Der Host schließt die Wahl in spätestens {0} s.
+Fechar a escolha	Wahl abschließen
+NOVO CAMPEONATO	NEUE MEISTERSCHAFT
+Escolha os pilotos e as pistas. Em cada etapa, todo piloto corre uma bateria em cada trilho, em rodízio: ninguém leva vantagem por ficar sempre do lado de dentro.	Wähle die Fahrer und die Strecken. In jeder Etappe fährt jeder Fahrer einen Lauf auf jeder Spur, im Wechsel: Niemand hat einen Vorteil, weil er immer innen fährt.
+Nome do campeonato	Name der Meisterschaft
+Todas as etapas correm nesse tamanho (qualquer pista é adaptada). Depois de começar, o tamanho não muda. Com menos pilotos que trilhos, sobra trilho vazio.	Alle Etappen werden in dieser Größe gefahren (jede Strecke wird angepasst). Nach dem Start ändert sich die Größe nicht mehr. Mit weniger Fahrern als Spuren bleibt eine Spur leer.
+FORMATO	FORMAT
+Por voltas	Nach Runden
+Por tempo	Nach Zeit
+Cada bateria tem uma duração e se divide em uma manche por trilho. Vence quem andar mais.	Jeder Lauf hat eine Dauer und wird in einen Durchgang pro Spur aufgeteilt. Wer am weitesten kommt, gewinnt.
+PILOTOS	FAHRER
+Marque quem vai correr: de 2 a 8. A ordem em que você marca é a ordem do rodízio. Piloto IA é dirigido pelo computador e não bate recorde da pista.	Markiere, wer fährt: 2 bis 8. Die Reihenfolge des Markierens ist die Reihenfolge des Wechsels. KI-Fahrer werden vom Computer gesteuert und stellen keinen Streckenrekord auf.
+NOVO PILOTO	NEUER FAHRER
+Nome	Name
+Sigla	Kürzel
+Piloto IA (o computador dirige)	KI-Fahrer (der Computer fährt)
+Adicionar piloto	Fahrer hinzufügen
+ETAPAS	ETAPPEN
+Cada etapa é uma pista com um número de voltas. Clique numa pista abaixo para incluir.	Jede Etappe ist eine Strecke mit einer Rundenzahl. Klicke unten auf eine Strecke, um sie hinzuzufügen.
+PISTAS DISPONÍVEIS	VERFÜGBARE STRECKEN
+REGRAS	REGELN
+Começar campeonato	Meisterschaft starten
+CAMPEONATOS ANTERIORES	FRÜHERE MEISTERSCHAFTEN
+Tempo de prova	Rennzeit
+0,00 s	0,00 s
+TABELA GERAL	GESAMTTABELLE
+RECORDES DA PISTA	STRECKENREKORDE
+Abandonar campeonato	Meisterschaft abbrechen
+Abandonar? Clique de novo	Abbrechen? Noch einmal klicken
+Não deu para salvar o campeonato no disco.	Die Meisterschaft konnte nicht gespeichert werden.
+Qualidade: {0}	Stärke: {0}
+Robô {0}	Bot {0}
+Marque pelo menos 2 pilotos.	Markiere mindestens 2 Fahrer.
+No máximo {0} pilotos.	Höchstens {0} Fahrer.
+{0} e {1} estão com a mesma cor. Troque a cor de um deles.	{0} und {1} haben dieselbe Farbe. Ändere die Farbe von einem der beiden.
+Inclua pelo menos uma pista nas etapas.	Füge den Etappen mindestens eine Strecke hinzu.
+IA {0}	KI {0}
+Piloto IA, qualidade {0}	KI-Fahrer, Stärke {0}
+{0} de {1}	{0} von {1}
+ · {0} {1} por bateria	 · {0} {1} pro Lauf
+trilho vazio	leere Spur
+trilhos vazios	leere Spuren
+Nenhum piloto cadastrado. Adicione abaixo.	Keine Fahrer angelegt. Füge unten einen hinzu.
+cor repetida	doppelte Farbe
+Editar	Bearbeiten
+ (já usada)	 (schon vergeben)
+EDITAR PILOTO	FAHRER BEARBEITEN
+Salvar piloto	Fahrer speichern
+{0} etapa	{0} Etappe
+{0} etapas	{0} Etappen
+Nenhuma etapa ainda.	Noch keine Etappen.
+{0} volta	{0} Runde
+{0} voltas	{0} Runden
+Tirar etapa	Etappe entfernen
+ · recorde {0} {1}	 · Rekord {0} {1}
+1 pista aberta não aparece: feche o circuito no Construtor.	1 offene Strecke wird nicht angezeigt: Schließe den Rundkurs im Streckenbau.
+{0} pistas abertas não aparecem: feche os circuitos no Construtor.	{0} offene Strecken werden nicht angezeigt: Schließe die Rundkurse im Streckenbau.
+• Usa as regras da corrida de Opções (menu inicial): velocidade <b>{0} cél/s</b>, até 100% em <b>{1} s</b>, aderência <b>{2}</b>, colisão <b>{3}</b>, turbo <b>{4}</b>, recolocar em <b>{5} s</b>. Ficam fixos até o fim.\n	• Verwendet die Rennregeln aus den Optionen (Startbildschirm): Tempo <b>{0} Felder/s</b>, 100 % in <b>{1} s</b>, Grip <b>{2}</b>, Kollision <b>{3}</b>, Turbo <b>{4}</b>, Zurücksetzen in <b>{5} s</b>. Sie bleiben bis zum Ende fest.\n
+ligada	an
+desligada	aus
+ligado	an
+desligado	aus
+• <b>Por tempo</b>: cada etapa tem {0} de até {1} carros. A bateria se divide em <b>{2} manches</b>, uma em cada trilho. Vale a <b>distância</b> (voltas e fração).\n	• <b>Nach Zeit</b>: Jede Etappe hat {0} mit bis zu {1} Autos. Der Lauf wird in <b>{2} Durchgänge</b> aufgeteilt, einen pro Spur. Es zählt die <b>Distanz</b> (Runden und Bruchteil).\n
+<b>{0} grupos</b>	<b>{0} Gruppen</b>
+<b>uma bateria</b>	<b>einen Lauf</b>
+• Cada etapa: {0} de até <b>{1} carros</b>, e cada piloto corre uma vez em cada trilho. Vale o <b>tempo somado</b> de todas.\n• Quem não completar as voltas tem <b>{2:0} s</b> depois da bandeirada do primeiro; fica com as voltas que fez.\n	• Jede Etappe: {0} mit bis zu <b>{1} Autos</b>, und jeder Fahrer fährt einmal auf jeder Spur. Es zählt die <b>Gesamtzeit</b> aller Läufe.\n• Wer die Runden nicht schafft, hat nach der Zielflagge des Ersten <b>{2:0} s</b> Zeit und behält die gefahrenen Runden.\n
+<b>{0} baterias</b>	<b>{0} Läufe</b>
+uma bateria por piloto	ein Lauf pro Fahrer
+• Pontos: <b>{0}</b>, mais 1 para a melhor volta da etapa.	• Punkte: <b>{0}</b>, plus 1 für die schnellste Runde der Etappe.
+<b>{0} pilotos · {1} {2} · {3} baterias de {4}</b> · cerca de {5} min	<b>{0} Fahrer · {1} {2} · {3} Läufe mit {4}</b> · etwa {5} min
+etapa	Etappe
+etapas	Etappen
+Pts	Pkt.
+Vit.	Siege
+Apagar do histórico	Aus dem Verlauf löschen
+Pista do construtor	Strecke aus dem Streckenbau
+dentro	innen
+fora	außen
+Etapa {0} de {1} · bateria {2} de {3}	Etappe {0} von {1} · Lauf {2} von {3}
+Encerrado · {0} {1} · {2} baterias	Beendet · {0} {1} · {2} Läufe
+×	×
+IA · qualidade {0}	KI · Stärke {0}
+só com controle	nur mit Controller
+acelera {0} · recoloca {1}	Gas {0} · zurücksetzen {1}
+Arquivar e montar outro	Archivieren und neue anlegen
+Salvar e seguir (Enter)	Speichern und weiter (Enter)
+Recomeçar bateria	Lauf neu starten
+Arquivar guarda a tabela final no histórico. Os recordes ficam salvos nas pistas.	Archivieren speichert die Endtabelle im Verlauf. Die Rekorde bleiben bei den Strecken gespeichert.
+Confira quem está em cada trilho e passe o controle. Depois, Largar e esperar as luzes.	Prüfe, wer auf welcher Spur ist, und gib den Controller weiter. Dann Starten und auf die Ampel warten.
+Salve para o resultado contar na tabela. Se algo deu errado, corra de novo: esta bateria é descartada.	Speichere, damit das Ergebnis in der Tabelle zählt. Wenn etwas schiefging, fahre noch einmal: Dieser Lauf wird verworfen.
+Bateria de {0} em {1} manches: no fim de cada uma, todos trocam de trilho. Vence quem andar mais.	Lauf von {0} in {1} Durchgängen: Am Ende jedes Durchgangs wechseln alle die Spur. Wer am weitesten kommt, gewinnt.
+Vence a bateria quem completar {0} {1} primeiro. Quem não terminar tem {2:0} s depois da bandeirada.	Den Lauf gewinnt, wer zuerst {0} {1} schafft. Wer nicht fertig wird, hat {2:0} s nach der Zielflagge.
+volta	Runde
+voltas	Runden
+ETAPA {0} · {1}{2}	ETAPPE {0} · {1}{2}
+ ({0} de {1} baterias)	 ({0} von {1} Läufen)
+Bat.	Läufe
+Distância	Distanz
+Voltas	Runden
+Tempo	Zeit
+Melhor	Beste
+Melhores voltas	Beste Runden
+Pontos por etapa: {0}, mais 1 para a melhor volta. Desempate: vitórias, pódios, tempo total.	Punkte pro Etappe: {0}, plus 1 für die schnellste Runde. Gleichstand: Siege, Podien, Gesamtzeit.
+ online	 online
+ninguém ainda	noch niemand
+Volta	Runde
+MELHOR VOLTA DE CADA UM	DIE BESTE RUNDE JEDES FAHRERS
+ venceu	 hat gewonnen
+{0} de {1} baterias	{0} von {1} Läufen
+próxima	nächste
+{0} baterias	{0} Läufe
+{0} pts	{0} Pkt.
+Mão mais rápida	Schnellste Hand
+ {0} em {1}	 {0} auf {1}
+Rei do muro	König der Mauer
+ {0} {1} de pista	 {0} {1}
+Para-choque	Autoscooter
+ {0} toque	 {0} Berührung
+ {0} toques	 {0} Berührungen
+Recordes batidos	Gebrochene Rekorde
+Última	Letzte
+Saídas	Abflüge
+Toques	Berührungen
+Campeonato {0}	Meisterschaft {0}
+Recorde da pista! {0}	Streckenrekord! {0}
+Melhor volta pessoal! {0}	Persönliche Bestrunde! {0}
+TABELA GERAL · etapa {0} encerrada	GESAMTTABELLE · Etappe {0} beendet
+TABELA GERAL · etapa {0}: {1} de {2} baterias	GESAMTTABELLE · Etappe {0}: {1} von {2} Läufen
+etapa {0}º · 	Etappe {0}. ·
+{0} v	{0} R
+{0} v {1}	{0} R {1}
+recorde de volta de {0} ({1})	Rundenrekord von {0} ({1})
+recorde de {0} voltas de {1} ({2})	Rekord über {0} Runden von {1} ({2})
+Novo 	Neuer
+ e novo 	 und neuer
+Monte o campeonato: pilotos e etapas	Lege die Meisterschaft an: Fahrer und Etappen
+{0}: {1} venceu	{0}: {1} hat gewonnen
+{0} · troca de trilho	{0} · Spurwechsel
+{0} · {1} · faltam {2}	{0} · {1} · noch {2}
+{0} · volta {1} de {2}	{0} · Runde {1} von {2}
+Bateria {0} encerrada · o host salva e segue	Lauf {0} beendet · der Host speichert und macht weiter
+Bateria {0} encerrada · salve para seguir	Lauf {0} beendet · speichere, um weiterzumachen
+Atenção à largada	Achtung, Start
+{0} vence o campeonato	{0} gewinnt die Meisterschaft
+{0} pontos · {1} {2} · {3}	{0} Punkte · {1} {2} · {3}
+vitória	Sieg
+vitórias	Siege
+{0} vence a bateria	{0} gewinnt den Lauf
+{0} · melhor volta {1}	{0} · beste Runde {1}
+★  RECORDE DA PISTA  ·  {0}  {1}	★  STRECKENREKORD  ·  {0}  {1}
+{0} vence a etapa {1}	{0} gewinnt die Etappe {1}
+Próxima: {0} · {1}	Nächste: {0} · {1}
+ROBÔ · {0}	BOT · {0}
+JOGADOR {0}	SPIELER {0}
+  <size=10><color=#9AA3A8>{0}</color></size>	  <size=10><color=#9AA3A8>{0}</color></size>
+IA PILOTANDO · {0}	KI FÄHRT · {0}
+Recolocar  {0}	Zurücksetzen  {0}
+ACELERAR  ·  controle	GAS  ·  Controller
+PRECISA DE UM CONTROLE	BRAUCHT EINEN CONTROLLER
+  ·  controle	  ·  Controller
+ACELERAR  {0}  ·  {1}% {2}{3}	GAS  {0}  ·  {1} % {2}{3}
+Trilho 1	Spur 1
+Trilho 2	Spur 2
+Trilho 3	Spur 3
+Trilho 4	Spur 4
+Trilho 5	Spur 5
+Trilho 6	Spur 6
+Trilho 7	Spur 7
+Trilho 8	Spur 8
+Transmissão de TV	TV-Übertragung
+Perseguição	Verfolgung
+Primeira pessoa	Ego-Perspektive
+De cima	Von oben
+Câmeras em volta da mesa seguem o líder	Kameras rund um den Tisch folgen dem Führenden
+Atrás e acima do carrinho, olhando a curva	Hinter und über dem Auto, mit Blick in die Kurve
+Dentro do carrinho; quando ele roda, vira a traseira	Im Auto; wenn es sich dreht, schaut es nach hinten
+Segue os jogadores; botão direito gira, roda aproxima	Folgt den Spielern; rechte Maustaste dreht, Mausrad zoomt
+Jogador 1	Spieler 1
+Jogador 2	Spieler 2
+Jogador 3	Spieler 3
+Jogador 4	Spieler 4
+Jogador 5	Spieler 5
+Jogador 6	Spieler 6
+Jogador 7	Spieler 7
+Jogador 8	Spieler 8
+Carrinho vermelho	Rotes Auto
+Carrinho azul	Blaues Auto
+Carrinho verde	Grünes Auto
+Carrinho amarelo	Gelbes Auto
+Carrinho roxo	Lila Auto
+Carrinho ciano	Cyanfarbenes Auto
+Carrinho laranja	Oranges Auto
+Carrinho rosa	Rosa Auto
+a que está aberta agora	die gerade geöffnete
+Exemplo: 8 com ponte	Beispiel: Acht mit Brücke
+PISTA	STRECKE
+Escolha onde correr. Qualquer pista fechada serve, em qualquer tamanho. Trocar aqui não mexe na pista do construtor.	Wähle, wo gefahren wird. Jede geschlossene Strecke passt, in jeder Größe. Ein Wechsel hier ändert die Strecke im Streckenbau nicht.
+{0} trilhos	{0} Spuren
+CARROS NA PISTA	AUTOS AUF DER STRECKE
+Voltar ao grid	Zurück zur Startaufstellung
+COMO PILOTAR	SO FÄHRST DU
+<b>Controle:</b> gatilho direito acelera aos poucos (o 1º controle é do jogador 1, o 2º do jogador 2, e assim por diante) · <b>A/✕</b> recoloca · <b>X/□</b> ou <b>RB</b> turbo · <b>Start</b> larga\n<b>Enter</b> largar · câmera no menu do canto direito	<b>Controller:</b> Der rechte Trigger gibt nach und nach Gas (Controller 1 gehört Spieler 1, Controller 2 Spieler 2 und so weiter) · <b>A/✕</b> zurücksetzen · <b>X/□</b> oder <b>RB</b> Turbo · <b>Start</b> startet\n<b>Enter</b> starten · Kamera im Menü in der rechten Ecke
+Colisão entre carrinhos	Kollision zwischen Autos
+Voltas: {0}	Runden: {0}
+Duração: {0} · {1} por trilho	Dauer: {0} · {1} pro Spur
+Velocidade máx.: {0} cél/s	Höchstgeschw.: {0} Felder/s
+Tempo até 100%: {0} s	Zeit bis 100 %: {0} s
+Aderência: {0}	Grip: {0}
+Meia aceleração (tecla de meia): {0}%	Halbgas (Halbgas-Taste): {0} %
+Tempo para recolocar: {0} s	Zeit zum Zurücksetzen: {0} s
+Nas curvas planas, o carrinho segura até {0}% da velocidade máxima no trilho de dentro e {1}% no de fora. Nas inclinadas, até {2}% e {3}%.	In flachen Kurven hält das Auto bis zu {0} % der Höchstgeschwindigkeit auf der Innenspur und {1} % auf der Außenspur. In überhöhten bis zu {2} % und {3} %.
+Som do motor: <b>{0}</b>  ▸	Motorsound: <b>{0}</b>  ▸
+Clique para ouvir o próximo. Para usar uma gravação sua, ponha motor.wav (PCM 16 bits) em 	Klicke, um den nächsten zu hören. Für eine eigene Aufnahme lege motor.wav (16-Bit-PCM) in
+Som: {0}%	Sound: {0} %
+Correr de novo  (Enter)	Noch einmal fahren  (Enter)
+Trocar pista	Strecke wechseln
+OPÇÕES	OPTIONEN
+IDIOMA	SPRACHE
+O novo idioma vale ao reabrir o jogo.	Die neue Sprache gilt nach dem nächsten Spielstart.
+TECLAS DOS JOGADORES	TASTEN DER SPIELER
+Clique num botão e aperte a tecla nova. Se ela já era de outra ação, as duas trocam. Esc cancela.	Klicke auf eine Schaltfläche und drücke die neue Taste. Gehörte sie schon zu einer anderen Aktion, werden beide getauscht. Esc bricht ab.
+Jogador {0}	Spieler {0}
+Jogadores 5 e 6 (pista de 6) jogam só com controle.	Spieler 5 und 6 (6-spurige Strecke) spielen nur mit Controller.
+Restaurar padrão	Standard wiederherstellen
+REGRAS DA CORRIDA	RENNREGELN
+<b>Onde valem:</b>\n• <b>Corrida livre</b> e <b>carreira</b>: na hora (na carreira, a pista molhada tira aderência quando a prova pede).\n• <b>Campeonato offline</b>: são copiadas quando o campeonato é criado. Mudar aqui depois não mexe num campeonato em andamento.\n• <b>Campeonato online</b>: valem as do <b>host</b>, enviadas na largada e fixas até o fim. As dos outros jogadores não contam.\n• <b>Partida rápida</b>: não valem. Lá as regras são sempre as padrão: velocidade 14, 0,5 s até 100%, aderência 29, colisão e turbo ligados, recolocar em 0,3 s.	<b>Wo sie gelten:</b>\n• <b>Freies Rennen</b> und <b>Karriere</b>: sofort (in der Karriere nimmt die nasse Strecke Grip weg, wenn das Event es verlangt).\n• <b>Offline-Meisterschaft</b>: Sie werden beim Anlegen der Meisterschaft übernommen. Spätere Änderungen hier betreffen keine laufende Meisterschaft.\n• <b>Online-Meisterschaft</b>: Es gelten die des <b>Hosts</b>, beim Start übertragen und bis zum Ende fest. Die der anderen Spieler zählen nicht.\n• <b>Schnelles Spiel</b>: Sie gelten nicht. Dort gelten immer die Standardregeln: Tempo 14, 0,5 s bis 100 %, Grip 29, Kollision und Turbo an, Zurücksetzen in 0,3 s.
+SEU CONTROLE E SOM	DEINE STEUERUNG UND DEIN SOUND
+Só seus, em qualquer modo, também no online: não vão para os outros jogadores.	Nur für dich, in jedem Modus, auch online: Sie gehen nicht an die anderen Spieler.
+JOGO ONLINE	ONLINE-SPIEL
+O jogo abre conectado à Steam. Desligue para jogar pelo servidor (Node) no endereço abaixo.	Das Spiel startet mit Steam-Verbindung. Schalte sie aus, um über den Server (Node) unter der Adresse unten zu spielen.
+TODAS AS TECLAS	ALLE TASTEN
+Fechar  (Esc)	Schließen  (Esc)
+reta curta · comprida · curtinha	kurze · lange · winzige Gerade
+curva longa esquerda · direita	lange Kurve links · rechts
+meia curva esquerda · direita	halbe Kurve links · rechts
+curva longa inclinada esquerda · direita	lange überhöhte Kurve links · rechts
+curva curta inclinada esquerda · direita	kurze überhöhte Kurve links · rechts
+curva em C esquerda · direita	Haarnadel links · rechts
+rampa sobe · desce	Rampe hoch · runter
+loop saindo à esquerda · à direita	Looping mit Ausfahrt links · rechts
+rampa de salto	Sprungschanze
+cruzamento · cruzamento curto	Kreuzung · kurze Kreuzung
+troca o lado (esquerda · direita) da peça selecionada	wechselt die Seite (links · rechts) des ausgewählten Teils
+troca a ponta de encaixe: fim da pista · atrás da largada	wechselt das Ende zum Ansetzen: Streckenende · hinter dem Start
+gira a pista 90° em volta da largada	dreht die Strecke um 90° um den Start
+fecha o circuito sozinho (Esc cancela)	schließt den Rundkurs automatisch (Esc bricht ab)
+Delete · Backspace	Entf · Rücktaste
+apaga a selecionada · a última	löscht das ausgewählte · das letzte
+Ctrl+Z · Ctrl+Y (Ctrl+Shift+Z)	Strg+Z · Strg+Y (Strg+Umschalt+Z)
+desfaz · refaz	rückgängig · wiederholen
+Esc	Esc
+tira a seleção	hebt die Auswahl auf
+Clique	Klick
+seleciona a peça; arrastar a largada move a pista	wählt das Teil aus; den Start ziehen verschiebt die Strecke
+CÂMERA E TELA	KAMERA UND BILDSCHIRM
+Roda do mouse	Mausrad
+aproxima e afasta	zoomt hinein und heraus
+Botão direito · do meio	Rechte · mittlere Maustaste
+arrasta a mesa; com a câmera inclinada, o direito gira	verschiebt den Tisch; bei geneigter Kamera dreht die rechte
+câmera de cima · inclinada	Kamera von oben · geneigt
+enquadra a pista	passt die Strecke ein
+Tab	Tab
+mostra e esconde o painel	blendet die Seitenleiste ein und aus
+1 · 2 · 3 · 4 (corrida)	1 · 2 · 3 · 4 (Rennen)
+troca a câmera, na ordem do menu	wechselt die Kamera, in der Reihenfolge des Menüs
+Enter (ou Start no controle)	Enter (oder Start am Controller)
+larga · próxima bateria	Start · nächster Lauf
+pausa (online: 3 por piloto, 60 s cada)	Pause (online: 3 pro Fahrer, je 60 s)
+o que aparece em cima dos carros	was über den Autos angezeigt wird
+liga e desliga a narração	schaltet den Kommentar ein und aus
+fecha esta tela	schließt diesen Bildschirm
+“{0}” é do jogo (Enter larga). Aperte outra tecla.	„{0}“ ist für das Spiel reserviert (Enter startet). Drücke eine andere Taste.
+{0}: <b>aperte…</b>	{0}: <b>drücken…</b>
+{0}: <b>{1}</b>	{0}: <b>{1}</b>
+Aperte a tecla nova (Esc cancela).	Drücke die neue Taste (Esc bricht ab).
+<b>Segure</b> Acelerar e o acelerador sobe de 0 a 100%. <b>Soltou, zerou</b>: o carrinho freia.\nRápido demais na curva, a traseira escorrega e a barra de <b>derrapagem</b> enche. Cheia, o carrinho sai da pista.\n<b>Recolocar</b> devolve o carrinho ao trilho, um pouco antes de onde ele saiu.\n<b>Turbo</b>: começa vazio e enche um pouco a cada volta completa e um pouquinho a cada saída de pista (mais para quem está atrás). O tipo de turbo fica no ajuste do carro: explosivo ou eficiente. Segure para andar acima da velocidade máxima até o tanque acabar. Volta com turbo não vale como melhor volta.\n<b>Teclas</b> (acelerar 100% · meia {0}% · recolocar · turbo): jogador 1 {1} · {2} · {3} · {4}; jogador 2 {5} · {6} · {7} · {8}; jogador 3 {9} · {10} · {11} · {12}; jogador 4 {13} · {14} · {15} · {16}. Até onde a meia acelera: arraste o marcador na barra ACELERAR ou use meia − · meia + ({17} · {18} no jogador 1; ◀ ▶ do direcional no controle). Mude no menu inicial, em <b>Opções</b>.	<b>Halte</b> Gas, und das Gas steigt von 0 auf 100 %. <b>Loslassen heißt null</b>: Das Auto bremst.\nZu schnell in der Kurve rutscht das Heck, und die <b>Rutsch</b>-Leiste füllt sich. Ist sie voll, fliegt das Auto ab.\n<b>Zurücksetzen</b> bringt das Auto zurück in seine Spur, kurz vor der Stelle, wo es abgeflogen ist.\n<b>Turbo</b>: Er beginnt leer und füllt sich mit jeder vollen Runde ein wenig und mit jedem Abflug ein kleines bisschen (mehr für die Hinteren). Der Turbotyp steckt im Auto-Setup: explosiv oder effizient. Halte ihn, um schneller als die Höchstgeschwindigkeit zu fahren, bis der Tank leer ist. Eine Runde mit Turbo zählt nicht als beste Runde.\n<b>Tasten</b> (Gas 100 % · Halbgas {0} % · zurücksetzen · Turbo): Spieler 1 {1} · {2} · {3} · {4}; Spieler 2 {5} · {6} · {7} · {8}; Spieler 3 {9} · {10} · {11} · {12}; Spieler 4 {13} · {14} · {15} · {16}. Wie weit Halbgas geht: Ziehe die Markierung auf der GAS-Leiste oder nutze Halbgas − · Halbgas + ({17} · {18} bei Spieler 1; ◀ ▶ am Steuerkreuz des Controllers). Ändere sie im Startbildschirm unter <b>Optionen</b>.
+Carro {0}	Auto {0}
+Robô	Bot
+ · controle {0}	 · Controller {0}
+Acelera {0} · meia {1} · recoloca {2} · turbo {3}{4}	Gas {0} · Halbgas {1} · zurücksetzen {2} · Turbo {3}{4}
+Controle {0}	Controller {0}
+Só com controle: ligue mais um controle	Nur mit Controller: Schließe einen weiteren Controller an
+Carro: <b>{0}</b>  {1}	Auto: <b>{0}</b>  {1}
+1 trilho fica vazio.	1 Spur bleibt leer.
+{0} trilhos ficam vazios.	{0} Spuren bleiben leer.
+Treino: um carro só, contra o relógio.	Training: ein einzelnes Auto, gegen die Uhr.
+Modelo	Modell
+Final	Endgeschwindigkeit
+Velocidade máxima na reta. Motor longo, bolha lisa e pneu duro.	Höchstgeschwindigkeit auf der Geraden. Langer Motor, glatte Karosserie und harte Reifen.
+Aceleração	Beschleunigung
+Quanto o carro embala ao sair da curva. Motor curto.	Wie stark das Auto aus der Kurve heraus zulegt. Kurzer Motor.
+Aderência	Grip
+Pneu: segura o carro em qualquer curva, devagar ou rápido. Macio segura mais.	Reifen: halten das Auto in jeder Kurve, langsam oder schnell. Weiche halten mehr.
+Aerodinâmica	Aerodynamik
+Bolha com asa: segura o carro na curva, e mais quanto mais rápido ele vai. Não ajuda na curva feita devagar.	Karosserie mit Flügel: hält das Auto in der Kurve, umso mehr, je schneller es fährt. Hilft nicht in langsamen Kurven.
+Agilidade	Agilität
+Chassi leve: o gatilho e o freio respondem mais rápido.	Leichtes Chassis: Gas und Bremse sprechen schneller an.
+Estabilidade	Stabilität
+Chassi pesado: demora mais para escapar quando você passa do limite na curva.	Schweres Chassis: bricht später aus, wenn du in der Kurve das Limit überschreitest.
+Do zero a 95% da final em {0:0.00} s (padrão {1:0.00} s).	Von null auf 95 % der Endgeschwindigkeit in {0:0.00} s (Standard {1:0.00} s).
+Chassi leve: responde rápido, mas escapa fácil no limite da curva.	Leichtes Chassis: spricht schnell an, bricht am Kurvenlimit aber leicht aus.
+Chassi pesado: mais lento no gatilho, perdoa o exagero na curva.	Schweres Chassis: träger am Trigger, verzeiht Übertreibungen in der Kurve.
+Turbo {0}: +{1:0}% de velocidade máxima por {2:0.#} s de tanque cheio	Turbo {0}: +{1:0} % Höchstgeschwindigkeit für {2:0.#} s mit vollem Tank
+ (mais explosão, menos volume).	 (mehr Wumms, weniger Volumen).
+ (menos explosão, mais volume).	 (weniger Wumms, mehr Volumen).
+Curva plana: segura até {0}% da final deste carro no trilho de dentro e {1}% no de fora. Meia aceleração: {2}%.	Flache Kurve: hält bis zu {0} % der Endgeschwindigkeit dieses Autos auf der Innenspur und {1} % auf der Außenspur. Halbgas: {2} %.
+CÂMERA	KAMERA
+<b>{0}  {1}</b>\n<size=10>{2}</size>	<b>{0}  {1}</b>\n<size=10>{2}</size>
+SEGUIR	FOLGEN
+No online, segue o seu carrinho.	Online folgt sie deinem Auto.
+Câmera: <b>{0}</b>  ▾	Kamera: <b>{0}</b>  ▾
+Câmera  ▾	Kamera  ▾
+Tela dividida: <b>{0}</b>\n<size=10>2 a 4 jogadores no mesmo computador: um quadro para cada</size>	Geteilter Bildschirm: <b>{0}</b>\n<size=10>2 bis 4 Spieler am selben Computer: je ein Bild</size>
+sim	ja
+não	nein
+Distância: {0}%	Abstand: {0} %
+No grid	In der Startaufstellung
+ACELERAR  {0}  ·  {1}% {2}	GAS  {0}  ·  {1} % {2}
+Velocidade	Tempo
+Derrapagem	Rutschen
+TURBO	TURBO
+Trilho	Spur
+Esta pista não é um circuito fechado. Escolha outra acima ou feche o traçado no Construtor.	Diese Strecke ist kein geschlossener Rundkurs. Wähle oben eine andere oder schließe den Verlauf im Streckenbau.
+O carrinho está no grid.	Das Auto steht in der Startaufstellung.
+Os dois carrinhos estão no grid.	Beide Autos stehen in der Startaufstellung.
+Os {0} carrinhos estão no grid.	Die {0} Autos stehen in der Startaufstellung.
+ Aperte Largar e espere as luzes.	 Drücke Starten und warte auf die Ampel.
+Pode segurar o acelerador: o carrinho sai quando a luz ficar verde.	Du kannst das Gas halten: Das Auto fährt los, wenn die Ampel grün wird.
+Fim da manche: cada carrinho passa para o trilho seguinte.	Ende des Durchgangs: Jedes Auto wechselt auf die nächste Spur.
+Corrida por tempo, {0}: vence quem andar mais em {1}.	Rennen nach Zeit, {0}: Wer in {1} am weitesten kommt, gewinnt.
+Vence quem completar {0} {1} primeiro.	Wer zuerst {0} {1} schafft, gewinnt.
+Prova encerrada. Aperte Largar para correr de novo.	Rennen beendet. Drücke Starten, um noch einmal zu fahren.
+Nova largada (Enter)	Neuer Start (Enter)
+Feche o circuito no Construtor para correr	Schließe den Rundkurs im Streckenbau, um zu fahren
+{0} venceu	{0} hat gewonnen
+Troca de trilho	Spurwechsel
+Corrida · {0} · faltam {1}	Rennen · {0} · noch {1}
+Corrida · volta {0} de {1}	Rennen · Runde {0} von {1}
+Pronto para largar	Bereit zum Start
+TURBO  {0}%	TURBO  {0} %
+TURBO  {0}  ·  {1}%	TURBO  {0}  ·  {1} %
+Venceu!	Gewonnen!
+Chegou	Im Ziel
+Fora da pista!	Abflug!
+Voltando ao trilho	Zurück in die Spur
+Batida!	Crash!
+Aguarde a luz verde	Warte auf Grün
+Vai para o trilho {0}	Auf Spur {0}
+{0} voltas · trilho {1}	{0} Runden · Spur {1}
+Volta {0} de {1}	Runde {0} von {1}
+{0} v · T{1}	{0} R · S{1}
+Volta {0}/{1}	Runde {0}/{1}
+Melhor {0}	Beste {0}
+LÍDER	FÜHRUNG
++{0} v	+{0} R
+TROCA DE TRILHO\n<size=40%>{0}</size>	SPURWECHSEL\n<size=40%>{0}</size>
+manche {0} de {1}	Durchgang {0} von {1}
+VAI!	LOS!
+líder	Führender
+−{0} do líder · −{1} do {2}º	−{0} zum Führenden · −{1} zum {2}.
+não terminou	nicht beendet
+★ melhor volta 	★ beste Runde
+melhor 	Beste
+1 saída	1 Abflug
+{0} saídas	{0} Abflüge
+RECORDE	REKORD
+Salvar e seguir  (Enter)	Speichern und weiter  (Enter)
+Sua nota para esta pista (clique para trocar)	Deine Bewertung dieser Strecke (klicken zum Ändern)
+Que nota você dá para esta pista?	Wie bewertest du diese Strecke?
+Nota {0} enviada.	Bewertung {0} gesendet.
+{0} estrela	{0} Stern
+{0} estrelas	{0} Sterne
+lendo as notas…	Bewertungen werden gelesen …
+média ★ {0} · {1} {2}	Schnitt ★ {0} · {1} {2}
+nota	Bewertung
+notas	Bewertungen
+ainda sem notas: a sua é a primeira	noch keine Bewertungen: deine ist die erste
+Pista aberta	Offene Strecke
+Escolha um circuito fechado na lista.	Wähle einen geschlossenen Rundkurs aus der Liste.
+{0} voltas em {1} · melhor volta {2}	{0} Runden in {1} · beste Runde {2}
+faltam · {0}	noch · {0}
+ÚLTIMA VOLTA	LETZTE RUNDE
+VOLTA {0}/{1}	RUNDE {0}/{1}
+ · líder	 · Führender
+{0} min	{0} min
+ s	 s
+FANTASMA	GEIST
+Correr contra o fantasma	Gegen den Geist fahren
+A melhor volta da pista corre ao seu lado, transparente, largando junto a cada volta.	Die beste Runde der Strecke fährt transparent neben dir und startet in jeder Runde mit dir.
+Esta pista ainda não tem fantasma. A primeira volta limpa de um piloto de gente vira o fantasma.	Diese Strecke hat noch keinen Geist. Die erste saubere Runde eines menschlichen Fahrers wird zum Geist.
+Melhor volta: <b>{0}</b> · {1} · {2:dd/MM/yyyy}	Beste Runde: <b>{0}</b> · {1} · {2:dd.MM.yyyy}
+Gravado com velocidade máx. {0}, aderência {1} e tempo até 100% {2} s (agora {3}, {4} e {5} s).	Aufgezeichnet mit Höchstgeschw. {0}, Grip {1} und Zeit bis 100 % {2} s (jetzt {3}, {4} und {5} s).
+O carro do fantasma:	Das Auto des Geists:
+Novo fantasma! {0}	Neuer Geist! {0}
+PARTIDA RÁPIDA	SCHNELLES SPIEL
+Uma corrida de {0} contra quem estiver na fila. Cada um põe uma pista na disputa e o servidor sorteia qual vale. Só larga com a fila cheia. Funciona pelo servidor e pela Steam.	Ein Rennen mit {0} gegen alle in der Warteschlange. Jeder bringt eine Strecke in die Auslosung, und der Server lost aus, welche gilt. Gestartet wird erst bei voller Warteschlange. Funktioniert über den Server und über Steam.
+CARROS	AUTOS
+Sua pista	Deine Strecke
+Procurar partida	Spiel suchen
+PROCURANDO PARTIDA	SPIEL WIRD GESUCHT
+PISTAS NA DISPUTA	STRECKEN IN DER AUSLOSUNG
+Sair da fila	Warteschlange verlassen
+{0} · {1} na fila	{0} · {1} in der Warteschlange
+Nenhuma pista fechada. Monte uma no construtor.	Keine geschlossene Strecke. Baue eine im Streckenbau.
+A pista entra adaptada para {0} carros. 	Die Strecke wird für {0} Autos angepasst.
+{0} de {1} na fila agora.	{0} von {1} jetzt in der Warteschlange.
+Ninguém na fila agora: toque em Atualizar lista para ver de novo.	Gerade niemand in der Warteschlange: Tippe auf Liste aktualisieren, um erneut zu schauen.
+Essa pista é grande demais para o servidor.	Diese Strecke ist zu groß für den Server.
+Partida rápida · {0} carros · {1}	Schnelles Spiel · {0} Autos · {1}
+ ×{0}	 ×{0}
+{0:00}:{1:00} esperando	{0:00}:{1:00} Wartezeit
+SORTEIO DA PISTA	STRECKENAUSLOSUNG
+vai para {0} (de {1})	geht an {0} (von {1})
+Narração: {0} (F2)	Kommentar: {0} (F2)
+CAMPEONATO ONLINE	ONLINE-MEISTERSCHAFT
+Um jogador cria a sala e escolhe as pistas. Os outros entram pelo código ou pela lista de salas públicas.	Ein Spieler erstellt den Raum und wählt die Strecken. Die anderen treten mit dem Code oder über die Liste öffentlicher Räume bei.
+Jogar pela Steam	Über Steam spielen
+Usa o lobby e a rede da Steam: precisa da Steam aberta e logada. O nome é o da sua conta.	Nutzt Lobby und Netzwerk von Steam: Steam muss geöffnet und angemeldet sein. Der Name ist der deines Kontos.
+Servidor (ex.: ws://localhost:8080)	Server (z. B. ws://localhost:8080)
+Seu nome	Dein Name
+CRIAR SALA	RAUM ERSTELLEN
+Nome da sala (opcional)	Raumname (optional)
+Sala pública (aparece na lista)	Öffentlicher Raum (erscheint in der Liste)
+Criar sala	Raum erstellen
+ENTRAR COM UM CÓDIGO	MIT CODE BEITRETEN
+Salas privadas só entram assim.	Privaten Räumen kann man nur so beitreten.
+Código da sala	Raumcode
+Entrar	Beitreten
+SALAS PÚBLICAS	ÖFFENTLICHE RÄUME
+Atualizar lista	Liste aktualisieren
+SALA	RAUM
+Código	Code
+Copiar	Kopieren
+Código copiado.	Code kopiert.
+Convidar amigos (Steam)	Freunde einladen (Steam)
+Abre a janela de convite da Steam. Ela só aparece no jogo instalado (não no Editor): lá, use a lista abaixo.	Öffnet das Einladungsfenster von Steam. Es erscheint nur im installierten Spiel (nicht im Editor): Dort nutze die Liste unten.
+Atualizar	Aktualisieren
+SUA COR	DEINE FARBE
+Mais um piloto jogando neste computador, com o seu nome e um 2. Ele usa o 2º conjunto de teclas (Opções) ou o 2º controle.	Ein weiterer Fahrer an diesem Computer, mit deinem Namen und einer 2. Er nutzt die 2. Tastenbelegung (Optionen) oder den 2. Controller.
+COR DO JOGADOR 2	FARBE VON SPIELER 2
+Cada bateria tem uma duração e se divide em uma manche por trilho; vence quem andar mais.	Jeder Lauf hat eine Dauer und wird in einen Durchgang pro Spur aufgeteilt; wer am weitesten kommt, gewinnt.
+Pista de 6 trilhos. Com menos de 6 jogadores, sobra trilho vazio em cada bateria.	6-spurige Strecke. Mit weniger als 6 Spielern bleibt in jedem Lauf eine Spur leer.
+Pista de 8 trilhos. Com menos de 8 jogadores, sobra trilho vazio em cada bateria.	8-spurige Strecke. Mit weniger als 8 Spielern bleibt in jedem Lauf eine Spur leer.
+Pista de 4 trilhos. Com menos de 4 jogadores, sobra trilho vazio em cada bateria.	4-spurige Strecke. Mit weniger als 4 Spielern bleibt in jedem Lauf eine Spur leer.
+SUGESTÕES DOS PILOTOS	VORSCHLÄGE DER FAHRER
+Pistas que os outros pilotos mandaram. Você decide: inclui como etapa, salva na sua biblioteca ou ignora.	Strecken, die die anderen Fahrer geschickt haben. Du entscheidest: als Etappe aufnehmen, in deiner Bibliothek speichern oder ignorieren.
+SUGERIR UMA PISTA AO HOST	DEM HOST EINE STRECKE VORSCHLAGEN
+Escolha uma das suas pistas (fechada) para o host incluir. Até 3 por minuto.	Wähle eine deiner (geschlossenen) Strecken, die der Host aufnehmen kann. Bis zu 3 pro Minute.
+CHAT	CHAT
+Estou pronto	Ich bin bereit
+Sair da sala	Raum verlassen
+Escreva uma mensagem	Schreibe eine Nachricht
+Enviar	Senden
+Você já está numa sala. Saia dela para entrar na do amigo.	Du bist schon in einem Raum. Verlasse ihn, um dem deines Freundes beizutreten.
+Nenhum amigo online agora. Use o botão acima para convidar quem está offline ou em outro jogo.	Gerade keine Freunde online. Nutze die Schaltfläche oben, um Freunde einzuladen, die offline oder in einem anderen Spiel sind.
+AMIGOS ONLINE · {0}	FREUNDE ONLINE · {0}
+Convidado ✓	Eingeladen ✓
+Convidar	Einladen
+Convite enviado a {0}.	Einladung an {0} gesendet.
+Não deu para convidar. Confira se a Steam está aberta.	Einladung fehlgeschlagen. Prüfe, ob Steam geöffnet ist.
+Pela Steam, com o nome da sua conta. Para jogar pelo servidor, desligue a Steam em Opções, no menu inicial.	Über Steam, mit deinem Kontonamen. Um über den Server zu spielen, schalte Steam in den Optionen auf dem Startbildschirm aus.
+Pelo servidor {0}. Mude em Opções, no menu inicial.	Über den Server {0}. Ändere das in den Optionen auf dem Startbildschirm.
+Sala {0} · {1}/{2} pilotos	Raum {0} · {1}/{2} Fahrer
+Conectando à Steam…	Verbinde mit Steam …
+Conectando ao servidor…	Verbinde mit dem Server …
+Online: crie uma sala ou entre numa	Online: Erstelle einen Raum oder tritt einem bei
+Digite seu nome primeiro.	Gib zuerst deinen Namen ein.
+Digite o código da sala.	Gib den Raumcode ein.
+Falta gente: são precisos pelo menos 2 pilotos.	Zu wenige Leute: Mindestens 2 Fahrer sind nötig.
+Aguardando ficar pronto: 	Warten auf Bereitschaft:
+A conexão caiu. Tentando voltar à sala ({0} de {1})…	Die Verbindung ist abgebrochen. Versuche, zum Raum zurückzukehren ({0} von {1}) …
+Não deu para voltar à sala: 	Rückkehr zum Raum nicht möglich:
+. Confira o endereço ({0}) e se o servidor está rodando (cd servidor && npm start).	. Prüfe die Adresse ({0}) und ob der Server läuft (cd servidor && npm start).
+Você saiu da sala: 	Du hast den Raum verlassen:
+Sem conexão com a Steam	Keine Verbindung zu Steam
+Sem conexão com o servidor	Keine Verbindung zum Server
+Você voltou à sala.	Du bist wieder im Raum.
+{0} {1} neste computador e saiu da lista.	{0} {1} auf diesem Computer und wurde aus der Liste entfernt.
+pista não está	Strecke ist nicht
+pistas não estão	Strecken sind nicht
+{0} sugeriu a pista “{1}”.	{0} hat die Strecke „{1}“ vorgeschlagen.
+{0} (de {1})	{0} (von {1})
+“{0}” salva na sua biblioteca.	„{0}“ in deiner Bibliothek gespeichert.
+PISTAS DO CAMPEONATO	STRECKEN DER MEISTERSCHAFT
+As pistas da corrida ficam guardadas na sua biblioteca.	Die Strecken des Rennens werden in deiner Bibliothek aufbewahrt.
+guardada agora na sua biblioteca	gerade in deiner Bibliothek gespeichert
+já estava na sua biblioteca	war schon in deiner Bibliothek
+1 pista nova na sua biblioteca.	1 neue Strecke in deiner Bibliothek.
+{0} pistas novas na sua biblioteca.	{0} neue Strecken in deiner Bibliothek.
+ (online)	 (online)
+{0} (online {1})	{0} (online {1})
+Essa pista é grande demais para sugerir.	Diese Strecke ist zu groß, um sie vorzuschlagen.
+Pista enviada ao host.	Strecke an den Host geschickt.
+Nenhuma sugestão ainda.	Noch keine Vorschläge.
+de {0} · {1}	von {0} · {1}
+Incluir	Aufnehmen
+Guarda na sua biblioteca de pistas	Speichert sie in deiner Streckenbibliothek
+Ignorar	Ignorieren
+enviada ✓	gesendet ✓
+enviar	senden
+Você não tem pistas fechadas de {0} carros.	Du hast keine geschlossenen Strecken für {0} Autos.
+Você não tem pistas fechadas para sugerir.	Du hast keine geschlossenen Strecken zum Vorschlagen.
+“{0}” na mesa. Ctrl+Z volta a pista de antes.	„{0}“ auf dem Tisch. Strg+Z holt die vorige Strecke zurück.
+Nenhuma sala pública agora. Toque em Atualizar, ou crie a sua.	Gerade keine öffentlichen Räume. Tippe auf Aktualisieren oder erstelle deinen eigenen.
+{0} · {1}/{2} pilotos · {3} {4} · {5}	{0} · {1}/{2} Fahrer · {3} {4} · {5}
+ (de {0})	 (von {0})
+Sala pública	Öffentlicher Raum
+Sala privada (só entra com o código)	Privater Raum (nur mit Code)
+ · você	 · du
+você	du
+jogador 2 deste computador	Spieler 2 an diesem Computer
+✓ pronto	✓ bereit
+aguardando	wartet
+Tirar o jogador 2	Spieler 2 entfernen
++ Jogador 2 neste computador	+ Spieler 2 an diesem Computer
+<b>{0}</b> · <b>pistas de {1} trilhos</b>	<b>{0}</b> · <b>Strecken mit {1} Spuren</b>
+ · com {0} {1}, {2} {3} em cada bateria	 · mit {0} {1}, {2} {3} in jedem Lauf
+jogador	Spieler
+jogadores	Spielern
+trilho fica vazio	Spur bleibt leer
+trilhos ficam vazios	Spuren bleiben leer
+Formato e tipo de pista: o host ainda não escolheu.	Format und Streckentyp: Der Host hat noch nicht gewählt.
+Escolha as pistas e {0} de cada etapa. As outras regras (velocidade, aderência, colisão) são as de Opções, no menu inicial. Os visitantes veem a lista, mas só você mexe nela.	Wähle die Strecken und {0} jeder Etappe. Die übrigen Regeln (Tempo, Grip, Kollision) kommen aus den Optionen auf dem Startbildschirm. Besucher sehen die Liste, aber nur du änderst sie.
+a duração	die Dauer
+as voltas	die Runden
+O host escolhe as pistas. Você escolhe a cor do seu carrinho e conversa no chat.	Der Host wählt die Strecken. Du wählst die Farbe deines Autos und chattest.
+Nenhuma etapa ainda. Clique numa pista abaixo.	Noch keine Etappen. Klicke unten auf eine Strecke.
+O host ainda não escolheu as pistas.	Der Host hat die Strecken noch nicht gewählt.
+Clique para ver a pista na mesa	Klicken, um die Strecke auf dem Tisch zu sehen
+Regras da corrida, em Opções no menu inicial (velocidade {0} cél/s, até 100% em {1} s, aderência {2}, colisão {3}, turbo {4}, recolocar em {5} s). Ficam fixos até o fim.	Rennregeln, in den Optionen auf dem Startbildschirm (Tempo {0} Felder/s, 100 % in {1} s, Grip {2}, Kollision {3}, Turbo {4}, Zurücksetzen in {5} s). Sie bleiben bis zum Ende fest.
+Não estou pronto	Ich bin nicht bereit
+Todos prontos: {0} pilotos · {1} {2} · {3} baterias.	Alle bereit: {0} Fahrer · {1} {2} · {3} Läufe.
+Você está pronto. Aguardando o host largar.	Du bist bereit. Warte, bis der Host startet.
+Confirme quando estiver pronto: o host só larga com todos prontos.	Bestätige, wenn du bereit bist: Der Host startet erst, wenn alle bereit sind.
+<b><color={0}>{1}</color></b>: {2}	<b><color={0}>{1}</color></b>: {2}
+{0} · acelera {1} · recoloca {2}	{0} · Gas {1} · zurücksetzen {2}
+é você	das bist du
+jogador 2 daqui	Spieler 2 von hier
+saiu da sala	hat den Raum verlassen
+Campeonato online	Online-Meisterschaft
+Não deu para abrir as pistas do campeonato. Você saiu da sala.	Die Strecken der Meisterschaft ließen sich nicht öffnen. Du hast den Raum verlassen.
+Sair da partida	Spiel verlassen
+Encerrar campeonato	Meisterschaft beenden
+Você agora é o host: a bateria da vez recomeça.	Du bist jetzt der Host: Der aktuelle Lauf beginnt neu.
+Certeza? Clique de novo	Sicher? Noch einmal klicken
+O host encerrou o campeonato.	Der Host hat die Meisterschaft beendet.
+ (o jogador 2 daqui: {0} e {1}, ou o 2º controle)	 (Spieler 2 von hier: {0} und {1} oder der 2. Controller)
+Jogar de novo	Noch einmal spielen
+A partida acabou. Jogar de novo volta para a fila com o mesmo tamanho e a mesma pista.	Das Spiel ist vorbei. Noch einmal spielen bringt dich zurück in die Warteschlange, mit derselben Größe und derselben Strecke.
+Voltar ao lobby	Zurück zur Lobby
+O campeonato acabou. Voltar ao lobby leva todos de volta para montar outro.	Die Meisterschaft ist vorbei. Zurück zur Lobby bringt alle zurück, um eine neue anzulegen.
+O campeonato acabou. O host leva todos de volta ao lobby.	Die Meisterschaft ist vorbei. Der Host bringt alle zurück in die Lobby.
+Espere os pilotos da bateria se prepararem e aperte Largar. Quem corre acelera com {0} e recoloca com {1}{2}.	Warte, bis die Fahrer des Laufs bereit sind, und drücke Starten. Wer fährt, gibt Gas mit {0} und setzt zurück mit {1}{2}.
+Aguardando o host largar. Quem corre acelera com {0} e recoloca com {1}{2}.	Warte, bis der Host startet. Wer fährt, gibt Gas mit {0} und setzt zurück mit {1}{2}.
+Salve para o resultado contar na tabela de todos. Se algo deu errado, corra de novo: esta bateria é descartada.	Speichere, damit das Ergebnis in der Tabelle aller zählt. Wenn etwas schiefging, fahre noch einmal: Dieser Lauf wird verworfen.
+Bateria encerrada. O host salva o resultado e segue.	Lauf beendet. Der Host speichert das Ergebnis und macht weiter.
+Vence a bateria quem completar {0} primeiro. Quem não terminar tem {1:0} s depois da bandeirada.	Den Lauf gewinnt, wer zuerst {0} schafft. Wer nicht fertig wird, hat {1:0} s nach der Zielflagge.
+ Larga sozinho em {0} s.	 Startet automatisch in {0} s.
+ Salva e segue sozinho em {0} s.	 Speichert und macht automatisch weiter in {0} s.
+Continuar  (P)	Weiter  (P)
+Você já pausou {0} vezes nesta bateria.	Du hast in diesem Lauf schon {0}-mal pausiert.
+Volta em {0}	Weiter in {0}
+Prepare o dedo no acelerador.	Finger aufs Gas.
+Pausado	Pausiert
+P continua.	P setzt fort.
+Por {0} · continua quem pausou ou o host (P) · volta sozinha em {1} s.	Von {0} · wer pausiert hat oder der Host setzt fort (P) · geht in {1} s von selbst weiter.
+ · online	 · online
+Recordes da pista	Streckenrekorde
+Recordes · {0}	Rekorde · {0}
+trilho 	Spur
+trilho sem recorde	Spur ohne Rekord
+seu melhor {0}	deine Bestzeit {0}
+primeira vez aqui	zum ersten Mal hier
+Peças novas para o construtor. Cada uma abre quando você termina, com pelo menos ★, a prova da carreira que a apresenta. Correr numa pista com peça fechada sempre pode — só não dá para colocar a peça.	Neue Teile für den Streckenbau. Jedes wird freigeschaltet, wenn du das Karriere-Event, das es vorstellt, mit mindestens ★ abschließt. Auf einer Strecke mit gesperrtem Teil kannst du immer fahren — du kannst das Teil nur nicht setzen.
+GARAGEM DO CARRO	AUTOWERKSTATT
+Seu carro na carreira. Compre opções do ajuste e preparação com as moedas das provas. Fora da carreira o ajuste é livre e sem preparação.	Dein Auto in der Karriere. Kaufe Setup-Optionen und Tuning mit den Münzen aus den Events. Außerhalb der Karriere ist das Setup frei und ohne Tuning.
+Fechar (G · Esc)	Schließen (G · Esc)
+Moedas da carreira · clique para abrir a garagem do carro	Karrieremünzen · klicken, um die Autowerkstatt zu öffnen
+liberada (teste)	freigeschaltet (Test)
+✓ aberta	✓ freigeschaltet
+Abre em 	Freischaltung in
+Desbloquear tudo: LIGADO (teste, até o jogo sair)	Alles freischalten: AN (Test, bis zur Veröffentlichung)
+Desbloquear tudo: desligado (teste, até o jogo sair)	Alles freischalten: aus (Test, bis zur Veröffentlichung)
+Níveis à venda até o {0} (Garagem 3 · Clube 6 · Regional 8 · Nacional 10). O nível n custa {1} × n.	Stufen bis {0} zu kaufen (Garage 3 · Club 6 · Regional 8 · National 10). Stufe n kostet {1} × n.
+{0} {1}: é seu!	{0} {1}: gehört dir!
+Comprar	Kaufen
+✓ máximo	✓ Maximum
+Nível {0} · ◎ {1}	Stufe {0} · ◎ {1}
+COMO FICA	SO SIEHT ES AUS
+Câmera: <b>{0}</b>  ⟳	Kamera: <b>{0}</b>  ⟳
+Etiqueta nos carros: {0} (F1)	Beschriftung der Autos: {0} (F1)
+{0}º <size=75%>{1}</size>	{0}. <size=75%>{1}</size>
+\n<size=70%>+{0} s</size>	\n<size=70%>+{0} s</size>
+\n<size=70%><color=#7CE38B>−{0} s</color></size>	\n<size=70%><color=#7CE38B>−{0} s</color></size>
+MINIMAPA	MINIKARTE
+⠿ arraste	⠿ ziehen
+Pilotos ▸	Fahrer ▸
+Pilotos ▾	Fahrer ▾
+última {0} · melhor {1} · {2:0.0} m	letzte {0} · beste {1} · {2:0.0} m
+Padrão	Standard
+Curto	Kurz
+Longo	Lang
+Asa	Flügel
+Lisa	Glatt
+Médio	Mittel
+Macio	Weich
+Duro	Hart
+Leve	Leicht
+Pesado	Schwer
+Explosivo	Explosiv
+Eficiente	Effizient
+turbo 	Turbo
+Digite seu nome.	Gib deinen Namen ein.
+Esta versão do jogo não combina com o servidor. Atualize o jogo.	Diese Spielversion passt nicht zum Server. Aktualisiere das Spiel.
+O servidor está lotado. Tente mais tarde.	Der Server ist voll. Versuche es später noch einmal.
+Você criou muitas salas em pouco tempo. Espere um minuto.	Du hast in kurzer Zeit zu viele Räume erstellt. Warte eine Minute.
+Já tem alguém com esse nome na sala.	Im Raum gibt es schon jemanden mit diesem Namen.
+Já tem alguém com esse nome na fila.	In der Warteschlange gibt es schon jemanden mit diesem Namen.
+Só o host começa o campeonato.	Nur der Host startet die Meisterschaft.
+Só o host encerra o campeonato.	Nur der Host beendet die Meisterschaft.
+Só o host escolhe as pistas.	Nur der Host wählt die Strecken.
+Só o host muda a visibilidade.	Nur der Host ändert die Sichtbarkeit.
+Muitas conexões deste endereço.	Zu viele Verbindungen von dieser Adresse.
+Mensagem inválida.	Ungültige Nachricht.
+Mensagem desconhecida.	Unbekannte Nachricht.
+Erro no servidor.	Serverfehler.
+Garagem	Garage
+Primeira Volta	Erste Runde
+Reta da Bancada	Werkbank-Gerade
+Feijão	Die Bohne
+Oficina	Werkstatt
+Chuva na Garagem	Regen in der Garage
+Cotovelo	Der Ellbogen
+Serpentina	Serpentine
+Largada Atrasada	Später Start
+Turbo Sem Fim	Endloser Turbo
+Tio Beto	Onkel Beto
+Monto autorama desde antes de você nascer. Mostra o que sabe.	Ich baue Rennbahnen, seit es dich noch gar nicht gibt. Zeig, was du kannst.
+A garagem ainda é minha. Volte quando souber frear.	Die Garage gehört noch mir. Komm wieder, wenn du bremsen kannst.
+Muito bem! A garagem ficou pequena para você.	Sehr gut! Die Garage ist zu klein für dich geworden.
+Copa Garagem	Garagen-Cup
+Zé da Oficina	Zé aus der Werkstatt
+Lu Parafuso	Lu Schraube
+Clube	Club
+Salão do Clube	Clubsaal
+Troca de Faixa	Spurwechsel
+Viaduto	Viadukt
+Oficina do Clube	Club-Werkstatt
+Noite de Chuva	Regennacht
+Inclinado Duplo	Doppelte Überhöhung
+Último de Pé	Der Letzte steht
+Largada do Fundo	Start von hinten
+Marina Faísca	Marina Funke
+Turbo é para usar. Vem que eu largo na sua frente.	Turbo ist zum Benutzen da. Komm, ich starte vor dir.
+Rápida demais para você. Volte para a garagem!	Zu schnell für dich. Zurück in die Garage!
+Ok, ok… você freia melhor que eu.	Okay, okay … du bremst besser als ich.
+Taça Clube	Club-Pokal
+Rafa Turbo	Rafa Turbo
+Dona Célia	Frau Célia
+Regional	Regional
+Ginásio	Turnhalle
+Rampa Curta	Kurze Rampe
+Cotovelo em C	Haarnadel-Ellbogen
+Oficina Regional	Regional-Werkstatt
+Ziguezague Molhado	Nasses Zickzack
+Salto e Ponte	Sprung und Brücke
+Mirante	Aussichtspunkt
+Largada Pesada	Schwerer Start
+Dr. Curva	Dr. Kurve
+Curva inclinada não é sorte, é geometria.	Eine überhöhte Kurve ist kein Glück, sondern Geometrie.
+Você ainda freia antes da hora. Estude.	Du bremst noch zu früh. Lerne.
+Brilhante. A geometria está do seu lado.	Brillant. Die Geometrie ist auf deiner Seite.
+Copa Regional	Regional-Cup
+Nacional	National
+Estádio	Stadion
+Grande Salto	Großer Sprung
+Looping	Looping
+Oficina Nacional	National-Werkstatt
+Abismo	Der Abgrund
+Torre	Turm
+Serra Molhada	Nasses Gebirge
+Troca Final	Letzter Wechsel
+O Campeão	Der Champion
+Muitos chegaram até aqui. Nenhum passou.	Viele sind bis hierher gekommen. Keiner kam vorbei.
+Volte quando for campeão de verdade.	Komm wieder, wenn du ein echter Champion bist.
+Então é você. A mesa é sua.	Du bist es also. Der Tisch gehört dir.
+Grande Prêmio Nacional	Großer Preis der Nation
+Reta curta	Kurze Gerade
+2 células	2 Felder
+Reta comprida	Lange Gerade
+4 células	4 Felder
+Reta curtinha	Winzige Gerade
+Cruzamento	Kreuzung
+Cruzamento curto	Kurze Kreuzung
+Curva longa	Lange Kurve
+90° esquerda	90° links
+90° direita	90° rechts
+Meia curva	Halbe Kurve
+45° esquerda	45° links
+45° direita	45° rechts
+Curva longa inclinada	Lange überhöhte Kurve
+Curva curta inclinada	Kurze überhöhte Kurve
+Curva em C	Haarnadel
+180° esquerda	180° links
+180° direita	180° rechts
+Rampa	Rampe
+sobe 1 nível	1 Ebene hoch
+desce 1 nível	1 Ebene runter
+Loop	Looping
+sai à esquerda	Ausfahrt links
+sai à direita	Ausfahrt rechts
+Rampa de salto	Sprungschanze
+4 a 6 células	4 bis 6 Felder
+Base de largada	Startteil
+Começando…	Starte …
+reta-curtinha	winzige Gerade
+Curvas inclinadas	Überhöhte Kurven
+curva longa e curta inclinadas	lange und kurze überhöhte Kurve
+Troca de faixa	Spurwechsel
+cruzamento e cruzamento curto	Kreuzung und kurze Kreuzung
+Subida e descida	Hoch und runter
+rampas para ponte	Rampen für Brücken
+salto de vão 1	Sprung mit 1 Feld Lücke
+curva em C (1 a 3 fileiras)	Haarnadel (1 bis 3 Reihen)
+loop	Looping
+Saltos grandes	Große Sprünge
+salto de vão 2 e 3	Sprünge mit 2 und 3 Feldern Lücke
+Apagaram as luzes! E lá vão eles!	Die Ampeln gehen aus! Und los geht's!
+Largada! Todo mundo de pé no fundo!	Start! Alle voll auf dem Gas!
+Valendo! Que vença o melhor... ou o mais sortudo.	Es gilt! Möge der Beste gewinnen ... oder der Glücklichste.
+Largada limpa... por enquanto.	Sauberer Start ... vorerst.
+E foi dada a largada! O carpete que se cuide.	Und das Rennen ist gestartet! Der Teppich sollte sich in Acht nehmen.
+Bandeira verde! Os trilhos estão quentes!	Grüne Flagge! Die Spuren glühen!
+Saíram! Agora é gatilho e coragem.	Sie sind weg! Jetzt zählen Trigger und Mut.
+Começou! Quem frear primeiro perde.	Es geht los! Wer zuerst bremst, verliert.
+E lá se vão eles, cheios de esperança e de pilha.	Und da fahren sie, voller Hoffnung und frischer Batterien.
+{A} passa {B}! Não pediu licença, não!	{A} überholt {B}! Nicht mal um Erlaubnis gefragt!
+{A} por dentro, e {B} só viu a placa do chassi.	{A} innen vorbei, und {B} hat nur noch das Chassis-Schild gesehen.
+Ultrapassagem! {A} deixa {B} para trás.	Überholmanöver! {A} lässt {B} hinter sich.
+{A} pra cima de {B}... e passou!	{A} greift {B} an ... und ist vorbei!
+{B} piscou e {A} foi embora.	{B} hat geblinzelt, und {A} war weg.
+{A} mergulha e engole {B}!	{A} sticht rein und schluckt {B}!
+Tchau, {B}! {A} sobe uma posição.	Tschüss, {B}! {A} rückt einen Platz vor.
+{A} passou {B} como se fosse cone de treino.	{A} ist an {B} vorbei wie an einem Trainingshütchen.
+Manobra bonita de {A} em cima de {B}!	Schönes Manöver von {A} gegen {B}!
+{B} abriu a porta e {A} entrou sem bater.	{B} hat die Tür offen gelassen, und {A} ist ohne Klopfen rein.
+{A} assume a liderança! {B} fica olhando a traseira.	{A} übernimmt die Führung! {B} schaut aufs Heck.
+Tem líder novo: {A}!	Wir haben einen neuen Führenden: {A}!
+{A} passa {B} e pula para a ponta!	{A} überholt {B} und springt an die Spitze!
+Mudou tudo! {A} é o novo líder.	Alles anders! {A} ist der neue Führende.
+{A} toma a ponta de {B}! A mesa vai abaixo!	{A} nimmt {B} die Spitze ab! Der Tisch tobt!
+Liderança trocada! {A} na frente, {B} no prejuízo.	Führungswechsel! {A} vorne, {B} hat das Nachsehen.
+{A} chega lá na frente. {B}, a vista agora é outra.	{A} kommt nach vorne. {B}, die Aussicht ist jetzt eine andere.
+{A} saiu da pista! O trilho estava ali, viu?	{A} ist abgeflogen! Die Spur war doch genau da!
+Lá vai {A} conhecer o carpete da sala.	Da lernt {A} den Wohnzimmerteppich kennen.
+{A} voou! Alguém chama o fiscal.	{A} ist geflogen! Ruft mal den Streckenposten.
+Escapou! {A} foi dar uma volta fora da pista.	Weg! {A} macht einen Ausflug neben die Strecke.
+{A} errou o ponto de freada. Acontece nas melhores famílias.	{A} hat den Bremspunkt verpasst. Passiert den Besten.
+{A} rodou! O carrinho foi parar longe.	{A} hat sich gedreht! Das Auto ist weit weg gelandet.
+Rodopio de {A}! Bonito de ver, péssimo para o cronômetro.	Dreher von {A}! Schön anzusehen, schlecht für die Stoppuhr.
+{A} entrou rápido demais e a curva não perdoou.	{A} kam zu schnell, und die Kurve hat nicht verziehen.
+Fiscal! {A} está deitado no carpete.	Streckenposten! {A} liegt auf dem Teppich.
+{A} decolou! Ainda bem que não tem multa por voo baixo.	{A} ist abgehoben! Zum Glück gibt's kein Bußgeld für Tiefflug.
+{A} confundiu a curva com uma reta.	{A} hat die Kurve mit einer Geraden verwechselt.
+Que pião de {A}! Faltou só a música.	Was für ein Dreher von {A}! Fehlte nur die Musik.
+{A} perdeu o trilho. O trilho não perdeu {A}: ele está ali esperando.	{A} hat die Spur verloren. Die Spur hat {A} nicht verloren: Sie wartet genau da.
+Lá se foi {A}! A física cobrou a conta.	Da fliegt {A}! Die Physik hat die Rechnung geschickt.
+{A} sai da pista e vai fazer turismo na mesa.	{A} fliegt ab und macht eine Rundreise über den Tisch.
+Terceira vez, {A}. O fiscal já sabe seu nome.	Zum dritten Mal, {A}. Der Streckenposten kennt deinen Namen schon.
+{A} sai de novo! Já é freguês do carpete.	{A} schon wieder draußen! Stammgast auf dem Teppich.
+Três saídas para {A}. Coleção bonita.	Drei Abflüge für {A}. Schöne Sammlung.
+Terceira escapada de {A}. Já pode pedir música no Fantástico.	Dritter Abflug von {A}. Das ist ein Hattrick.
+{A} completa o trio de saídas. Ganha brinde?	{A} macht das Abflug-Trio voll. Gibt's ein Geschenk?
+{A} fora outra vez! A essa altura é estratégia.	{A} wieder draußen! Langsam ist das Taktik.
+Mais uma de {A}. Alguém segura esse acelerador!	Noch einer von {A}. Haltet mal jemand das Gas fest!
+{A} já conhece cada canto da mesa.	{A} kennt inzwischen jede Ecke des Tisches.
+Quinta saída de {A}! O fiscal pediu aumento.	Fünfter Abflug von {A}! Der Streckenposten will mehr Gehalt.
+{A} de novo no carpete. Cinco vezes! Já tem cadeira cativa.	{A} wieder auf dem Teppich. Fünfmal! Da gibt's schon einen Stammplatz.
+{A} sai pela {B}ª vez! A gente já parou de contar... não, não parou: {B}.	{A} fliegt zum {B}. Mal ab! Wir haben aufgehört zu zählen ... nein, doch nicht: {B}.
+{B} saídas para {A}. Isso já é um recorde, só que do tipo errado.	{B} Abflüge für {A}. Das ist ein Rekord, nur die falsche Sorte.
+{A}, {B} saídas! O carpete vai cobrar aluguel.	{A}, {B} Abflüge! Der Teppich verlangt bald Miete.
+Saída número {B} de {A}. O fiscal já está almoçando ali do lado.	Abflug Nummer {B} von {A}. Der Streckenposten isst schon gleich daneben zu Mittag.
+{A} chega a {B} saídas. Alguém dá um manual para esse piloto!	{A} kommt auf {B} Abflüge. Gebt diesem Fahrer eine Anleitung!
+De novo, {A}?! Mal voltou e já saiu!	Schon wieder, {A}?! Kaum zurück und schon wieder draußen!
+{A} voltou para a pista só para sair outra vez.	{A} ist nur zurück auf die Strecke, um wieder abzufliegen.
+Nem esquentou o trilho e {A} já está fora de novo!	Die Spur ist noch nicht mal warm, und {A} ist schon wieder draußen!
+{A} gostou tanto do carpete que voltou lá.	{A} hat der Teppich so gut gefallen, dass es zurückging.
+O fiscal nem largou o carrinho e {A} já saiu de novo.	Der Streckenposten hat das Auto noch nicht losgelassen, und {A} ist schon wieder draußen.
+{A} repete a dose! Calma nesse gatilho!	{A} legt nach! Ruhig mit dem Trigger!
+O líder rodou! {A} sai da pista!	Der Führende dreht sich! {A} fliegt ab!
+Que susto! {A}, na ponta, vai para o carpete!	Was für ein Schreck! {A} an der Spitze landet auf dem Teppich!
+{A} jogou fora a liderança na curva!	{A} hat die Führung in der Kurve weggeworfen!
+Liderança no chão! {A} saiu da pista!	Führung am Boden! {A} ist abgeflogen!
+Abriu a corrida! O líder {A} escapou!	Das Rennen ist wieder offen! Der Führende {A} ist abgeflogen!
+{A} estava voando na frente... e voou mesmo. Fora da pista!	{A} flog vorne davon ... und ist wirklich geflogen. Raus aus der Strecke!
+Agora não, {A}! Saída na hora mais cara!	Nicht jetzt, {A}! Ein Abflug im teuersten Moment!
+{A} sai da pista na reta final! Que drama!	{A} fliegt auf der Zielgeraden ab! Was für ein Drama!
+Logo agora! {A} vai para o carpete no fim da prova!	Ausgerechnet jetzt! {A} landet am Ende des Rennens auf dem Teppich!
+{A} escolheu o pior momento para rodar.	{A} hat sich den schlechtesten Moment für einen Dreher ausgesucht.
+Pressão demais! {A} escapa no finalzinho!	Zu viel Druck! {A} fliegt ganz am Ende ab!
+{A} ligou o turbo e esqueceu de fazer a curva!	{A} hat den Turbo gezündet und vergessen, die Kurve zu nehmen!
+Turbo demais, curva de menos! {A} fora!	Zu viel Turbo, zu wenig Kurve! {A} ist raus!
+{A} foi de turbo direto para o carpete!	{A} ist mit Turbo direkt auf den Teppich!
+O turbo levou {A} para fora da pista. Tinha que tirar o pé!	Der Turbo hat {A} von der Strecke getragen. Hätte vom Gas gehen müssen!
+{A} usou o turbo para voar. Literalmente.	{A} hat den Turbo zum Fliegen benutzt. Wortwörtlich.
+{A} e {B} saem juntos! Que confusão!	{A} und {B} fliegen zusammen ab! Was für ein Durcheinander!
+Dois de uma vez! {A} e {B} no carpete!	Zwei auf einmal! {A} und {B} auf dem Teppich!
+Saída dupla: {A} e {B} foram passear juntos.	Doppelabflug: {A} und {B} gehen zusammen spazieren.
+{A} e {B} se enroscaram e foram os dois para fora!	{A} und {B} haben sich verhakt und sind beide abgeflogen!
+Strike! {A} e {B} fora da pista!	Strike! {A} und {B} neben der Strecke!
+Encostou e voou! {A} sai da pista depois do toque!	Berührt und geflogen! {A} fliegt nach dem Kontakt ab!
+Batida! {A} levou a pior e foi para fora!	Crash! {A} hat das Schlimmste abbekommen und ist abgeflogen!
+Teve contato e {A} rodou!	Es gab Kontakt, und {A} hat sich gedreht!
+{A} tomou uma pancada e saiu da pista!	{A} hat einen Schlag abbekommen und ist abgeflogen!
+Toque, rodada, carpete! {A} fora!	Berührung, Dreher, Teppich! {A} ist raus!
+Ninguém quis tirar o pé, e {A} pagou o pato.	Keiner wollte vom Gas, und {A} hat die Zeche bezahlt.
+{A} volta à pista em {B}. Foram {T} posições no carpete.	{A} ist zurück auf der Strecke, als {B}. Das waren {T} Plätze auf dem Teppich.
+A saída custou caro: {A} cai para {B}.	Der Abflug war teuer: {A} fällt auf {B} zurück.
+{A} volta, mas agora em {B}. Perdeu {T} posições.	{A} ist zurück, aber jetzt als {B}. {T} Plätze verloren.
+{A} está de volta, só que em {B}. Hora de recuperar!	{A} ist wieder da, nur jetzt als {B}. Zeit für die Aufholjagd!
+{T} posições a menos para {A}, que volta em {B}.	{T} Plätze weniger für {A}, jetzt als {B} zurück.
+{A} volta à pista, mas a ponta agora é de {B}!	{A} ist zurück auf der Strecke, aber die Spitze gehört jetzt {B}!
+{B} herda a liderança da saída de {A}!	{B} erbt die Führung nach dem Abflug von {A}!
+Presente para {B}: a liderança caiu no colo depois do erro de {A}.	Ein Geschenk für {B}: Die Führung fällt nach dem Fehler von {A} in den Schoß.
+{A} perdeu a ponta no carpete. {B} agradece!	{A} hat die Spitze auf dem Teppich verloren. {B} sagt danke!
+{B} não precisou passar ninguém: {A} saiu e {B} assumiu.	{B} musste niemanden überholen: {A} ist abgeflogen und {B} hat übernommen.
+{A} não segurou no loop! A gravidade manda lembranças.	{A} hat sich im Looping nicht gehalten! Die Schwerkraft lässt grüßen.
+Caiu no loop! {A} esqueceu de acelerar lá em cima.	Im Looping abgestürzt! {A} hat oben vergessen, Gas zu geben.
+{A} deu meia volta no loop... e despencou.	{A} hat den halben Looping geschafft ... und ist abgestürzt.
+{A} ficou de cabeça para baixo e a gravidade venceu.	{A} hing kopfüber, und die Schwerkraft hat gewonnen.
+Loop sem fôlego! {A} despenca lá de cima.	Looping ohne Puste! {A} stürzt von oben ab.
+{A} subiu o loop devagar demais. Newton agradece.	{A} ist zu langsam in den Looping. Newton sagt danke.
+{A} pulou e não chegou! Faltou coragem!	{A} ist gesprungen und nicht angekommen! Zu wenig Mut!
+{A} ficou no vão do salto. Aterrissagem cancelada.	{A} ist in der Sprunglücke geblieben. Landung abgesagt.
+Saltou, voou... e caiu! {A} fora.	Gesprungen, geflogen ... und gefallen! {A} ist raus.
+{A} achou que sabia voar. Não sabia.	{A} dachte, fliegen ginge. Ging nicht.
+Faltou embalo! {A} cai no vão.	Zu wenig Schwung! {A} fällt in die Lücke.
+{A} pulou com o freio de mão puxado!	{A} ist mit angezogener Handbremse gesprungen!
+{A} soltou o turbo! Segura!	{A} zündet den Turbo! Festhalten!
+Turbo ligado para {A}!	Turbo an für {A}!
+{A} apertou o botão mágico!	{A} hat den Zauberknopf gedrückt!
+Lá vai {A} de turbo. Cuidado na curva!	Da geht {A} mit Turbo. Vorsicht in der Kurve!
+{A} acende o turbo! Lá vai foguete!	{A} zündet den Turbo! Da fliegt die Rakete!
+Turbo de {A}! Quem está na frente que se cuide.	Turbo von {A}! Wer vorne liegt, sollte sich in Acht nehmen.
+{A} no turbo! Agora é segurar o carrinho no trilho.	{A} mit Turbo! Jetzt heißt es, das Auto in der Spur zu halten.
+RECORDE DA PISTA! {A} escreve o nome na história... desta mesa. {T}!	STRECKENREKORD! {A} schreibt Geschichte ... an diesem Tisch. {T}!
+Recorde! {A} faz {T}, a volta mais rápida que essa pista já viu!	Rekord! {A} fährt {T}, die schnellste Runde, die diese Strecke je gesehen hat!
+Que volta, {A}! {T}, recorde da pista!	Was für eine Runde, {A}! {T}, Streckenrekord!
+Segura essa: {T}! {A} quebra o recorde da pista!	Na bitte: {T}! {A} bricht den Streckenrekord!
+Podem emoldurar: {A}, {T}, novo recorde da pista!	Das kommt in den Rahmen: {A}, {T}, neuer Streckenrekord!
+Inacreditável! {T}! {A} é o dono do recorde!	Unglaublich! {T}! {A} hält den Rekord!
+Melhor volta pessoal de {A}!	Persönliche Bestrunde für {A}!
+{A} se superou nessa volta.	{A} hat sich in dieser Runde selbst übertroffen.
+Volta caprichada de {A}: a melhor da carreira nesta pista.	Saubere Runde von {A}: die beste auf dieser Strecke überhaupt.
+{A} bate o próprio tempo. Evolução!	{A} schlägt die eigene Zeit. Fortschritt!
+{A} nunca andou tão rápido aqui.	{A} war hier noch nie so schnell.
+{A} crava {T}, a volta mais rápida da prova!	{A} brennt {T} in den Asphalt, die schnellste Runde des Rennens!
+Melhor volta da corrida para {A}: {T}!	Schnellste Runde des Rennens für {A}: {T}!
+{A} acelerou forte: {T}, ninguém andou tão rápido hoje.	{A} hat ordentlich Gas gegeben: {T}, so schnell war heute niemand.
+Cronômetro em chamas! {T} para {A}.	Die Stoppuhr brennt! {T} für {A}.
+{A} baixa o tempo para {T}. Que mão!	{A} drückt die Zeit auf {T}. Was für Hände!
+{T}! {A} manda a volta mais rápida da corrida.	{T}! {A} fährt die schnellste Runde des Rennens.
+{A} acha mais um décimo: {T}, a melhor da prova!	{A} findet noch eine Zehntel: {T}, die beste des Rennens!
+{A} e {B} colados há um tempão. Ninguém respira!	{A} und {B} kleben schon ewig aneinander. Keiner atmet!
+Que briga entre {A} e {B}!	Was für ein Kampf zwischen {A} und {B}!
+{B} está no cangote de {A}!	{B} sitzt {A} im Nacken!
+{A} e {B} dividem até o mesmo pensamento.	{A} und {B} teilen sogar dieselben Gedanken.
+{B} não desgruda de {A}! Vai ter troca?	{B} lässt nicht von {A} ab! Gibt's einen Wechsel?
+{A} olha o retrovisor e só vê {B}.	{A} schaut in den Rückspiegel und sieht nur {B}.
+Duelo! {A} segura, {B} pressiona.	Duell! {A} hält dagegen, {B} drückt.
+Última volta!	Letzte Runde!
+Sino tocando: última volta!	Die Glocke läutet: letzte Runde!
+É agora ou nunca: última volta!	Jetzt oder nie: letzte Runde!
+Última volta! Quem guardou turbo, a hora é essa!	Letzte Runde! Wer Turbo gespart hat, jetzt ist die Zeit!
+Última volta! Coração na mão!	Letzte Runde! Das Herz schlägt bis zum Hals!
+Dez segundos! Quem quer, vai agora!	Zehn Sekunden! Wer will, muss jetzt!
+Faltam dez! Ninguém tira o pé!	Noch zehn! Keiner geht vom Gas!
+Dez segundinhos e acabou!	Zehn kleine Sekunden, und vorbei!
+Cinco segundos!	Fünf Sekunden!
+Cinco! Segura o coração!	Fünf! Festhalten!
+Cinco segundos e é bandeira!	Fünf Sekunden bis zur Flagge!
+Quinze segundos! Tudo ou nada!	Fünfzehn Sekunden! Alles oder nichts!
+Faltam quinze segundos! Pé no fundo!	Noch fünfzehn Sekunden! Vollgas!
+Reta final: quinze segundos!	Zielgerade: fünfzehn Sekunden!
+Bandeirada! {A} vence!	Zielflagge! {A} gewinnt!
+{A} cruza na frente! Que corrida!	{A} kommt als Erster an! Was für ein Rennen!
+Vitória de {A}! Pode chamar a família!	Sieg für {A}! Ruft die Familie an!
+É de {A}! Bandeira quadriculada!	Es gehört {A}! Karierte Flagge!
+{A} vence! Pode estourar o refrigerante!	{A} gewinnt! Lasst die Limo knallen!
+Acabou! {A} é o grande vencedor!	Vorbei! {A} ist der große Sieger!
+Quadriculada para {A}! Vitória com sabor de pódio!	Karierte Flagge für {A}! Ein Sieg mit Podiumsgeschmack!
+{A} completa {B} voltas na frente de todo mundo!	{A} fährt {B} Runden vor allen anderen!
+{B} voltas e {A} segue mandando na corrida!	{B} Runden, und {A} gibt im Rennen weiter den Ton an!
+{A} na ponta depois de {B} voltas. Que pilotagem!	{A} führt nach {B} Runden. Was für eine Fahrt!
+Passadas {B} voltas, quem dita o ritmo é {A}!	Nach {B} Runden bestimmt {A} das Tempo!
+{B} voltas, e {A} ainda não viu ninguém pelo retrovisor.	{B} Runden, und {A} hat noch niemanden im Rückspiegel gesehen.
+{A} lidera com {B} voltas. Os outros que corram atrás.	{A} führt nach {B} Runden. Die anderen müssen hinterher.
+Volta {B}: {A} continua com o nariz na frente.	Runde {B}: {A} hat die Nase weiter vorn.
+{A} fecha a volta {B} em último. Está apreciando a paisagem?	{A} beendet Runde {B} als Letzter. Genießt du die Aussicht?
+{B} voltas e {A} lá atrás. Alguém avisa que já começou!	{B} Runden und {A} ganz hinten. Sagt mal jemand, dass es schon losging!
+{A} completa {B} voltas por último. Sem pressa, a mesa não vai fugir.	{A} schafft {B} Runden als Letzter. Keine Eile, der Tisch läuft nicht weg.
+Volta {B}: {A} na lanterna. Pelo menos o carro está limpinho.	Runde {B}: {A} ist Schlusslicht. Immerhin ist das Auto schön sauber.
+{A} chega à volta {B} por último. Tá de passeio, {A}?	{A} erreicht Runde {B} als Letzter. Auf Spazierfahrt, {A}?
+{A} na lanterna depois de {B} voltas. Ainda dá tempo... talvez.	{A} ist nach {B} Runden Schlusslicht. Noch ist Zeit ... vielleicht.
+E {A} chega em último, mas chega!	Und {A} kommt als Letzter an, aber kommt an!
+{A} fecha o pelotão. O importante é competir.	{A} schließt das Feld. Dabei sein ist alles.
+{A} chegou! Atrasado, mas com estilo.	{A} ist da! Spät, aber mit Stil.
+{A} cruza por último. Na próxima vai!	{A} kommt als Letzter über die Linie. Nächstes Mal!
+Lá vem {A}, fechando a porta e apagando a luz.	Da kommt {A}, macht die Tür zu und das Licht aus.
+Se terminar assim, {A} assume a liderança do campeonato!	Wenn es so endet, übernimmt {A} die Führung in der Meisterschaft!
+Do jeito que está, {A} vira líder do campeonato!	So wie es steht, wird {A} Meisterschaftsführender!
+Atenção na tabela: {A} passa {B} no campeonato!	Achtung, Tabelle: {A} zieht in der Meisterschaft an {B} vorbei!
+A tabela está virando: {A} na frente de {B}!	Die Tabelle dreht sich: {A} vor {B}!
+{A} recupera a liderança do campeonato!	{A} holt sich die Meisterschaftsführung zurück!
+Do jeito que está, {A} volta para a ponta do campeonato.	So wie es steht, ist {A} wieder an der Spitze der Meisterschaft.
+{A} reage e retoma o topo da tabela!	{A} schlägt zurück und erobert die Tabellenspitze zurück!
+{A} devolve o troco e volta ao topo do campeonato!	{A} zahlt es heim und ist wieder an der Spitze der Meisterschaft!
+{A}, líder do campeonato, está em {B}. Hoje não está fácil.	{A}, Führender der Meisterschaft, liegt auf {B}. Heute ist es nicht leicht.
+O líder do campeonato, {A}, só em {B}! A tabela está tremendo.	Der Meisterschaftsführende {A} nur auf {B}! Die Tabelle wackelt.
+{A} lidera o campeonato, mas aqui está em {B}.	{A} führt die Meisterschaft an, liegt hier aber auf {B}.
+Dia difícil para {A}: líder do campeonato e só em {B}.	Schwerer Tag für {A}: Meisterschaftsführender und nur auf {B}.
+O título é de {A} se terminar assim!	Der Titel gehört {A}, wenn es so endet!
+O título está nas mãos de {A}! Só não pode errar.	Der Titel liegt in den Händen von {A}! Bloß keinen Fehler machen.
+Uma volta separa {A} da taça!	Eine Runde trennt {A} vom Pokal!
+{A} já sente o cheiro da taça!	{A} riecht schon den Pokal!
+Clássico	Klassiker
+Coupé GT	GT-Coupé
+Rali	Rallye
+Fórmula	Formel
+Protótipo	Prototyp
+Asa dupla	Doppelflügel
+Gota	Tropfen
+Flecha	Pfeil
+Bala	Geschoss
+{0}º	{0}.

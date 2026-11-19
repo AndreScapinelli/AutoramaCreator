@@ -197,8 +197,8 @@ namespace Autorama
             DrawRecCard(false);
             resTable.style.display = resBtns.style.display = DisplayStyle.None;
             var stage = C.stages[s];
-            bannerTitle.text = $"Escolha do carro · etapa {s + 1}: {stage.name}";
-            bannerSub.text = "Motor, bolha e pneu para a etapa inteira. Cada peça dá uma coisa e tira outra.";
+            bannerTitle.text = L.F("Escolha do carro · etapa {0}: {1}", s + 1, stage.name);
+            bannerSub.text = L.T("Motor, bolha e pneu para a etapa inteira. Cada peça dá uma coisa e tira outra.");
             bannerSub.style.display = DisplayStyle.Flex;
             BannerColor(-1);
             int left = OnlineRun ? Mathf.Max(0, Mathf.CeilToInt(CarPickWaitNow - (Time.realtimeSinceStartup - carPickSince))) : -1;
@@ -226,7 +226,7 @@ namespace Autorama
                 Text(p.name, "pick-name", head);
                 Text(p.carro.Resumo, "small pick-sum", head);
                 DrawCarCard(card, p.carro, v => CarChoose(C, pp, v, false), false);
-                Btn(ok ? "Pronto ✓" : "Pronto", () => CarChoose(C, pp, pp.carro, !carOk.Contains(pp.id)), ok ? "btn btn--on pick-ok" : "btn btn--accent pick-ok", card);
+                Btn(ok ? L.T("Pronto ✓") : L.T("Pronto"), () => CarChoose(C, pp, pp.carro, !carOk.Contains(pp.id)), ok ? "btn btn--on pick-ok" : "btn btn--accent pick-ok", card);
             }
             var others = C.pilots.FindAll(p => !mine.Contains(p));
             if (others.Count > 0)
@@ -238,17 +238,17 @@ namespace Autorama
                     El("hud-dot", row).style.backgroundColor = p.Color;
                     Text(p.name, "res-name", row);
                     bool gone = OnlineRun && !OnlinePresent(p.id);
-                    string st = p.ai ? "robô" : gone ? "saiu" : carOk.Contains(p.id) ? "pronto" : "escolhendo";
+                    string st = p.ai ? L.T("robô") : gone ? L.T("saiu") : carOk.Contains(p.id) ? L.T("pronto") : L.T("escolhendo");
                     Text(p.ai || carOk.Contains(p.id) || gone ? p.carro.Resumo : "…", "res-cell", row);
                     Text(st, "res-cell res-cell--dim", row);
                 }
             }
             var foot = El("pick-foot", carPick);
-            if (!OnlineRun) Text("<b>Enter</b>: todos prontos com o que está escolhido.", "small", foot);
+            if (!OnlineRun) Text(L.T("<b>Enter</b>: todos prontos com o que está escolhido."), "small", foot);
             else
             {
-                Text(IsHost ? $"Fecha sozinho em {left} s (quem não confirmou corre com o que estiver escolhido)." : $"O host fecha a escolha em até {left} s.", "small", foot);
-                if (IsHost) Btn("Fechar a escolha", () => { if (CarPickOpen(out var c2, out int s2)) CarPickClose(c2, s2); }, "btn", foot);
+                Text(IsHost ? L.F("Fecha sozinho em {0} s (quem não confirmou corre com o que estiver escolhido).", left) : L.F("O host fecha a escolha em até {0} s.", left), "small", foot);
+                if (IsHost) Btn(L.T("Fechar a escolha"), () => { if (CarPickOpen(out var c2, out int s2)) CarPickClose(c2, s2); }, "btn", foot);
             }
         }
     }

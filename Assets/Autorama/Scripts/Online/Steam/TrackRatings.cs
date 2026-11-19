@@ -61,7 +61,7 @@ namespace Autorama
         {
             if (!Available || s == null) return "";
             var i = Get(Champ.TrackHash(s));
-            return i != null && i.done && i.count > 0 ? $" · <color=#F5C542>★</color> {BuilderPanel.Num(i.avg)} ({i.count})" : "";
+            return i != null && i.done && i.count > 0 ? L.F(" · <color=#F5C542>★</color> {0} ({1})", BuilderPanel.Num(i.avg), i.count) : "";
         }
 
         // A cada quadro (RaceController.Update). Só roda os callbacks da Steam quando tem pedido andando.

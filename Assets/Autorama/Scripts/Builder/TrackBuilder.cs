@@ -25,26 +25,26 @@ namespace Autorama
 
         public static readonly PaletteEntry[] Palette =
         {
-            new PaletteEntry(PieceCatalog.Short,  0,  0, Key.Digit1, "Reta curta", "2 células", "icone-reta-curta"),
-            new PaletteEntry(PieceCatalog.Long,   0,  0, Key.Digit2, "Reta comprida", "4 células", "icone-reta-comprida"),
-            new PaletteEntry(PieceCatalog.Tiny,   0,  0, Key.T,      "Reta curtinha", "1 célula", "icone-reta-curtinha"),
-            new PaletteEntry(PieceCatalog.Cross,  0,  0, Key.X,      "Cruzamento", "4 células", "icone-cruzamento"),
-            new PaletteEntry(PieceCatalog.CrossS, 0,  0, Key.B,      "Cruzamento curto", "2 células", "icone-cruzamento-curto"),
-            new PaletteEntry(PieceCatalog.Curve, -1,  0, Key.Digit3, "Curva longa", "90° esquerda", "icone-curva-longa-esquerda"),
-            new PaletteEntry(PieceCatalog.Curve,  1,  0, Key.Digit4, "Curva longa", "90° direita", "icone-curva-longa-direita"),
-            new PaletteEntry(PieceCatalog.Half,  -1,  0, Key.Digit5, "Meia curva", "45° esquerda", "icone-meia-curva-esquerda"),
-            new PaletteEntry(PieceCatalog.Half,   1,  0, Key.Digit6, "Meia curva", "45° direita", "icone-meia-curva-direita"),
-            new PaletteEntry(PieceCatalog.CurveB,-1,  0, Key.Digit7, "Curva longa inclinada", "90° esquerda", "icone-curva-longa-inclinada-esquerda"),
-            new PaletteEntry(PieceCatalog.CurveB, 1,  0, Key.Digit8, "Curva longa inclinada", "90° direita", "icone-curva-longa-inclinada-direita"),
-            new PaletteEntry(PieceCatalog.HalfB, -1,  0, Key.Digit9, "Curva curta inclinada", "45° esquerda", "icone-curva-curta-inclinada-esquerda"),
-            new PaletteEntry(PieceCatalog.HalfB,  1,  0, Key.Digit0, "Curva curta inclinada", "45° direita", "icone-curva-curta-inclinada-direita"),
-            new PaletteEntry(PieceCatalog.Hairpin,-1, 0, Key.G,      "Curva em C", "180° esquerda", "icone-curva-c-esquerda"),
-            new PaletteEntry(PieceCatalog.Hairpin, 1, 0, Key.H,      "Curva em C", "180° direita", "icone-curva-c-direita"),
-            new PaletteEntry(PieceCatalog.Long,   0,  1, Key.U,      "Rampa", "sobe 1 nível", "icone-rampa-sobe"),
-            new PaletteEntry(PieceCatalog.Long,   0, -1, Key.D,      "Rampa", "desce 1 nível", "icone-rampa-desce"),
-            new PaletteEntry(PieceCatalog.Loop,  -1,  0, Key.K,      "Loop", "sai à esquerda", "icone-loop-esquerda"),
-            new PaletteEntry(PieceCatalog.Loop,   1,  0, Key.L,      "Loop", "sai à direita", "icone-loop-direita"),
-            new PaletteEntry(PieceCatalog.Jump,   0,  0, Key.J,      "Rampa de salto", "4 a 6 células", "icone-salto"),
+            new PaletteEntry(PieceCatalog.Short,  0,  0, Key.Digit1, L.N("Reta curta"), L.N("2 células"), "icone-reta-curta"),
+            new PaletteEntry(PieceCatalog.Long,   0,  0, Key.Digit2, L.N("Reta comprida"), L.N("4 células"), "icone-reta-comprida"),
+            new PaletteEntry(PieceCatalog.Tiny,   0,  0, Key.T,      L.N("Reta curtinha"), L.N("1 célula"), "icone-reta-curtinha"),
+            new PaletteEntry(PieceCatalog.Cross,  0,  0, Key.X,      L.N("Cruzamento"), L.N("4 células"), "icone-cruzamento"),
+            new PaletteEntry(PieceCatalog.CrossS, 0,  0, Key.B,      L.N("Cruzamento curto"), L.N("2 células"), "icone-cruzamento-curto"),
+            new PaletteEntry(PieceCatalog.Curve, -1,  0, Key.Digit3, L.N("Curva longa"), L.N("90° esquerda"), "icone-curva-longa-esquerda"),
+            new PaletteEntry(PieceCatalog.Curve,  1,  0, Key.Digit4, L.N("Curva longa"), L.N("90° direita"), "icone-curva-longa-direita"),
+            new PaletteEntry(PieceCatalog.Half,  -1,  0, Key.Digit5, L.N("Meia curva"), L.N("45° esquerda"), "icone-meia-curva-esquerda"),
+            new PaletteEntry(PieceCatalog.Half,   1,  0, Key.Digit6, L.N("Meia curva"), L.N("45° direita"), "icone-meia-curva-direita"),
+            new PaletteEntry(PieceCatalog.CurveB,-1,  0, Key.Digit7, L.N("Curva longa inclinada"), L.N("90° esquerda"), "icone-curva-longa-inclinada-esquerda"),
+            new PaletteEntry(PieceCatalog.CurveB, 1,  0, Key.Digit8, L.N("Curva longa inclinada"), L.N("90° direita"), "icone-curva-longa-inclinada-direita"),
+            new PaletteEntry(PieceCatalog.HalfB, -1,  0, Key.Digit9, L.N("Curva curta inclinada"), L.N("45° esquerda"), "icone-curva-curta-inclinada-esquerda"),
+            new PaletteEntry(PieceCatalog.HalfB,  1,  0, Key.Digit0, L.N("Curva curta inclinada"), L.N("45° direita"), "icone-curva-curta-inclinada-direita"),
+            new PaletteEntry(PieceCatalog.Hairpin,-1, 0, Key.G,      L.N("Curva em C"), L.N("180° esquerda"), "icone-curva-c-esquerda"),
+            new PaletteEntry(PieceCatalog.Hairpin, 1, 0, Key.H,      L.N("Curva em C"), L.N("180° direita"), "icone-curva-c-direita"),
+            new PaletteEntry(PieceCatalog.Long,   0,  1, Key.U,      L.N("Rampa"), L.N("sobe 1 nível"), "icone-rampa-sobe"),
+            new PaletteEntry(PieceCatalog.Long,   0, -1, Key.D,      L.N("Rampa"), L.N("desce 1 nível"), "icone-rampa-desce"),
+            new PaletteEntry(PieceCatalog.Loop,  -1,  0, Key.K,      L.N("Loop"), L.N("sai à esquerda"), "icone-loop-esquerda"),
+            new PaletteEntry(PieceCatalog.Loop,   1,  0, Key.L,      L.N("Loop"), L.N("sai à direita"), "icone-loop-direita"),
+            new PaletteEntry(PieceCatalog.Jump,   0,  0, Key.J,      L.N("Rampa de salto"), L.N("4 a 6 células"), "icone-salto"),
         };
 
         public string TrackName { get; set; } = "";
@@ -143,7 +143,7 @@ namespace Autorama
         // Construtor da carreira (seção 72): só as peças que a prova permite e no máximo MaxPieces (0 = sem limite).
         public static Func<PaletteEntry, bool> AllowedEntry;
         public static int MaxPieces;
-        public static string RuleNotice = "Esta peça não vale nesta prova.";
+        public static string RuleNotice = L.N("Esta peça não vale nesta prova.");
         // Loja (seção 74): rampa e vão do salto também têm dono. null = livre.
         public static Func<int, bool> GapOk;
         public static Func<bool> RiseOk;
@@ -151,8 +151,8 @@ namespace Autorama
 
         bool Refuse(PaletteEntry e)
         {
-            if (AllowedEntry != null && !AllowedEntry(e)) { Notice?.Invoke(RuleNotice); return true; }
-            if (MaxPieces > 0 && pieces.Count - 1 >= MaxPieces) { Notice?.Invoke($"Esta prova deixa usar no máximo {MaxPieces} peças."); return true; }
+            if (AllowedEntry != null && !AllowedEntry(e)) { Notice?.Invoke(L.T(RuleNotice)); return true; }
+            if (MaxPieces > 0 && pieces.Count - 1 >= MaxPieces) { Notice?.Invoke(L.F("Esta prova deixa usar no máximo {0} peças.", MaxPieces)); return true; }
             return false;
         }
 
@@ -183,7 +183,7 @@ namespace Autorama
             });
         }
 
-        const string NoRampBehind = "Rampa não encaixa atrás da largada: ela fica no chão.";
+        static string NoRampBehind => L.T("Rampa não encaixa atrás da largada: ela fica no chão.");
 
         public void RemoveSelected()
         {
@@ -213,9 +213,9 @@ namespace Autorama
         public void SetRise(int rise)
         {
             if (Selected <= 0) return;
-            if (rise != 0 && pieces[Selected].Def.GroundOnly) { Notice?.Invoke("Loop e rampa de salto não sobem nem descem de nível."); return; }
+            if (rise != 0 && pieces[Selected].Def.GroundOnly) { Notice?.Invoke(L.T("Loop e rampa de salto não sobem nem descem de nível.")); return; }
             if (rise != 0 && Selected >= FrontEnd) { Notice?.Invoke(NoRampBehind); return; }
-            if (rise != 0 && RiseOk != null && !RiseOk()) { Notice?.Invoke(RuleNotice); return; }
+            if (rise != 0 && RiseOk != null && !RiseOk()) { Notice?.Invoke(L.T(RuleNotice)); return; }
             Commit(() => pieces[Selected].rise = rise);
         }
 
@@ -224,7 +224,7 @@ namespace Autorama
         {
             if (Selected <= 0 || !pieces[Selected].Def.IsJump) return;
             vao = Mathf.Clamp(vao, 1, PieceCatalog.MaxGap);
-            if (GapOk != null && !GapOk(vao)) { Notice?.Invoke(RuleNotice); return; }
+            if (GapOk != null && !GapOk(vao)) { Notice?.Invoke(L.T(RuleNotice)); return; }
             if (vao != pieces[Selected].vao) Commit(() => pieces[Selected].vao = vao);
         }
 
@@ -296,7 +296,7 @@ namespace Autorama
         {
             if (string.IsNullOrWhiteSpace(name)) return name ?? "";
             name = System.Text.RegularExpressions.Regex.Replace(name.Trim(), @"\s*\((2|4|6|8) carros\)$", "");
-            return $"{name} ({faixas} carros)";
+            return L.F("{0} ({1} carros)", name, faixas);
         }
 
         // ---------- Desfazer ----------
@@ -328,7 +328,7 @@ namespace Autorama
         // esquerda ou de baixo, a pista inteira é empurrada para dentro (células inteiras: a largada continua encaixada)
         // e avisa quem mostra (Shifted), para a câmera acompanhar. A mesa nunca encolhe sozinha.
         const int BoardMargin = 1, BoardMax = 120;
-        const string TooBig = "Não cabe: a mesa vai até 120 × 120 células.";
+        static string TooBig => L.T("Não cabe: a mesa vai até 120 × 120 células.");
 
         // Tamanho que a mesa precisa ter para a pista (sem o limite) e quanto a pista é empurrada para dentro.
         void Needed(Pose2 origin, out int dx, out int dz, out int w, out int h)
@@ -443,8 +443,8 @@ namespace Autorama
         {
             if (Info == null) return "";
             if (Closing) return null;
-            if (Info.closed) return "A pista já está fechada.";
-            if (pieces.Count < 2) return "Coloque algumas peças antes: o fechamento parte da ponta da pista.";
+            if (Info.closed) return L.T("A pista já está fechada.");
+            if (pieces.Count < 2) return L.T("Coloque algumas peças antes: o fechamento parte da ponta da pista.");
             // Segue o estilo da pista: se ela usa mais curvas inclinadas, fecha com inclinadas.
             int banked = 0, plain = 0;
             foreach (var p in pieces) { var d = p.Def; if (d.IsCurve) { if (d.Banked) banked++; else plain++; } }
@@ -459,7 +459,7 @@ namespace Autorama
             if (CloseJob == null) return;
             CloseJob.Cancel();
             CloseJob = null;
-            Notice?.Invoke("Busca cancelada.");
+            Notice?.Invoke(L.T("Busca cancelada."));
         }
 
         // Trabalha na busca por até budgetMs. Quando acaba, entra na pista (uma ação só: Ctrl+Z desfaz tudo)
@@ -473,7 +473,7 @@ namespace Autorama
             {
                 CloseJob = null;
                 Debug.LogError("Fechar circuito falhou: " + e);
-                Notice?.Invoke("Não deu para fechar o circuito.");
+                Notice?.Invoke(L.T("Não deu para fechar o circuito."));
                 return true;
             }
             CloseJob = null;

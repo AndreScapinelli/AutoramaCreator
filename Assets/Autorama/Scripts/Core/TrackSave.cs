@@ -91,14 +91,14 @@ namespace Autorama
         // ----- exemplos (os mesmos do HTML, em coordenadas do HTML) -----
 
         // O mesmo exemplo como pista de 4 carros (a forma em células é a mesma; no mundo fica 2× maior).
-        public static TrackSave Four(TrackSave s) { s.faixas = 4; s.nome += " (4 carros)"; return s; }
-        public static TrackSave Six(TrackSave s) { s.faixas = 6; s.nome += " (6 carros)"; return s; }
+        public static TrackSave Four(TrackSave s) { s.faixas = 4; s.nome += L.T(" (4 carros)"); return s; }
+        public static TrackSave Six(TrackSave s) { s.faixas = 6; s.nome += L.T(" (6 carros)"); return s; }
 
         static PieceSave P(string tipo, string sentido = "", string altura = "") => new PieceSave { tipo = tipo, sentido = sentido, altura = altura };
 
         public static TrackSave Oval()
         {
-            var s = new TrackSave { nome = "Oval", largada = new OriginSave { x = 8, y = 7.5f, h = 0 } };
+            var s = new TrackSave { nome = L.T("Oval"), largada = new OriginSave { x = 8, y = 7.5f, h = 0 } };
             s.pecas.AddRange(new[]
             {
                 P("reta-comprida"), P("meia-curva", "esquerda"), P("meia-curva", "direita"), P("curva-longa", "direita"), P("curva-longa", "direita"),
@@ -110,7 +110,7 @@ namespace Autorama
         // Um 8 deitado de curvas curtas inclinadas; a diagonal de cima passa pela ponte sobre a do chão.
         public static TrackSave Eight()
         {
-            var s = new TrackSave { nome = "8 com ponte", largada = new OriginSave { x = 21, y = 5.5f, h = 0 } };
+            var s = new TrackSave { nome = L.T("8 com ponte"), largada = new OriginSave { x = 21, y = 5.5f, h = 0 } };
             PieceSave Q(string side) => P("curva-curta-inclinada", side);
             s.pecas.AddRange(new[]
             {

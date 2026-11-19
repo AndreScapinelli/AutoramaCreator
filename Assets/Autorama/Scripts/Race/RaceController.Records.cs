@@ -19,12 +19,12 @@ namespace Autorama
         struct CardRow { public Color? dot; public string name, a, b; }
         readonly List<CardRow> cardRows = new List<CardRow>();
 
-        static string RecText(Rec r) => r != null && r.Has ? $"{Fmt(r.t)} {r.pilot?.tag}{(r.online ? " · online" : "")}" : "ninguém ainda";
+        static string RecText(Rec r) => r != null && r.Has ? $"{Fmt(r.t)} {r.pilot?.tag}{(r.online ? L.T(" · online") : "")}" : L.N("ninguém ainda");
 
         // Monta as linhas do cartão. Falso: nada a mostrar.
         bool StartCard(out string title)
         {
-            title = "Recordes da pista";
+            title = L.T("Recordes da pista");
             cardRows.Clear();
             if (sim.phase != RaceSim.Phase.Idle || !sim.closed) return false;
             if (ChampLike)
@@ -32,9 +32,9 @@ namespace Autorama
                 if (!HeatNow(out var C, out _, out _, out var stage, out var pl)) return false;
                 var R = FindRecords(stage.hash);
                 bool odd = Champ.CrossCount(stage.data) % 2 == 1, lanes = !odd && !C.byTime;
-                title = $"Recordes · {stage.name}";
-                cardRows.Add(new CardRow { name = "Volta", a = RecText(R?.lap) });
-                if (!C.byTime) cardRows.Add(new CardRow { name = $"{stage.laps} {(stage.laps == 1 ? "volta" : "voltas")}", a = RecText(R?.Race(stage.laps)) });
+                title = L.F("Recordes · {0}", stage.name);
+                cardRows.Add(new CardRow { name = L.T("Volta"), a = RecText(R?.lap) });
+                if (!C.byTime) cardRows.Add(new CardRow { name = (stage.laps == 1 ? L.F("{0} volta", stage.laps) : L.F("{0} voltas", stage.laps)), a = RecText(R?.Race(stage.laps)) });
                 for (int k = 0; k < pl.Length; k++)
                 {
                     var p = pl[k];
@@ -44,8 +44,8 @@ namespace Autorama
                     cardRows.Add(new CardRow
                     {
                         dot = p.Color, name = $"{p.name} · {LaneNames[k]}",
-                        a = !lanes ? "" : R != null && R.Lane(k).Has ? "trilho " + RecText(R.Lane(k)) : "trilho sem recorde",
-                        b = b != null && b.lap >= 0f ? $"seu melhor {Fmt(b.lap)}" : p.ai || key == null ? "" : "primeira vez aqui",
+                        a = !lanes ? "" : R != null && R.Lane(k).Has ? L.T("trilho ") + RecText(R.Lane(k)) : L.T("trilho sem recorde"),
+                        b = b != null && b.lap >= 0f ? L.F("seu melhor {0}", Fmt(b.lap)) : p.ai || key == null ? "" : L.T("primeira vez aqui"),
                     });
                 }
                 return true;
@@ -54,8 +54,8 @@ namespace Autorama
             if (FreeTrackHash() == null) return false;
             var F = FindRecords(freeHash);
             if (F == null || !F.lap.Has) return false;
-            cardRows.Add(new CardRow { name = "Volta", a = RecText(F.lap) });
-            if (!sim.ByTime) { var rr = F.Race(sim.set.laps); if (rr != null && rr.Has) cardRows.Add(new CardRow { name = $"{sim.set.laps} voltas", a = RecText(rr) }); }
+            cardRows.Add(new CardRow { name = L.T("Volta"), a = RecText(F.lap) });
+            if (!sim.ByTime) { var rr = F.Race(sim.set.laps); if (rr != null && rr.Has) cardRows.Add(new CardRow { name = L.F("{0} voltas", sim.set.laps), a = RecText(rr) }); }
             if (!freeOdd && !sim.ByTime)
                 for (int k = 0; k < sim.N; k++)
                     if (sim.present[k] && F.Lane(k).Has) cardRows.Add(new CardRow { dot = pads[k].root.resolvedStyle.borderTopColor, name = LaneNames[k], a = RecText(F.Lane(k)) });

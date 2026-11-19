@@ -90,7 +90,7 @@ namespace Autorama
         // Cada quadro tem a sua câmera (set.paneCam[i], valor de RaceViewMode), trocada no botão do canto do quadro.
         // A TV fica de fora: ela não é de um jogador só.
         static readonly TopDownCamera.RaceViewMode[] PaneModes = { TopDownCamera.RaceViewMode.ThirdPerson, TopDownCamera.RaceViewMode.FirstPerson, TopDownCamera.RaceViewMode.TopFollow };
-        static readonly string[] PaneModeNames = { "Perseguição", "Primeira pessoa", "De cima" };
+        static string[] PaneModeNames => new[] { L.T("Perseguição"), L.T("Primeira pessoa"), L.T("De cima") };
         readonly Button[] paneBtns = new Button[4];
 
         int PaneModeIndex(int i)
@@ -106,7 +106,7 @@ namespace Autorama
             DrawPaneBtn(i);
         }
 
-        void DrawPaneBtn(int i) => paneBtns[i].text = $"Câmera: <b>{PaneModeNames[PaneModeIndex(i)]}</b>  ⟳";
+        void DrawPaneBtn(int i) => paneBtns[i].text = L.F("Câmera: <b>{0}</b>  ⟳", PaneModeNames[PaneModeIndex(i)]);
 
         void LayoutSplit(int humans, int panes)
         {

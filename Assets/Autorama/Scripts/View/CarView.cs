@@ -28,11 +28,11 @@ namespace Autorama
         // Modelos de cada bolha (índice = CarSetup.modelo). O 0 é o de sempre.
         public static readonly string[][] ModelNames =
         {
-            new[] { "Clássico", "Coupé GT", "Rali" },
-            new[] { "Fórmula", "Protótipo", "Asa dupla" },
-            new[] { "Gota", "Flecha", "Bala" },
+            new[] { L.N("Clássico"), L.N("Coupé GT"), L.N("Rali") },
+            new[] { L.N("Fórmula"), L.N("Protótipo"), L.N("Asa dupla") },
+            new[] { L.N("Gota"), L.N("Flecha"), L.N("Bala") },
         };
-        public static string ModelName(int bolha, int modelo) => ModelNames[Mathf.Clamp(bolha, 0, 2)][Mathf.Clamp(modelo, 0, 2)];
+        public static string ModelName(int bolha, int modelo) => L.T(ModelNames[Mathf.Clamp(bolha, 0, 2)][Mathf.Clamp(modelo, 0, 2)]);
         public int Tire { get; private set; } = -1;
 
         // A faixa do pneu (seção 48): médio amarelo, macio vermelho, duro branco. Índice = CarSetup.pneu.
