@@ -656,7 +656,6 @@ Correr de novo  (Enter)	Correr otra vez  (Enter)
 Trocar pista	Cambiar pista
 OPÇÕES	OPCIONES
 IDIOMA	IDIOMA
-O novo idioma vale ao reabrir o jogo.	El nuevo idioma se aplica al volver a abrir el juego.
 TECLAS DOS JOGADORES	TECLAS DE LOS JUGADORES
 Clique num botão e aperte a tecla nova. Se ela já era de outra ação, as duas trocam. Esc cancela.	Haz clic en un botón y pulsa la tecla nueva. Si ya era de otra acción, las dos se intercambian. Esc cancela.
 Jogador {0}	Jugador {0}
@@ -1373,3 +1372,9 @@ Gota	Gota
 Flecha	Flecha
 Bala	Bala
 {0}º	{0}º
+Saia da sala para trocar o idioma.	Sal de la sala para cambiar el idioma.
+1 partida	1 partida
+{0} partidas	{0} partidas
+Seu Elo: {0} · {1}	Tu Elo: {0} · {1}
+ · {0}º de {1} na Steam	 · {0}.º de {1} en Steam
+Elo {0} ({1})	Elo {0} ({1})

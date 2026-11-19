@@ -35,7 +35,7 @@ namespace Autorama
         string mmLast;
         bool mmMerging;                              // sozinho no próprio lobby: procurando outra fila do mesmo tamanho
         int mmMergeAt;
-        string mmTrack, mmHash, mmJson;
+        string mmTrack, mmHash, mmJson, mmElo = "";
         ulong mmSentTo;
         bool countAsk;
         readonly Dictionary<ulong, string> mmJsons = new Dictionary<ulong, string>();
@@ -215,7 +215,7 @@ namespace Autorama
             if (Array.IndexOf(MmSizes, o.faixas) < 0) { Err("mm", L.T("Tamanho de pista inválido.")); return; }
             if (!SuggestionOk(o.hash, o.json)) { Err("mm", L.T("Pista inválida ou grande demais.")); return; }
             string t = Clean(o.track, 60);
-            mmSize = o.faixas; mmTrack = t.Length > 0 ? t : L.T("Pista"); mmHash = o.hash; mmJson = o.json;
+            mmSize = o.faixas; mmTrack = t.Length > 0 ? t : L.T("Pista"); mmHash = o.hash; mmJson = o.json; mmElo = o.elo + ":" + o.eloj;
             mmPending = true;
             b.SearchMatch(mmSize, list => TryJoinMatch(list, 0));
         }
@@ -249,7 +249,7 @@ namespace Autorama
             if (joined || !mmPending) return;
             queuing = true; mmPending = false; mmSentTo = 0; mmLast = null; mmJsons.Clear(); mmMerging = false; mmMergeAt = Environment.TickCount;
             known = new HashSet<ulong>(); foreach (var m in b.Members()) { known.Add(m.id); names[m.id] = m.name; }
-            b.SetMyData("mmt", mmTrack); b.SetMyData("mmh", mmHash);
+            b.SetMyData("mmt", mmTrack); b.SetMyData("mmh", mmHash); b.SetMyData("elo", mmElo);
             b.SetMyData("ready", "0"); b.SetMyData("g2", "0");
             AssignColor();
             MatchTick();
@@ -328,7 +328,7 @@ namespace Autorama
             string track = TrackName(ids[win]);
             var m = new NetMsg { t = "started", title = Clean(L.T("Partida rápida · ") + track, 40),
                 rules = new NetRules { vmax = 14f, ramp = 0.5f, grip = 29f, collide = true, byTime = true, turbo = true, sorteio = seed, reslot = 0.3f } };
-            foreach (var p in room.players) if (!NetGuest.Is(p.id)) m.pilots.Add(new NetPlayer { id = p.id, name = p.name, color = p.color, uid = p.uid });
+            foreach (var p in room.players) if (!NetGuest.Is(p.id)) m.pilots.Add(new NetPlayer { id = p.id, name = p.name, color = p.color, uid = p.uid, elo = p.elo, eloj = p.eloj });
             m.stages.Add(new NetStage { name = track, laps = 30, secs = 240, tempo = true, faixas = mmSize, hash = hashes[win], json = JsonOf(ids[win]) });
             for (int i = 0; i < members.Count; i++) m.mm.tracks.Add(new NetMMTrack { name = TrackName(ids[i]), by = Clean(members[i].name, 20) });
             m.mm.pick = win;
@@ -674,12 +674,21 @@ namespace Autorama
             b.SetData("stl", JsonUtility.ToJson(sum));
         }
 
+        // "1032:12" (Elo e partidas) dos dados do membro na fila; fora do formato, 0 (sem Elo).
+        static void EloOf(string s, out int elo, out int jogos)
+        {
+            elo = jogos = 0;
+            var a = (s ?? "").Split(':');
+            if (a.Length == 2 && int.TryParse(a[0], out int e) && int.TryParse(a[1], out int j) && e >= Elo.Min && e <= 4000 && j >= 0) { elo = e; jogos = j; }
+        }
+
         NetRoom BuildRoom()
         {
             var r = new NetRoom { code = b.Data("code"), name = b.Data("name"), pub = b.Data("pub") == "1", mm = b.Data("mm") != "" && b.Data("mm") != "0", host = b.Owner.ToString(), max = SteamLobbyClient.MaxMembers, state = b.Data("state") };
             foreach (var m in b.Members())
             {
                 var p = new NetPlayer { id = m.id.ToString(), name = Clean(m.name, 20), color = ColorOf(m.id), ready = IsReady(m.id), uid = "steam:" + m.id };
+                EloOf(b.MemberData(m.id, "elo"), out p.elo, out p.eloj);
                 r.players.Add(p);
                 if (HasGuest(m.id))
                 {

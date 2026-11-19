@@ -404,6 +404,7 @@ namespace Autorama
         void LeaveRoom()
         {
             rejoinCode = null; rejoinAt = -1f;
+            if (MmRoom && OnlineRun && sim.phase != RaceSim.Phase.Idle) EloApply(sim.phase != RaceSim.Phase.Done);   // sair no meio: último
             net.Close();                                 // o servidor tira o jogador da sala ao ver a conexão cair
             ResetOnlineState();
             DrawOnline(); OnlineStatus();

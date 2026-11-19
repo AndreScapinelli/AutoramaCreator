@@ -30,6 +30,7 @@ namespace Autorama
         {
             mmSize = Mathf.Clamp(PlayerPrefs.GetInt(PrefMmSize, 4), 2, 8);
             mmBox = Section(entry, L.T("PARTIDA RÁPIDA"));
+            EloInit(mmBox);
             Text(L.F("Uma corrida de {0} contra quem estiver na fila. Cada um põe uma pista na disputa e o servidor sorteia qual vale. Só larga com a fila cheia. Funciona pelo servidor e pela Steam.", RaceTimeText(240)), "hint", mmBox);
             Text(L.T("CARROS"), "h3", mmBox);
             mmSizes = El("segmented", mmBox);
@@ -68,6 +69,7 @@ namespace Autorama
             mmQueueBox.style.display = queued ? DisplayStyle.Flex : DisplayStyle.None;
             foreach (var s in mmHide) s.style.display = queued ? DisplayStyle.None : DisplayStyle.Flex;
             if (queued) return;
+            EloDraw();
 
             mmSizes.Clear();
             for (int i = 0; i < MmSizes.Length; i++)
@@ -98,7 +100,7 @@ namespace Autorama
             string json = data.ToJson(false);
             if (json.Length > MaxTrackJson) { panel.Toast(L.T("Essa pista é grande demais para o servidor.")); return; }
             int size = mmSize;
-            WhenConnected(() => net.Send(new NetOut { t = "mm", on = true, faixas = size, name = name, uid = ChampFiles.PlayerUid(), track = data.nome, hash = Champ.TrackHash(data), json = json }));
+            WhenConnected(() => net.Send(new NetOut { t = "mm", on = true, faixas = size, name = name, uid = ChampFiles.PlayerUid(), track = data.nome, hash = Champ.TrackHash(data), json = json, elo = myElo, eloj = myEloJ }));
         }
 
         void MatchLeave()

@@ -440,6 +440,7 @@ namespace Autorama
         {
             TrackRatings.Tick();
             RatingsRedraw();
+            EloTick();
             OnlineTick();
             AudioTick();
             KeysUpdate();
@@ -759,7 +760,8 @@ namespace Autorama
 
         VisualElement keysBox;                  // a tela: cobre a aba inteira e some com Esc ou Fechar
         VisualElement netOpts;                  // Steam ou servidor (o toggle e o endereço vêm de BuildOnlineUI)
-        Label helpLabel, keysHint;
+        Label helpLabel, keysHint, langHint;
+        readonly Button[] langBtns = new Button[L.Codigos.Length];
         readonly Button[,] keyBtns = new Button[Controles.Jogadores, Controles.Acoes];
         int capJ = -1, capA;                    // a tecla que está esperando: jogador e ação (-1 = nenhuma)
         bool keysOpen => keysBox != null && keysBox.style.display == DisplayStyle.Flex;
@@ -773,22 +775,22 @@ namespace Autorama
             var card = new ScrollView(ScrollViewMode.Vertical);
             card.AddToClassList("keys-scroll");
             outer.Add(card);
-            // Idioma (seção 88): grava a escolha; a interface troca ao reabrir o jogo.
+            // Idioma (seção 88): grava a escolha e recarrega a cena, que monta a interface de novo no idioma novo.
+            // Na sala online não troca: a recarga derrubaria a conexão.
             Text(L.T("IDIOMA"), "hint", card);
             var langRow = El("row", card);
-            var langBtns = new Button[L.Codigos.Length];
-            var langHint = Text("", "small", card);
-            void DrawLang()
-            {
-                for (int i = 0; i < langBtns.Length; i++) langBtns[i].EnableInClassList("btn--on", L.Codigos[i] == L.Escolhido);
-                langHint.text = L.Escolhido == L.Atual ? "" : L.T("O novo idioma vale ao reabrir o jogo.");
-            }
+            langHint = Text("", "small", card);
             for (int i = 0; i < L.Codigos.Length; i++)
             {
                 string cod = L.Codigos[i];
-                langBtns[i] = Btn(L.Nomes[i], () => { L.Escolhe(cod); DrawLang(); }, "btn", langRow);
+                langBtns[i] = Btn(L.Nomes[i], () =>
+                {
+                    if (cod == L.Atual || room != null) return;
+                    L.Escolhe(cod);
+                    UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
+                }, "btn", langRow);
+                langBtns[i].EnableInClassList("btn--on", cod == L.Atual);
             }
-            DrawLang();
             Text(L.T("TECLAS DOS JOGADORES"), "hint", card).style.marginTop = 14;
             Text(L.T("Clique num botão e aperte a tecla nova. Se ela já era de outra ação, as duas trocam. Esc cancela."), "hint", card);
             for (int j = 0; j < Controles.Jogadores; j++)
@@ -880,6 +882,8 @@ namespace Autorama
         {
             if (keysBox == null || Racing) return;
             if (oSteam != null) oSteam.SetEnabled(room == null);         // na sala não dá para trocar de rede
+            foreach (var b in langBtns) b?.SetEnabled(room == null);      // nem de idioma
+            langHint.text = room == null ? "" : L.T("Saia da sala para trocar o idioma.");
             keysBox.style.display = DisplayStyle.Flex;
             keysBox.BringToFront();
             refreshAdjLabels?.Invoke();                                   // limites das curvas da pista atual
@@ -1611,6 +1615,8 @@ namespace Autorama
             resTable.Clear();
             var ord = new List<int>(Order());
             int fast = FastestCar(), recCar = ChampLike ? RecordCar() : -1;
+            Pilot[] elop = null;
+            if (MmRoom && OnlineRun && sim.phase == RaceSim.Phase.Done) { EloApply(false); HeatNow(out _, out _, out _, out _, out elop); }
             for (int pos = 0; pos < ord.Count; pos++)
             {
                 int k = ord[pos];
@@ -1619,6 +1625,7 @@ namespace Autorama
                 Text(L.F("{0}º", pos + 1), "res-pos", r);
                 El("hud-dot", r).style.backgroundColor = pads[k].root.resolvedStyle.borderTopColor;
                 Text(hud[k].name.text, "res-name", r);
+                if (elop != null && k < elop.Length) EloCell(elop[k], r);
                 Text(sim.ByTime ? L.F("{0} voltas", LapsCell(k)) : c.finish != null ? Fmt(c.finish) : L.T("não terminou"), "res-cell", r);
                 if (k == fast) Text(L.T("★ melhor volta ") + Fmt(c.best), "res-cell res-cell--fast", r);
                 else Text(L.T("melhor ") + Fmt(c.best), "res-cell res-cell--dim", r);

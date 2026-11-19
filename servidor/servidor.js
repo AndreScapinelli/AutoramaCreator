@@ -55,7 +55,7 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
   const snapshot = r => ({
     code: r.code, name: r.name, pub: r.pub, mm: !!r.mm, host: r.host, max: MAX_PLAYERS, state: r.state,
     // o host está sempre pronto; o segundo jogador fica pronto junto com o dono
-    players: pilots(r).map(p => { const o = p.owner || p; return { id: p.id, name: p.name, color: p.color, uid: p.uid, ready: o.id === r.host || !!o.ready }; }),
+    players: pilots(r).map(p => { const o = p.owner || p; return { id: p.id, name: p.name, color: p.color, uid: p.uid, ready: o.id === r.host || !!o.ready, elo: r.mm && !p.owner ? p.elo || 0 : 0, eloj: r.mm && !p.owner ? p.eloj || 0 : 0 }; }),
     stages: r.stages.map(s => ({ name: s.name, laps: s.laps, secs: s.secs, tempo: s.tempo, faixas: s.faixas, hash: s.hash })),
   });
   const broadcast = (r, msg) => r.players.forEach(p => send(p, msg));
@@ -219,6 +219,9 @@ function criarServidor({ port = 8080, host = '0.0.0.0', trustProxy = false, maxC
       if (q.some(e => e.name.toLowerCase() === name.toLowerCase())) return fail(c, 'nome-usado', 'Já tem alguém com esse nome na fila.');
       const uid = typeof m.uid === 'string' && /^[A-Za-z0-9:-]{8,64}$/.test(m.uid) && !q.some(e => e.uid === m.uid) ? m.uid : '';
       q.push({ c, name, uid, track: clean(m.track, 60) || 'Pista', hash: m.hash, json: m.json });
+      // Elo da partida rápida (seção 89): o cliente diz o seu; o servidor só confere a faixa e repassa no started.
+      const elo = Math.round(Number(m.elo)), eloj = Math.round(Number(m.eloj));
+      c.elo = elo >= 100 && elo <= 4000 ? elo : 0; c.eloj = c.elo && eloj >= 0 ? eloj : 0;
       c.mm = n;
       mmPush(n);
       mmMatch(n);

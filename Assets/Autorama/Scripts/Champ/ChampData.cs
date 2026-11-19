@@ -111,7 +111,7 @@ namespace Autorama
     [Serializable] public class RecordsFile { public List<TrackRecords> tracks = new List<TrackRecords>(); }
 
     // jogador.json: o id fixo deste computador no online (o melhor pessoal online fica preso a ele).
-    [Serializable] public class PlayerFile { public string uid; }
+    [Serializable] public class PlayerFile { public string uid; public int elo, eloJogos; }   // elo 0: ainda não jogou (vale Elo.Start; seção 89)
 
     // ---------- Regras e contas ----------
 
@@ -379,6 +379,21 @@ namespace Autorama
             var f = Read<PlayerFile>(path);
             if (string.IsNullOrEmpty(f.uid) || f.uid.Length < 16) { f.uid = Guid.NewGuid().ToString("N"); Write(path, f); }
             return uid = f.uid;
+        }
+
+        // O Elo da partida rápida (seção 89), no mesmo jogador.json. Na Steam ele também vai para o placar "elo".
+        public static void PlayerElo(out int elo, out int jogos)
+        {
+            var f = Read<PlayerFile>(Path.Combine(TrackLibrary.Root, "jogador.json"));
+            elo = f.elo > 0 ? f.elo : Elo.Start; jogos = Math.Max(0, f.eloJogos);
+        }
+        public static void SavePlayerElo(int elo, int jogos)
+        {
+            PlayerUid();
+            string path = Path.Combine(TrackLibrary.Root, "jogador.json");
+            var f = Read<PlayerFile>(path);
+            f.elo = elo; f.eloJogos = jogos;
+            Write(path, f);
         }
         public static bool SaveRecords(RecordsFile r) => Write(RecordsPath, r);
 

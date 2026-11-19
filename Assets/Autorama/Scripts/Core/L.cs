@@ -9,7 +9,7 @@ namespace Autorama
     // Idiomas da interface (seção 88 do guia). O texto em português é a chave: L.T("Largar (Enter)") procura a
     // tradução na tabela do idioma (Resources/Idiomas/<código>.txt) e, se não achar, devolve o português.
     // L.F é o string.Format com o modelo traduzido ("Voltas: {0}"). A tabela é uma linha por texto:
-    // português, tabulação, tradução; \n e \t escritos assim. O idioma fica no PlayerPrefs e vale ao reabrir o jogo.
+    // português, tabulação, tradução; \n e \t escritos assim. O idioma fica no PlayerPrefs; trocar recarrega a cena.
     // ferramentas/idiomas.js lista o que falta traduzir em cada tabela.
     public static class L
     {
@@ -58,9 +58,8 @@ namespace Autorama
             _ => "en",
         };
 
-        // Grava a escolha; a interface muda ao reabrir o jogo.
-        public static void Escolhe(string codigo) { PlayerPrefs.SetString(Chave, codigo); PlayerPrefs.Save(); }
-        public static string Escolhido => PlayerPrefs.GetString(Chave, Atual);
+        // Grava a escolha e relê a tabela; quem chama recarrega a cena para a interface ser montada de novo.
+        public static void Escolhe(string codigo) { PlayerPrefs.SetString(Chave, codigo); PlayerPrefs.Save(); atual = null; }
 
         public static string T(string pt)
         {
@@ -78,7 +77,8 @@ namespace Autorama
         static FontAsset fonteJa;
         public static void AplicaFonte(VisualElement root)
         {
-            if (Atual != "ja" || root == null) return;
+            if (root == null) return;
+            if (Atual != "ja") { root.style.unityFontDefinition = StyleKeyword.Null; return; }     // a raiz do painel sobrevive à recarga
             if (fonteJa == null)
             {
                 var f = Resources.Load<Font>("Idiomas/NotoSansJP-Regular");

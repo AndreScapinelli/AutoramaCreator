@@ -23,5 +23,6 @@ Ordem sugerida: primeiro o que faz o jogo ser achado na Steam, depois o que apro
 - [ ] Replay com câmeras de TV (usa a gravação da seção 55)
 
 ## 5. Online
-- [ ] Ranking ELO e temporadas na partida rápida
+- [x] Ranking Elo na partida rápida (seção 89)
+- [ ] Temporadas do Elo
 - [ ] Espectador numa sala online

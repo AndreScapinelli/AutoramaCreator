@@ -147,6 +147,7 @@ namespace Autorama
 
             onlineChamp = C;
             startedMsg = m;
+            EloStart(m);
             ClearRemote();
             for (int j = 0; j < 2; j++) { lastSentBoost[j] = lastSentHeld[j] = false; lastSentGas[j] = 1f; myRe[j] = 0; inAcc[j] = 0f; }
             snapAcc = 1f;

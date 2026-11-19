@@ -7,7 +7,7 @@ namespace Autorama
     // São JSON de uma linha com o tipo em "t". O JsonUtility não faz herança, então cada direção tem classes enxutas.
 
     // uid: o id fixo do jogador (jogador.json, ou "steam:<SteamID>"); vazio: cliente antigo
-    [Serializable] public class NetPlayer { public string id, name, color, uid; public bool ready; }
+    [Serializable] public class NetPlayer { public string id, name, color, uid; public bool ready; public int elo, eloj; }   // elo/eloj: partida rápida (seção 89; 0 = sem Elo)
 
     // O segundo jogador do mesmo computador anda junto com a conexão do dono: id "<id>#2", nome "<nome> 2" (seção 44 do guia).
     public static class NetGuest
@@ -130,6 +130,7 @@ namespace Autorama
         public float vmax, ramp, grip, reslot = 0.5f;                    // start: as regras (os ajustes da aba Corrida do host)
         public string track, hash, json;                  // suggest: a pista que o visitante sugere ao host (nome, identidade e o JSON)
         public int faixas;                                // suggest: 2 ou 4 carros
+        public int elo, eloj;                             // mm: o meu Elo e quantas partidas (seção 89)
     }
     [Serializable] public class NetOutStages { public string t = "stages"; public List<NetStage> stages = new List<NetStage>(); }
     [Serializable] public class NetOutSnap { public string t = "snap"; public string b; }

@@ -656,7 +656,6 @@ Correr de novo  (Enter)	もう一度走る  (Enter)
 Trocar pista	コースを変える
 OPÇÕES	オプション
 IDIOMA	言語
-O novo idioma vale ao reabrir o jogo.	新しい言語はゲームを再起動すると反映されます。
 TECLAS DOS JOGADORES	プレイヤーのキー
 Clique num botão e aperte a tecla nova. Se ela já era de outra ação, as duas trocam. Esc cancela.	ボタンをクリックして新しいキーを押してください。他の操作に使われていたキーなら、2つが入れ替わります。Esc でキャンセル。
 Jogador {0}	プレイヤー{0}
@@ -1373,3 +1372,9 @@ Gota	しずく
 Flecha	アロー
 Bala	バレット
 {0}º	{0}位
+Saia da sala para trocar o idioma.	言語を変えるにはルームを出てください。
+1 partida	1試合
+{0} partidas	{0}試合
+Seu Elo: {0} · {1}	あなたのElo:{0} · {1}
+ · {0}º de {1} na Steam	 · Steamで{1}人中{0}位
+Elo {0} ({1})	Elo {0}({1})

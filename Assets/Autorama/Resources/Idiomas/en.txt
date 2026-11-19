@@ -656,7 +656,6 @@ Correr de novo  (Enter)	Race again  (Enter)
 Trocar pista	Change track
 OPÇÕES	OPTIONS
 IDIOMA	LANGUAGE
-O novo idioma vale ao reabrir o jogo.	The new language takes effect when you reopen the game.
 TECLAS DOS JOGADORES	PLAYER KEYS
 Clique num botão e aperte a tecla nova. Se ela já era de outra ação, as duas trocam. Esc cancela.	Click a button and press the new key. If it already belonged to another action, the two swap. Esc cancels.
 Jogador {0}	Player {0}
@@ -1373,3 +1372,9 @@ Gota	Drop
 Flecha	Arrow
 Bala	Bullet
 {0}º	P{0}
+Saia da sala para trocar o idioma.	Leave the room to change the language.
+1 partida	1 match
+{0} partidas	{0} matches
+Seu Elo: {0} · {1}	Your Elo: {0} · {1}
+ · {0}º de {1} na Steam	 · #{0} of {1} on Steam
+Elo {0} ({1})	Elo {0} ({1})
