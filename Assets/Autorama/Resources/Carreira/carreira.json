@@ -13,7 +13,7 @@
           "depois": [],
           "pista": "garagem-1",
           "voltas": 3,
-          "ia": 30,
+          "ia": 35,
           "adversarios": 1,
           "turbo": true,
           "estrelas": [
@@ -50,11 +50,11 @@
             },
             {
               "tipo": "volta",
-              "valor": 3.56
+              "valor": 3.57
             },
             {
               "tipo": "volta",
-              "valor": 3.47
+              "valor": 3.43
             }
           ]
         },
@@ -66,7 +66,7 @@
             "garagem-2"
           ],
           "pista": "garagem-3",
-          "voltas": 4,
+          "voltas": 5,
           "ia": 55,
           "adversarios": 1,
           "turbo": true,
@@ -94,7 +94,7 @@
           ],
           "pista": "",
           "voltas": 4,
-          "ia": 55,
+          "ia": 65,
           "adversarios": 1,
           "turbo": true,
           "pecas": [
@@ -133,7 +133,7 @@
           ],
           "pista": "garagem-c3",
           "voltas": 4,
-          "ia": 50,
+          "ia": 60,
           "adversarios": 1,
           "turbo": true,
           "regras": [
@@ -169,8 +169,8 @@
             "garagem-2"
           ],
           "pista": "garagem-5",
-          "voltas": 5,
-          "ia": 75,
+          "voltas": 6,
+          "ia": 80,
           "adversarios": 1,
           "turbo": true,
           "estrelas": [
@@ -208,7 +208,7 @@
             },
             {
               "tipo": "volta",
-              "valor": 4.86
+              "valor": 4.76
             },
             {
               "tipo": "volta",
@@ -225,7 +225,7 @@
           ],
           "pista": "garagem-7",
           "voltas": 5,
-          "ia": 60,
+          "ia": 75,
           "adversarios": 1,
           "turbo": true,
           "regras": [
@@ -256,7 +256,7 @@
           ],
           "pista": "garagem-c2",
           "voltas": 5,
-          "ia": 70,
+          "ia": 85,
           "adversarios": 1,
           "turbo": true,
           "regras": [
@@ -280,16 +280,106 @@
           ]
         },
         {
-          "id": "garagem-9",
-          "nome": "Tio Beto",
-          "tipo": "rival",
+          "id": "garagem-rei",
+          "nome": "Rei da Garagem",
+          "tipo": "corrida",
+          "depois": [
+            "garagem-5"
+          ],
+          "pista": "garagem-2",
+          "voltas": 6,
+          "ia": 85,
+          "adversarios": 1,
+          "turbo": true,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 2
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "lider",
+              "valor": 15
+            }
+          ]
+        },
+        {
+          "id": "garagem-copinha",
+          "nome": "Copinha da Garagem",
+          "tipo": "campeonato",
           "depois": [
             "garagem-7",
             "garagem-8"
           ],
+          "pista": "",
+          "voltas": 3,
+          "ia": 0,
+          "adversarios": 0,
+          "turbo": true,
+          "etapas": [
+            "garagem-1",
+            "garagem-3",
+            "garagem-5"
+          ],
+          "pilotos": [
+            {
+              "nome": "Zé da Oficina",
+              "cor": "#2563EB",
+              "ia": 65,
+              "carro": {
+                "motor": 0,
+                "bolha": 0,
+                "pneu": 0,
+                "chassi": 0,
+                "nitro": 0,
+                "modelo": 0
+              },
+              "estilo": ""
+            },
+            {
+              "nome": "Lu Parafuso",
+              "cor": "#16A34A",
+              "ia": 78,
+              "carro": {
+                "motor": 1,
+                "bolha": 0,
+                "pneu": 0,
+                "chassi": 1,
+                "nitro": 0,
+                "modelo": 0
+              },
+              "estilo": "agressivo"
+            }
+          ],
+          "premio": 300,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 2
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "todasEtapas",
+              "valor": 0
+            }
+          ]
+        },
+        {
+          "id": "garagem-9",
+          "nome": "Tio Beto",
+          "tipo": "rival",
+          "depois": [
+            "garagem-copinha"
+          ],
           "pista": "garagem-c1",
           "voltas": 4,
-          "ia": 85,
+          "ia": 98,
           "adversarios": 1,
           "turbo": true,
           "rival": "Tio Beto",
@@ -318,7 +408,8 @@
               "tipo": "semSair",
               "valor": 0
             }
-          ]
+          ],
+          "rivalEstilo": "constante"
         },
         {
           "id": "garagem-copa",
@@ -341,7 +432,7 @@
             {
               "nome": "Zé da Oficina",
               "cor": "#2563EB",
-              "ia": 60,
+              "ia": 70,
               "carro": {
                 "motor": 0,
                 "bolha": 0,
@@ -352,25 +443,27 @@
             {
               "nome": "Lu Parafuso",
               "cor": "#16A34A",
-              "ia": 70,
+              "ia": 82,
               "carro": {
                 "motor": 1,
                 "bolha": 0,
                 "pneu": 0,
                 "chassi": 1
-              }
+              },
+              "estilo": "agressivo"
             },
             {
               "nome": "Tio Beto",
               "cor": "#8B5A2B",
-              "ia": 85,
+              "ia": 98,
               "carro": {
                 "motor": 0,
                 "bolha": 0,
                 "pneu": 2,
                 "chassi": 2,
                 "modelo": 1
-              }
+              },
+              "estilo": "constante"
             }
           ],
           "estrelas": [
@@ -386,9 +479,11 @@
               "tipo": "todasEtapas",
               "valor": 0
             }
-          ]
+          ],
+          "premio": 600
         }
-      ]
+      ],
+      "nivelIA": 0
     },
     {
       "id": "clube",
@@ -402,8 +497,8 @@
           "tipo": "corrida",
           "depois": [],
           "pista": "clube-1",
-          "voltas": 4,
-          "ia": 75,
+          "voltas": 5,
+          "ia": 102,
           "adversarios": 2,
           "turbo": true,
           "estrelas": [
@@ -436,11 +531,11 @@
           "estrelas": [
             {
               "tipo": "volta",
-              "valor": 5.43
+              "valor": 5.12
             },
             {
               "tipo": "volta",
-              "valor": 5.06
+              "valor": 4.77
             },
             {
               "tipo": "volta",
@@ -456,8 +551,8 @@
             "clube-2"
           ],
           "pista": "clube-3",
-          "voltas": 4,
-          "ia": 80,
+          "voltas": 5,
+          "ia": 106,
           "adversarios": 3,
           "turbo": true,
           "estrelas": [
@@ -484,7 +579,7 @@
           ],
           "pista": "",
           "voltas": 4,
-          "ia": 85,
+          "ia": 108,
           "adversarios": 3,
           "turbo": true,
           "pecas": [
@@ -526,8 +621,8 @@
             "clube-2"
           ],
           "pista": "clube-5",
-          "voltas": 4,
-          "ia": 85,
+          "voltas": 5,
+          "ia": 110,
           "adversarios": 3,
           "turbo": true,
           "estrelas": [
@@ -565,15 +660,15 @@
           "estrelas": [
             {
               "tipo": "volta",
-              "valor": 5.34
+              "valor": 5.21
             },
             {
               "tipo": "volta",
-              "valor": 4.88
+              "valor": 4.92
             },
             {
               "tipo": "volta",
-              "valor": 4.68
+              "valor": 4.52
             }
           ]
         },
@@ -585,8 +680,8 @@
             "clube-6"
           ],
           "pista": "clube-7",
-          "voltas": 5,
-          "ia": 90,
+          "voltas": 6,
+          "ia": 112,
           "adversarios": 3,
           "turbo": true,
           "estrelas": [
@@ -617,8 +712,8 @@
             "clube-6"
           ],
           "pista": "clube-8",
-          "voltas": 5,
-          "ia": 95,
+          "voltas": 6,
+          "ia": 115,
           "adversarios": 3,
           "turbo": true,
           "estrelas": [
@@ -635,22 +730,132 @@
               "valor": 0
             }
           ],
-          "atraso": 2.0,
+          "atraso": 2,
           "regras": [
             "atrasada"
           ]
+        },
+        {
+          "id": "clube-elim",
+          "nome": "Sobrevivência",
+          "tipo": "desafio",
+          "depois": [
+            "clube-chuva"
+          ],
+          "pista": "clube-c1",
+          "voltas": 50,
+          "ia": 108,
+          "adversarios": 3,
+          "turbo": true,
+          "regras": [
+            "eliminacao"
+          ],
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semSair",
+              "valor": 0
+            }
+          ],
+          "intervalo": 15
+        },
+        {
+          "id": "clube-copa",
+          "nome": "Copa do Clube",
+          "tipo": "campeonato",
+          "depois": [
+            "clube-sobrevive",
+            "clube-fundo"
+          ],
+          "pista": "",
+          "voltas": 3,
+          "ia": 0,
+          "adversarios": 0,
+          "turbo": true,
+          "etapas": [
+            "clube-1",
+            "clube-3",
+            "clube-5"
+          ],
+          "pilotos": [
+            {
+              "nome": "Rafa Turbo",
+              "cor": "#F97316",
+              "ia": 108,
+              "carro": {
+                "motor": 1,
+                "bolha": 0,
+                "pneu": 0,
+                "chassi": 0,
+                "nitro": 0,
+                "modelo": 0
+              },
+              "estilo": "agressivo"
+            },
+            {
+              "nome": "Dona Célia",
+              "cor": "#0EA5B7",
+              "ia": 110,
+              "carro": {
+                "motor": 0,
+                "bolha": 1,
+                "pneu": 1,
+                "chassi": 2,
+                "nitro": 0,
+                "modelo": 0
+              },
+              "estilo": "constante"
+            },
+            {
+              "nome": "Nina Pistão",
+              "cor": "#A3E635",
+              "ia": 112,
+              "carro": {
+                "motor": 2,
+                "bolha": 2,
+                "pneu": 0,
+                "chassi": 1,
+                "nitro": 0,
+                "modelo": 0
+              },
+              "estilo": "nervoso"
+            }
+          ],
+          "premio": 500,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "todasEtapas",
+              "valor": 0
+            }
+          ],
+          "porTempo": true,
+          "segundos": 90
         },
         {
           "id": "clube-marina",
           "nome": "Marina Faísca",
           "tipo": "rival",
           "depois": [
-            "clube-sobrevive",
-            "clube-fundo"
+            "clube-copa"
           ],
           "pista": "clube-c3",
           "voltas": 4,
-          "ia": 105,
+          "ia": 128,
           "adversarios": 1,
           "turbo": true,
           "rival": "Marina Faísca",
@@ -679,7 +884,88 @@
               "tipo": "semSair",
               "valor": 0
             }
-          ]
+          ],
+          "rivalEstilo": "agressivo"
+        },
+        {
+          "id": "clube-convite",
+          "nome": "Convite do Clube",
+          "tipo": "campeonato",
+          "depois": [
+            "clube-marina"
+          ],
+          "pista": "",
+          "voltas": 3,
+          "ia": 0,
+          "adversarios": 0,
+          "turbo": true,
+          "etapas": [
+            "clube-c2",
+            "clube-6",
+            "clube-8"
+          ],
+          "pilotos": [
+            {
+              "nome": "Marina Faísca",
+              "cor": "#E04B95",
+              "ia": 128,
+              "carro": {
+                "motor": 1,
+                "bolha": 2,
+                "pneu": 0,
+                "chassi": 1,
+                "nitro": 0,
+                "modelo": 1
+              },
+              "estilo": "agressivo"
+            },
+            {
+              "nome": "Dr. Curva",
+              "cor": "#9333EA",
+              "ia": 130,
+              "carro": {
+                "motor": 0,
+                "bolha": 1,
+                "pneu": 1,
+                "chassi": 0,
+                "nitro": 0,
+                "modelo": 1
+              },
+              "estilo": "constante"
+            },
+            {
+              "nome": "Rafa Turbo",
+              "cor": "#F97316",
+              "ia": 118,
+              "carro": {
+                "motor": 1,
+                "bolha": 0,
+                "pneu": 0,
+                "chassi": 0,
+                "nitro": 0,
+                "modelo": 0
+              },
+              "estilo": "agressivo"
+            }
+          ],
+          "premio": 900,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "todasEtapas",
+              "valor": 0
+            }
+          ],
+          "porTempo": true,
+          "segundos": 120,
+          "minEstrelas": 27
         },
         {
           "id": "clube-taca",
@@ -699,41 +985,44 @@
             "clube-c3"
           ],
           "porTempo": true,
-          "segundos": 90,
+          "segundos": 120,
           "pilotos": [
             {
               "nome": "Rafa Turbo",
               "cor": "#F97316",
-              "ia": 90,
+              "ia": 112,
               "carro": {
                 "motor": 1,
                 "bolha": 0,
                 "pneu": 0,
                 "chassi": 0
-              }
+              },
+              "estilo": "agressivo"
             },
             {
               "nome": "Dona Célia",
               "cor": "#0EA5B7",
-              "ia": 95,
+              "ia": 116,
               "carro": {
                 "motor": 0,
                 "bolha": 1,
                 "pneu": 1,
                 "chassi": 2
-              }
+              },
+              "estilo": "constante"
             },
             {
               "nome": "Marina Faísca",
               "cor": "#E04B95",
-              "ia": 105,
+              "ia": 128,
               "carro": {
                 "motor": 1,
                 "bolha": 2,
                 "pneu": 0,
                 "chassi": 1,
                 "modelo": 1
-              }
+              },
+              "estilo": "agressivo"
             }
           ],
           "estrelas": [
@@ -749,9 +1038,11 @@
               "tipo": "todasEtapas",
               "valor": 0
             }
-          ]
+          ],
+          "premio": 1000
         }
-      ]
+      ],
+      "nivelIA": 2
     },
     {
       "id": "regional",
@@ -765,8 +1056,8 @@
           "tipo": "corrida",
           "depois": [],
           "pista": "regional-1",
-          "voltas": 4,
-          "ia": 100,
+          "voltas": 6,
+          "ia": 120,
           "adversarios": 4,
           "turbo": true,
           "estrelas": [
@@ -799,15 +1090,15 @@
           "estrelas": [
             {
               "tipo": "volta",
-              "valor": 10.36
+              "valor": 9.69
             },
             {
               "tipo": "volta",
-              "valor": 9.97
+              "valor": 9.33
             },
             {
               "tipo": "volta",
-              "valor": 9.32
+              "valor": 8.97
             }
           ]
         },
@@ -819,8 +1110,8 @@
             "regional-2"
           ],
           "pista": "regional-3",
-          "voltas": 4,
-          "ia": 105,
+          "voltas": 6,
+          "ia": 125,
           "adversarios": 4,
           "turbo": true,
           "estrelas": [
@@ -846,8 +1137,8 @@
             "regional-2"
           ],
           "pista": "",
-          "voltas": 4,
-          "ia": 110,
+          "voltas": 5,
+          "ia": 125,
           "adversarios": 3,
           "turbo": true,
           "pecas": [
@@ -891,8 +1182,8 @@
             "regional-2"
           ],
           "pista": "regional-4",
-          "voltas": 4,
-          "ia": 110,
+          "voltas": 6,
+          "ia": 128,
           "adversarios": 5,
           "turbo": true,
           "estrelas": [
@@ -937,11 +1228,11 @@
           "estrelas": [
             {
               "tipo": "volta",
-              "valor": 7.29
+              "valor": 7.41
             },
             {
               "tipo": "volta",
-              "valor": 7.0
+              "valor": 7.13
             },
             {
               "tipo": "volta",
@@ -957,8 +1248,8 @@
             "regional-6"
           ],
           "pista": "regional-7",
-          "voltas": 5,
-          "ia": 115,
+          "voltas": 6,
+          "ia": 130,
           "adversarios": 5,
           "turbo": true,
           "estrelas": [
@@ -989,8 +1280,8 @@
             "regional-6"
           ],
           "pista": "regional-c2",
-          "voltas": 5,
-          "ia": 105,
+          "voltas": 6,
+          "ia": 128,
           "adversarios": 5,
           "turbo": true,
           "estrelas": [
@@ -1020,16 +1311,213 @@
           ]
         },
         {
-          "id": "regional-drcurva",
-          "nome": "Dr. Curva",
-          "tipo": "rival",
+          "id": "regional-elim",
+          "nome": "Sobrevivência",
+          "tipo": "desafio",
+          "depois": [
+            "regional-chuva"
+          ],
+          "pista": "regional-c1",
+          "voltas": 50,
+          "ia": 125,
+          "adversarios": 5,
+          "turbo": true,
+          "regras": [
+            "eliminacao"
+          ],
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semSair",
+              "valor": 0
+            }
+          ],
+          "intervalo": 14
+        },
+        {
+          "id": "regional-resist",
+          "nome": "Resistência",
+          "tipo": "corrida",
+          "depois": [
+            "regional-elim"
+          ],
+          "pista": "regional-4",
+          "voltas": 15,
+          "ia": 128,
+          "adversarios": 5,
+          "turbo": true,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semSair",
+              "valor": 1
+            }
+          ]
+        },
+        {
+          "id": "regional-perseg",
+          "nome": "Perseguição",
+          "tipo": "desafio",
           "depois": [
             "regional-mirante",
             "regional-troca"
           ],
+          "pista": "regional-6",
+          "voltas": 6,
+          "ia": 138,
+          "adversarios": 1,
+          "turbo": true,
+          "regras": [
+            "atrasada"
+          ],
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 2
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semTurbo",
+              "valor": 0
+            }
+          ],
+          "atraso": 4
+        },
+        {
+          "id": "regional-meio",
+          "nome": "Copa do Interior",
+          "tipo": "campeonato",
+          "depois": [
+            "regional-resist",
+            "regional-perseg"
+          ],
+          "pista": "",
+          "voltas": 3,
+          "ia": 0,
+          "adversarios": 0,
+          "turbo": true,
+          "etapas": [
+            "regional-1",
+            "regional-3",
+            "regional-7"
+          ],
+          "pilotos": [
+            {
+              "nome": "Marina Faísca",
+              "cor": "#E04B95",
+              "ia": 128,
+              "carro": {
+                "motor": 1,
+                "bolha": 2,
+                "pneu": 0,
+                "chassi": 1,
+                "nitro": 0,
+                "modelo": 1
+              },
+              "estilo": "agressivo"
+            },
+            {
+              "nome": "Rafa Turbo",
+              "cor": "#F97316",
+              "ia": 124,
+              "carro": {
+                "motor": 1,
+                "bolha": 0,
+                "pneu": 0,
+                "chassi": 0,
+                "nitro": 1,
+                "modelo": 0
+              },
+              "estilo": "agressivo"
+            },
+            {
+              "nome": "Dona Célia",
+              "cor": "#0EA5B7",
+              "ia": 126,
+              "carro": {
+                "motor": 0,
+                "bolha": 1,
+                "pneu": 1,
+                "chassi": 2,
+                "nitro": 0,
+                "modelo": 0
+              },
+              "estilo": "constante"
+            },
+            {
+              "nome": "Nina Pistão",
+              "cor": "#A3E635",
+              "ia": 130,
+              "carro": {
+                "motor": 2,
+                "bolha": 2,
+                "pneu": 0,
+                "chassi": 1,
+                "nitro": 0,
+                "modelo": 0
+              },
+              "estilo": "nervoso"
+            },
+            {
+              "nome": "Tio Beto",
+              "cor": "#8B5A2B",
+              "ia": 122,
+              "carro": {
+                "motor": 0,
+                "bolha": 0,
+                "pneu": 2,
+                "chassi": 2,
+                "nitro": 0,
+                "modelo": 1
+              },
+              "estilo": "constante"
+            }
+          ],
+          "premio": 800,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "todasEtapas",
+              "valor": 0
+            }
+          ],
+          "porTempo": true,
+          "segundos": 120
+        },
+        {
+          "id": "regional-drcurva",
+          "nome": "Dr. Curva",
+          "tipo": "rival",
+          "depois": [
+            "regional-meio"
+          ],
           "pista": "regional-8",
           "voltas": 4,
-          "ia": 118,
+          "ia": 148,
           "adversarios": 1,
           "turbo": true,
           "rival": "Dr. Curva",
@@ -1058,7 +1546,116 @@
               "tipo": "semSair",
               "valor": 0
             }
-          ]
+          ],
+          "rivalEstilo": "constante"
+        },
+        {
+          "id": "regional-convite",
+          "nome": "Convite Regional",
+          "tipo": "campeonato",
+          "depois": [
+            "regional-drcurva"
+          ],
+          "pista": "",
+          "voltas": 3,
+          "ia": 0,
+          "adversarios": 0,
+          "turbo": true,
+          "etapas": [
+            "regional-2",
+            "regional-6",
+            "regional-8"
+          ],
+          "pilotos": [
+            {
+              "nome": "Dr. Curva",
+              "cor": "#9333EA",
+              "ia": 148,
+              "carro": {
+                "motor": 0,
+                "bolha": 1,
+                "pneu": 1,
+                "chassi": 0,
+                "nitro": 0,
+                "modelo": 1
+              },
+              "estilo": "constante"
+            },
+            {
+              "nome": "Marina Faísca",
+              "cor": "#E04B95",
+              "ia": 140,
+              "carro": {
+                "motor": 1,
+                "bolha": 2,
+                "pneu": 0,
+                "chassi": 1,
+                "nitro": 0,
+                "modelo": 1
+              },
+              "estilo": "agressivo"
+            },
+            {
+              "nome": "O Campeão",
+              "cor": "#F2B705",
+              "ia": 150,
+              "carro": {
+                "motor": 1,
+                "bolha": 1,
+                "pneu": 1,
+                "chassi": 2,
+                "nitro": 0,
+                "modelo": 2
+              },
+              "estilo": "agressivo"
+            },
+            {
+              "nome": "Nina Pistão",
+              "cor": "#A3E635",
+              "ia": 136,
+              "carro": {
+                "motor": 2,
+                "bolha": 2,
+                "pneu": 0,
+                "chassi": 1,
+                "nitro": 0,
+                "modelo": 0
+              },
+              "estilo": "nervoso"
+            },
+            {
+              "nome": "Rafa Turbo",
+              "cor": "#F97316",
+              "ia": 134,
+              "carro": {
+                "motor": 1,
+                "bolha": 0,
+                "pneu": 0,
+                "chassi": 0,
+                "nitro": 1,
+                "modelo": 0
+              },
+              "estilo": "agressivo"
+            }
+          ],
+          "premio": 1400,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "todasEtapas",
+              "valor": 0
+            }
+          ],
+          "porTempo": true,
+          "segundos": 150,
+          "minEstrelas": 33
         },
         {
           "id": "regional-copa",
@@ -1078,65 +1675,70 @@
             "regional-c4"
           ],
           "porTempo": true,
-          "segundos": 120,
+          "segundos": 160,
           "pilotos": [
             {
               "nome": "Rafa Turbo",
               "cor": "#F97316",
-              "ia": 110,
+              "ia": 128,
               "carro": {
                 "motor": 1,
                 "bolha": 0,
                 "pneu": 0,
                 "chassi": 0
-              }
+              },
+              "estilo": "agressivo"
             },
             {
               "nome": "Dona Célia",
               "cor": "#0EA5B7",
-              "ia": 115,
+              "ia": 132,
               "carro": {
                 "motor": 0,
                 "bolha": 1,
                 "pneu": 1,
                 "chassi": 2
-              }
+              },
+              "estilo": "constante"
             },
             {
               "nome": "Marina Faísca",
               "cor": "#E04B95",
-              "ia": 120,
+              "ia": 136,
               "carro": {
                 "motor": 1,
                 "bolha": 2,
                 "pneu": 0,
                 "chassi": 1,
                 "modelo": 1
-              }
+              },
+              "estilo": "nervoso"
             },
             {
               "nome": "Tio Beto",
               "cor": "#8B5A2B",
-              "ia": 112,
+              "ia": 130,
               "carro": {
                 "motor": 0,
                 "bolha": 0,
                 "pneu": 2,
                 "chassi": 2,
                 "modelo": 1
-              }
+              },
+              "estilo": "normal"
             },
             {
               "nome": "Dr. Curva",
               "cor": "#9333EA",
-              "ia": 130,
+              "ia": 148,
               "carro": {
                 "motor": 0,
                 "bolha": 1,
                 "pneu": 1,
                 "chassi": 0,
                 "modelo": 1
-              }
+              },
+              "estilo": "constante"
             }
           ],
           "estrelas": [
@@ -1152,9 +1754,11 @@
               "tipo": "todasEtapas",
               "valor": 0
             }
-          ]
+          ],
+          "premio": 1600
         }
-      ]
+      ],
+      "nivelIA": 5
     },
     {
       "id": "nacional",
@@ -1168,8 +1772,8 @@
           "tipo": "corrida",
           "depois": [],
           "pista": "nacional-1",
-          "voltas": 4,
-          "ia": 115,
+          "voltas": 6,
+          "ia": 145,
           "adversarios": 5,
           "turbo": true,
           "estrelas": [
@@ -1206,11 +1810,12 @@
             },
             {
               "tipo": "volta",
-              "valor": 8.02
+              "valor": 8.04
             },
             {
               "tipo": "volta",
-              "valor": 7.8
+              "valor": 7.73,
+              "dono": "Felix Badar"
             }
           ]
         },
@@ -1222,8 +1827,8 @@
             "nacional-2"
           ],
           "pista": "nacional-3",
-          "voltas": 4,
-          "ia": 120,
+          "voltas": 6,
+          "ia": 150,
           "adversarios": 5,
           "turbo": true,
           "estrelas": [
@@ -1249,8 +1854,8 @@
             "nacional-2"
           ],
           "pista": "",
-          "voltas": 4,
-          "ia": 120,
+          "voltas": 5,
+          "ia": 150,
           "adversarios": 3,
           "turbo": true,
           "pecas": [
@@ -1295,8 +1900,8 @@
             "nacional-2"
           ],
           "pista": "nacional-4",
-          "voltas": 4,
-          "ia": 125,
+          "voltas": 6,
+          "ia": 155,
           "adversarios": 5,
           "turbo": true,
           "estrelas": [
@@ -1335,15 +1940,16 @@
           "estrelas": [
             {
               "tipo": "volta",
-              "valor": 8.26
+              "valor": 8.02
             },
             {
               "tipo": "volta",
-              "valor": 7.8
+              "valor": 7.73
             },
             {
               "tipo": "volta",
-              "valor": 7.52
+              "valor": 7.43,
+              "dono": "Felix Badar"
             }
           ]
         },
@@ -1355,8 +1961,8 @@
             "nacional-6"
           ],
           "pista": "nacional-7",
-          "voltas": 5,
-          "ia": 115,
+          "voltas": 6,
+          "ia": 150,
           "adversarios": 5,
           "turbo": true,
           "estrelas": [
@@ -1385,8 +1991,8 @@
             "nacional-6"
           ],
           "pista": "nacional-5",
-          "voltas": 5,
-          "ia": 130,
+          "voltas": 6,
+          "ia": 160,
           "adversarios": 5,
           "turbo": true,
           "estrelas": [
@@ -1403,22 +2009,243 @@
               "valor": 0
             }
           ],
-          "atraso": 2.0,
+          "atraso": 2,
           "regras": [
             "atrasada"
           ]
+        },
+        {
+          "id": "nacional-elim",
+          "nome": "Sobrevivência",
+          "tipo": "desafio",
+          "depois": [
+            "nacional-abismo"
+          ],
+          "pista": "nacional-c1",
+          "voltas": 50,
+          "ia": 150,
+          "adversarios": 7,
+          "turbo": true,
+          "regras": [
+            "eliminacao"
+          ],
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semSair",
+              "valor": 0
+            }
+          ],
+          "intervalo": 12
+        },
+        {
+          "id": "nacional-resist",
+          "nome": "24 Voltas",
+          "tipo": "corrida",
+          "depois": [
+            "nacional-elim"
+          ],
+          "pista": "nacional-c3",
+          "voltas": 20,
+          "ia": 152,
+          "adversarios": 7,
+          "turbo": true,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semSair",
+              "valor": 1
+            }
+          ]
+        },
+        {
+          "id": "nacional-rei",
+          "nome": "Rei do Estádio",
+          "tipo": "corrida",
+          "depois": [
+            "nacional-serra",
+            "nacional-final"
+          ],
+          "pista": "nacional-1",
+          "voltas": 8,
+          "ia": 155,
+          "adversarios": 5,
+          "turbo": true,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "lider",
+              "valor": 40
+            }
+          ]
+        },
+        {
+          "id": "nacional-meio",
+          "nome": "Copa das Capitais",
+          "tipo": "campeonato",
+          "depois": [
+            "nacional-resist",
+            "nacional-rei"
+          ],
+          "pista": "",
+          "voltas": 3,
+          "ia": 0,
+          "adversarios": 0,
+          "turbo": true,
+          "etapas": [
+            "nacional-2",
+            "nacional-3",
+            "nacional-6"
+          ],
+          "pilotos": [
+            {
+              "nome": "O Campeão",
+              "cor": "#F2B705",
+              "ia": 165,
+              "carro": {
+                "motor": 1,
+                "bolha": 1,
+                "pneu": 1,
+                "chassi": 2,
+                "nitro": 0,
+                "modelo": 2
+              },
+              "estilo": "agressivo"
+            },
+            {
+              "nome": "Dr. Curva",
+              "cor": "#9333EA",
+              "ia": 158,
+              "carro": {
+                "motor": 0,
+                "bolha": 1,
+                "pneu": 1,
+                "chassi": 0,
+                "nitro": 0,
+                "modelo": 1
+              },
+              "estilo": "constante"
+            },
+            {
+              "nome": "Marina Faísca",
+              "cor": "#E04B95",
+              "ia": 155,
+              "carro": {
+                "motor": 1,
+                "bolha": 2,
+                "pneu": 0,
+                "chassi": 1,
+                "nitro": 0,
+                "modelo": 1
+              },
+              "estilo": "agressivo"
+            },
+            {
+              "nome": "Nina Pistão",
+              "cor": "#A3E635",
+              "ia": 150,
+              "carro": {
+                "motor": 2,
+                "bolha": 2,
+                "pneu": 0,
+                "chassi": 1,
+                "nitro": 0,
+                "modelo": 0
+              },
+              "estilo": "nervoso"
+            },
+            {
+              "nome": "Rafa Turbo",
+              "cor": "#F97316",
+              "ia": 148,
+              "carro": {
+                "motor": 1,
+                "bolha": 0,
+                "pneu": 0,
+                "chassi": 0,
+                "nitro": 1,
+                "modelo": 0
+              },
+              "estilo": "agressivo"
+            },
+            {
+              "nome": "Dona Célia",
+              "cor": "#0EA5B7",
+              "ia": 146,
+              "carro": {
+                "motor": 0,
+                "bolha": 1,
+                "pneu": 1,
+                "chassi": 2,
+                "nitro": 0,
+                "modelo": 0
+              },
+              "estilo": "constante"
+            },
+            {
+              "nome": "Tio Beto",
+              "cor": "#8B5A2B",
+              "ia": 145,
+              "carro": {
+                "motor": 0,
+                "bolha": 0,
+                "pneu": 2,
+                "chassi": 2,
+                "nitro": 0,
+                "modelo": 1
+              },
+              "estilo": "constante"
+            }
+          ],
+          "premio": 1200,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "todasEtapas",
+              "valor": 0
+            }
+          ],
+          "porTempo": true,
+          "segundos": 160
         },
         {
           "id": "nacional-campeao",
           "nome": "O Campeão",
           "tipo": "rival",
           "depois": [
-            "nacional-serra",
-            "nacional-final"
+            "nacional-meio"
           ],
           "pista": "nacional-8",
           "voltas": 4,
-          "ia": 142,
+          "ia": 172,
           "adversarios": 1,
           "turbo": true,
           "rival": "O Campeão",
@@ -1447,7 +2274,145 @@
               "tipo": "semSair",
               "valor": 0
             }
-          ]
+          ],
+          "rivalEstilo": "agressivo"
+        },
+        {
+          "id": "nacional-convite",
+          "nome": "Convite: Felix Badar",
+          "tipo": "campeonato",
+          "depois": [
+            "nacional-campeao"
+          ],
+          "pista": "",
+          "voltas": 3,
+          "ia": 0,
+          "adversarios": 0,
+          "turbo": true,
+          "etapas": [
+            "nacional-4",
+            "nacional-7",
+            "nacional-8"
+          ],
+          "pilotos": [
+            {
+              "nome": "Felix Badar",
+              "cor": "#E5E7EB",
+              "ia": 192,
+              "carro": {
+                "motor": 1,
+                "bolha": 1,
+                "pneu": 1,
+                "chassi": 1,
+                "nitro": 1,
+                "modelo": 2
+              },
+              "estilo": "",
+              "nivel": 11
+            },
+            {
+              "nome": "O Campeão",
+              "cor": "#F2B705",
+              "ia": 172,
+              "carro": {
+                "motor": 1,
+                "bolha": 1,
+                "pneu": 1,
+                "chassi": 2,
+                "nitro": 0,
+                "modelo": 2
+              },
+              "estilo": "agressivo"
+            },
+            {
+              "nome": "Dr. Curva",
+              "cor": "#9333EA",
+              "ia": 165,
+              "carro": {
+                "motor": 0,
+                "bolha": 1,
+                "pneu": 1,
+                "chassi": 0,
+                "nitro": 0,
+                "modelo": 1
+              },
+              "estilo": "constante"
+            },
+            {
+              "nome": "Marina Faísca",
+              "cor": "#E04B95",
+              "ia": 160,
+              "carro": {
+                "motor": 1,
+                "bolha": 2,
+                "pneu": 0,
+                "chassi": 1,
+                "nitro": 0,
+                "modelo": 1
+              },
+              "estilo": "agressivo"
+            },
+            {
+              "nome": "Nina Pistão",
+              "cor": "#A3E635",
+              "ia": 158,
+              "carro": {
+                "motor": 2,
+                "bolha": 2,
+                "pneu": 0,
+                "chassi": 1,
+                "nitro": 0,
+                "modelo": 0
+              },
+              "estilo": "nervoso"
+            },
+            {
+              "nome": "Rafa Turbo",
+              "cor": "#F97316",
+              "ia": 156,
+              "carro": {
+                "motor": 1,
+                "bolha": 0,
+                "pneu": 0,
+                "chassi": 0,
+                "nitro": 1,
+                "modelo": 0
+              },
+              "estilo": "agressivo"
+            },
+            {
+              "nome": "Dona Célia",
+              "cor": "#0EA5B7",
+              "ia": 155,
+              "carro": {
+                "motor": 0,
+                "bolha": 1,
+                "pneu": 1,
+                "chassi": 2,
+                "nitro": 0,
+                "modelo": 0
+              },
+              "estilo": "constante"
+            }
+          ],
+          "premio": 2000,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "todasEtapas",
+              "valor": 0
+            }
+          ],
+          "porTempo": true,
+          "segundos": 180,
+          "minEstrelas": 36
         },
         {
           "id": "nacional-gp",
@@ -1468,88 +2433,95 @@
             "nacional-c5"
           ],
           "porTempo": true,
-          "segundos": 160,
+          "segundos": 200,
           "pilotos": [
             {
               "nome": "Rafa Turbo",
               "cor": "#F97316",
-              "ia": 122,
+              "ia": 150,
               "carro": {
                 "motor": 1,
                 "bolha": 0,
                 "pneu": 0,
                 "chassi": 0
-              }
+              },
+              "estilo": "agressivo"
             },
             {
               "nome": "Dona Célia",
               "cor": "#0EA5B7",
-              "ia": 127,
+              "ia": 154,
               "carro": {
                 "motor": 0,
                 "bolha": 1,
                 "pneu": 1,
                 "chassi": 2
-              }
+              },
+              "estilo": "constante"
             },
             {
               "nome": "Marina Faísca",
               "cor": "#E04B95",
-              "ia": 130,
+              "ia": 158,
               "carro": {
                 "motor": 1,
                 "bolha": 2,
                 "pneu": 0,
                 "chassi": 1,
                 "modelo": 1
-              }
+              },
+              "estilo": "agressivo"
             },
             {
               "nome": "Tio Beto",
               "cor": "#8B5A2B",
-              "ia": 120,
+              "ia": 148,
               "carro": {
                 "motor": 0,
                 "bolha": 0,
                 "pneu": 2,
                 "chassi": 2,
                 "modelo": 1
-              }
+              },
+              "estilo": "constante"
             },
             {
               "nome": "Dr. Curva",
               "cor": "#9333EA",
-              "ia": 134,
+              "ia": 162,
               "carro": {
                 "motor": 0,
                 "bolha": 1,
                 "pneu": 1,
                 "chassi": 0,
                 "modelo": 1
-              }
+              },
+              "estilo": "constante"
             },
             {
               "nome": "Zé da Oficina",
               "cor": "#2563EB",
-              "ia": 117,
+              "ia": 146,
               "carro": {
                 "motor": 0,
                 "bolha": 0,
                 "pneu": 0,
                 "chassi": 0
-              }
+              },
+              "estilo": "nervoso"
             },
             {
               "nome": "O Campeão",
               "cor": "#F2B705",
-              "ia": 142,
+              "ia": 172,
               "carro": {
                 "motor": 1,
                 "bolha": 1,
                 "pneu": 1,
                 "chassi": 2,
                 "modelo": 2
-              }
+              },
+              "estilo": "agressivo"
             }
           ],
           "estrelas": [
@@ -1565,7 +2537,774 @@
               "tipo": "todasEtapas",
               "valor": 0
             }
+          ],
+          "premio": 2500
+        }
+      ],
+      "nivelIA": 8
+    },
+    {
+      "id": "global",
+      "nome": "Global",
+      "faixas": 8,
+      "estrelasRival": 30,
+      "estrelasAbrir": 130,
+      "nivelIA": 10,
+      "nos": [
+        {
+          "id": "global-1",
+          "nome": "Autódromo Mundial",
+          "tipo": "corrida",
+          "depois": [],
+          "pista": "global-1",
+          "voltas": 6,
+          "ia": 170,
+          "adversarios": 7,
+          "turbo": true,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semSair",
+              "valor": 0
+            }
           ]
+        },
+        {
+          "id": "global-2",
+          "nome": "Reta dos Recordes",
+          "tipo": "relogio",
+          "depois": [
+            "global-1"
+          ],
+          "pista": "global-2",
+          "voltas": 3,
+          "ia": 0,
+          "adversarios": 0,
+          "turbo": false,
+          "estrelas": [
+            {
+              "tipo": "volta",
+              "valor": 18.04
+            },
+            {
+              "tipo": "volta",
+              "valor": 17.37
+            },
+            {
+              "tipo": "volta",
+              "valor": 16.7,
+              "dono": "Felix Badar"
+            }
+          ]
+        },
+        {
+          "id": "global-3",
+          "nome": "Serra do Mundo",
+          "tipo": "corrida",
+          "depois": [
+            "global-2"
+          ],
+          "pista": "global-3",
+          "voltas": 6,
+          "ia": 175,
+          "adversarios": 7,
+          "turbo": true,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semSair",
+              "valor": 1
+            }
+          ]
+        },
+        {
+          "id": "global-oficina",
+          "nome": "Oficina Mundial",
+          "tipo": "construtor",
+          "depois": [
+            "global-2"
+          ],
+          "pista": "",
+          "voltas": 5,
+          "ia": 175,
+          "adversarios": 5,
+          "turbo": true,
+          "pecas": [
+            "reta-curta",
+            "reta-comprida",
+            "reta-curtinha",
+            "curva-longa",
+            "meia-curva",
+            "curva-longa-inclinada",
+            "curva-curta-inclinada",
+            "cruzamento",
+            "cruzamento-curto",
+            "curva-c",
+            "salto",
+            "loop"
+          ],
+          "rampas": true,
+          "maxPecas": 64,
+          "exigir": [
+            "loop"
+          ],
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semSair",
+              "valor": 0
+            }
+          ]
+        },
+        {
+          "id": "global-elim",
+          "nome": "Sobrevivência Mundial",
+          "tipo": "desafio",
+          "depois": [
+            "global-3",
+            "global-oficina"
+          ],
+          "pista": "global-c1",
+          "voltas": 50,
+          "ia": 178,
+          "adversarios": 7,
+          "turbo": true,
+          "regras": [
+            "eliminacao"
+          ],
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semSair",
+              "valor": 0
+            }
+          ],
+          "intervalo": 12
+        },
+        {
+          "id": "global-6",
+          "nome": "Viaduto Infinito",
+          "tipo": "relogio",
+          "depois": [
+            "global-elim"
+          ],
+          "pista": "global-6",
+          "voltas": 3,
+          "ia": 0,
+          "adversarios": 0,
+          "turbo": false,
+          "estrelas": [
+            {
+              "tipo": "volta",
+              "valor": 15.16
+            },
+            {
+              "tipo": "volta",
+              "valor": 14.6
+            },
+            {
+              "tipo": "volta",
+              "valor": 14.04,
+              "dono": "Felix Badar"
+            }
+          ]
+        },
+        {
+          "id": "global-chuva",
+          "nome": "Tempestade",
+          "tipo": "desafio",
+          "depois": [
+            "global-6"
+          ],
+          "pista": "global-5",
+          "voltas": 6,
+          "ia": 175,
+          "adversarios": 7,
+          "turbo": true,
+          "regras": [
+            "molhada"
+          ],
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semSair",
+              "valor": 1
+            }
+          ]
+        },
+        {
+          "id": "global-perseg",
+          "nome": "Perseguição",
+          "tipo": "desafio",
+          "depois": [
+            "global-6"
+          ],
+          "pista": "global-4",
+          "voltas": 6,
+          "ia": 185,
+          "adversarios": 1,
+          "turbo": true,
+          "regras": [
+            "atrasada"
+          ],
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 2
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semTurbo",
+              "valor": 0
+            }
+          ],
+          "atraso": 3.5
+        },
+        {
+          "id": "global-resist",
+          "nome": "Resistência Mundial",
+          "tipo": "corrida",
+          "depois": [
+            "global-chuva",
+            "global-perseg"
+          ],
+          "pista": "global-9",
+          "voltas": 20,
+          "ia": 178,
+          "adversarios": 7,
+          "turbo": true,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semSair",
+              "valor": 1
+            }
+          ]
+        },
+        {
+          "id": "global-rei",
+          "nome": "Rei do Mundo",
+          "tipo": "corrida",
+          "depois": [
+            "global-resist"
+          ],
+          "pista": "global-7",
+          "voltas": 10,
+          "ia": 182,
+          "adversarios": 5,
+          "turbo": true,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "lider",
+              "valor": 45
+            }
+          ]
+        },
+        {
+          "id": "global-copa",
+          "nome": "Copa Global",
+          "tipo": "campeonato",
+          "depois": [
+            "global-rei"
+          ],
+          "pista": "",
+          "voltas": 3,
+          "ia": 0,
+          "adversarios": 0,
+          "turbo": true,
+          "etapas": [
+            "global-c1",
+            "global-c2",
+            "global-3"
+          ],
+          "pilotos": [
+            {
+              "nome": "Sofia Lindqvist",
+              "cor": "#38BDF8",
+              "ia": 182,
+              "carro": {
+                "motor": 2,
+                "bolha": 2,
+                "pneu": 0,
+                "chassi": 0,
+                "nitro": 1,
+                "modelo": 1
+              },
+              "estilo": "constante"
+            },
+            {
+              "nome": "Mateo Ruiz",
+              "cor": "#EF4444",
+              "ia": 180,
+              "carro": {
+                "motor": 1,
+                "bolha": 1,
+                "pneu": 1,
+                "chassi": 1,
+                "nitro": 1,
+                "modelo": 2
+              },
+              "estilo": "agressivo"
+            },
+            {
+              "nome": "Aiko Tanabe",
+              "cor": "#F472B6",
+              "ia": 184,
+              "carro": {
+                "motor": 0,
+                "bolha": 1,
+                "pneu": 1,
+                "chassi": 1,
+                "nitro": 2,
+                "modelo": 1
+              },
+              "estilo": "constante"
+            },
+            {
+              "nome": "Lukas Brandt",
+              "cor": "#94A3B8",
+              "ia": 178,
+              "carro": {
+                "motor": 2,
+                "bolha": 0,
+                "pneu": 2,
+                "chassi": 2,
+                "nitro": 0,
+                "modelo": 2
+              },
+              "estilo": "normal"
+            },
+            {
+              "nome": "Chloé Marchand",
+              "cor": "#3B82F6",
+              "ia": 176,
+              "carro": {
+                "motor": 1,
+                "bolha": 2,
+                "pneu": 1,
+                "chassi": 0,
+                "nitro": 1,
+                "modelo": 1
+              },
+              "estilo": "nervoso"
+            },
+            {
+              "nome": "O Campeão",
+              "cor": "#F2B705",
+              "ia": 174,
+              "carro": {
+                "motor": 1,
+                "bolha": 1,
+                "pneu": 1,
+                "chassi": 2,
+                "nitro": 0,
+                "modelo": 2
+              },
+              "estilo": "agressivo"
+            },
+            {
+              "nome": "Dr. Curva",
+              "cor": "#9333EA",
+              "ia": 172,
+              "carro": {
+                "motor": 0,
+                "bolha": 1,
+                "pneu": 1,
+                "chassi": 0,
+                "nitro": 0,
+                "modelo": 1
+              },
+              "estilo": "constante"
+            }
+          ],
+          "premio": 2500,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "todasEtapas",
+              "valor": 0
+            }
+          ],
+          "porTempo": true,
+          "segundos": 200
+        },
+        {
+          "id": "global-felix",
+          "nome": "Felix Badar",
+          "tipo": "rival",
+          "depois": [
+            "global-copa"
+          ],
+          "pista": "global-8",
+          "voltas": 6,
+          "ia": 200,
+          "adversarios": 1,
+          "turbo": true,
+          "rival": "Felix Badar",
+          "rivalCor": "#E5E7EB",
+          "rivalCarro": {
+            "motor": 2,
+            "bolha": 2,
+            "pneu": 0,
+            "chassi": 2,
+            "nitro": 1,
+            "modelo": 2
+          },
+          "rivalEstilo": "",
+          "baterias": 5,
+          "rivalFrase": "Eu não corro contra você. Corro contra o relógio.",
+          "rivalVitoria": "Volte quando o relógio tiver medo de você.",
+          "rivalDerrota": "Faz trinta anos que ninguém me passa. A mesa agora é sua.",
+          "estrelas": [
+            {
+              "tipo": "serie",
+              "valor": 0
+            },
+            {
+              "tipo": "invicto",
+              "valor": 0
+            },
+            {
+              "tipo": "semSair",
+              "valor": 0
+            }
+          ],
+          "rivalNivel": 11
+        },
+        {
+          "id": "global-convite",
+          "nome": "Lendas",
+          "tipo": "campeonato",
+          "depois": [
+            "global-felix"
+          ],
+          "pista": "",
+          "voltas": 3,
+          "ia": 0,
+          "adversarios": 0,
+          "turbo": true,
+          "etapas": [
+            "global-2",
+            "global-6",
+            "global-4"
+          ],
+          "pilotos": [
+            {
+              "nome": "Felix Badar",
+              "cor": "#E5E7EB",
+              "ia": 200,
+              "carro": {
+                "motor": 1,
+                "bolha": 1,
+                "pneu": 1,
+                "chassi": 1,
+                "nitro": 1,
+                "modelo": 2
+              },
+              "estilo": "",
+              "nivel": 11
+            },
+            {
+              "nome": "Sofia Lindqvist",
+              "cor": "#38BDF8",
+              "ia": 192,
+              "carro": {
+                "motor": 2,
+                "bolha": 2,
+                "pneu": 0,
+                "chassi": 0,
+                "nitro": 1,
+                "modelo": 1
+              },
+              "estilo": "constante"
+            },
+            {
+              "nome": "Mateo Ruiz",
+              "cor": "#EF4444",
+              "ia": 190,
+              "carro": {
+                "motor": 1,
+                "bolha": 1,
+                "pneu": 1,
+                "chassi": 1,
+                "nitro": 1,
+                "modelo": 2
+              },
+              "estilo": "agressivo"
+            },
+            {
+              "nome": "Aiko Tanabe",
+              "cor": "#F472B6",
+              "ia": 194,
+              "carro": {
+                "motor": 0,
+                "bolha": 1,
+                "pneu": 1,
+                "chassi": 1,
+                "nitro": 2,
+                "modelo": 1
+              },
+              "estilo": "constante"
+            },
+            {
+              "nome": "Lukas Brandt",
+              "cor": "#94A3B8",
+              "ia": 188,
+              "carro": {
+                "motor": 2,
+                "bolha": 0,
+                "pneu": 2,
+                "chassi": 2,
+                "nitro": 0,
+                "modelo": 2
+              },
+              "estilo": "normal"
+            },
+            {
+              "nome": "Chloé Marchand",
+              "cor": "#3B82F6",
+              "ia": 186,
+              "carro": {
+                "motor": 1,
+                "bolha": 2,
+                "pneu": 1,
+                "chassi": 0,
+                "nitro": 1,
+                "modelo": 1
+              },
+              "estilo": "nervoso"
+            },
+            {
+              "nome": "O Campeão",
+              "cor": "#F2B705",
+              "ia": 184,
+              "carro": {
+                "motor": 1,
+                "bolha": 1,
+                "pneu": 1,
+                "chassi": 2,
+                "nitro": 0,
+                "modelo": 2
+              },
+              "estilo": "agressivo"
+            }
+          ],
+          "premio": 3500,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "todasEtapas",
+              "valor": 0
+            }
+          ],
+          "porTempo": true,
+          "segundos": 200,
+          "minEstrelas": 36
+        },
+        {
+          "id": "global-mundial",
+          "nome": "Mundial",
+          "tipo": "campeonato",
+          "depois": [
+            "global-felix"
+          ],
+          "pista": "",
+          "voltas": 3,
+          "ia": 0,
+          "adversarios": 0,
+          "turbo": true,
+          "etapas": [
+            "global-c3",
+            "global-c4",
+            "global-c5",
+            "global-1",
+            "global-8"
+          ],
+          "pilotos": [
+            {
+              "nome": "Felix Badar",
+              "cor": "#E5E7EB",
+              "ia": 200,
+              "carro": {
+                "motor": 1,
+                "bolha": 1,
+                "pneu": 1,
+                "chassi": 1,
+                "nitro": 1,
+                "modelo": 2
+              },
+              "estilo": "",
+              "nivel": 11
+            },
+            {
+              "nome": "Sofia Lindqvist",
+              "cor": "#38BDF8",
+              "ia": 186,
+              "carro": {
+                "motor": 2,
+                "bolha": 2,
+                "pneu": 0,
+                "chassi": 0,
+                "nitro": 1,
+                "modelo": 1
+              },
+              "estilo": "constante"
+            },
+            {
+              "nome": "Mateo Ruiz",
+              "cor": "#EF4444",
+              "ia": 184,
+              "carro": {
+                "motor": 1,
+                "bolha": 1,
+                "pneu": 1,
+                "chassi": 1,
+                "nitro": 1,
+                "modelo": 2
+              },
+              "estilo": "agressivo"
+            },
+            {
+              "nome": "Aiko Tanabe",
+              "cor": "#F472B6",
+              "ia": 188,
+              "carro": {
+                "motor": 0,
+                "bolha": 1,
+                "pneu": 1,
+                "chassi": 1,
+                "nitro": 2,
+                "modelo": 1
+              },
+              "estilo": "constante"
+            },
+            {
+              "nome": "Lukas Brandt",
+              "cor": "#94A3B8",
+              "ia": 182,
+              "carro": {
+                "motor": 2,
+                "bolha": 0,
+                "pneu": 2,
+                "chassi": 2,
+                "nitro": 0,
+                "modelo": 2
+              },
+              "estilo": "normal"
+            },
+            {
+              "nome": "Chloé Marchand",
+              "cor": "#3B82F6",
+              "ia": 180,
+              "carro": {
+                "motor": 1,
+                "bolha": 2,
+                "pneu": 1,
+                "chassi": 0,
+                "nitro": 1,
+                "modelo": 1
+              },
+              "estilo": "nervoso"
+            },
+            {
+              "nome": "O Campeão",
+              "cor": "#F2B705",
+              "ia": 178,
+              "carro": {
+                "motor": 1,
+                "bolha": 1,
+                "pneu": 1,
+                "chassi": 2,
+                "nitro": 0,
+                "modelo": 2
+              },
+              "estilo": "agressivo"
+            }
+          ],
+          "premio": 5000,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "todasEtapas",
+              "valor": 0
+            }
+          ],
+          "porTempo": true,
+          "segundos": 240
         }
       ]
     }

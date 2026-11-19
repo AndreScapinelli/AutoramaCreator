@@ -205,6 +205,8 @@ const PIECES = {
   'curva-curta-inclinada-direita':  { kind:'c', angle:45, dir:1, bank:true },
   'curva-c-esquerda':    { kind:'c', angle:180, dir:-1, r:.5 },
   'curva-c-direita':     { kind:'c', angle:180, dir:1, r:.5 },
+  'curva-c-inclinada-esquerda': { kind:'c', angle:180, dir:-1, r:.5, bank:true },
+  'curva-c-inclinada-direita':  { kind:'c', angle:180, dir:1, r:.5, bank:true },
   'rampa-sobe':          { kind:'s', len:4, rise:1 },
   'rampa-desce':         { kind:'s', len:4, rise:-1 },
   'cruzamento':          { kind:'s', len:4, cross:true },

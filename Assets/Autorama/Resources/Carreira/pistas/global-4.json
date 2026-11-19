@@ -1,0 +1,198 @@
+{
+    "formato": "autorama-pista",
+    "versao": 1,
+    "nome": "Duplo Loop",
+    "autor": "",
+    "baixada": false,
+    "mesa": {
+        "w": 32,
+        "h": 23
+    },
+    "escalaCm": 15.0,
+    "largada": {
+        "x": 7.0,
+        "y": 2.5,
+        "h": 0.0,
+        "nivel": 0
+    },
+    "pecas": [
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "loop",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "curva-longa-inclinada",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "curva-longa-inclinada",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "loop",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "curva-longa-inclinada",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "curva-longa-inclinada",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-curta",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        }
+    ],
+    "atras": 0,
+    "faixas": 8
+}

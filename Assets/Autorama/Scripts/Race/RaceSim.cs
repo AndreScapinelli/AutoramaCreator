@@ -379,7 +379,7 @@ namespace Autorama
         public float hitFx;
         public Vector2? push;
         // piloto IA
-        public float aiM = -1f, aiT, offT;
+        public float aiM = -1f, aiT, offT, aiB;   // aiB: folga de derrapagem da lenda (sorteada com a coragem)
         public float load;                       // quanto da aderência a curva está pedindo (0 parado, 1 no limite); as marcas de pneu usam
     }
 
@@ -435,7 +435,8 @@ namespace Autorama
         public float? cutoff;                   // campeonato: a bateria acaba esse tanto depois da bandeirada do primeiro
         public float? bestT;                    // melhor volta da bateria até agora
         public const int MaxCars = 8;
-        public readonly int[] aiSkill = new int[MaxCars];   // 0: gente; 1–100: piloto IA com essa qualidade
+        public readonly int[] aiSkill = new int[MaxCars];   // 0: gente; 1–100: piloto IA com essa qualidade (101–200 só na carreira)
+        public readonly int[] aiStyle = new int[MaxCars];   // jeito do piloto IA (seção 92): 0 normal · 1 agressivo · 2 constante · 3 nervoso
         public readonly LanePath[] paths = new LanePath[MaxCars];
         public CarState[] cars { get; private set; } = { new CarState(), new CarState() };
         public readonly CarSetup[] setup = new CarSetup[MaxCars];   // ajuste de cada carro (seção 47); fica com o carro na troca de trilho
@@ -987,18 +988,77 @@ namespace Autorama
         static float AiReslotDelay(float sk) => 1.4f - 0.9f * Mathf.Min(sk, 1f);
         // Mestres (qualidade 101–150, só a carreira usa; seção 70): além da coragem maior, dosam o gatilho em vez de
         // soltar o botão para frear, como o piloto do SetupCalib. De 1 a 100 nada muda.
-        public const int AiMaxSkill = 150;
+        public const int AiMaxSkill = 200;
         public static float AiMasterBand = 1.03f, AiMasterSlip = 0.6f, AiMasterLo = 0.85f, AiMasterHi = 1.06f;   // topo: 1,15 × 1,06 + 0,02 < 1,25 (acima disso é o "erro" da IA)
+        // Lendas (151–200, seção 92): a velocidade de cada curva vem da folga de derrapagem, como o piloto ótimo. No
+        // resto da curva a derrapagem enche (r − 1) × SlipGain × Slip por segundo, com r = (v / limite)²; a lenda entra
+        // tão rápido quanto deixa a derrapagem chegar ao fim da curva em LegendLo…LegendHi (151 → 200). Curva curta
+        // aceita entrar bem acima do limite; curva comprida, pouco.
+        public static float LegendLo = 0.55f, LegendHi = 0.86f, LegendTail = 8f;
+        public const int StyleNormal = 0, StyleAgressivo = 1, StyleConstante = 2, StyleNervoso = 3;
+        static readonly float[] aiK = new float[256], aiRest = new float[256];
+
+        // Cruzamento (troca de faixa, seção 92): todos os trilhos passam pelo meio da peça. Se outro carro chega lá quase
+        // junto (CrossGap s), quem não tem a vez tira o pé até ele passar: a vez é de quem chega antes; empatados, de
+        // gente e depois do carro de número menor. Sem isso, na largada com o cruzamento logo à frente, batiam todos.
+        public static float CrossGap = 0.35f, CrossLift = 0.6f, CrossFloor = 2f;
+        float CrossYield(int k, float dc)
+        {
+            var c = cars[k];
+            // Na própria rampa de salto (pousando) ou com alguém colado atrás no mesmo trilho, frear causa a batida.
+            if (PathOf(k).At(c.s).def.IsJump) return float.PositiveInfinity;
+            float tot = PathOf(k).Total;
+            for (int j = 0; j < N; j++)
+                if (j != k && present[j] && cars[j].lane == c.lane && cars[j].mode == CarMode.OnSlot && Mathf.Repeat(c.s - cars[j].s, tot) < 1.2f * Scale)
+                    return float.PositiveInfinity;
+            var x0 = PathOf(k).At(c.s + dc).pos;
+            float vMin = 0.5f * Speed, tMe = dc / Mathf.Max(c.v, vMin);
+            for (int j = 0; j < N; j++)
+            {
+                var o = cars[j];
+                if (j == k || !present[j] || o.mode != CarMode.OnSlot || o.finish != null || o.lane == c.lane) continue;
+                var pj = PathOf(j).At(o.s);
+                var to = x0 - pj.pos;
+                float dj = to.magnitude;
+                if (dj > dc + 3f * Scale || Vector2.Dot(to, TrackMath.Dir(pj.heading)) <= 0f) continue;
+                float tj = dj / Mathf.Max(o.v, vMin);
+                bool theirs = tj < tMe - 0.02f || Mathf.Abs(tj - tMe) <= 0.02f && (aiSkill[j] == 0 || j < k);
+                if (theirs && tMe - tj < CrossGap) return Mathf.Max(c.v * CrossLift, CrossFloor * Speed);   // nunca até parar: dois cedendo um ao outro travavam
+            }
+            return float.PositiveInfinity;
+        }
+
+        // Pressão (seção 92): alguém menos de `cells` células atrás, no mesmo ponto da volta, em qualquer trilho.
+        bool Pressed(int k, float cells)
+        {
+            float me = Dist(k), tot = PathOf(k).Total / Scale;
+            for (int j = 0; j < N; j++)
+            {
+                if (j == k || !present[j] || cars[j].finish != null) continue;
+                float gap = (me - Dist(j)) * tot;
+                if (gap > 0f && gap < cells) return true;
+            }
+            return false;
+        }
 
         void AiDrive(int k, float dt)
         {
             var c = cars[k];
             float sk = aiSkill[k] / 100f;
+            int style = aiStyle[k];
+            bool legend = sk > 1.5f;
             if (phase == Phase.Countdown) { c.held = true; return; }        // segura na luz vermelha, como gente
             if ((c.aiT -= dt) <= 0f || c.aiM < 0f)
             {
-                c.aiM = UnityEngine.Random.value < AiMiss(sk) ? 1.3f + 0.1f * UnityEngine.Random.value
-                                                               : AiBase(sk) + (UnityEngine.Random.value * 2f - 1f) * AiSpread(sk);
+                // Jeito: o agressivo arrisca mais e erra mais; o constante quase não varia; o nervoso erra com alguém colado.
+                bool pressed = style == StyleNervoso && Pressed(k, 1.5f);
+                float miss = AiMiss(sk) * (style == StyleAgressivo ? 2f : style == StyleConstante ? 0.3f : pressed ? 6f : 1f);
+                float spread = AiSpread(sk) * (style == StyleConstante ? 0.4f : pressed ? 2f : 1f);
+                float bold = style == StyleAgressivo ? 0.015f : style == StyleConstante ? -0.01f : 0f;
+                c.aiM = UnityEngine.Random.value < miss ? 1.3f + 0.1f * UnityEngine.Random.value
+                                                         : Mathf.Min(1.24f, AiBase(Mathf.Min(sk, 1.5f)) + bold + (UnityEngine.Random.value * 2f - 1f) * spread);
+                if (legend) c.aiB = Mathf.Lerp(LegendLo, LegendHi, (sk - 1.5f) * 2f) * (1f + (UnityEngine.Random.value * 2f - 1f) * spread)
+                        + (style == StyleAgressivo ? 0.05f : style == StyleConstante ? -0.03f : 0f);
                 c.aiT = AiEvery;
             }
             if (c.mode == CarMode.Off) { c.held = false; if ((c.offT += dt) >= AiReslotDelay(sk)) { c.offT = 0f; Reslot(k); } return; }
@@ -1006,28 +1066,62 @@ namespace Autorama
             var P = PathOf(k);
             // Velocidades × Speed e freio × G, como na física.
             float m = c.aiM;
-            float need = float.PositiveInfinity;
+            bool miss1 = m > 1.25f;
+            float need = float.PositiveInfinity, needCurve = float.PositiveInfinity;   // needCurve: só o que as curvas pedem
             bool jumpNear = false;
-            for (float d = 0f; d <= AiLook * Scale; d += 0.1f * Scale)
+            float step = 0.1f * Scale;
+            int n = Mathf.Min(aiK.Length, Mathf.CeilToInt((AiLook + LegendTail) / 0.1f) + 1);
+            // Lenda: a curvatura à frente e quanto falta das curvas seguidas (sem reta no meio) a partir de cada ponto.
+            if (legend)
             {
+                for (int i = 0; i < n; i++) aiK[i] = P.At(c.s + i * step).k;
+                float rest = 0f;
+                for (int i = n - 1; i >= 0; i--)
+                {
+                    bool same = i + 1 < n && aiK[i] != 0f && aiK[i + 1] != 0f;   // curvas encostadas (chicane) contam como uma: a derrapagem não tem reta para baixar
+                    rest = aiK[i] == 0f ? 0f : same ? rest + step : step;
+                    aiRest[i] = rest;
+                }
+            }
+            bool here = true;                                   // ainda na curva em que o carro está agora
+            float crossD = -1f, crossLen = 0f;                  // o próximo cruzamento (troca de faixa) à frente
+            for (int i = 0; i * step <= AiLook * Scale; i++)
+            {
+                float d = i * step;
                 var q = P.At(c.s + d);
+                if (i > 0 && q.k == 0f) here = false;
                 // Rampa de salto: chega na ponta a JumpAi (um pouco mais ou menos conforme a coragem; no erro, rápido demais).
                 if (q.jump && q.slope > 0f)
                 {
-                    float vj = JumpAi[Mathf.RoundToInt(q.def.Gap) - 1] * Speed * (m > 1.25f ? m : Mathf.Clamp(m, 0.9f, 1.1f));
+                    float vj = JumpAi[Mathf.RoundToInt(q.def.Gap) - 1] * Speed * (miss1 ? m : Mathf.Clamp(m, 0.9f, 1.1f));
                     need = Mathf.Min(need, Mathf.Sqrt(vj * vj + 2f * AiBrake * G * d));
                     jumpNear = true;
                 }
+                if (crossD < 0f && q.def.IsCross) { crossD = i == 0 ? 0f : d; crossLen = q.def.CenterLength * Scale; }
                 if (q.k == 0f) continue;
                 // Curva em C (seção 50.3): entra no limite (sem contar com a derrapagem) e freia mais cedo, porque o freio
                 // perde força em baixa velocidade e a C pede quase parar.
-                bool pin = q.def.IsHairpin && m <= 1.25f;
-                float v = CarSetup.CurveV(set.grip * G * setup[k].Grip * q.grip, Mathf.Abs(q.k), setup[k].Aero, set.vmax * Speed) * (pin ? Mathf.Min(m, 1f) : m);
-                need = Mathf.Min(need, Mathf.Sqrt(v * v + 2f * (pin ? AiBrakePin : AiBrake) * G * d));
+                bool pin = q.def.IsHairpin && !miss1;
+                float lim = CarSetup.CurveV(set.grip * G * setup[k].Grip * q.grip, Mathf.Abs(q.k), setup[k].Aero, set.vmax * Speed);
+                float v;
+                if (legend && !miss1 && i < n)
+                {
+                    // A derrapagem de agora só pesa na curva em que o carro já está.
+                    float budget = Mathf.Max(0.05f, c.aiB - (here ? c.slip : 0f));
+                    float rate = SlipGain * setup[k].Slip * Mathf.Max(aiRest[i], step);
+                    float X = budget * lim / rate;
+                    float u = (X + Mathf.Sqrt(X * X + 4f)) * 0.5f;          // (u² − 1) / u = X, com u = v / limite
+                    v = lim * (pin ? Mathf.Min(u, 1.05f) : u);
+                }
+                else v = lim * (pin ? Mathf.Min(m, 1f) : m);
+                float vc = Mathf.Sqrt(v * v + 2f * (pin ? AiBrakePin : AiBrake) * G * d);
+                need = Mathf.Min(need, vc); needCurve = Mathf.Min(needCurve, vc);
             }
+            if (crossD > 0f && set.collide && !jumpNear) need = Mathf.Min(need, CrossYield(k, crossD + crossLen * 0.5f));
             // Dentro do loop não deixa a velocidade cair abaixo de LoopAi, mesmo com curva logo depois.
             if (P.At(c.s).loop) need = Mathf.Max(need, LoopAi * Speed);
             c.held = c.v < need;
+            bool accel = c.held;
             // Chegando no salto ela não solta o botão: dosa o gatilho (1% ou 100%). Soltar e apertar de novo faz o
             // acelerador recomeçar do zero, e o carrinho chegaria na ponta da rampa devagar demais para cruzar o vão.
             float top = set.vmax * Speed * setup[k].Top;
@@ -1037,7 +1131,10 @@ namespace Autorama
                 // Derrapando muito, ou bem acima da velocidade pedida: freia de verdade, com o gatilho no mínimo.
                 // A derrapagem vem antes: na curva inclinada longa a velocidade "permitida" passa da máxima do carro.
                 // Chegando no salto, só a fração (frear forte ali faz decolar devagar e cair no vão; seção 75.1).
-                c.gas = c.slip > AiMasterSlip || (c.v > need * AiMasterBand && !jumpNear) ? 0.01f : c.held ? 1f : Mathf.Clamp(need / top, 0.01f, 1f);
+                // A lenda deixa a derrapagem chegar perto da folga dela antes de frear.
+                float slipMax = legend ? Mathf.Max(AiMasterSlip, c.aiB + 0.06f) : AiMasterSlip;
+                // Chegando no salto só não freia forte pelo salto: a curva antes da rampa ainda freia (seção 92; a Serra saía uma vez por volta).
+                c.gas = c.slip > slipMax || c.v > (jumpNear ? needCurve : need) * AiMasterBand ? 0.01f : c.held ? 1f : Mathf.Clamp(need / top, 0.01f, 1f);
                 c.held = true;
             }
             else
@@ -1047,8 +1144,14 @@ namespace Autorama
                 c.gas = jumpNear && !c.held ? Mathf.Clamp(need / top, 0.01f, 1f) : 1f;
                 if (jumpNear) c.held = true;
             }
-            // Turbo da IA: só quando nenhuma curva à frente pede freio nem na velocidade com turbo (retas longas).
-            c.boost = set.turbo && c.turbo > 0f && need > set.vmax * Speed * setup[k].Top * (1f + setup[k].Boost);
+            // Turbo da IA: quando nenhuma curva à frente pede freio nem na velocidade com turbo (retas longas). Mestres e
+            // lendas (seção 92) também usam na saída da curva, quando a próxima deixa ganhar o que o turbo dá, e com alguém
+            // colado atrás, para se defender (o constante guarda o tanque).
+            float boostTop = top * (1f + setup[k].Boost);
+            bool wide = need > boostTop;
+            bool exit = sk > 1f && accel && !jumpNear && need > c.v * (1f + setup[k].Boost) && c.v < boostTop;
+            bool defend = sk > 1f && accel && !jumpNear && style != StyleConstante && Pressed(k, 2f);
+            c.boost = set.turbo && c.turbo > 0f && (wide || exit || defend);
         }
 
         // Melhor volta da bateria só entre gente: piloto IA não bate recorde da pista.

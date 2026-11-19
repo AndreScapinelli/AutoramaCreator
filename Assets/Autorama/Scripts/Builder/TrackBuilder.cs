@@ -40,6 +40,8 @@ namespace Autorama
             new PaletteEntry(PieceCatalog.HalfB,  1,  0, Key.Digit0, L.N("Curva curta inclinada"), L.N("45° direita"), "icone-curva-curta-inclinada-direita"),
             new PaletteEntry(PieceCatalog.Hairpin,-1, 0, Key.G,      L.N("Curva em C"), L.N("180° esquerda"), "icone-curva-c-esquerda"),
             new PaletteEntry(PieceCatalog.Hairpin, 1, 0, Key.H,      L.N("Curva em C"), L.N("180° direita"), "icone-curva-c-direita"),
+            new PaletteEntry(PieceCatalog.HairpinB,-1,0, Key.N,      L.N("Curva em C inclinada"), L.N("180° esquerda"), "icone-curva-c-inclinada-esquerda"),
+            new PaletteEntry(PieceCatalog.HairpinB, 1,0, Key.M,      L.N("Curva em C inclinada"), L.N("180° direita"), "icone-curva-c-inclinada-direita"),
             new PaletteEntry(PieceCatalog.Long,   0,  1, Key.U,      L.N("Rampa"), L.N("sobe 1 nível"), "icone-rampa-sobe"),
             new PaletteEntry(PieceCatalog.Long,   0, -1, Key.D,      L.N("Rampa"), L.N("desce 1 nível"), "icone-rampa-desce"),
             new PaletteEntry(PieceCatalog.Loop,  -1,  0, Key.K,      L.N("Loop"), L.N("sai à esquerda"), "icone-loop-esquerda"),
@@ -164,7 +166,7 @@ namespace Autorama
             {
                 int at = InsertIndex;
                 if (at > FrontEnd) Tail++;                // inserida entre as peças de trás
-                pieces.Insert(at, new TrackPiece(e.def.Id, e.dir, e.rise));
+                pieces.Insert(at, new TrackPiece(e.def.Id, e.dir, e.rise) { incl = e.def.Banked ? PieceCatalog.NewBank : 0 });
                 if (Selected >= 0) Selected = at;         // continua encaixando em sequência
             });
         }
@@ -177,7 +179,7 @@ namespace Autorama
             Commit(() =>
             {
                 int at = FrontEnd;
-                pieces.Insert(at, new TrackPiece(e.def.Id, e.dir, 0));
+                pieces.Insert(at, new TrackPiece(e.def.Id, e.dir, 0) { incl = e.def.Banked ? PieceCatalog.NewBank : 0 });
                 Tail++;
                 if (Selected >= at) Selected++;
             });
@@ -234,6 +236,13 @@ namespace Autorama
             if (Selected <= 0 || !pieces[Selected].Def.IsHairpin) return;
             raio = Mathf.Clamp(raio, 1, PieceCatalog.MaxHairpin);
             if (raio != pieces[Selected].raio) Commit(() => pieces[Selected].raio = raio);
+        }
+
+        // Inclinação da curva inclinada selecionada, em graus (seção 50.7): só visual.
+        public void SetBank(int deg)
+        {
+            if (Selected <= 0 || !pieces[Selected].Def.Banked) return;
+            if (deg != (int)pieces[Selected].BankDeg) Commit(() => pieces[Selected].incl = deg);
         }
 
         // Sobe ou desce a largada um nível; a pista inteira vai junto (as rampas sobem e descem a partir dela).
@@ -448,6 +457,12 @@ namespace Autorama
             // Segue o estilo da pista: se ela usa mais curvas inclinadas, fecha com inclinadas.
             int banked = 0, plain = 0;
             foreach (var p in pieces) { var d = p.Def; if (d.IsCurve) { if (d.Banked) banked++; else plain++; } }
+            // As inclinadas do fechamento seguem a inclinação que a pista mais usa.
+            var votes = new Dictionary<int, int>();
+            foreach (var p in pieces) if (p.Def.Banked) { int g = (int)p.BankDeg; votes[g] = votes.TryGetValue(g, out int c) ? c + 1 : 1; }
+            int deg = PieceCatalog.NewBank, most = 0;
+            foreach (var kv in votes) if (kv.Value > most) { most = kv.Value; deg = kv.Key; }
+            TrackCloser.BankDeg = deg;
             // Fecha da ponta da frente até a ponta de trás (a largada, se não há peças atrás dela).
             int fe = FrontEnd;
             CloseJob = TrackCloser.Start(Origin, pieces.GetRange(0, fe), pieces.GetRange(fe, Tail), banked > plain, StartZ);
@@ -568,7 +583,7 @@ namespace Autorama
             int gdir = Back && !e.def.IsLoop ? -e.dir : e.dir, grise = Back ? 0 : e.rise;     // de ré a curva espelha; o loop, não
             var seg = new Segment
             {
-                index = -1, piece = new TrackPiece(e.def.Id, gdir, grise), def = TrackMath.Fit(e.def, InsertPose, gdir), a = InsertPose,
+                index = -1, piece = new TrackPiece(e.def.Id, gdir, grise) { incl = e.def.Banked ? PieceCatalog.NewBank : 0 }, def = TrackMath.Fit(e.def, InsertPose, gdir), a = InsertPose,
                 zIn = zIn, zOut = Mathf.Clamp(zIn + grise, 0, TrackMath.MaxLevel),
             };
             seg.b = TrackMath.PoseAt(seg.a, seg.def, gdir, 1f);

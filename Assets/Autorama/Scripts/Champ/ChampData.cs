@@ -22,6 +22,7 @@ namespace Autorama
         public int skill = 50;                   // qualidade do piloto IA, 1–100
         public string uid;                       // online: o id fixo do jogador (jogador.json ou "steam:…"); vazio no offline
         public CarSetup carro;                   // o ajuste do carro (seção 47); no campeonato, o da etapa em andamento (seção 48)
+        public int style, nivel;                 // nivel: carreira, garagem do piloto IA (0 = o da região)
         public Color Color => ColorUtility.TryParseHtmlString(color, out var c) ? c : Color.red;
         public Pilot Copy() => (Pilot)MemberwiseClone();
     }

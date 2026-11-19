@@ -15,7 +15,7 @@ Ordem sugerida: primeiro o que faz o jogo ser achado na Steam, depois o que apro
 
 ## 3. Pista
 - [ ] Chicane (S apertado numa peça; rever `TrackCloser`)
-- [ ] Grampo inclinado 180° (curva em C com inclinação; rever `TrackCloser`)
+- [x] Grampo inclinado 180° (curva em C com inclinação; rever `TrackCloser`)
 - [ ] Túnel (só visual, por cima de uma peça)
 - [ ] Cenário na mesa (arquibancada, boxes, pórtico de largada, árvores; sem física)
 

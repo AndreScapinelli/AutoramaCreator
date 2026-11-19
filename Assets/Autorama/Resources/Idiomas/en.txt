@@ -321,7 +321,6 @@ Ronco	Rumble
 Seu arquivo (motor.wav)	Your file (motor.wav)
 Motor curto	Short motor
 Motor longo	Long motor
-Da garagem ao campeonato nacional.	From the garage to the national championship.
 Voltar ao menu (Esc)	Back to the menu (Esc)
 ◀ Saves	◀ Saves
 Garagem do carro (G)	Car garage (G)
@@ -1160,7 +1159,6 @@ cruzamento e cruzamento curto	crossover and short crossover
 Subida e descida	Up and down
 rampas para ponte	ramps for bridges
 salto de vão 1	jump with a 1-cell gap
-curva em C (1 a 3 fileiras)	hairpin (1 to 3 rows)
 loop	loop
 Saltos grandes	Big jumps
 salto de vão 2 e 3	jumps with 2- and 3-cell gaps
@@ -1388,3 +1386,60 @@ Largada em {0} s	Start in {0} s
 Até a ponta ≈ {0} s	≈ {0} s to the end
 Volta ≈ {0} s	Lap ≈ {0} s
  · {0} voltas ≈ {1}:{2:00}	 · {0} laps ≈ {1}:{2:00}
+Curva em C inclinada	Banked hairpin
+curva em C plana e inclinada (1 a 3 fileiras)	flat and banked hairpin (1 to 3 rows)
+curva em C inclinada esquerda · direita	banked hairpin left · right
+Inclinação	Banking
+{0}°	{0}°
+Bater o recorde de {0} ({1})	Beat {0}'s record ({1})
+Liderar por {0:0} s	Lead for {0:0} s
+A cada {0:0} s o último sai da pista, até sobrar um	Every {0:0} s the last car is out, until one is left
+Da garagem ao Mundial.	From the garage to the World Championship.
+{0} abre com {1} estrelas nas regiões anteriores (você tem {2}).	{0} opens with {1} stars in the previous regions (you have {2}).
+Convite: faça {0} estrelas na região para abrir.	Invitation: get {0} stars in the region to open.
+Carros da IA no nível {0} da garagem	AI cars at garage level {0}
+Carro {0} eliminado · sobram {1}	Car {0} eliminated · {1} left
+\n<color=#F07A3A>Próxima eliminação em {0} s · {1} na pista</color>	\n<color=#F07A3A>Next elimination in {0} s · {1} on track</color>
+\n<color=#F5C21B>Na liderança: {0} s</color>	\n<color=#F5C21B>In the lead: {0} s</color>
+Último de pé: você venceu!	Last one standing: you won!
+Eliminado em {0}º lugar	Eliminated in {0}th place
+Prêmio do {0}º lugar: ◎ {1}	Prize for {0}th place: ◎ {1}
+Para abrir {0}: {1} estrelas nas regiões anteriores (você tem {2}).	To open {0}: {1} stars in the previous regions (you have {2}).
+\nCarros da IA no nível {0} da garagem	\nAI cars at garage level {0}
+\nPrêmios: 	\nPrizes: 
+{0}º ◎ {1}	{0}. ◎ {1}
+Rei da Garagem	King of the Garage
+Copinha da Garagem	Garage Mini Cup
+Sobrevivência	Survival
+Copa do Clube	Club Cup
+Nina Pistão	Nina Pistão
+Convite do Clube	Club Invitational
+Resistência	Endurance
+Copa do Interior	Countryside Cup
+Convite Regional	Regional Invitational
+24 Voltas	24 Laps
+Rei do Estádio	King of the Stadium
+Copa das Capitais	Capitals Cup
+Convite: Felix Badar	Invitational: Felix Badar
+Felix Badar	Felix Badar
+Global	Global
+Autódromo Mundial	World Circuit
+Reta dos Recordes	Record Straight
+Serra do Mundo	World Mountains
+Oficina Mundial	World Workshop
+Sobrevivência Mundial	World Survival
+Viaduto Infinito	Endless Viaduct
+Tempestade	Storm
+Resistência Mundial	World Endurance
+Rei do Mundo	King of the World
+Copa Global	Global Cup
+Sofia Lindqvist	Sofia Lindqvist
+Mateo Ruiz	Mateo Ruiz
+Aiko Tanabe	Aiko Tanabe
+Lukas Brandt	Lukas Brandt
+Chloé Marchand	Chloé Marchand
+Eu não corro contra você. Corro contra o relógio.	I don't race against you. I race against the clock.
+Volte quando o relógio tiver medo de você.	Come back when the clock is afraid of you.
+Faz trinta anos que ninguém me passa. A mesa agora é sua.	Nobody has passed me in thirty years. The table is yours now.
+Lendas	Legends
+Mundial	World Championship

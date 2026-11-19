@@ -49,7 +49,7 @@ namespace Autorama
             kSaves = El("k-full k-dim", kLayer);
             var sc = El("k-panel k-saves", kSaves);
             Text(L.T("CARREIRA"), "start-title", sc);
-            Text(L.T("Da garagem ao campeonato nacional."), "start-sub", sc);
+            Text(L.T("Da garagem ao Mundial."), "start-sub", sc);
             El("k-save-row", sc).name = "rows";
             Btn(L.T("Voltar ao menu (Esc)"), CareerExit, "btn start-btn", sc);
 
@@ -114,6 +114,7 @@ namespace Autorama
             if (kLayer == null || kLayer.style.display == DisplayStyle.None) return;
             kLayer.style.display = DisplayStyle.None;
             kPause = false;
+            System.Array.Clear(sim.aiStyle, 0, sim.aiStyle.Length);       // o jeito da IA é só da carreira
             ShowGarage(false);
             ClearPins();
             cam.SetTilted(kTiltWas);
@@ -189,7 +190,13 @@ namespace Autorama
         {
             int n = Career.Def.regioes.Length, r = kRegion + d;
             if (r < 0 || r >= n) { panel.Toast(L.T("As outras regiões ainda não estão prontas.")); return; }
-            if (!Career.RegionOpen(kSave, r)) { panel.Toast(L.T("Seja campeão desta região para abrir a próxima.")); return; }
+            if (!Career.RegionOpen(kSave, r))
+            {
+                bool champ = Career.RegionOpen(kSave, r - 1) && Career.StarsBefore(kSave, r) < Career.Def.regioes[r].estrelasAbrir && Career.Stars(kSave, Career.Def.regioes[r - 1].nos[Career.Def.regioes[r - 1].nos.Length - 1].id) >= 2;
+                panel.Toast(champ ? L.F("{0} abre com {1} estrelas nas regiões anteriores (você tem {2}).", Career.Def.regioes[r].nome, Career.Def.regioes[r].estrelasAbrir, Career.StarsBefore(kSave, r))
+                                  : L.T("Seja campeão desta região para abrir a próxima."));
+                return;
+            }
             kRegion = r;
             kSel = FirstOpen();
             kCard = false;
@@ -202,7 +209,7 @@ namespace Autorama
             var t = Career.Track("mapa-" + KRegion.id);
             sim.set = new RaceSettings { laps = 1, turbo = false };
             sim.cutoff = null;
-            for (int k = 0; k < RaceSim.MaxCars; k++) { sim.present[k] = k == 0; sim.aiSkill[k] = 0; sim.setup[k] = default; }
+            for (int k = 0; k < RaceSim.MaxCars; k++) { sim.present[k] = k == 0; sim.aiSkill[k] = 0; sim.aiStyle[k] = 0; sim.setup[k] = default; }
             if (t != null) builder.ShowTrack(t);
             sim.Reset();
             cam.SetRaceViewMode(TopDownCamera.RaceViewMode.Atual);
@@ -290,7 +297,10 @@ namespace Autorama
             if (i < 0 || i >= R.nos.Length) return;
             if (!Career.NodeOpen(kSave, R, R.nos[i]))
             {
-                panel.Toast(R.nos[i].tipo == "rival" ? L.F("Faça {0} estrelas na região para abrir.", R.estrelasRival) : L.T("Termine a prova anterior para abrir esta."));
+                var x = R.nos[i];
+                panel.Toast(x.tipo == "rival" && Career.RegionStars(kSave, R) < R.estrelasRival ? L.F("Faça {0} estrelas na região para abrir.", R.estrelasRival)
+                          : x.minEstrelas > 0 && Career.RegionStars(kSave, R) < x.minEstrelas ? L.F("Convite: faça {0} estrelas na região para abrir.", x.minEstrelas)
+                          : L.T("Termine a prova anterior para abrir esta."));
                 return;
             }
             if (i == kSel && kCard) { CareerRun(); return; }
@@ -321,10 +331,11 @@ namespace Autorama
             var t = Career.Track(n.pista);
             if (t != null) kCardBox.Add(new TrackThumb(t));
             Text($"{kSel + 1} · {n.nome}", "k-title", kCardBox);
-            Text(L.F("{0} · {1} voltas", TipoNome(n.tipo), n.voltas) + (n.tipo == "relogio" ? L.T(" · sem turbo") : L.F(" · contra {0} IA {1}", (n.adversarios == 1 ? L.T("1 piloto") : L.F("{0} pilotos", n.adversarios)), n.ia)), "k-sub", kCardBox);
+            Text((n.Has("eliminacao") ? TipoNome(n.tipo) : L.F("{0} · {1} voltas", TipoNome(n.tipo), n.voltas)) + (n.tipo == "relogio" ? L.T(" · sem turbo") : L.F(" · contra {0} IA {1}", (n.adversarios == 1 ? L.T("1 piloto") : L.F("{0} pilotos", n.adversarios)), n.ia)), "k-sub", kCardBox);
             if (n.tipo == "rival") Text(L.F("{0} · melhor de {1}, trocando de trilho", n.rival, n.baterias) + (string.IsNullOrEmpty(n.rivalFrase) ? "" : $"\n“{n.rivalFrase}”"), "k-rival", kCardBox);
             if (n.regras != null) foreach (var g in n.regras) Text("⚠ " + Career.RegraTexto(n, g), "k-rule", kCardBox);
             if (n.tipo == "construtor") Text(BuildRules(n), "k-rule", kCardBox);
+            if (KRegion.nivelIA > 0 && n.tipo != "relogio" && n.tipo != "campeonato") Text(L.F("Carros da IA no nível {0} da garagem", KRegion.nivelIA), "k-sub", kCardBox);
             if (n.tipo == "campeonato") Text(ChampCard(n), "k-rival", kCardBox);
             for (int i = 0; i < n.estrelas.Length; i++) Text($"{new string('★', i + 1)}  {Career.Texto(n.estrelas[i])}", "k-goal", kCardBox);
             var ns = Career.Of(kSave, n.id);
@@ -413,13 +424,20 @@ namespace Autorama
             };
             sim.cutoff = null;
             int ais = clock ? 0 : n.adversarios;
+            var t = n.tipo == "construtor" ? kBuilt : Career.Track(n.pista);
             for (int k = 0; k < RaceSim.MaxCars; k++)
             {
                 sim.present[k] = k <= ais;
                 sim.aiSkill[k] = k > 0 && k <= ais ? Mathf.Clamp(n.ia, 1, RaceSim.AiMaxSkill) : 0;
-                sim.setup[k] = k == 0 ? CarShop.RaceCar(kSave, n) : k == 1 && IsRival ? n.rivalCarro.Clamped : default;
+                // Seção 90: o rival com o carro e o jeito dele; os outros escolhem o carro pela pista e revezam o jeito.
+                // Todos com os níveis da garagem da região.
+                bool rival = k == 1 && IsRival;
+                sim.setup[k] = k == 0 ? CarShop.RaceCar(kSave, n)
+                             : k > ais ? default
+                             : Career.AiCar(rival ? n.rivalCarro : t != null ? AiCar(t, SeedOf(n.id, k)) : default, KRegion, rival ? n.rivalNivel : 0);
+                sim.aiStyle[k] = k == 0 || k > ais ? 0 : rival ? Career.Style(n.rivalEstilo) : Career.StyleOf(k);
             }
-            var t = n.tipo == "construtor" ? kBuilt : Career.Track(n.pista);
+            kElimT = 0f; kElimPos = 0; kLeadT = 0f; kLastT = 0f;
             if (t != null) builder.ShowTrack(t);
             ApplyCameraSettings();
             sim.Reset();
@@ -475,7 +493,12 @@ namespace Autorama
                 if (n.Has("turboLivre")) for (int k = 0; k < sim.N; k++) if (sim.present[k]) sim.cars[k].turbo = 1f;
                 // Sobrevivência: passou do limite de saídas, está fora.
                 if (n.Has("sobrevivencia") && me.offs > n.limite && !kSaved) kOut = true;
+                // Liderança (objetivo "lider", seção 92): o tempo de prova com o jogador na frente.
+                float dt = sim.t - kLastT;
+                if (dt > 0f && !IsChamp && Order()[0] == 0) kLeadT += dt;
+                if (n.Has("eliminacao") && !kSaved) EliminationTick(dt);
             }
+            kLastT = sim.t;
             DrawObjectives();
             if (sim.phase != RaceSim.Phase.Done && !kOut) return;
             if (!kSaved)
@@ -483,10 +506,30 @@ namespace Autorama
                 kSaved = true;
                 kDoneT = Time.unscaledTime;
                 var r = Result();
-                if (kOut) r.terminou = false;
+                if (kOut && kElimPos > 0) { r.terminou = true; r.posicao = kElimPos; r.tempo = sim.t; }   // eliminação: conta a posição em que saiu
+                else if (kOut) r.terminou = false;
                 if (IsChamp) ChampHeatDone(); else if (IsRival) Tally(r); else Finish(r);
             }
             if (Time.unscaledTime - kDoneT > 1.2f) ShowResult();       // um respiro depois da bandeirada
+        }
+
+        // Eliminação (seção 92): a cada intervalo, o último da prova sai (o trilho fica vazio). Se é o jogador, a prova
+        // acaba para ele na posição em que saiu; se sobra só ele, venceu.
+        float kElimT, kLeadT, kLastT;
+        int kElimPos;
+        void EliminationTick(float dt)
+        {
+            var n = KNode;
+            kElimT += Mathf.Max(0f, dt);
+            if (kElimT < n.intervalo) return;
+            kElimT -= n.intervalo;
+            var ord = Order();
+            int alive = ord.Count, last = ord[alive - 1];
+            if (alive <= 1) return;
+            if (last == 0) { kElimPos = alive; kOut = true; return; }
+            sim.present[last] = false;
+            panel.Toast(L.F("Carro {0} eliminado · sobram {1}", last + 1, alive - 1));
+            if (alive - 1 == 1) { kElimPos = 1; kOut = true; }
         }
 
         void Finish(ResultadoCorrida r)
@@ -534,7 +577,7 @@ namespace Autorama
             return new ResultadoCorrida
             {
                 terminou = c.finish.HasValue, posicao = ord.IndexOf(0) + 1, carros = ord.Count, saidas = c.offs,
-                turbo = kTurbo, melhorVolta = c.best ?? -1f, tempo = c.finish ?? sim.t, vitorias = kWins, derrotas = kLosses,
+                turbo = kTurbo, melhorVolta = c.best ?? -1f, tempo = c.finish ?? sim.t, vitorias = kWins, derrotas = kLosses, lider = kLeadT,
             };
         }
 
@@ -560,6 +603,7 @@ namespace Autorama
                     case "posicao": mark = r.terminou ? (r.posicao <= o.valor ? "✓" : "✗") : sim.phase == RaceSim.Phase.Running && r.posicao <= o.valor ? "↑" : "…"; break;
                     case "serie": mark = kWins >= need ? "✓" : kLosses >= need ? "✗" : "…"; break;
                     case "invicto": mark = kLosses > 0 ? "✗" : kWins >= need ? "✓" : "…"; break;
+                    case "lider": mark = kLeadT >= o.valor ? "✓" : r.terminou ? "✗" : "…"; break;
                     default: mark = r.terminou && Career.Cumpre(o, r) ? "✓" : "…"; break;
                 }
                 string color = mark == "✓" ? "#3DBE74" : mark == "✗" ? "#F07A3A" : "#94A197";
@@ -570,6 +614,9 @@ namespace Autorama
             if (n.Has("sobrevivencia")) sb.Append(L.F("\n<color={0}>Saídas {1} de {2}</color>", (sim.cars[0].offs >= n.limite ? "#F07A3A" : "#94A197"), sim.cars[0].offs, n.limite));
             if (n.Has("atrasada") && sim.phase == RaceSim.Phase.Running && sim.t < n.atraso) sb.Append(L.F("\n<color=#F07A3A>Você sai em {0} s</color>", Num(n.atraso - sim.t, 1)));
             if (n.Has("molhada")) sb.Append(L.T("\n<color=#50A0F0>Pista molhada</color>"));
+            if (n.Has("eliminacao") && sim.phase == RaceSim.Phase.Running && !kOut)
+                sb.Append(L.F("\n<color=#F07A3A>Próxima eliminação em {0} s · {1} na pista</color>", Mathf.CeilToInt(n.intervalo - kElimT), Order().Count));
+            foreach (var o in n.estrelas) if (o.tipo == "lider") { sb.Append(L.F("\n<color=#F5C21B>Na liderança: {0} s</color>", Mathf.FloorToInt(kLeadT))); break; }
             string sig = sb.ToString();
             if (sig == kObjSig) return;
             kObjSig = sig;
@@ -597,6 +644,8 @@ namespace Autorama
             if (kGot == 3) box.schedule.Execute(Fogos).ExecuteLater(1500);
             string head = IsChamp ? (kRes.posicao == 1 ? L.F("Campeão da {0}!", KRegion.nome) : L.F("Você terminou em {0}º · {1}", kRes.posicao, n.nome))
                 : IsRival ? (kWins > kLosses ? L.F("Você venceu a série · {0} × {1}", kWins, kLosses) : L.F("{0} venceu a série · {1} × {2}", n.rival, kLosses, kWins))
+                : kOut && kElimPos == 1 ? L.T("Último de pé: você venceu!")
+                : kOut && kElimPos > 1 ? L.F("Eliminado em {0}º lugar", kElimPos)
                 : kOut ? L.F("Fora: mais de {0} {1}", n.limite, (n.limite == 1 ? L.T("saída") : L.T("saídas")))
                 : n.tipo == "relogio" ? (kRes.melhorVolta >= 0f ? L.F("Melhor volta {0}", Fmt(kRes.melhorVolta)) : L.T("Nenhuma volta completa"))
                 : !kRes.terminou ? L.T("Não terminou") : L.F("{0}º lugar · {1}", kRes.posicao, Fmt(kRes.tempo));
@@ -607,6 +656,7 @@ namespace Autorama
                 if (!string.IsNullOrEmpty(fala)) Text($"{n.rival}: “{fala}”", "k-sub", box);
             }
             Text(kGot == 0 ? L.T("Não foi desta vez.") : kNew > 0 ? $"+{kNew} {(kNew == 1 ? L.T("estrela nova") : L.T("estrelas novas"))}" : L.T("Sem estrela nova."), "k-sub", box);
+            if (kPurse > 0) Text(L.F("Prêmio do {0}º lugar: ◎ {1}", kRes.posicao, kPurse), "k-coins", box);
             Text(L.F("+{0} moedas  ·  ◎ {1}  ·  gaste na garagem do carro (G no mapa)", kCoins, kSave.moedas), "k-coins", box);
             for (int i = 0; i < n.estrelas.Length; i++)
             {
@@ -618,8 +668,10 @@ namespace Autorama
             if (IsChamp && kFinalTable != null)
             {
                 ChampTable(box, kFinalChamp, kFinalTable);
-                if (kRes.posicao == 1)
-                    Text(kRegion + 1 < Career.Def.regioes.Length ? L.F("Abriu: {0} ({1} faixas)", Career.Def.regioes[kRegion + 1].nome, Career.Def.regioes[kRegion + 1].faixas) : L.T("As próximas regiões ainda estão sendo construídas."), "k-open", box);
+                if (kRes.posicao == 1 && Career.IsFinal(KRegion, n))
+                    Text(kRegion + 1 < Career.Def.regioes.Length && !Career.RegionOpen(kSave, kRegion + 1)
+                        ? L.F("Para abrir {0}: {1} estrelas nas regiões anteriores (você tem {2}).", Career.Def.regioes[kRegion + 1].nome, Career.Def.regioes[kRegion + 1].estrelasAbrir, Career.StarsBefore(kSave, kRegion + 1))
+                        : kRegion + 1 < Career.Def.regioes.Length ? L.F("Abriu: {0} ({1} faixas)", Career.Def.regioes[kRegion + 1].nome, Career.Def.regioes[kRegion + 1].faixas) : L.T("As próximas regiões ainda estão sendo construídas."), "k-open", box);
             }
             var row = El("row k-res-row", box);
             Btn(L.T("Correr de novo"), CareerRun, "btn", row);
@@ -703,7 +755,7 @@ namespace Autorama
         // ---------- construtor (seção 72) ----------
 
         bool kBuilding, kRunBuilt, kRunNext, kBackToMap;
-        int kCoins;
+        int kCoins, kPurse;
         readonly List<string> kModelsNew = new List<string>();
         TrackSave kUserTrack, kBuilt;
         VisualElement kBuildBox;

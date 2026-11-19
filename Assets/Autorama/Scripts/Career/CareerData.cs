@@ -16,6 +16,8 @@ namespace Autorama
         public string id, nome;
         public int faixas = 2;
         public int estrelasRival;   // estrelas da região para abrir o nó "rival"
+        public int estrelasAbrir;   // estrelas somadas das regiões anteriores para abrir esta (seção 92; 0 = só ser campeão da anterior)
+        public int nivelIA;         // nível da garagem dos carros da IA (0–10, seção 92): todas as trilhas da opção que eles usam
         public NodeDef[] nos;
     }
 
@@ -27,7 +29,7 @@ namespace Autorama
         public string[] depois;           // abre quando QUALQUER um destes tem 1 estrela (vazio: aberto desde o começo)
         public string pista;              // arquivo em Resources/Carreira/pistas, sem .json
         public int voltas = 3;
-        public int ia = 50;               // qualidade da IA, 1–100
+        public int ia = 50;               // qualidade da IA, 1–200 (101–150 mestres, 151–200 lendas; seção 92)
         public int adversarios = 1;       // carros da IA (no relógio: 0)
         public bool turbo = true;         // no relógio fica sempre desligado
         public Objetivo[] estrelas;       // 3: a 1ª é concluir; sem ela, nenhuma estrela
@@ -39,10 +41,14 @@ namespace Autorama
         public CarSetup carro;
         public int limite = 3;
         public float atraso = 2f;
+        public float intervalo = 20f;     // eliminacao (seção 92): a cada "intervalo" s o último sai, até sobrar um
+        public int minEstrelas;           // convite (seção 92): só abre com essas estrelas na região
 
         // Rival (seção 71): melhor de "baterias", trocando de trilho a cada uma. Nome, cor (#RRGGBB), carro e as falas.
         public string rival, rivalCor, rivalFrase, rivalVitoria, rivalDerrota;
         public CarSetup rivalCarro;
+        public int rivalNivel;            // nível da garagem só do rival (0: o da região; acima de 10 só o Felix, seção 92)
+        public string rivalEstilo;        // jeito do rival (seção 92): agressivo · constante · nervoso (vazio: normal)
         public int baterias = 3;
 
         // Construtor (seção 72): o jogador monta a pista e corre nela. pecas = ids permitidos; rampas = pode subir e
@@ -57,15 +63,17 @@ namespace Autorama
         // Por tempo (seção 75): uma bateria por etapa com todos, passando por todos os trilhos em manches de segundos/N.
         public bool porTempo;
         public int segundos = 120;
+        public int premio;                // prêmio em moedas do 1º lugar (seção 92); os outros, a fração de Career.PursePart
 
         public bool Has(string regra) => regras != null && System.Array.IndexOf(regras, regra) >= 0;
     }
 
-    [Serializable] public class PilotoDef { public string nome, cor; public int ia = 50; public CarSetup carro; }
+    [Serializable] public class PilotoDef { public string nome, cor, estilo; public int ia = 50, nivel; public CarSetup carro; }   // nivel: 0 = o da região
 
     // tipo: posicao (chegar até a posição valor) · semSair (no máximo valor saídas) · semTurbo · volta (melhor volta até valor s)
-    //       · tempo (prova inteira até valor s)
-    [Serializable] public class Objetivo { public string tipo; public float valor; }
+    //       · tempo (prova inteira até valor s) · lider (liderar valor s no total)
+    // dono: de quem é a marca (seção 92), só no texto: "Bater o recorde de Felix Badar (8,10)".
+    [Serializable] public class Objetivo { public string tipo, dono; public float valor; }
 
     // O que a corrida devolve ao fim, do ponto de vista do jogador (carro 0).
     public struct ResultadoCorrida
@@ -77,6 +85,7 @@ namespace Autorama
         public float tempo;
         public int vitorias, derrotas;   // só no rival: baterias ganhas e perdidas
         public int etapas, etapasVencidas;   // só no campeonato: posicao é a da tabela final
+        public float lider;                  // segundos na liderança (seção 92)
     }
 
     [Serializable] public class NodeSave { public string id; public int estrelas; public int melhorPos; public float melhorVolta = -1f; public string pista; }   // pista: a montada no nó de construtor (JSON)
@@ -133,6 +142,7 @@ namespace Autorama
                 case "serie": return r.terminou && r.vitorias > r.derrotas;
                 case "invicto": return r.terminou && r.vitorias > 0 && r.derrotas == 0;
                 case "todasEtapas": return r.terminou && r.etapas > 0 && r.etapasVencidas == r.etapas;
+                case "lider": return r.terminou && r.lider >= o.valor;
                 default: return false;
             }
         }
@@ -153,11 +163,12 @@ namespace Autorama
                 case "posicao": return o.valor <= 1 ? L.T("Vencer") : L.F("Chegar até o {0:0}º", o.valor);
                 case "semSair": return o.valor <= 0 ? L.T("Sem sair da pista") : L.F("No máximo {0:0} saídas", o.valor);
                 case "semTurbo": return L.T("Sem usar o turbo");
-                case "volta": return L.F("Volta abaixo de {0}", RaceController.Fmt(o.valor));
+                case "volta": return string.IsNullOrEmpty(o.dono) ? L.F("Volta abaixo de {0}", RaceController.Fmt(o.valor)) : L.F("Bater o recorde de {0} ({1})", o.dono, RaceController.Fmt(o.valor));
                 case "tempo": return L.F("Prova abaixo de {0}", RaceController.Fmt(o.valor));
                 case "serie": return L.T("Vencer a série");
                 case "invicto": return L.T("Vencer sem perder bateria");
                 case "todasEtapas": return L.T("Vencer todas as etapas");
+                case "lider": return L.F("Liderar por {0:0} s", o.valor);
                 default: return o.tipo;
             }
         }
@@ -173,6 +184,7 @@ namespace Autorama
                 case "sobrevivencia": return L.F("Mais de {0} {1} e você está fora", n.limite, (n.limite == 1 ? L.T("saída") : L.T("saídas")));
                 case "atrasada": return L.F("Você larga {0:0.#} s depois", n.atraso);
                 case "turboLivre": return L.T("Turbo sempre cheio, para todos");
+                case "eliminacao": return L.F("A cada {0:0} s o último sai da pista, até sobrar um", n.intervalo);
                 default: return regra;
             }
         }
@@ -213,14 +225,25 @@ namespace Autorama
         }
 
         // Região aberta: a primeira, ou a anterior com o último nó concluído; se ele é o campeonato, só sendo campeão (★★).
+        // Com estrelasAbrir (seção 92), também as estrelas somadas das regiões anteriores.
         public static bool RegionOpen(CareerSave s, int i)
         {
             if (i <= 0) return true;
             var prev = Def.regioes[i - 1];
             if (!RegionOpen(s, i - 1) || prev.nos.Length == 0) return false;
             var last = prev.nos[prev.nos.Length - 1];
-            return Stars(s, last.id) >= (last.tipo == "campeonato" ? 2 : 1);
+            return Stars(s, last.id) >= (last.tipo == "campeonato" ? 2 : 1) && StarsBefore(s, i) >= Def.regioes[i].estrelasAbrir;
         }
+
+        public static int StarsBefore(CareerSave s, int i)
+        {
+            int n = 0;
+            for (int r = 0; r < i && r < Def.regioes.Length; r++) n += RegionStars(s, Def.regioes[r]);
+            return n;
+        }
+
+        // O último nó da região (o campeonato que abre a próxima).
+        public static bool IsFinal(RegionDef r, NodeDef n) => r.nos.Length > 0 && r.nos[r.nos.Length - 1] == n;
 
         // O maior tamanho de pista (faixas) já conquistado num save: o da região mais longe aberta (para a corrida livre, depois).
         public static int FaixasAbertas(CareerSave s)
@@ -233,6 +256,7 @@ namespace Autorama
         public static bool NodeOpen(CareerSave s, RegionDef r, NodeDef n)
         {
             if (n.tipo == "rival" && RegionStars(s, r) < r.estrelasRival) return false;
+            if (n.minEstrelas > 0 && RegionStars(s, r) < n.minEstrelas) return false;
             if (n.depois == null || n.depois.Length == 0) return true;
             foreach (var d in n.depois) if (Stars(s, d) > 0) return true;
             return false;
@@ -259,7 +283,25 @@ namespace Autorama
         // vez; a corrida em si, 10 + 5 por carro que ficou atrás (metade a partir da 4ª vez seguida na mesma prova).
         public static readonly int[] StarPrize = { 50, 75, 100 };
         public const int RivalPrize = 300, RacePrize = 10, PlacePrize = 5, Streak = 3;
-        public static readonly int[] ChampPrize = { 500, 800, 1200, 2000 };
+        public static readonly int[] ChampPrize = { 500, 800, 1200, 2000, 3000 };   // campeão da região pela 1ª vez (só o último nó)
+        // Prêmio do campeonato por posição (seção 92): o 1º leva NodeDef.premio; os outros, esta fração dele. Paga toda vez.
+        public static readonly float[] PursePart = { 1f, 0.6f, 0.4f, 0.25f, 0.15f, 0.1f, 0.06f, 0.04f };
+        public static int Purse(NodeDef n, int pos) => n.premio <= 0 || pos < 1 || pos > PursePart.Length ? 0 : Mathf.RoundToInt(n.premio * PursePart[pos - 1] / 10f) * 10;
+
+        // Jeito do piloto IA (seção 92), do texto do carreira.json para RaceSim.aiStyle.
+        public static int Style(string e) => e == "agressivo" ? RaceSim.StyleAgressivo : e == "constante" ? RaceSim.StyleConstante : e == "nervoso" ? RaceSim.StyleNervoso : RaceSim.StyleNormal;
+        // Adversários sem nome: os jeitos se revezam pelo número do carro.
+        public static int StyleOf(int car) => (car - 1) % 4;
+
+        // Carro da IA com os níveis da garagem da região (seção 92): todas as trilhas no nível nivelIA.
+        public const int MaxNivelIA = 15;
+        public static CarSetup AiCar(CarSetup c, RegionDef r, int nivel = 0)
+        {
+            c = c.Clamped;
+            int lv = Mathf.Clamp(nivel > 0 ? nivel : r != null ? r.nivelIA : 0, 0, MaxNivelIA);
+            c.lvMotor = c.lvBolha = c.lvPneu = c.lvChassi = c.lvNitro = lv;
+            return c;
+        }
         static readonly int[] OldPrep = { 300, 600, 1000 };
 
         // Save de antes das moedas no save: as estrelas, rivais e títulos que ele já tem, pagos de uma vez.
@@ -284,7 +326,7 @@ namespace Autorama
                     int st = Stars(s, n.id);
                     for (int i = 0; i < st && i < StarPrize.Length; i++) s.moedas += StarPrize[i];
                     if (n.tipo == "rival" && st > 0) s.moedas += RivalPrize;
-                    if (n.tipo == "campeonato" && st >= 2) s.moedas += ChampPrize[Mathf.Clamp(r, 0, ChampPrize.Length - 1)];
+                    if (n.tipo == "campeonato" && st >= 2 && IsFinal(R[r], n)) s.moedas += ChampPrize[Mathf.Clamp(r, 0, ChampPrize.Length - 1)];
                 }
         }
 

@@ -1,0 +1,254 @@
+{
+    "formato": "autorama-pista",
+    "versao": 1,
+    "nome": "Reta dos Recordes",
+    "autor": "",
+    "baixada": false,
+    "mesa": {
+        "w": 50,
+        "h": 18
+    },
+    "escalaCm": 15.0,
+    "largada": {
+        "x": 9.0,
+        "y": 2.5,
+        "h": 0.0,
+        "nivel": 0
+    },
+    "pecas": [
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "salto",
+            "sentido": "",
+            "altura": "",
+            "vao": 3,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "curva-longa-inclinada",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "curva-curta-inclinada",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "curva-curta-inclinada",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "curva-longa-inclinada",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "curva-curta-inclinada",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "curva-curta-inclinada",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        }
+    ],
+    "atras": 0,
+    "faixas": 8
+}

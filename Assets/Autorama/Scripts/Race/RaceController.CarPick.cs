@@ -36,18 +36,34 @@ namespace Autorama
 
         // Robô: pista de muita curva, carro de curva (curto · asa · macio); de reta, carro de reta (longo · lisa · duro).
         // Chassi pesado nos dois: a IA freia pelo limite da curva e não arrisca, então o leve só tiraria a margem (seção 52).
-        public static CarSetup AiCar(TrackSave d)
+        public static CarSetup AiCar(TrackSave d, int seed = 0)
         {
             float curve = 0f, all = 0f;
             foreach (var p in d.pecas)
             {
                 string t = p.tipo ?? "";
-                float len = t == "curva-c" ? PieceCatalog.HairpinOf(p.raio).CenterLength : t.Contains("curva") ? 2.5f * (t.Contains("longa") ? 90f : 45f) * Mathf.Deg2Rad
+                float len = t == "curva-c" ? PieceCatalog.HairpinOf(p.raio).CenterLength : t == "curva-c-inclinada" ? PieceCatalog.HairpinBOf(p.raio).CenterLength : t.Contains("curva") ? 2.5f * (t.Contains("longa") ? 90f : 45f) * Mathf.Deg2Rad
                           : t.Contains("comprida") ? 4f : t.Contains("curtinha") ? 1f : 2f;
                 all += len;
                 if (t.Contains("curva")) curve += len;
             }
-            return all > 0f && curve / all >= 0.45f ? new CarSetup { motor = 1, bolha = 1, pneu = 1, chassi = 2 } : new CarSetup { motor = 2, bolha = 2, pneu = 2, chassi = 2 };
+            bool curvy = all > 0f && curve / all >= 0.45f;
+            if (seed == 0) return curvy ? new CarSetup { motor = 1, bolha = 1, pneu = 1, chassi = 2 } : new CarSetup { motor = 2, bolha = 2, pneu = 2, chassi = 2 };
+            // Cada piloto escolhe o seu (seção 92): em cada peça, a opção da pista em 55% das vezes, o padrão em 25% e a
+            // outra em 20%; o turbo e o modelo, sorteados. A semente é do piloto e da etapa: todos refazem igual.
+            var r = new System.Random(seed);
+            int good = curvy ? 1 : 2;
+            int Pick(int g) { double x = r.NextDouble(); return x < 0.55 ? g : x < 0.8 ? 0 : 3 - g; }
+            return new CarSetup { motor = Pick(good), bolha = Pick(good), pneu = Pick(good), chassi = Pick(2), nitro = r.Next(3), modelo = r.Next(3) };
+        }
+
+        // Semente estável de um texto (FNV-1a), para a escolha do carro de cada piloto IA.
+        public static int SeedOf(string id, int n)
+        {
+            uint h = 2166136261;
+            foreach (char ch in id ?? "") { h ^= ch; h *= 16777619; }
+            h ^= (uint)n; h *= 16777619;
+            return (int)(h & 0x7FFFFFFF) | 1;
         }
 
         // Aberta: a bateria da vez é a primeira de uma etapa ainda sem escolha, com a corrida parada.
@@ -63,7 +79,7 @@ namespace Autorama
         {
             carOkStage = s; carOk.Clear(); carPickSig = null;
             carPickSince = Time.realtimeSinceStartup; carSendAcc = carBcastAcc = 1f;
-            foreach (var p in C.pilots) if (p.ai) p.carro = AiCar(C.stages[s].data);
+            foreach (var p in C.pilots) if (p.ai) p.carro = AiCar(C.stages[s].data, SeedOf(C.id + p.id, s));
             ApplyChampCars();
         }
 

@@ -44,7 +44,9 @@ namespace Autorama
                     for (int g = 0; g < 12; g++)
                     {
                         sim.aiSkill[0] = pilot;
-                        for (int s = 0; s < 60 * 900 && sim.phase != RaceSim.Phase.Done && !(bool)F("kOut"); s++) sim.Step(1f / 60f);
+                        // Eliminação e liderança contam no CareerTick (seção 92): ele roda a cada passo nessas provas.
+                        bool tick = n.Has("eliminacao") || System.Array.Exists(n.estrelas, o => o.tipo == "lider");
+                        for (int s = 0; s < 60 * 900 && sim.phase != RaceSim.Phase.Done && !(bool)F("kOut"); s++) { sim.Step(1f / 60f); if (tick) Call("CareerTick"); }
                         offs += sim.cars[0].offs;
                         Call("CareerTick"); races++;
                         if (!(bool)F("kInterim")) break;

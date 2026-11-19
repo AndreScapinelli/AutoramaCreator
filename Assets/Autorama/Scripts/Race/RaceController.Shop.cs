@@ -224,10 +224,13 @@ namespace Autorama
             int c = 0;
             for (int s = before; s < after && s < Career.StarPrize.Length; s++) c += Career.StarPrize[s];
             if (n.tipo == "rival" && before == 0 && after > 0) c += Career.RivalPrize;
-            if (n.tipo == "campeonato" && before < 2 && after >= 2) c += Career.ChampPrize[Mathf.Clamp(kRegion, 0, Career.ChampPrize.Length - 1)];
+            if (n.tipo == "campeonato" && before < 2 && after >= 2 && Career.IsFinal(KRegion, n)) c += Career.ChampPrize[Mathf.Clamp(kRegion, 0, Career.ChampPrize.Length - 1)];
+            // Prêmio do campeonato pela posição na tabela (seção 92), toda vez; metade na sequência da mesma prova, como a corrida.
+            kPurse = n.tipo == "campeonato" && kRes.terminou ? Career.Purse(n, kRes.posicao) : 0;
             if (kSave.ultimoNo == n.id) kSave.seguidas++; else { kSave.ultimoNo = n.id; kSave.seguidas = 1; }
             float race = Career.RacePrize + Career.PlacePrize * Mathf.Max(0, beaten);
-            if (kSave.seguidas > Career.Streak) race *= 0.5f;
+            if (kSave.seguidas > Career.Streak) { race *= 0.5f; kPurse /= 2; }
+            c += kPurse;
             c += Mathf.RoundToInt(race);
             kSave.moedas += c;
             if (c > 0) OnEarned(c);

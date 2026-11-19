@@ -321,7 +321,6 @@ Ronco	うなり
 Seu arquivo (motor.wav)	自分のファイル (motor.wav)
 Motor curto	ショートモーター
 Motor longo	ロングモーター
-Da garagem ao campeonato nacional.	ガレージから全国選手権まで。
 Voltar ao menu (Esc)	メニューに戻る (Esc)
 ◀ Saves	◀ セーブ
 Garagem do carro (G)	車のガレージ (G)
@@ -1160,7 +1159,6 @@ cruzamento e cruzamento curto	クロスとショートクロス
 Subida e descida	上りと下り
 rampas para ponte	橋用のスロープ
 salto de vão 1	隙間1のジャンプ
-curva em C (1 a 3 fileiras)	ヘアピン(1〜3列)
 loop	ループ
 Saltos grandes	大ジャンプ
 salto de vão 2 e 3	隙間2と3のジャンプ
@@ -1388,3 +1386,60 @@ Largada em {0} s	スタートまで {0} 秒
 Até a ponta ≈ {0} s	先端まで ≈ {0} 秒
 Volta ≈ {0} s	1周 ≈ {0} 秒
  · {0} voltas ≈ {1}:{2:00}	 · {0}周 ≈ {1}:{2:00}
+Curva em C inclinada	バンクヘアピン
+curva em C plana e inclinada (1 a 3 fileiras)	ヘアピン(フラット・バンク、1〜3列)
+curva em C inclinada esquerda · direita	バンクヘアピン 左 · 右
+Inclinação	バンク角
+{0}°	{0}°
+Bater o recorde de {0} ({1})	{0}の記録を破る（{1}）
+Liderar por {0:0} s	{0:0}秒間トップを走る
+A cada {0:0} s o último sai da pista, até sobrar um	{0:0}秒ごとに最下位が脱落、最後の1台まで
+Da garagem ao Mundial.	ガレージから世界選手権へ。
+{0} abre com {1} estrelas nas regiões anteriores (você tem {2}).	{0}は前の地域で星{1}個で開きます（現在{2}個）。
+Convite: faça {0} estrelas na região para abrir.	招待：この地域で星を{0}個集めると開きます。
+Carros da IA no nível {0} da garagem	AIの車はガレージレベル{0}
+Carro {0} eliminado · sobram {1}	{0}号車が脱落・残り{1}台
+\n<color=#F07A3A>Próxima eliminação em {0} s · {1} na pista</color>	\n<color=#F07A3A>次の脱落まで{0}秒・コース上{1}台</color>
+\n<color=#F5C21B>Na liderança: {0} s</color>	\n<color=#F5C21B>トップ：{0}秒</color>
+Último de pé: você venceu!	最後の1台：あなたの勝ち！
+Eliminado em {0}º lugar	{0}位で脱落
+Prêmio do {0}º lugar: ◎ {1}	{0}位の賞金：◎ {1}
+Para abrir {0}: {1} estrelas nas regiões anteriores (você tem {2}).	{0}を開くには：前の地域で星{1}個（現在{2}個）。
+\nCarros da IA no nível {0} da garagem	\nAIの車はガレージレベル{0}
+\nPrêmios: 	\n賞金：
+{0}º ◎ {1}	{0}位 ◎ {1}
+Rei da Garagem	ガレージの王
+Copinha da Garagem	ガレージ・ミニカップ
+Sobrevivência	サバイバル
+Copa do Clube	クラブカップ
+Nina Pistão	Nina Pistão
+Convite do Clube	クラブ招待戦
+Resistência	耐久
+Copa do Interior	カントリーカップ
+Convite Regional	地域招待戦
+24 Voltas	24周
+Rei do Estádio	スタジアムの王
+Copa das Capitais	首都カップ
+Convite: Felix Badar	招待戦：フェリックス・バダール
+Felix Badar	フェリックス・バダール
+Global	グローバル
+Autódromo Mundial	ワールドサーキット
+Reta dos Recordes	レコードストレート
+Serra do Mundo	世界の山脈
+Oficina Mundial	ワールド工房
+Sobrevivência Mundial	ワールドサバイバル
+Viaduto Infinito	無限高架
+Tempestade	嵐
+Resistência Mundial	ワールド耐久
+Rei do Mundo	世界の王
+Copa Global	グローバルカップ
+Sofia Lindqvist	Sofia Lindqvist
+Mateo Ruiz	Mateo Ruiz
+Aiko Tanabe	田辺愛子
+Lukas Brandt	Lukas Brandt
+Chloé Marchand	Chloé Marchand
+Eu não corro contra você. Corro contra o relógio.	君と走っているんじゃない。時計と走っているんだ。
+Volte quando o relógio tiver medo de você.	時計が君を恐れるようになったらまた来い。
+Faz trinta anos que ninguém me passa. A mesa agora é sua.	30年間誰にも抜かれなかった。このテーブルはもう君のものだ。
+Lendas	レジェンド
+Mundial	世界選手権

@@ -79,6 +79,24 @@ namespace Autorama
             P("nacional-c3", "Nacional · Salto", 8, "L J3 L Bd Bd R Md Me Bd", true),
             P("nacional-c4", "Nacional · Troca", 8, "L J X Bd bd bd L J2 Bd Bd|L J X Bd Bd L J2|L J X Bd Bd L", true),
             P("nacional-c5", "Nacional · Grande Final", 8, "L L O L Bd bd bd J2 L Bd Bd", true),
+
+            // ----- 5 · Global (8 faixas, seção 92): tudo junto, voltas mais longas e peças em sequência -----
+            P("mapa-global", "Mapa · Global", 2, "L L L L Cd Cd L Ce Ce L Cd Cd L Ce Ce L L Cd Cd|L L L Cd Cd L Ce Ce L L Cd Cd|L L Cd Cd L L Cd Cd"),
+            P("global-1", "Autódromo Mundial", 8, "L L L J2 L L Bd L O L Bd L L be bd L L L L Bd L L L Bd R", true),
+            P("global-2", "Reta dos Recordes", 8, "L L L L L J3 L L Bd L L bd bd L L L L L L L L L L Bd L L bd bd L", true),
+            P("global-3", "Serra do Mundo", 8, "L Md Me Md Me J2 L L Bd L R Ud R Ce Ce L Bd L L L L L L L Bd L L L Bd L R t", true),
+            P("global-4", "Duplo Loop", 8, "L L O L L Bd L L L Bd L L Od L L L Bd L L L Bd R", true),
+            P("global-5", "Grampos", 8, "L R Ud R Ue t L J2 L Bd L L Bd L L L L L Bd L L R Bd", true),
+            P("global-6", "Viaduto Infinito", 8, "L^ t L^ t Lv t Lv Bd L O L Bd L L L L J2 L Bd L L R Bd L t", true),
+            // Oito no chão: a reta da largada e a que desce se cruzam no meio (seção 63).
+            P("global-7", "Oito Mundial", 8, "L L L Ce Ce Ce L L L Cd L R t R Cd L R t Cd"),
+            P("global-8", "Arena de Felix Badar", 8, "L t J3 L Bd L O L bd bd L L R Ud R Ue L L Bd L L Bd", true),
+            P("global-9", "Resistência Mundial", 8, "L L L L L L L L Bd L O L L Bd L L L J2 L L L L Bd L L L R Bd", true),
+            P("global-c1", "Copa Global · Europa", 8, "L L R t J L L Bd L O L Bd L L L L L L Bd L L R Bd", true),
+            P("global-c2", "Copa Global · Ásia", 8, "L Md Me Md Me t J2 L Bd L L Bd L L L L L L Bd L L L Bd", true),
+            P("global-c3", "Mundial · Américas", 8, "R t L O L L Bd L L bd bd J2 L L J3 Bd L L t bd bd", true),
+            P("global-c4", "Mundial · Oceania", 8, "L^ t Lv L J3 L Bd L L O L Bd L L L L L L Bd L L L R Bd", true),
+            P("global-c5", "Mundial · Grande Final", 8, "L L L O L L Bd L L L bd bd J2 L R Ud R Ue L L J3 L Bd L L R t Bd R t", true),
         };
 
         static readonly Regex Tok = new Regex(@"^(t|x|b|[RLXCMBUOJ])([ed])?([\^v])?(\d)?$");
@@ -103,6 +121,18 @@ namespace Autorama
                 list.Add(new TrackPiece(id, dir, rise, def.IsJump ? n : 1, def.IsHairpin ? n : 1));
             }
             return list;
+        }
+
+        // Sonda de desenho (sem o Q): onde a ponta termina, se sobrepõe e o comprimento. Para desenhar pistas novas.
+        // script eval 'return Autorama.CareerTracks.Probe("L L Cd Cd L L Cd Cd");'
+        public static string Probe(string pecas)
+        {
+            var origin = new Pose2(new Vector2(0f, 0.5f), 0f);
+            var pieces = Parse(pecas);
+            var segs = TrackLayout.Build(origin, pieces);
+            var a = TrackLayout.Analyze(origin, segs);
+            var end = segs[segs.Count - 1].b;
+            return $"fim ({end.pos.x:0.0}, {end.pos.y:0.0}) {end.heading:0}° · sobrepõe {a.overlaps.Count} · fecha {a.closed} · {a.centerLength:0.0} células · cruzamentos {TrackLayout.FlatCrossings(segs).Count}";
         }
 
         // Fecha com o Q; se a ponta ficou presa (em cima do começo), tira até 3 peças do fim e tenta de novo.

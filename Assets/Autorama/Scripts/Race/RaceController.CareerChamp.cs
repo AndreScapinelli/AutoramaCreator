@@ -33,7 +33,7 @@ namespace Autorama
             for (int i = 0; i < n.pilotos.Length; i++)
             {
                 var d = n.pilotos[i];
-                C.pilots.Add(new Pilot { id = "ia" + i, name = d.nome, tag = Champ.TagOf(d.nome), color = d.cor, ai = true, skill = d.ia, carro = d.carro.Clamped });
+                C.pilots.Add(new Pilot { id = "ia" + i, name = d.nome, tag = Champ.TagOf(d.nome), color = d.cor, ai = true, skill = d.ia, carro = d.carro.Clamped, style = Career.Style(d.estilo), nivel = d.nivel });
             }
             foreach (var id in n.etapas)
             {
@@ -82,7 +82,8 @@ namespace Autorama
                 int p = k < h.p.Length ? h.p[k] : -1;
                 s.present[k] = p >= 0;
                 s.aiSkill[k] = p >= 0 ? Mathf.Clamp(C.pilots[p].skill, 1, RaceSim.AiMaxSkill) : 0;
-                s.setup[k] = p >= 0 ? C.pilots[p].carro : default;
+                s.setup[k] = p >= 0 ? Career.AiCar(C.pilots[p].carro, KRegion, C.pilots[p].nivel) : default;
+                s.aiStyle[k] = p >= 0 ? C.pilots[p].style : 0;
             }
             s.StartRace();
             for (int i = 0; i < 60 * 900 && s.phase != RaceSim.Phase.Done; i++) s.Step(1f / 60f);
@@ -117,7 +118,8 @@ namespace Autorama
                 int p = k < nL ? kPilotOf[k] : -1;
                 sim.present[k] = p >= 0;
                 sim.aiSkill[k] = p > 0 ? Mathf.Clamp(C.pilots[p].skill, 1, RaceSim.AiMaxSkill) : 0;
-                sim.setup[k] = p > 0 ? C.pilots[p].carro : p == 0 ? CarShop.RaceCar(kSave, n) : default;
+                sim.setup[k] = p > 0 ? Career.AiCar(C.pilots[p].carro, KRegion, C.pilots[p].nivel) : p == 0 ? CarShop.RaceCar(kSave, n) : default;
+                sim.aiStyle[k] = p > 0 ? C.pilots[p].style : 0;
             }
             ApplyCameraSettings();
             sim.Reset();
@@ -212,6 +214,12 @@ namespace Autorama
             var sb = new System.Text.StringBuilder(L.F("{0} etapas: ", n.etapas.Length));
             sb.Append(string.Join(" · ", System.Array.ConvertAll(n.etapas, id => Career.Track(id)?.nome ?? id)));
             sb.Append(L.T("\nPilotos: ")).Append(string.Join(", ", System.Array.ConvertAll(n.pilotos, p => L.F("{0} (IA {1})", p.nome, p.ia))));
+            if (KRegion.nivelIA > 0) sb.Append(L.F("\nCarros da IA no nível {0} da garagem", KRegion.nivelIA));
+            if (n.premio > 0)
+            {
+                sb.Append(L.T("\nPrêmios: "));
+                for (int i = 1; i <= Mathf.Min(n.pilotos.Length + 1, 4); i++) sb.Append(i > 1 ? " · " : "").Append(L.F("{0}º ◎ {1}", i, Career.Purse(n, i)));
+            }
             int heats = Champ.HeatsPerStage(n.pilotos.Length + 1, KRegion.faixas, n.porTempo);
             if (n.porTempo) sb.Append(L.F("\nPor tempo: {0} s por etapa, passando por todos os trilhos ({1} {2} por etapa)", n.segundos, heats, (heats == 1 ? L.T("bateria") : L.T("baterias"))));
             else sb.Append(L.F("\n{0} baterias por etapa (você corre {1}; as outras são simuladas)", heats, KRegion.faixas));

@@ -601,7 +601,7 @@ namespace Autorama
         {
             if (e.def.GroundOnly) return L.T("LOOP E SALTO");
             if (e.rise != 0 || e.def == PieceCatalog.Cross || e.def == PieceCatalog.CrossS) return L.T("CRUZAMENTOS E RAMPAS");
-            if (e.def == PieceCatalog.CurveB || e.def == PieceCatalog.HalfB) return L.T("CURVAS INCLINADAS");
+            if (e.def == PieceCatalog.CurveB || e.def == PieceCatalog.HalfB || e.def == PieceCatalog.HairpinB) return L.T("CURVAS INCLINADAS");
             if (e.def == PieceCatalog.Curve || e.def == PieceCatalog.Half || e.def == PieceCatalog.Hairpin) return L.T("CURVAS");
             return L.T("RETAS");
         }
@@ -778,6 +778,16 @@ namespace Autorama
                 {
                     int raio = v;
                     Btn((v > 1 ? L.F("{0} fileiras", v) : L.T("1 fileira")), () => builder.SetHairpin(raio), p.raio == raio ? "btn btn--on" : "btn", rv);
+                }
+            }
+            if (p.Def.Banked)
+            {
+                var iv = El("segmented", selectedBox);
+                Text(L.T("Inclinação"), "seg-label", iv);
+                foreach (int g in PieceCatalog.BankAngles)
+                {
+                    int deg = g;
+                    Btn(L.F("{0}°", deg), () => builder.SetBank(deg), (int)p.BankDeg == deg ? "btn btn--on" : "btn", iv);
                 }
             }
             if (p.Def.GroundOnly) return;      // loop e salto não sobem nem descem: sem botões de altura

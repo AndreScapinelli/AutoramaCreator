@@ -154,14 +154,17 @@ namespace Autorama
             // Laterais da base (do topo do muro, se houver, até embaixo) e, nas peças no alto, o fundo.
             if (only == null)
             {
-                // No salto a base é maciça: as laterais descem da rampa até a mesa.
+                // No salto a base é maciça: as laterais descem da rampa até a mesa. Também na inclinada no chão e na
+                // vizinha plana que recebe a inclinação (seção 50.7): a borda de fora sobe até 0,7 célula (35°) e,
+                // sem isso, sobrava um vão por onde se via o lado de baixo da pista.
                 float ground = s.zIn * TrackMath.LevelHeight;
-                Edge Foot(float o) => t => (o, d.IsJump ? ground - Y(t, o) - thick : -thick, o + 0.5f);
+                bool solid = d.IsJump || (!s.High && (d.Banked || s.bankDirIn != 0 || s.bankDirOut != 0));
+                Edge Foot(float o) => t => (o, solid ? ground - Y(t, o) - thick : -thick, o + 0.5f);
                 AddBand(Side, s, ts, Foot(-0.5f), At(-0.5f, wallL ? wallH : 0f), 1f, Y);
                 AddBand(Side, s, ts, At(0.5f, wallR ? wallH : 0f), Foot(0.5f), 1f, Y);
                 if (d.IsJump) { if (s.High) AddBand(Side, s, ts, Foot(0.5f), Foot(-0.5f), 1f, Y); }     // salto no alto: fundo reto
                 else if (s.High || d.IsLoop) AddBand(Side, s, ts, At(0.5f, -thick), At(-0.5f, -thick), 1f, Y);     // o lado de fora da volta aparece
-                AddCaps(s, thick, Y);
+                AddCaps(s, thick, Y, solid);
             }
 
             if (d.IsStart && !wide)
@@ -287,7 +290,10 @@ namespace Autorama
             portals.Clear();
             if (theme == null || !s.High) return;
             if (faixas >= 4) { BuildPillars4(s, theme, faixas); return; }
-            float t = PillarT, h = s.ZSmooth(t) * TrackMath.LevelHeight, d = 0.16f;
+            // Até a superfície no eixo, que na curva inclinada (e na vizinha que recebe a inclinação) fica acima do
+            // nível: metade da subida da borda de fora (seção 50.7). Loop e salto: até a base da peça.
+            float t = PillarT, d = 0.16f;
+            float h = s.def.IsLoop || s.def.IsJump ? s.ZSmooth(t) * TrackMath.LevelHeight : TrackLayout.SurfaceY(s, t, 0f);
             if (s.ZAt(t) < 0.25f) return;
             var q = TrackMath.PoseAt(s.a, s.def, s.piece.dir, t);
             if (Portal(s, q, new[] { 0f }, h - Thickness, theme.support, 1f, d / 2f)) return;
@@ -520,7 +526,7 @@ namespace Autorama
 
         // Tampas nas duas pontas da peça (o corte da base), para a ponta aberta da pista não ficar oca.
         // No salto, também nas duas pontas do vão, descendo até a mesa.
-        static void AddCaps(Segment s, float thick, System.Func<float, float, float> y)
+        static void AddCaps(Segment s, float thick, System.Func<float, float, float> y, bool solid)
         {
             float L = s.def.Length, ground = s.zIn * TrackMath.LevelHeight;
             var ends = s.def.IsJump
@@ -531,7 +537,7 @@ namespace Autorama
                 var q = TrackMath.PoseAt(s.a, s.def, s.piece.dir, t);
                 Vector2 l = TrackMath.Offset(q, -0.5f), r = TrackMath.Offset(q, 0.5f);
                 float yl = y(t, -0.5f), yr = y(t, 0.5f);
-                float bl = s.def.IsJump ? ground - thick : yl - thick, br = s.def.IsJump ? ground - thick : yr - thick;
+                float bl = solid ? ground - thick : yl - thick, br = solid ? ground - thick : yr - thick;
                 int k = V.Count;
                 V.Add(new Vector3(l.x, yl, l.y)); V.Add(new Vector3(r.x, yr, r.y));
                 V.Add(new Vector3(l.x, bl, l.y)); V.Add(new Vector3(r.x, br, r.y));

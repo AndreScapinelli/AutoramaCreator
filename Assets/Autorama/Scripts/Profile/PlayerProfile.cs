@@ -34,7 +34,7 @@ namespace Autorama
             new PieceUnlock("troca", L.N("Troca de faixa"), L.N("cruzamento e cruzamento curto"), "clube-2"),
             new PieceUnlock("rampas", L.N("Subida e descida"), L.N("rampas para ponte"), "clube-3"),
             new PieceUnlock("salto", L.N("Rampa de salto"), L.N("salto de vão 1"), "regional-1"),
-            new PieceUnlock("curva-c", L.N("Curva em C"), L.N("curva em C (1 a 3 fileiras)"), "regional-3"),
+            new PieceUnlock("curva-c", L.N("Curva em C"), L.N("curva em C plana e inclinada (1 a 3 fileiras)"), "regional-3"),
             new PieceUnlock("loop", L.N("Loop"), L.N("loop"), "nacional-1"),
             new PieceUnlock("salto-grande", L.N("Saltos grandes"), L.N("salto de vão 2 e 3"), "nacional-2"),
         };
@@ -84,7 +84,7 @@ namespace Autorama
             "reta-curtinha" => "curtinha",
             "cruzamento" or "cruzamento-curto" => "troca",
             "curva-longa-inclinada" or "curva-curta-inclinada" => "inclinadas",
-            "curva-c" => "curva-c",
+            "curva-c" or "curva-c-inclinada" => "curva-c",
             "salto" => "salto",
             "loop" => "loop",
             _ => "",

@@ -205,6 +205,9 @@ namespace Autorama
         // Começa a busca sem rodar nada ainda: use Pump no Job.
         // Construtor da carreira (seção 72): só usa as peças cujo id passa aqui (null = todas).
         public static System.Func<string, bool> Allowed;
+        // Ângulo das inclinadas que o fechamento põe (seção 50.7; o construtor passa o que a pista mais usa). Entra
+        // na busca porque a curva de 35° não deixa ponte passar por cima.
+        public static int BankDeg = PieceCatalog.NewBank;
         static readonly bool[] searchOk = new bool[SearchMoves];
 
         public static Job Start(Pose2 origin, IList<TrackPiece> existing, IList<TrackPiece> tail, bool preferBanked, int z0 = 0)
@@ -519,7 +522,7 @@ namespace Autorama
                 var d = Moves[m].def;
                 if (preferBanked && d == PieceCatalog.Curve) d = PieceCatalog.CurveB;
                 if (preferBanked && d == PieceCatalog.Half) d = PieceCatalog.HalfB;
-                list.Add(new TrackPiece(d.Id, Moves[m].dir));
+                list.Add(new TrackPiece(d.Id, Moves[m].dir) { incl = d.Banked ? BankDeg : 0 });
             }
             // endZ: quantos níveis a ponta está acima da largada (negativo: abaixo, e as rampas sobem).
             int need = Mathf.Abs(endZ), step = endZ > 0 ? -1 : 1;

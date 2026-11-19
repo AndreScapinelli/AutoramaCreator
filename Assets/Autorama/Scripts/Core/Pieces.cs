@@ -85,7 +85,7 @@ namespace Autorama
         }
 
         public bool IsCurve => Kind == PieceKind.Curve;
-        public bool IsHairpin => Id == "curva-c";
+        public bool IsHairpin => Angle >= 179f;          // curva em C, plana ou inclinada (seção 50)
         public bool Sided => IsCurve || IsLoop;        // tem lado (dir ±1): a curva vira, o loop sai deslocado para ele
         public bool GroundOnly => IsLoop || IsJump;    // não sobe nem desce de nível
         // Comprimento do caminho: no loop, a entrada, a volta inteira e a saída.
@@ -117,7 +117,7 @@ namespace Autorama
         }
 
         // Quanto a peça aguenta de força lateral, em relação a uma curva plana.
-        public float GripMultiplier => Banked ? PieceCatalog.BankGrip : IsHairpin ? PieceCatalog.HairpinGrip : 1f;
+        public float GripMultiplier => Banked && IsHairpin ? PieceCatalog.HairpinBankGrip : Banked ? PieceCatalog.BankGrip : IsHairpin ? PieceCatalog.HairpinGrip : 1f;
     }
 
     // As peças disponíveis. Os ids são os mesmos do JSON exportado pelo construtor em HTML.
@@ -125,7 +125,11 @@ namespace Autorama
     {
         public const float HairpinGrip = 1.35f; // curva em C (seção 50.5): aguenta 1,35× a plana, para o trilho de dentro não pedir parar
         public const float BankGrip = 1.7f;    // curva inclinada (~15°) aguenta 1,7× a força lateral da plana
-        public const float BankAngle = 15f;
+        public const float BankAngle = 15f;     // inclinação das pistas antigas (sem "inclinacao" no JSON)
+        // Inclinação escolhida em cada curva inclinada (seção 50.7): só visual, a aderência é BankGrip.
+        public static readonly int[] BankAngles = { 15, 25, 35 };
+        public const int NewBank = 25;          // a curva inclinada nova entra com esta
+        public const float HairpinBankGrip = HairpinGrip * BankGrip;   // C inclinada (seção 50.6): as duas juntas, ~2,3×
 
         // Loop: entrada reta de LoopRadius, a volta (raio LoopRadius, em pé) e saída reta de LoopRadius. Durante a
         // volta a pista desliza LoopShift para o lado (dir), para a saída passar ao lado da entrada.
@@ -153,13 +157,17 @@ namespace Autorama
         public const int MaxHairpin = 3;
         static readonly PieceDef[] hairpins = { Hairpin, PieceDef.MakeCurve("curva-c", L.N("Curva em C"), 180f, false, 2f * HairpinRadius), PieceDef.MakeCurve("curva-c", L.N("Curva em C"), 180f, false, 3f * HairpinRadius) };
         public static PieceDef HairpinOf(int raio) => hairpins[Mathf.Clamp(raio, 1, MaxHairpin) - 1];
+        // C inclinada (seção 50.6): a mesma geometria, com a inclinação das curvas inclinadas.
+        public static readonly PieceDef HairpinB = PieceDef.MakeCurve("curva-c-inclinada", L.N("Curva em C inclinada"), 180f, true, HairpinRadius);
+        static readonly PieceDef[] hairpinsB = { HairpinB, PieceDef.MakeCurve("curva-c-inclinada", L.N("Curva em C inclinada"), 180f, true, 2f * HairpinRadius), PieceDef.MakeCurve("curva-c-inclinada", L.N("Curva em C inclinada"), 180f, true, 3f * HairpinRadius) };
+        public static PieceDef HairpinBOf(int raio) => hairpinsB[Mathf.Clamp(raio, 1, MaxHairpin) - 1];
 
         public static readonly PieceDef Loop   = PieceDef.MakeLoop("loop", L.N("Loop"));
         public static readonly PieceDef Jump   = PieceDef.MakeJump("salto", L.N("Rampa de salto"), 1f, JumpLips[0]);
         static readonly PieceDef[] jumps = { Jump, PieceDef.MakeJump("salto", L.N("Rampa de salto"), 2f, JumpLips[1]), PieceDef.MakeJump("salto", L.N("Rampa de salto"), 3f, JumpLips[2]) };
         public static PieceDef JumpOf(int vao) => jumps[Mathf.Clamp(vao, 1, MaxGap) - 1];
 
-        public static readonly PieceDef[] All = { Start, Short, Long, Tiny, Cross, CrossS, Curve, Half, CurveB, HalfB, Hairpin, Loop, Jump };
+        public static readonly PieceDef[] All = { Start, Short, Long, Tiny, Cross, CrossS, Curve, Half, CurveB, HalfB, Hairpin, HairpinB, Loop, Jump };
 
         public static PieceDef ById(string id)
         {
@@ -177,11 +185,14 @@ namespace Autorama
         public int rise;    // -1 desce um nível, 0 plana, +1 sobe um nível
         public int vao = 1; // só no salto: o vão em células (1 a PieceCatalog.MaxGap)
         public int raio = 1; // só na curva em C: raio raio·0,5, saída raio fileiras ao lado (1 a PieceCatalog.MaxHairpin)
+        public int incl;     // só na curva inclinada: graus (0 = PieceCatalog.BankAngle, o das pistas antigas)
+        public float BankDeg => incl > 0 ? incl : PieceCatalog.BankAngle;
+        public float BankTan => Def != null && Def.Banked ? Mathf.Tan(BankDeg * Mathf.Deg2Rad) : 0f;
 
         public TrackPiece(string id, int dir = 0, int rise = 0, int vao = 1, int raio = 1) { this.id = id; this.dir = dir; this.rise = rise; this.vao = vao; this.raio = raio; }
 
-        public PieceDef Def => id == PieceCatalog.Jump.Id ? PieceCatalog.JumpOf(vao) : id == PieceCatalog.Hairpin.Id ? PieceCatalog.HairpinOf(raio) : PieceCatalog.ById(id);
-        public TrackPiece Clone() => new TrackPiece(id, dir, rise, vao, raio);
+        public PieceDef Def => id == PieceCatalog.Jump.Id ? PieceCatalog.JumpOf(vao) : id == PieceCatalog.Hairpin.Id ? PieceCatalog.HairpinOf(raio) : id == PieceCatalog.HairpinB.Id ? PieceCatalog.HairpinBOf(raio) : PieceCatalog.ById(id);
+        public TrackPiece Clone() => new TrackPiece(id, dir, rise, vao, raio) { incl = incl };
 
         public string Describe()
         {

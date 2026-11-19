@@ -46,6 +46,7 @@ namespace Autorama.EditorTools
                 var path = AssetDatabase.GUIDToAssetPath(guid);
                 var imp = (TextureImporter)AssetImporter.GetAtPath(path);
                 string name = Path.GetFileNameWithoutExtension(path);
+                if (name.StartsWith("logo") || name == "icone-jogo") continue;   // importação própria (seção do logo): sem mipmap, tamanho cheio
                 bool repeat = name.StartsWith("pista-") || name.StartsWith("pista4-") || name.StartsWith("pista6-") || name.StartsWith("pista8-") || name.StartsWith("grade-mesa") || name == "mureta4"
                               || name == "asfalto" || name == "zebra" || name == "sobreposicao";
                 imp.textureType = TextureImporterType.Default;

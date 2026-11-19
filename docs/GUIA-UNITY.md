@@ -4020,7 +4020,7 @@ fica na fileira do lado, 1 célula para o lado e no mesmo ponto da entrada, com 
 
 - Trilhos na pista de 2: raio 0,25 (dentro, 0,785 de comprimento) e 0,75 (fora, 2,356). Na de 4, 6 e 8, o trilho
   de dentro fica com raio 0,125 · 0,083 · 0,0625 célula (0,25 no mundo nas três).
-- Plana, sem versão inclinada. Pode subir e descer como as outras curvas.
+- Plana; a versão inclinada é a `curva-c-inclinada` (50.6). Pode subir e descer como as outras curvas.
 - Paleta: grupo "CURVAS", teclas **G** (esquerda) e **H** (direita). Ícones `icone-curva-c-esquerda/direita`, de
   `gen-texturas.js` (as curvas do gerador aceitam `r`). A malha e a zebra são as de curva de sempre.
 - Identidade e ids antigos não mudam: é só uma peça nova.
@@ -4074,7 +4074,7 @@ Teste (`script eval`): largada, reta comprida, C, reta comprida, reta curta. Nos
 
 ### 50.5 Aderência da C
 
-A C aguenta **1,7× a força lateral** da curva plana (`PieceCatalog.HairpinGrip = 1.7f`, via `PieceDef.GripMultiplier`,
+A C aguenta **1,35× a força lateral** da curva plana (`PieceCatalog.HairpinGrip = 1.35f`, via `PieceDef.GripMultiplier`,
 o mesmo caminho da curva inclinada). Vale para os 3 raios. A IA já lê a aderência do ponto (`q.grip`), então entra mais
 rápido sozinha. É só física: geometria, JSON e identidade não mudam (os recordes de pistas com C ficam mais fáceis).
 
@@ -4083,9 +4083,77 @@ Limite na C de raio 1, pista de 2 (velocidade final ~11):
 | | dentro (r 0,25) | fora (r 0,75) |
 |---|---|---|
 | antes | 2,69 | 4,66 |
-| × 1,7 | 3,51 | 6,08 |
+| × 1,35 | 3,13 | 5,41 |
 
-Teste da IA: pendente (o Editor estava fechado).
+O valor começou em 1,7 e baixou para 1,35 (o texto desta seção ficou com o antigo até a 50.6).
+
+### 50.6 Curva em C inclinada
+
+- **A peça:** id `curva-c-inclinada` (`PieceCatalog.HairpinB`, `HairpinBOf(raio)`), a mesma geometria da C (180°,
+  raio `n · 0,5`, 1 a 3 fileiras, `"raio"` no JSON) com `Banked = true`: a inclinação de 15° das curvas inclinadas, o
+  material listrado e o muro do lado de fora. `PieceDef.IsHairpin` agora é `Angle ≥ 179°`, então a C inclinada usa
+  tudo da C: o segmentado Tamanho, o `:r2`/`:r3` da identidade, o Q (movimentos 9 a 14, só para percorrer) e o cuidado
+  da IA (`AiBrakePin`). Malha, material e transição para a vizinha (`Spill`) são os de qualquer curva inclinada.
+- **Aderência:** `HairpinBankGrip = HairpinGrip × BankGrip` ≈ 2,3× a curva plana. Limite na de raio 1, pista de 2:
+  dentro 4,08, fora 7,06 (a plana: 3,13 e 5,41).
+- **Paleta:** grupo "CURVAS INCLINADAS", teclas **N** (esquerda) e **M** (direita), em `AllKeys`. Ícones
+  `icone-curva-c-inclinada-esquerda/direita` (e `icone4/6/8-`), de `gen-texturas.js` (`r:.5, bank:true`).
+- **Carreira:** abre junto com a C (`Progresso.ItemOf`: grupo `curva-c`, prova `regional-3`).
+- Identidade e ids antigos não mudam: é peça nova. A C plana continua com o mesmo texto de identidade.
+- **Teste** (`script eval`):
+  - largada, reta comprida, C inclinada, reta comprida, reta curta: nos 3 raios e nos 2 lados, a C sai em (6; ∓n)
+    com rumo 180 e o Q fecha com 7, 7 e 8 peças, sem sobreposição. JSON de ida e volta mantém id, raio e inclinação.
+  - Oval largada · reta comprida · C · reta comprida · reta curta · C (as duas iguais), 60 s de IA, sem batida nem
+    turbo: 0 saídas em todos os casos (raio 1 e 3, pistas de 2 e 4, qualidade 100 e 60). Melhor volta, trilho 1:
+
+| | plana | inclinada |
+|---|---|---|
+| raio 1, pista de 2, q100 | 2,68 | 2,25 |
+| raio 3, pista de 2, q100 | 3,15 | 2,65 |
+| raio 1, pista de 4, q100 | 3,80 | 3,28 |
+| raio 3, pista de 4, q100 | 4,45 | 3,52 |
+
+  - Identidade do oval segue `a34f4cb9`. Textos traduzidos nas cinco tabelas.
+  - Vista na tela: a C inclinada de 35° (raio 2), com muro do lado de fora e lateral até a mesa (50.7). O ícone no
+    painel não foi visto.
+
+### 50.7 Inclinação escolhida em cada curva inclinada
+
+- **O que faz:** com uma curva inclinada selecionada (longa, curta ou C), o painel mostra o segmentado
+  **Inclinação: 15° · 25° · 35°** (`PieceCatalog.BankAngles`, `TrackBuilder.SetBank`, com desfazer). É **só visual**:
+  a aderência continua `BankGrip` (e `HairpinBankGrip` na C), então a identidade da pista e os recordes não mudam.
+- **Dados:** `TrackPiece.incl` (graus; 0 = `BankAngle` 15°, o das pistas antigas), `BankDeg` e `BankTan`. No JSON,
+  `"inclinacao"` (só nas inclinadas; sem o campo, 15°; lido entre 5° e 45°). A curva inclinada nova (paleta e
+  fantasma) entra com **25°** (`NewBank`). As inclinadas que o Q põe seguem o ângulo que a pista mais usa
+  (`TrackCloser.BankDeg`, posto pelo construtor antes da busca, para a regra da ponte valer durante ela).
+- **Superfície** (`TrackLayout.SurfaceY`): a borda de fora sobe `tan(ângulo)` célula (15° 0,268 · 25° 0,466 ·
+  35° 0,700). Malha, muro, travessas, folga das pontes e o deitar do carrinho (`CarBank`) saem todos da `SurfaceY`;
+  nada mais lê o ângulo.
+  - Vizinha plana: a transição (`Spill`) leva a tangente da vizinha (`Segment.bankTanIn/Out`, `SpillTan`) e fica
+    mais longa com o ângulo: `SpillLength` (ou `OppositeSpillLength`) × tan(ângulo)/tan(15°), no mínimo × 1 e sem
+    passar da peça (`SpillScale`). A descida da borda tem a mesma rampa em qualquer ângulo: 15° em 1,5 célula,
+    25° em 2,6, 35° em 3,9.
+  - Duas inclinadas para o mesmo lado com ângulos diferentes: na emenda as duas ficam na média e cada uma chega ao seu
+    ângulo a `CrossLength` (1,5 célula) dentro dela.
+- **Base maciça** (`TrackPieceView`, `solid`): na inclinada no chão e na vizinha plana que recebe a inclinação, as
+  laterais e as tampas descem até a mesa, como no salto. Antes a lateral tinha só a espessura da pista e, com a borda
+  de fora alta, via-se o lado de baixo da superfície por trás da peça. No alto não muda (fundo e pilares).
+- **Pilar da pista de 2** (`BuildPillars`): vai até `SurfaceY` no eixo, como o da pista de 4 ou mais. Antes ia até o
+  nível da peça e, na inclinada no alto, ficava metade da subida da borda abaixo da pista (0,13 célula em 15°, 0,35 em
+  35°). Loop e salto continuam até a base da peça. **Não visto na tela.**
+- **Ponte por cima** (`TrackLayout.BankLift`): a borda de fora mais o muro (`BankWallTop 0,15`) não podem passar da
+  altura livre embaixo da ponte (`BridgeRoom 0,6` célula). O que passa sobe os pontos da inclinada na conta de
+  sobreposição (em níveis), e a ponte por cima vira sobreposição: 15° e 25° deixam, 35° não. Vale no construtor e no Q.
+- **Teste** (`script eval`): curva longa 15° (sem campo), longa 35°, reta curta, C 25°, reta comprida. Meio das
+  peças na borda de fora: 0,2679 · 0,7002 · 0,4663 (= tan). Emendas 15|35 (0,4841 dos dois lados), 35|reta, reta|C e
+  C|reta sem degrau; maior passo em 1/200 de peça 0,007. JSON de ida e volta mantém o ângulo; identidade igual com e
+  sem ângulo; sem o campo vale 15°. Captura (Play): C de 35° e de 15°, raio 2, na pista de teste.
+  - Reta comprida depois de curva longa inclinada: a borda de fora zera em 1,49 · 2,59 · 3,90 célula (15° · 25° ·
+    35°), rampa máxima 0,268 nos três.
+  - Reta no nível 1 por cima de uma C inclinada no chão (raio 3): sobreposição só em 35° (a ponte e a C).
+  - Q (largada, reta comprida, C inclinada, reta comprida, reta curta) com `BankDeg` 15 e 35: fecha com 7, 7 e 8 peças
+    e as inclinadas postas ficam no ângulo pedido.
+  - **Não visto na tela:** a base maciça (a captura em modo de edição não enquadrou a pista).
 
 ## 51. Fogos no fim do campeonato
 
@@ -5115,7 +5183,7 @@ Escolhemos o filtro, e não duas rolagens, porque o painel é estreito e duas ca
 
 **Arquivos** (`Assets/Autorama/Texturas/`), gerados das imagens feitas fora do jogo (o script ficou fora do projeto; os passos estão aqui):
 - `logo.png` (1766 × 785; a imagem de 1774 × 887 já veio com fundo transparente): "AUTORAMA MANIA · SLOT CAR RACING · DEFINITIVE EDITION". Cortado no retângulo com alfa > 20, com 8 px de folga. Substitui no menu inicial os textos AUTORAMA, MANIA, a edição e a faixa quadriculada (as classes `.start-title--2`, `.start-edition` e `.start-flag` saíram; `.start-title` fica para a Carreira).
-- **Import:** `logo.png` e `logo-brilho.png` usam *Non-Power of 2* = None e não têm mipmap. No padrão, a Unity arredondava o logo para uma potência de 2, e o `scale-to-fit` achatava o desenho.
+- **Import:** `logo.png` e `logo-brilho.png` usam *Non-Power of 2* = None e não têm mipmap. No padrão, a Unity arredondava o logo para uma potência de 2, e o `scale-to-fit` achatava o desenho. O menu **Autorama > Atualizar materiais e ícones** (`ConfigureTextures`) pula `logo*` e `icone-jogo`: antes ele reimportava tudo com mipmap e filtro de ícone e desfazia essa importação.
 - `logo-brilho.png` (1766 × 785): a máscara do brilho. É branca, com alfa = alfa do logo × min(1; 1,4 · luminância)^0,7 (mais forte nas letras claras).
 - `icone-jogo.png` (1254 × 1254): o ícone padrão do Player Settings (`PlayerSettings.SetIcons`, alvo `Unknown`). O preto ligado à borda (canal máximo < 30, preenchido a partir das bordas, 68 946 px) virou transparente, com 1,2 px de desfoque; sobram os cantos arredondados da moldura amarela.
 - Versão anterior (2000 × 667, sem "SLOT CAR RACING"): no histórico do git, antes da troca.
@@ -5256,3 +5324,54 @@ A interface tem seis idiomas: português (o original), inglês, espanhol, franc�
   - A IA sorteia erros com `UnityEngine.Random`: a conta usa a semente fixa `Seed 1234` e devolve o `Random.state` de antes. O mesmo número sempre, e o jogo não perde a sorte.
 - **Quando refaz** (`BuilderPanel.RefreshEstimate`, chamado em `RefreshTableTools`): só quando `builder.Segments` é uma lista nova (o `TrackBuilder` monta uma a cada mudança) ou quando a `vmax` mudou.
 - **Teste** (`script eval`, no Editor): na pista do rascunho (52 peças, fechada, 2 trilhos), 1ª volta 19,97 s e volta lançada 20,03 s, iguais nas duas rodadas, ~40 ms cada. As 20 primeiras peças como pista aberta: 8,62 s até a ponta, 7 ms. Textos traduzidos nas cinco tabelas. **Não visto na tela:** o chip no Play.
+
+## 92. Carreira longa: lendas, jeito do piloto, cruzamento, eliminação, prêmios e a região Global
+
+Antes, a carreira (41 provas, IA até 150) acabava em ~1 h: ~45 min de corrida, quase tudo na primeira tentativa, e o mestre 150 ainda era 2–9% mais lento que o piloto ótimo. Agora são **70 provas em 5 regiões** (210 estrelas).
+
+**Lendas (IA 151–200, `RaceSim.AiDrive`, `AiMaxSkill = 200`):** a velocidade de cada curva vem da folga de derrapagem. No resto da curva a derrapagem enche `(r − 1) × SlipGain × Slip` por segundo, com `r = (v/limite)²`. A lenda entra a `v = limite × u`, com `(u² − 1)/u = folga × limite / (SlipGain × Slip × resto)`: curva curta deixa entrar bem acima do limite. Folga `LegendLo 0,55 → LegendHi 0,86` (151 → 200), sorteada a cada 1,2 s com a variação da IA; a derrapagem de agora só pesa na curva em que o carro está (`aiK`, `aiRest`: a curva à frente até `AiLook + LegendTail 8` células). Saltos e loop como o mestre 150. De 1 a 150, nada muda (o sorteio extra só existe na lenda).
+
+| pista (volta, 4 voltas, sem turbo) | ótimo | 150 | 175 | 200 |
+|---|---|---|---|---|
+| garagem-3 | 3,23 | 3,36 | 3,16 | 3,15 |
+| garagem-5 | 4,36 | 4,79 | 4,35 | 4,30 |
+| clube-3 | 5,18 | 5,41 | 5,36 | 5,23 |
+| nacional-3 | — | 9,70 | 9,48 | 9,36 |
+
+Sem saídas. Nas pistas de salto e loop a lenda ganha pouco do mestre (o salto e o loop seguem `JumpAi` e `LoopAi`).
+
+**Turbo da IA:** mestres e lendas usam também na saída da curva (`need > v × (1 + Boost)` e abaixo da máxima com turbo) e para se defender com alguém a menos de 2 células atrás (`Pressed`); o constante não usa para defender. De 1 a 100, só na reta longa, como antes.
+
+**Jeito do piloto** (`RaceSim.aiStyle`, `Career.Style`; `PilotoDef.estilo`, `NodeDef.rivalEstilo`, `Pilot.style`): agressivo (coragem +0,015, folga +0,05, erro ×2), constante (variação ×0,4, erro ×0,3, folga −0,03), nervoso (com alguém a 1,5 célula atrás, erro ×6 e variação ×2). Adversários sem nome revezam os 4 jeitos pelo número do carro (`Career.StyleOf`). Fora da carreira o jeito volta a 0 (`CareerLeave`, mapa).
+
+**Cruzamento (troca de faixa) — IA cede a vez** (`RaceSim.CrossYield`, vale em todos os modos): todos os trilhos passam pelo meio da peça. Com outro carro (de outro trilho) chegando ao meio a menos de `CrossGap 0,35` s, quem não tem a vez segura em `v × CrossLift 0,6` (nunca abaixo de `CrossFloor 2` × Speed: dois cedendo um ao outro travavam a prova). A vez é de quem chega antes; empatados, de gente, depois do carro de número menor. Não cede na rampa de salto, com salto à frente nem com alguém colado atrás no mesmo trilho. Teste (8 provas, IA 50–150 misturada, batidas nos 5 primeiros segundos): clube-2 5,8 → 0; regional-c2 6,8 → 2,0; nacional-5 13,8 → 1,5; clube-c2 2,3 → 1,0. **Ainda não resolvido:** nacional-c4 (`L J X …`): as batidas vêm do pouso dos 8 carros juntos no salto da largada, antes do cruzamento.
+
+**Carro da IA** (`RaceController.AiCar(pista, semente)`): cada piloto escolhe o seu pela pista (de curva: curto·asa·macio; de reta: longo·lisa·duro), em cada peça a opção da pista em 55%, o padrão em 25% e a outra em 20%; turbo e modelo sorteados. Semente `SeedOf(id, n)` (FNV-1a): no campeonato offline é campeonato + piloto + etapa (antes todos tinham o mesmo carro); na carreira, prova + carro. Rivais e pilotos com nome usam o carro do `carreira.json`. Corrida livre: o carro de cada vaga continua o que o jogador escolhe.
+
+**Níveis da garagem da IA** (`RegionDef.nivelIA`, `Career.AiCar(carro, região)`: as 5 trilhas no nível): Garagem 0, Clube 2, Regional 5, Nacional 8, Global 10 (o jogador pode ter 3, 6, 8, 10, 10). Aplicado na hora de correr (os `lv*` não vão para o save).
+
+**Provas novas:**
+- `eliminacao` (regra de desafio, `NodeDef.intervalo`, `voltas` 50): a cada `intervalo` s o último da `Order()` sai (`sim.present = false`). Se é o jogador, a prova acaba com ele na posição em que saiu (`kElimPos`, `terminou = true`); se sobra só ele, 1º. Objetivos ao vivo com a contagem. Nome na tela: Sobrevivência.
+- Objetivo `lider` (`ResultadoCorrida.lider`): segundos na frente (`kLeadT`, pela diferença de `sim.t`).
+- Resistência (15–20 voltas) e Perseguição (`atrasada` de 3,5–4 s contra um piloto forte): só dados.
+- `Objetivo.dono`: "Bater o recorde de Felix Badar (7,73)" — os ouros dos relógios da Nacional e da Global.
+
+**Campeonatos:** cada região tem uma copa no meio (exigida para o rival: `rival.depois = [copa]`), um convite (`NodeDef.minEstrelas` na região: Clube 27, Regional 33, Nacional 36, Global 36) e a final (o último nó, que abre a próxima: `Career.IsFinal`). Baterias por tempo mais longas (Clube 120 s, Regional 160, Nacional 200, Global 240).
+
+**Prêmio por posição** (`NodeDef.premio`, `Career.Purse`, `PursePart = 1 · 0,6 · 0,4 · 0,25 · 0,15 · 0,1 · 0,06 · 0,04`, arredondado a 10): pago **toda vez** que o campeonato acaba, metade na sequência da mesma prova (como a corrida). Prêmios do 1º: Copinha 300, Copa Garagem 600; Copa do Clube 500, Convite 900, Taça 1000; Interior 800, Convite 1400, Copa Regional 1600; Capitais 1200, Convite 2000, GP 2500; Copa Global 2500, Lendas 3500, Mundial 5000. O bônus de campeão da região (`ChampPrize`, + 3000 da Global) só vale na final. Cartão mostra "Prêmios: 1º ◎ … · 2º …"; o resultado, "Prêmio do Nº lugar".
+
+**Região Global** (8 faixas, `estrelasAbrir 130` das 168 anteriores + campeão nacional; `StarsBefore`): 14 provas, IA 170–200, rival **Felix Badar** (IA 200, melhor de 5, `global-8`), Copa Global, Lendas (convite) e o Mundial (5 etapas). Felix aparece antes no convite da Nacional (IA 192) e como dono dos ouros dos relógios nacionais. Pistas `global-*` e `mapa-global` (`CareerTracks`, 65–117 células; `global-7` é um oito com cruzamento de retas no chão, seção 63). Para desenhar: `CareerTracks.Probe("…")` diz onde a ponta acaba, sem o Q.
+
+**IA das regiões:** Garagem 35 → 98, Clube 102 → 130, Regional 120 → 148, Nacional 145 → 172 (+ Felix 192), Global 170 → 200. Voltas: +1 a +2 por prova.
+
+**Relógios:** bronze = volta média da IA (Garagem 90 · Clube 110 · Regional 125 · Nacional 140 · Global 160), no mínimo ouro × 1,08; prata = 130 · 150 · 165 · 175 · 190, no mínimo ouro × 1,04; ouro = o menor entre o antigo e a lenda (165 · 175 · 185 · 195 · 200 × 0,99). Garagem-2 4,04 · 3,57 · 3,43; garagem-6 5,38 · 4,76 · 4,51; clube-2 5,12 · 4,77 · 4,59; clube-6 5,21 · 4,92 · 4,52; regional-2 9,69 · 9,33 · 8,97; regional-6 7,41 · 7,13 · 6,86; nacional-2 8,35 · 8,04 · 7,73; nacional-6 8,02 · 7,73 · 7,43; global-2 18,04 · 17,37 · 16,70; global-6 15,16 · 14,60 · 14,04.
+
+**Teste (Play, `CareerPlaytest`, que agora roda o `CareerTick` a cada passo nas provas de eliminação e liderança; save 3 de teste apagado, save 1 conferido igual):**
+- Garagem, IA 165 no lugar do jogador, nível 3: ★★★ em tudo menos garagem-6 (★★).
+- Clube, nível 6: mestre 150 perde a Marina (1×2) e o convite fica em ★★; lenda 175 ganha quase tudo.
+- Regional, 165, nível 8: ★★★ quase tudo; Largada Pesada 0★, convite ★★.
+- Nacional, 180, nível 10: perde a Serra, a eliminação, a resistência, o Rei, a Copa das Capitais (3º) e o convite do Felix (2º); campeão do GP com 3/4.
+- Global, 195, nível 10: 3º no Autódromo, 5º na eliminação e na resistência, 2º na Copa Global, 3º nas Lendas e no Mundial.
+- **Correções depois do teste:**
+  - **Felix:** a 195 venceu o Felix (200) por 3×0. Sem turbo, os dois empatavam na global-8: nos saltos e no loop, as lendas param no mesmo limite. Com turbo, ganhava quem vinha atrás (o handicap da seção 79). Agora o Felix tem a garagem no nível 11, um a mais que o máximo à venda (`NodeDef.rivalNivel`, `PilotoDef.nivel`, `Pilot.nivel`, até `Career.MaxNivelIA 15`). Duelo de 6 voltas com turbo, 6 provas por trilho, contra a 195 no nível 10: no nível 10 o Felix vence 1 de 12; no 11, 6 de 12; no 12, 10 de 12. Ele fica entre os melhores, sem ser imbatível. Na região inteira: série 3×1 para a 195.
+  - **Chicane antes do salto:** na Serra do Mundo e na Serra Nacional (`Md Me Md Me J2`), a IA saía uma vez por volta. Eram duas causas. Primeiro, a lenda contava a folga curva a curva, e na chicane a derrapagem não tem reta para baixar: agora curvas encostadas contam como uma só (`aiRest`). Segundo, com o salto à frente, o mestre não freava forte nem pela curva antes da rampa: agora não freia forte só pelo salto (`needCurve`). Sozinha, a IA de 125 a 200 faz 0 a 0,3 saída por prova em global-3, nacional-7, nacional-4, nacional-2, regional-2, global-8 e global-c5 (antes, 4 na global-3 e na nacional-7). As voltas das pistas sem chicane não mudaram.

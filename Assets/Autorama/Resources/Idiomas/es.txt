@@ -321,7 +321,6 @@ Ronco	Rugido
 Seu arquivo (motor.wav)	Tu archivo (motor.wav)
 Motor curto	Motor corto
 Motor longo	Motor largo
-Da garagem ao campeonato nacional.	Del garaje al campeonato nacional.
 Voltar ao menu (Esc)	Volver al menú (Esc)
 ◀ Saves	◀ Partidas
 Garagem do carro (G)	Garaje del coche (G)
@@ -1160,7 +1159,6 @@ cruzamento e cruzamento curto	cruce y cruce corto
 Subida e descida	Subida y bajada
 rampas para ponte	rampas para puente
 salto de vão 1	salto con hueco de 1
-curva em C (1 a 3 fileiras)	horquilla (1 a 3 filas)
 loop	loop
 Saltos grandes	Saltos grandes
 salto de vão 2 e 3	saltos con hueco de 2 y 3
@@ -1388,3 +1386,60 @@ Largada em {0} s	Salida en {0} s
 Até a ponta ≈ {0} s	Hasta la punta ≈ {0} s
 Volta ≈ {0} s	Vuelta ≈ {0} s
  · {0} voltas ≈ {1}:{2:00}	 · {0} vueltas ≈ {1}:{2:00}
+Curva em C inclinada	Horquilla peraltada
+curva em C plana e inclinada (1 a 3 fileiras)	horquilla plana y peraltada (1 a 3 filas)
+curva em C inclinada esquerda · direita	horquilla peraltada izquierda · derecha
+Inclinação	Peralte
+{0}°	{0}°
+Bater o recorde de {0} ({1})	Batir el récord de {0} ({1})
+Liderar por {0:0} s	Liderar durante {0:0} s
+A cada {0:0} s o último sai da pista, até sobrar um	Cada {0:0} s el último queda fuera, hasta que quede uno
+Da garagem ao Mundial.	Del garaje al Mundial.
+{0} abre com {1} estrelas nas regiões anteriores (você tem {2}).	{0} se abre con {1} estrellas en las regiones anteriores (tienes {2}).
+Convite: faça {0} estrelas na região para abrir.	Invitación: consigue {0} estrellas en la región para abrir.
+Carros da IA no nível {0} da garagem	Autos de la IA en el nivel {0} del garaje
+Carro {0} eliminado · sobram {1}	Auto {0} eliminado · quedan {1}
+\n<color=#F07A3A>Próxima eliminação em {0} s · {1} na pista</color>	\n<color=#F07A3A>Próxima eliminación en {0} s · {1} en pista</color>
+\n<color=#F5C21B>Na liderança: {0} s</color>	\n<color=#F5C21B>En cabeza: {0} s</color>
+Último de pé: você venceu!	El último en pie: ¡ganaste!
+Eliminado em {0}º lugar	Eliminado en el {0}º puesto
+Prêmio do {0}º lugar: ◎ {1}	Premio del {0}º puesto: ◎ {1}
+Para abrir {0}: {1} estrelas nas regiões anteriores (você tem {2}).	Para abrir {0}: {1} estrellas en las regiones anteriores (tienes {2}).
+\nCarros da IA no nível {0} da garagem	\nAutos de la IA en el nivel {0} del garaje
+\nPrêmios: 	\nPremios: 
+{0}º ◎ {1}	{0}º ◎ {1}
+Rei da Garagem	Rey del Garaje
+Copinha da Garagem	Copita del Garaje
+Sobrevivência	Supervivencia
+Copa do Clube	Copa del Club
+Nina Pistão	Nina Pistão
+Convite do Clube	Invitación del Club
+Resistência	Resistencia
+Copa do Interior	Copa del Interior
+Convite Regional	Invitación Regional
+24 Voltas	24 Vueltas
+Rei do Estádio	Rey del Estadio
+Copa das Capitais	Copa de las Capitales
+Convite: Felix Badar	Invitación: Felix Badar
+Felix Badar	Felix Badar
+Global	Global
+Autódromo Mundial	Autódromo Mundial
+Reta dos Recordes	Recta de los Récords
+Serra do Mundo	Sierra del Mundo
+Oficina Mundial	Taller Mundial
+Sobrevivência Mundial	Supervivencia Mundial
+Viaduto Infinito	Viaducto Infinito
+Tempestade	Tormenta
+Resistência Mundial	Resistencia Mundial
+Rei do Mundo	Rey del Mundo
+Copa Global	Copa Global
+Sofia Lindqvist	Sofia Lindqvist
+Mateo Ruiz	Mateo Ruiz
+Aiko Tanabe	Aiko Tanabe
+Lukas Brandt	Lukas Brandt
+Chloé Marchand	Chloé Marchand
+Eu não corro contra você. Corro contra o relógio.	No corro contra ti. Corro contra el reloj.
+Volte quando o relógio tiver medo de você.	Vuelve cuando el reloj te tenga miedo.
+Faz trinta anos que ninguém me passa. A mesa agora é sua.	Hace treinta años que nadie me pasa. La mesa ahora es tuya.
+Lendas	Leyendas
+Mundial	Mundial

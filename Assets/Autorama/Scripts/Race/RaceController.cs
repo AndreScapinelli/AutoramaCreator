@@ -853,6 +853,7 @@ namespace Autorama
                 ("7 · 8", L.T("curva longa inclinada esquerda · direita")),
                 ("9 · 0", L.T("curva curta inclinada esquerda · direita")),
                 ("G · H", L.T("curva em C esquerda · direita")),
+                ("N · M", L.T("curva em C inclinada esquerda · direita")),
                 ("U · D", L.T("rampa sobe · desce")),
                 ("K · L", L.T("loop saindo à esquerda · à direita")),
                 ("J", L.T("rampa de salto")),
