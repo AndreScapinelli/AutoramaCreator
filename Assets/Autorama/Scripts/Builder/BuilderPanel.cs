@@ -95,7 +95,9 @@ namespace Autorama
         Label statusText, hint, cellLabel, scaleText, toast, viewBadge;
         // Sobre a mesa, no construtor: o selo de status (com a ação que resolve) e a barra de ações.
         VisualElement tableWrap, tableStatus, tableDot, actionBar, palBar;
-        Label tableText;
+        Label tableText, tableEst;
+        // Duração estimada (seção 91): refeita só quando a pista muda (Segments é uma lista nova a cada mudança).
+        List<Segment> estSegs; float estVmax;
         Button tableClose, tableShow, tableRace, barUndo, barRedo, barFlip, barRemove, bar3D;
         TextField nameField;
         Button undoBtn, redoBtn, viewBtn, saveAsBtn, closeBtn, endFrontBtn, endBackBtn;
@@ -615,6 +617,7 @@ namespace Autorama
             tableShow = Btn(L.T("Mostrar"), ShowOverlap, "btn table-btn", tableStatus);
             tableShow.tooltip = L.T("Seleciona uma das peças sobrepostas");
             tableRace = IconBtn(L.T("Correr nesta pista"), "correr", () => RaceHereRequested?.Invoke(), "btn btn--accent table-btn", tableStatus);
+            tableEst = Text("", "table-est", tableWrap);
 
             // Barra de ações, no canto de baixo à direita da mesa.
             actionBar = El("action-bar", root);
@@ -659,6 +662,30 @@ namespace Autorama
             bool sel = builder.Selected >= 0;
             barFlip.SetEnabled(sel);
             barRemove.SetEnabled(builder.pieces.Count > 1);
+            RefreshEstimate();
+        }
+
+        void RefreshEstimate()
+        {
+            var set = RaceSettings.Load();
+            if (builder.Segments == estSegs && set.vmax == estVmax) return;
+            estSegs = builder.Segments; estVmax = set.vmax;
+            string txt = "";
+            if (builder.pieces.Count > 1 && LapEstimate.Run(builder.Segments, builder.Info.closed, builder.Faixas, set, out float first, out float lap))
+            {
+                if (!builder.Info.closed) txt = L.F("Até a ponta ≈ {0} s", Num(lap));
+                else
+                {
+                    txt = L.F("Volta ≈ {0} s", Num(lap));
+                    if (!set.byTime && set.laps > 1)
+                    {
+                        int tot = Mathf.RoundToInt(first + (set.laps - 1) * lap);
+                        txt += L.F(" · {0} voltas ≈ {1}:{2:00}", set.laps, tot / 60, tot % 60);
+                    }
+                }
+            }
+            tableEst.text = txt;
+            tableEst.style.display = txt != "" ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
         void Refresh()

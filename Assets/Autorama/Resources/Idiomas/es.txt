@@ -1385,3 +1385,6 @@ Minhas	Mías
 Baixadas	Descargadas
 Largada em {0} s · Enter larga agora	Salida en {0} s · Enter sale ya
 Largada em {0} s	Salida en {0} s
+Até a ponta ≈ {0} s	Hasta la punta ≈ {0} s
+Volta ≈ {0} s	Vuelta ≈ {0} s
+ · {0} voltas ≈ {1}:{2:00}	 · {0} vueltas ≈ {1}:{2:00}

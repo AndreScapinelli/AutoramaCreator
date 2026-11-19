@@ -1385,3 +1385,6 @@ Minhas	Mine
 Baixadas	Downloaded
 Largada em {0} s · Enter larga agora	Start in {0} s · Enter starts now
 Largada em {0} s	Start in {0} s
+Até a ponta ≈ {0} s	≈ {0} s to the end
+Volta ≈ {0} s	Lap ≈ {0} s
+ · {0} voltas ≈ {1}:{2:00}	 · {0} laps ≈ {1}:{2:00}

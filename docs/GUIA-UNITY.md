@@ -5246,3 +5246,13 @@ A interface tem seis idiomas: português (o original), inglês, espanhol, franc�
   - **Oval:** a máxima não passa de 0,88 (0,92 com os mestres, 150), então nunca acende: as retas são curtas.
   - **Carreira:** nas pistas com retas longas, a IA fica acima de 0,94 de 15 a 59% do tempo (nacional-c1 59%, regional-1 48%, clube-c1 46%). Nas da garagem, de 0 a 5%.
   - Recompilado sem erros. **Não visto na tela:** o tamanho e o brilho das partículas no Play.
+
+## 91. Duração estimada da pista no construtor
+
+- **O que faz:** ao lado do selo de status, no topo da mesa, um chip com o tempo estimado, refeito a cada peça colocada, tirada ou mudada. Pista fechada: `Volta ≈ 20,0 s · 5 voltas ≈ 1:42` (o total some na corrida por tempo). Pista aberta: `Até a ponta ≈ 8,6 s`. Só a largada: o chip some.
+- **Como estima** (`Race/LapEstimate.cs`, `LapEstimate.Run`): um `RaceSim` sem cena com um piloto IA de qualidade 100 (`Skill`), sozinho no trilho 1, sem turbo e sem batida, com `vmax`, `ramp`, `grip`, `halfGas` e `reslotTime` dos ajustes da corrida livre (`RaceSettings.Load()`). Passo de 1/60 s, no máximo 120 s (`MaxSecs`; passou disso, o chip some).
+  - Fechada: corre 2 voltas; `first` é a 1ª (do grid) e `lap` a 2ª (lançada). Total = `first + (voltas − 1) × lap`, com as voltas da corrida livre.
+  - Aberta: modo teste (seção 61); conta até o carro chegar na ponta e voltar ao grid (o `CarState` é trocado).
+  - A IA sorteia erros com `UnityEngine.Random`: a conta usa a semente fixa `Seed 1234` e devolve o `Random.state` de antes. O mesmo número sempre, e o jogo não perde a sorte.
+- **Quando refaz** (`BuilderPanel.RefreshEstimate`, chamado em `RefreshTableTools`): só quando `builder.Segments` é uma lista nova (o `TrackBuilder` monta uma a cada mudança) ou quando a `vmax` mudou.
+- **Teste** (`script eval`, no Editor): na pista do rascunho (52 peças, fechada, 2 trilhos), 1ª volta 19,97 s e volta lançada 20,03 s, iguais nas duas rodadas, ~40 ms cada. As 20 primeiras peças como pista aberta: 8,62 s até a ponta, 7 ms. Textos traduzidos nas cinco tabelas. **Não visto na tela:** o chip no Play.

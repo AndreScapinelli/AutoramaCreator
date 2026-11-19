@@ -1385,3 +1385,6 @@ Minhas	Les miens
 Baixadas	Téléchargés
 Largada em {0} s · Enter larga agora	Départ dans {0} s · Entrée pour partir
 Largada em {0} s	Départ dans {0} s
+Até a ponta ≈ {0} s	Jusqu'au bout ≈ {0} s
+Volta ≈ {0} s	Tour ≈ {0} s
+ · {0} voltas ≈ {1}:{2:00}	 · {0} tours ≈ {1}:{2:00}

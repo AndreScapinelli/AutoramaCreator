@@ -1385,3 +1385,6 @@ Minhas	自作
 Baixadas	ダウンロード
 Largada em {0} s · Enter larga agora	スタートまで {0} 秒 · Enter ですぐスタート
 Largada em {0} s	スタートまで {0} 秒
+Até a ponta ≈ {0} s	先端まで ≈ {0} 秒
+Volta ≈ {0} s	1周 ≈ {0} 秒
+ · {0} voltas ≈ {1}:{2:00}	 · {0}周 ≈ {1}:{2:00}

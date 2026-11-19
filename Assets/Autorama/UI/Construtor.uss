@@ -602,6 +602,10 @@
 .table-status.status--ok { border-color: var(--verde-luz); }
 .table-status.status--warn { border-color: var(--alerta); }
 .table-status-text { font-size: 13px; color: var(--texto); margin: 0 8px 0 6px; padding: 0; }
+.table-est {
+    margin: 0 0 0 8px; padding: 0 12px; height: 32px; border-radius: 16px; -unity-text-align: middle-left;
+    font-size: 13px; color: var(--texto); background-color: var(--fundo-vidro); border-width: 1px; border-color: var(--borda-clara);
+}
 .table-btn { height: 30px; margin: 0 0 0 6px; padding: 0 12px; border-radius: 15px; font-size: 13px; }
 .table-btn .btn-ico { width: 14px; height: 14px; }
 
