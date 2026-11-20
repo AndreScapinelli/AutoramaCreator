@@ -23,6 +23,16 @@ namespace Autorama
             return t;
         }
 
+        // Os cosméticos (seção 97): o preço do catálogo, sem multiplicador.
+        public static int Total(IList<TrackPiece> pieces, IList<Enfeite> enfeites)
+        {
+            int t = Total(pieces);
+            foreach (var e in enfeites) t += EnfeiteCatalog.ById(e.id)?.preco ?? 0;
+            return t;
+        }
+
+        public static int Total(TrackSave s) => Total(s.Pieces(), s.Enfeites());
+
         // 1 se a peça já é sua; senão o multiplicador pela distância na carreira. Rampa é do grupo "rampas"; salto de
         // vão 2 e 3, também de "salto-grande" (vale o mais caro dos dois).
         public static int Mult(string id, int rise = 0, int vao = 1)

@@ -25,6 +25,7 @@ namespace Autorama
         public List<PieceSave> pecas = new List<PieceSave>();
         public int atras;                 // quantas das últimas peças de "pecas" ficam atrás da largada
         public int faixas = 2;            // 2, 4, 6 ou 8 carros (sem o campo: 2). Pista de 4 só existe na Unity (seção 25).
+        public List<EnfeiteSave> enfeites = new List<EnfeiteSave>();   // cosméticos (seção 97); não entram na identidade
 
         public int Faixas => TrackMath.Faixas(faixas);
 
@@ -37,7 +38,26 @@ namespace Autorama
             if (s.mesa == null) s.mesa = new BoardSave();
             if (s.largada == null) s.largada = new OriginSave();
             s.faixas = TrackMath.Faixas(s.faixas);
+            if (s.enfeites == null) s.enfeites = new List<EnfeiteSave>();
             return s;
+        }
+
+        // Enfeites no plano da Unity; id que este jogo não conhece (pista de uma versão mais nova) fica de fora.
+        public List<Enfeite> Enfeites()
+        {
+            var list = new List<Enfeite>();
+            if (enfeites != null)
+                foreach (var e in enfeites)
+                    if (EnfeiteCatalog.ById(e.id) != null)
+                        list.Add(new Enfeite { id = e.id, pos = new Vector2(e.x, mesa.h - e.y), rot = -e.h, esc = e.esc > 0 ? e.esc : 1f });
+            return list;
+        }
+
+        public void SetEnfeites(IList<Enfeite> list)
+        {
+            enfeites = new List<EnfeiteSave>();
+            foreach (var e in list)
+                enfeites.Add(new EnfeiteSave { id = e.id, x = e.pos.x, y = mesa.h - e.pos.y, h = TrackMath.Normalize(-e.rot), esc = e.esc });
         }
 
         // ----- conversão para o modelo da Unity -----
@@ -182,6 +202,14 @@ namespace Autorama
 
         // O nome do arquivo da pista na biblioteca (o que já foi pago por ela fica com essa chave, seção 94).
         public static string Key(string name) => Slug(name);
+
+        // A pista salva com essa chave (null se não tem).
+        public static TrackSave LoadKey(string key)
+        {
+            string path = Path.Combine(Folder, key + ".json");
+            try { return File.Exists(path) ? TrackSave.FromJson(File.ReadAllText(path)) : null; }
+            catch { return null; }
+        }
 
         static string Slug(string name)
         {

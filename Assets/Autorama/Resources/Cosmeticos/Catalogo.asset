@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44ba49ab5dbb5204a9d32ea7d336760f, type: 3}
+  m_Name: Catalogo
+  m_EditorClassIdentifier: Assembly-CSharp::Autorama.EnfeiteCatalog
+  itens:
+  - id: arvore-redonda
+    nome: "\xC1rvore redonda"
+    grupo: "\xC1rvores"
+    prefab: {fileID: 1646885935188752, guid: dafad5d52cd284f4b8229a896f9a966f, type: 3}
+    preco: 80
+    altura: 3
+  - id: pinheiro
+    nome: Pinheiro
+    grupo: "\xC1rvores"
+    prefab: {fileID: 1182756067964316, guid: fc9f550802bde56499ac8b64cac565f0, type: 3}
+    preco: 80
+    altura: 3.6
+  - id: betula
+    nome: "B\xE9tula"
+    grupo: "\xC1rvores"
+    prefab: {fileID: 1130392368877672, guid: 1ea71f643417d124d91e53eae7c666a6, type: 3}
+    preco: 80
+    altura: 3.2
+  - id: arvore-seca
+    nome: "\xC1rvore seca"
+    grupo: "\xC1rvores"
+    prefab: {fileID: 1814190282122440, guid: 33247b6aefb946246bc9f0c7346b4364, type: 3}
+    preco: 60
+    altura: 2.6
+  - id: pedra
+    nome: Pedra
+    grupo: Pedras
+    prefab: {fileID: 1279149807870478, guid: 51917b8e41ef6a1469249c9dfee70390, type: 3}
+    preco: 30
+    altura: 0.7
+  - id: pedrinha
+    nome: Pedrinha
+    grupo: Pedras
+    prefab: {fileID: 1548467455464118, guid: a66fcd4b0c95c3c4f8a2e3ec71b821fd, type: 3}
+    preco: 15
+    altura: 0.35
+  - id: pedregulho
+    nome: Pedregulho
+    grupo: Pedras
+    prefab: {fileID: 1732272334065596, guid: cdcb19fde9e8cba40b7bff849baf2c1b, type: 3}
+    preco: 50
+    altura: 1.2
+  - id: monte-de-pedras
+    nome: Monte de pedras
+    grupo: Pedras
+    prefab: {fileID: 1205270495780786, guid: bfe46d6e2f03af346a70ed16cbda3eee, type: 3}
+    preco: 40
+    altura: 0.6

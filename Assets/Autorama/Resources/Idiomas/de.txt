@@ -1495,3 +1495,24 @@ hoje no online: {0} de {1} (depois, metade)	heute online: {0} von {1} (danach di
 limite do dia no online passou: pagando metade	Tageslimit online überschritten: halbe Auszahlung
 hoje fora do online: {0} de {1}	heute offline: {0} von {1}
 Limite do dia fora do online ({0}) atingido. Amanhã tem mais; a carreira e o online continuam pagando.	Tageslimit offline ({0}) erreicht. Morgen gibt es mehr; Karriere und Online zahlen weiter.
+Volta ao salvar	Erstattung beim Speichern
+Salvar devolve {0}.	Speichern erstattet {0}.
+“{0}” salva · recebeu {1}.	„{0}“ gespeichert · {1} erstattet.
+COSMÉTICOS	DEKO
+Clique na mesa para pôr. R gira o selecionado · Del tira · Esc solta.	Klicke auf den Tisch zum Platzieren. R dreht die Auswahl · Entf entfernt · Esc lässt los.
+{0} · {1}	{0} · {1}
+O enfeite precisa ficar dentro da mesa.	Die Deko muss auf dem Tisch bleiben.
+O enfeite não pode ficar em cima da pista.	Die Deko darf nicht auf der Strecke stehen.
+Árvores	Bäume
+Pedras	Steine
+Árvore redonda	Runder Baum
+Pinheiro	Kiefer
+Bétula	Birke
+Árvore seca	Toter Baum
+Pedra	Stein
+Pedrinha	Kieselstein
+Pedregulho	Felsbrocken
+Monte de pedras	Steinhaufen
+Cosméticos	Deko
+clique no cartão e na mesa para pôr; arrastar move · R gira · Delete tira · Esc solta	Karte und dann den Tisch anklicken zum Platzieren; Ziehen verschiebt · R dreht · Entf entfernt · Esc lässt los
+A pista passou por cima de {0} enfeite(s), que saíram da mesa.	Die Strecke lief über {0} Deko-Objekt(e), die vom Tisch entfernt wurden.

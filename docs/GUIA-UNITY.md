@@ -5418,6 +5418,7 @@ Os jogadores montavam pistas enormes desde o primeiro minuto. Agora o construtor
 - **Carteira** (`Profile/Carteira.cs`, `autorama/carteira.json`) é do jogador, não do save. Guarda:
   - as moedas e a garagem do carro (antes ficavam em `CareerSave.moedas`/`garagem`, que agora só são lidas na migração);
   - o nível da mesa e quanto já pagou por cada pista (`pagas`, lista `Qtd`: arquivo da biblioteca → moedas);
+  - **editar pista paga só a diferença:** ao salvar, `Pay` cobra `custo − Pago` e, se o custo caiu, devolve `Devolve = min(Pago − custo, gastas)`; `pagas` vira o custo novo e `gastas` (moedas que saíram de fato da carteira por aquela pista) soma o cobrado menos o devolvido. Pista sem registro em `pagas` (salva antes da carteira, ou baixada do online) conta como paga pelo custo do arquivo na biblioteca (`TrackLibrary.LoadKey`), com `gastas` 0: acrescentar paga só o novo, tirar não devolve o que veio de graça. O painel mostra "A pagar ao salvar" ou "Volta ao salvar". Teste (`script eval`, carteira em memória): custos 600 → 750 → 500 → 0 → 300 dão paga 600, paga 150, recebe 250, recebe 500, paga 300. Salvar com outro nome é pista nova (paga inteira).
   - as melhores estrelas de cada prova de sempre (`estrelas`) e a região mais adiantada (`regiao`). Essas estrelas servem para três coisas: a estrela já paga não paga de novo (`paid` em `RaceController.Career.cs`), peças e modelos abertos continuam abertos e `Progresso.Scan` passa a ler daqui.
   - `Career.Save` chama `Carteira.Sync` e `Carteira.Save`.
 - **Moedas iniciais:** `Carteira.Inicial 1000`, para quem cria a carteira do zero (sem `carteira.json`). Quem vem de um save antigo fica com as moedas dele (migração).
@@ -5483,3 +5484,38 @@ A carreira continua sendo onde mais se ganha; corrida livre, campeonato offline 
 - **Exemplos:** partida rápida de 4 (4:00), em 1º: 40 + 3 × 20 = 100. Corrida livre de 3 min contra 3 IAs de qualidade 60, em 1º: 5 + 3 × 6 = 23.
 - **Carreira zerada** (`Progresso.Zerou`, campeão do Mundial: a mesma condição da bolha Fórmula, seção 93): o construtor fica sem limite. `ApplyGate` tira a mesa (`BoardLimit 0`) e o pagar (`SaveGate null`), `PiecePrice.Mult` volta 1 para tudo, e a seção MESA avisa "Carreira zerada: mesa sem limite, peças e pistas de graça.".
 - **Teste (`script eval`, carteira restaurada):** online 100 com o dia zerado → 100; com 2.950 já ganhos → 75 (50 cheio + 25 pela metade). Offline 300 → 300; com 700 → 100; depois → 0 (teste com o limite de 800 da época; hoje é 2.000). Não visto na tela; a corrida inteira não foi jogada.
+
+## 97. Cosméticos: enfeites soltos na mesa
+
+Aba **COSMÉTICOS** na paleta de baixo do construtor: árvores, pedras e o que vier depois, soltos na mesa (fora da grade). Não mexem na corrida, na física nem na identidade da pista (os recordes continuam os mesmos); só somam no custo da pista.
+
+**Catálogo** (`Core/EnfeiteCatalog.cs`, asset `Resources/Cosmeticos/Catalogo.asset`): cada item (`EnfeiteDef`) tem `id` (vai no JSON; não muda depois de lançado), `nome` e `grupo` (português, passam por `L.T`), `prefab`, `preco` e `altura` em células (1 célula = largura da pista). O tamanho no mundo sai da altura: `células por metro = altura / altura do modelo × esc`; a pegada no chão (raio), das bordas do modelo (`TrackBuilder.Measure`, uma vez por item). **Asset novo:** importe o pacote, acrescente um item no Catalogo.asset pelo Inspector e ponha o nome e o grupo no `Textos` do `EnfeiteCatalog` (para o `ferramentas/idiomas.js` achar) e traduza.
+
+| id | Modelo (POLYGON Nature, Synty) | Grupo | Altura (células) | Preço |
+|---|---|---|---|---|
+| `arvore-redonda` | `SM_Tree_Round_01` | Árvores | 3,0 | 80 |
+| `pinheiro` | `SM_Tree_Pine_01` | Árvores | 3,6 | 80 |
+| `betula` | `SM_Tree_Birch_01` | Árvores | 3,2 | 80 |
+| `arvore-seca` | `SM_Tree_Dead_01` | Árvores | 2,6 | 60 |
+| `pedra` | `SM_Rock_01` | Pedras | 0,7 | 30 |
+| `pedrinha` | `SM_Rock_Small_01` | Pedras | 0,35 | 15 |
+| `pedregulho` | `SM_Rock_Boulder_01` | Pedras | 1,2 | 50 |
+| `monte-de-pedras` | `SM_Rock_Pile_01` | Pedras | 0,6 | 40 |
+
+O pacote fica em `Assets/PolygonNature` (materiais já em URP: SimpleLit e o PolygonTrees.shadergraph).
+
+**JSON da pista** (`TrackSave.enfeites`, lista de `EnfeiteSave { id, x, y, h, esc }`): no formato herdado, y para baixo (`y = mesa.h − z`) e ângulo horário (`h = −giro`). `esc` é a variação de tamanho (0,9 a 1,1, sorteada ao pôr). Pista sem o campo abre com a lista vazia; id que o jogo não conhece fica de fora (`TrackSave.Enfeites()`). Vai junto pelo online como o resto do JSON (dentro do `MaxTrackJson`).
+
+**Construtor** (`Builder/TrackBuilder.Enfeites.cs`, parcial do `TrackBuilder`):
+- Clicar no cartão **arma** o item (`Arm`); o modelo acompanha o mouse (`ShowArmed`) e o clique na mesa põe (`PlaceArmed`, giro sorteado em passos de 45° e tamanho 0,9–1,1). Continua armado para pôr outros; Esc ou uma peça da pista desarma.
+- Clicar num enfeite seleciona (disco da cor da seleção embaixo); arrastar move (`MoveEnfeite`, entre `BeginEdit` e `EndEdit`); **R** gira 45°; **Delete/Backspace** tira; **Esc** solta. Com enfeite armado ou selecionado, essas teclas são do enfeite (o R não gira a largada).
+- **Onde pode:** dentro da mesa e longe da pista: a distância do centro até a linha central (amostrada a cada 1/32 de peça, em todos os níveis) ≥ `0,5 + 0,6 × raio` (`TrackHalf`, `FootShare`).
+- **A pista ganha:** peça nova, o Q ou arrastar a pista por cima de um enfeite tira o enfeite e avisa (`DropCovered`, em `Commit` e `EndEdit`); o desfazer devolve.
+- Tudo entra no desfazer e no rascunho (`ToSave`/`Apply`). A mesa que cresce para a esquerda ou para baixo empurra os enfeites junto com a pista (`GrowBoard`).
+- Desenho: o prefab instanciado embaixo da raiz da pista (escala da pista de 4, 6 e 8 junto), base no tampo, sem os colliders do pacote e com um `BoxCollider` próprio para o clique. Itens com altura < 1 célula não fazem sombra.
+
+**Corrida:** os enfeites aparecem; a mesa recortada (`RaceArea`, seção 28.2) cresce para cobrir os enfeites também.
+
+**Preço:** `PiecePrice.Total(peças, enfeites)` e `PiecePrice.Total(TrackSave)` somam o `preco` do catálogo, sem multiplicador de carreira. O pagar ao salvar (`PaySave`), o já pago (`Carteira.Pago`) e o RESUMO do construtor usam o total com os enfeites.
+
+**Teste (Play, rascunho com backup e restaurado):** pinheiro posto em (1,5; 4,5) → JSON `{'id':'pinheiro','x':1.5,'y':72.5,'h':135,'esc':1.08}` e volta igual (pos e giro); pedra em cima da pista recusada; girar −135 → 270 e desfazer volta −135; custo da pista 505 → 775 com 3 pinheiros e 1 pedra (3×80 + 30); RaceMode sem erro. Na tela (vista 3D): a aba com os 8 cartões e os modelos na mesa. Pedra posta 8 células à frente da largada e 4 retas compridas por cima: a pedra sai com o aviso. Não testado: o online com duas máquinas.

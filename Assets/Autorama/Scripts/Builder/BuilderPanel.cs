@@ -498,7 +498,7 @@ namespace Autorama
             var palTiles = El("pal-tiles", palBar);
             var groups = new Dictionary<string, VisualElement>();
             var groupTabs = new List<(Button tab, VisualElement grid)>();
-            foreach (var g in new[] { L.T("RETAS"), L.T("CURVAS"), L.T("CURVAS INCLINADAS"), L.T("CRUZAMENTOS E RAMPAS"), L.T("LOOP E SALTO") })
+            foreach (var g in new[] { L.T("RETAS"), L.T("CURVAS"), L.T("CURVAS INCLINADAS"), L.T("CRUZAMENTOS E RAMPAS"), L.T("LOOP E SALTO"), L.T("COSMÉTICOS") })
             {
                 var grid = groups[g] = El("palette", palTiles);
                 Button tab = null;
@@ -533,6 +533,20 @@ namespace Autorama
                 tile.RegisterCallback<PointerEnterEvent>(_ => builder.ShowGhost(entry));
                 tile.RegisterCallback<PointerLeaveEvent>(_ => builder.HideGhost());
                 grid.Add(tile);
+            }
+
+            // Cosméticos (seção 97): um cartão por item do catálogo; o clique arma, e o clique na mesa põe.
+            foreach (var d in EnfeiteCatalog.Itens)
+            {
+                var def = d;
+                var tile = new Button(() => { builder.HideGhost(); builder.Arm(def.id); Say(L.T("Clique na mesa para pôr. R gira o selecionado · Del tira · Esc solta.")); });
+                tile.AddToClassList("tile");
+                var texts = El("tile-texts", tile); texts.pickingMode = PickingMode.Ignore;
+                Text(L.T(def.nome), "tile-name", texts).pickingMode = PickingMode.Ignore;
+                Text(L.T(def.grupo), "tile-sub", texts).pickingMode = PickingMode.Ignore;
+                Text(PiecePrice.Money(def.preco), "tile-price", tile).pickingMode = PickingMode.Ignore;
+                tile.tooltip = L.F("{0} · {1}", L.T(def.nome), L.T(def.grupo));
+                groups[L.T("COSMÉTICOS")].Add(tile);
             }
 
             selectedBox = El(null, Section(L.T("PEÇA SELECIONADA")));
@@ -879,12 +893,16 @@ namespace Autorama
             for (int l = 1; l < lens.Length; l++) { if (lens[l] < lens[lo]) lo = l; if (lens[l] > lens[hi]) hi = l; }
             float diff = lens[hi] - lens[lo];
             Stat(L.T("Peças"), builder.pieces.Count + (i.highCount > 0 ? L.F(" · {0} no alto", i.highCount) : ""));
-            int cost = PiecePrice.Total(builder.pieces);
+            int cost = PiecePrice.Total(builder.pieces, builder.enfeites);
             Stat(L.T("Custo"), PiecePrice.Money(cost));
-            int due = TrackBuilder.SaveGate != null ? Carteira.APagar(TrackLibrary.Key(builder.TrackName ?? ""), cost) : 0;
+            string pkey = TrackLibrary.Key(builder.TrackName ?? "");
+            int due = TrackBuilder.SaveGate != null ? Carteira.APagar(pkey, cost) : 0;
+            int back = TrackBuilder.SaveGate != null ? Carteira.Devolve(pkey, cost) : 0;
             if (due > 0 && due != cost) Stat(L.T("A pagar ao salvar"), PiecePrice.Money(due));
+            if (back > 0) Stat(L.T("Volta ao salvar"), PiecePrice.Money(back));
             if (saveCost != null) saveCost.text = TrackBuilder.SaveGate == null ? L.F("Custo da pista: {0}", PiecePrice.Money(cost))
-                : due > 0 ? L.F("Salvar custa {0} (você tem {1}).", PiecePrice.Money(due), PiecePrice.Money(Carteira.D.moedas)) : L.T("Já paga: salvar não custa nada.");
+                : due > 0 ? L.F("Salvar custa {0} (você tem {1}).", PiecePrice.Money(due), PiecePrice.Money(Carteira.D.moedas))
+                : back > 0 ? L.F("Salvar devolve {0}.", PiecePrice.Money(back)) : L.T("Já paga: salvar não custa nada.");
             Stat(L.T("Linha central"), M(i.centerLength));
             for (int l = 0; l < lens.Length; l++) Stat(L.F("Trilho {0}", l + 1), M(lens[l]), LaneSwatch(l));
             Stat(L.T("Mais longo"), diff < 0.01f ? L.T("iguais") : L.F("trilho {0} +{1} cm", hi + 1, Num(diff * cm, 0)) + (lens.Length > 2 ? L.F(" (sobre o {0})", lo + 1) : ""));
@@ -979,7 +997,8 @@ namespace Autorama
             TrackLibrary.Save(save);
             RefreshLibrary();
             int pago = antes - Carteira.D.moedas;
-            Say(pago > 0 ? L.F("“{0}” salva · pagou {1}.", builder.TrackName, PiecePrice.Money(pago)) : L.F("“{0}” salva.", builder.TrackName));
+            Say(pago > 0 ? L.F("“{0}” salva · pagou {1}.", builder.TrackName, PiecePrice.Money(pago))
+                : pago < 0 ? L.F("“{0}” salva · recebeu {1}.", builder.TrackName, PiecePrice.Money(-pago)) : L.F("“{0}” salva.", builder.TrackName));
             Refresh();
         }
 

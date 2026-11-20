@@ -1495,3 +1495,24 @@ hoje no online: {0} de {1} (depois, metade)	aujourd'hui en ligne : {0} sur {1} (
 limite do dia no online passou: pagando metade	limite du jour en ligne dépassée : paiement de moitié
 hoje fora do online: {0} de {1}	aujourd'hui hors ligne : {0} sur {1}
 Limite do dia fora do online ({0}) atingido. Amanhã tem mais; a carreira e o online continuam pagando.	Limite du jour hors ligne ({0}) atteinte. Demain il y en aura plus ; la carrière et le jeu en ligne paient toujours.
+Volta ao salvar	Remboursé à la sauvegarde
+Salvar devolve {0}.	Sauvegarder rembourse {0}.
+“{0}” salva · recebeu {1}.	« {0} » sauvegardée · remboursé {1}.
+COSMÉTICOS	COSMÉTIQUES
+Clique na mesa para pôr. R gira o selecionado · Del tira · Esc solta.	Cliquez sur la table pour poser. R tourne la sélection · Suppr retire · Échap lâche.
+{0} · {1}	{0} · {1}
+O enfeite precisa ficar dentro da mesa.	La décoration doit rester sur la table.
+O enfeite não pode ficar em cima da pista.	La décoration ne peut pas être sur la piste.
+Árvores	Arbres
+Pedras	Rochers
+Árvore redonda	Arbre rond
+Pinheiro	Pin
+Bétula	Bouleau
+Árvore seca	Arbre mort
+Pedra	Rocher
+Pedrinha	Caillou
+Pedregulho	Gros rocher
+Monte de pedras	Tas de pierres
+Cosméticos	Cosmétiques
+clique no cartão e na mesa para pôr; arrastar move · R gira · Delete tira · Esc solta	cliquez sur la carte puis sur la table pour poser ; glisser déplace · R tourne · Suppr retire · Échap lâche
+A pista passou por cima de {0} enfeite(s), que saíram da mesa.	La piste est passée sur {0} décoration(s), retirée(s) de la table.

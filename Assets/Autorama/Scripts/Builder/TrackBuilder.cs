@@ -16,7 +16,7 @@ namespace Autorama
     // O construtor: guarda a lista de peças e recalcula tudo a partir da largada a cada mudança.
     // Roda também fora do Play: no Editor ele só desenha o rascunho salvo (as peças geradas não entram na cena).
     [ExecuteAlways]
-    public class TrackBuilder : MonoBehaviour
+    public partial class TrackBuilder : MonoBehaviour
     {
         public TrackTheme theme;
         public GridBoard board;
@@ -99,6 +99,8 @@ namespace Autorama
             TrackPieceView.Kill(generated);
             generated = null;
             views.Clear();
+            enfViews.Clear();
+            enfGhost = null; enfMark = null;
             arrow = arrow2 = hoverCell = null;
             ghost = null;
         }
@@ -164,6 +166,7 @@ namespace Autorama
 
         public void Add(PaletteEntry e)
         {
+            Disarm();
             if (Refuse(e)) return;
             if (Back) { AddBack(e); return; }
             Commit(() =>
@@ -266,7 +269,7 @@ namespace Autorama
 
         // Arrastar a largada: BeginEdit uma vez no começo, MoveStart a cada passo.
         public void BeginEdit() { CancelAutoClose(); undo.Push(Snapshot()); redo.Clear(); }
-        public void EndEdit() { if (GrowBoard()) Rebuild(); }     // arrastando, a mesa espera: cresce quando solta
+        public void EndEdit() { bool grew = GrowBoard(); int n = enfeites.Count; DropCovered(); if (grew || n != enfeites.Count) Rebuild(); }     // arrastando, a mesa espera: cresce quando solta
         public void MoveStart(Vector2 pos)
         {
             var o = TrackMath.SnapStart(new Pose2(pos, Origin.heading));
@@ -275,7 +278,7 @@ namespace Autorama
             Rebuild();
         }
 
-        public void Select(int i) { Selected = (i == Selected) ? -1 : i; Rebuild(); }
+        public void Select(int i) { Selected = (i == Selected) ? -1 : i; EnfSel = -1; Rebuild(); }
 
         // Nova pista vazia de 2 ou 4 carros (sem argumento, mantém o tipo atual).
         public void NewTrack(int faixas = 0) => Commit(() =>
@@ -287,12 +290,14 @@ namespace Autorama
             StartZ = 0;
             TrackName = "";
             Author = "";
+            enfeites.Clear();
+            EnfSel = -1;
             Selected = -1;
         });
 
         public void Load(TrackSave s) => Commit(() => { Apply(s); Selected = -1; });
 
-        public TrackSave ToSave() { var s = TrackSave.From(TrackName, boardSize, cellCm, Origin, pieces, Tail, Faixas, StartZ); s.autor = Author ?? ""; return s; }
+        public TrackSave ToSave() { var s = TrackSave.From(TrackName, boardSize, cellCm, Origin, pieces, Tail, Faixas, StartZ); s.autor = Author ?? ""; s.SetEnfeites(enfeites); return s; }
 
         // Adapta a pista aberta para 2, 4 ou 6 carros (seção 32 do guia). Sem perda: as peças, a forma em células, a
         // largada e a mesa são as mesmas; só mudam a largura da pista, o número de trilhos e a escala no mundo.
@@ -328,6 +333,7 @@ namespace Autorama
             if (fitted && !Fits()) { Apply(TrackSave.FromJson(undo.Pop())); Notice?.Invoke(TooBig); Rebuild(); return false; }
             GrowBoard();
             SettleTail();
+            DropCovered();
             Rebuild();
             return true;
         }
@@ -376,6 +382,7 @@ namespace Autorama
             if (dx != 0 || dz != 0)
             {
                 Origin = new Pose2(Origin.pos + new Vector2(dx, dz), Origin.heading);
+                foreach (var e in enfeites) e.pos += new Vector2(dx, dz);
                 Shifted?.Invoke(new Vector2(dx, dz) * Scale);     // no mundo
             }
             boardSize = new Vector2Int(w, h);
@@ -406,6 +413,9 @@ namespace Autorama
             Faixas = s.Faixas;
             TrackName = s.nome ?? "";
             Author = s.autor ?? "";
+            enfeites.Clear();
+            enfeites.AddRange(s.Enfeites());
+            if (EnfSel >= enfeites.Count) EnfSel = -1;
             if (Selected >= pieces.Count) Selected = -1;
         }
 
@@ -439,6 +449,7 @@ namespace Autorama
                 views[i].SetHighlight(RaceMode ? null : i == Selected ? theme.selected : Info.overlaps.Contains(i) ? theme.overlap : null);
             }
 
+            RebuildEnfeites();
             UpdateArrow();
             if (arrow) arrow.gameObject.SetActive(!RaceMode);
             if (arrow2) arrow2.gameObject.SetActive(!RaceMode);
@@ -546,6 +557,7 @@ namespace Autorama
         RectInt RaceArea()
         {
             var b = Info.bounds;
+            foreach (var e in enfeites) { float rr = Raio(e); b = Rect.MinMaxRect(Mathf.Min(b.xMin, e.pos.x - rr), Mathf.Min(b.yMin, e.pos.y - rr), Mathf.Max(b.xMax, e.pos.x + rr), Mathf.Max(b.yMax, e.pos.y + rr)); }
             int x0 = Mathf.Max(0, Mathf.FloorToInt(b.xMin) - RaceMargin), y0 = Mathf.Max(0, Mathf.FloorToInt(b.yMin) - RaceMargin);
             int x1 = Mathf.Min(boardSize.x, Mathf.CeilToInt(b.xMax) + RaceMargin), y1 = Mathf.Min(boardSize.y, Mathf.CeilToInt(b.yMax) + RaceMargin);
             return new RectInt(x0, y0, x1 - x0, y1 - y0);

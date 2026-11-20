@@ -1495,3 +1495,24 @@ hoje no online: {0} de {1} (depois, metade)	today online: {0} of {1} (then half)
 limite do dia no online passou: pagando metade	online daily limit passed: paying half
 hoje fora do online: {0} de {1}	today outside online: {0} of {1}
 Limite do dia fora do online ({0}) atingido. Amanhã tem mais; a carreira e o online continuam pagando.	Daily limit outside online ({0}) reached. More tomorrow; career and online still pay.
+Volta ao salvar	Refund on save
+Salvar devolve {0}.	Saving refunds {0}.
+“{0}” salva · recebeu {1}.	“{0}” saved · got back {1}.
+COSMÉTICOS	COSMETICS
+Clique na mesa para pôr. R gira o selecionado · Del tira · Esc solta.	Click the table to place. R rotates the selected one · Del removes · Esc releases.
+{0} · {1}	{0} · {1}
+O enfeite precisa ficar dentro da mesa.	The decoration must stay on the table.
+O enfeite não pode ficar em cima da pista.	The decoration can't sit on the track.
+Árvores	Trees
+Pedras	Rocks
+Árvore redonda	Round tree
+Pinheiro	Pine
+Bétula	Birch
+Árvore seca	Dead tree
+Pedra	Rock
+Pedrinha	Pebble
+Pedregulho	Boulder
+Monte de pedras	Rock pile
+Cosméticos	Cosmetics
+clique no cartão e na mesa para pôr; arrastar move · R gira · Delete tira · Esc solta	click the card, then the table to place; drag moves · R rotates · Delete removes · Esc releases
+A pista passou por cima de {0} enfeite(s), que saíram da mesa.	The track ran over {0} decoration(s), which were removed from the table.

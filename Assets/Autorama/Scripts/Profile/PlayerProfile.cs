@@ -191,7 +191,7 @@ namespace Autorama
         static string PaySave(TrackSave s)
         {
             string key = TrackLibrary.Key(s.nome);
-            int custo = PiecePrice.Total(s.Pieces());
+            int custo = PiecePrice.Total(s);
             string why = Carteira.CanPay(key, custo);
             if (why == "") Carteira.Pay(key, custo);
             return why;

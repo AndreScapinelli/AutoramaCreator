@@ -871,6 +871,7 @@ namespace Autorama
                 (L.T("Ctrl+S"), L.T("salva a pista")),
                 (L.T("Esc"), L.T("tira a seleção")),
                 (L.T("Clique"), L.T("seleciona a peça; arrastar a largada move a pista")),
+                (L.T("Cosméticos"), L.T("clique no cartão e na mesa para pôr; arrastar move · R gira · Delete tira · Esc solta")),
             }),
             (L.T("CÂMERA E TELA"), new[] {
                 (L.T("Roda do mouse"), L.T("aproxima e afasta")),

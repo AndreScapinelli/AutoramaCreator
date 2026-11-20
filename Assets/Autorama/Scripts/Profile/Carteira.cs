@@ -17,6 +17,7 @@ namespace Autorama
         public CarGarage garagem = new CarGarage();
         public int mesa;                                   // nível da mesa, 0 a Carteira.Mesas.Length - 1
         public List<Qtd> pagas = new List<Qtd>();          // pista (arquivo da biblioteca) → moedas já pagas por ela
+        public List<Qtd> gastas = new List<Qtd>();         // pista → moedas que saíram de fato da carteira (o que pode voltar)
         public List<Qtd> estrelas = new List<Qtd>();       // a melhor de cada prova, em qualquer carreira
         public int regiao;                                 // a região mais adiantada já aberta
         public int versao;
@@ -78,8 +79,16 @@ namespace Autorama
 
         // ----- pagar a pista (seção 94): ao salvar, paga o custo menos o que já pagou por ela -----
 
-        public static int Pago(string pista) => Get(D.pagas, pista);
+        // Pista sem registro (salva antes da carteira, baixada do online): o que ela já tem conta como pago, de graça.
+        public static int Pago(string pista)
+        {
+            foreach (var q in D.pagas) if (q.id == pista) return q.n;
+            var s = TrackLibrary.LoadKey(pista);
+            return s != null ? PiecePrice.Total(s) : 0;
+        }
         public static int APagar(string pista, int custo) => Mathf.Max(0, custo - Pago(pista));
+        // Devolve ao salvar com menos peças: só o que saiu da carteira por essa pista (o que veio de graça não volta).
+        public static int Devolve(string pista, int custo) => Mathf.Min(Mathf.Max(0, Pago(pista) - custo), Get(D.gastas, pista));
 
         public static string CanPay(string pista, int custo)
         {
@@ -93,10 +102,11 @@ namespace Autorama
         public static bool Pay(string pista, int custo)
         {
             if (CanPay(pista, custo) != "") return false;
-            int c = APagar(pista, custo);
-            if (c == 0) return true;
-            D.moedas -= c;
+            int c = APagar(pista, custo), r = Devolve(pista, custo);
+            if (Get(D.pagas, pista) == custo && c == 0 && r == 0) return true;
+            D.moedas += r - c;
             Set(D.pagas, pista, custo);
+            Set(D.gastas, pista, Get(D.gastas, pista) + c - r);
             Save();
             return true;
         }
@@ -143,6 +153,7 @@ namespace Autorama
             d.garagem ??= new CarGarage();
             CarShop.Fix(d.garagem);
             d.pagas ??= new List<Qtd>();
+            d.gastas ??= new List<Qtd>();
             d.estrelas ??= new List<Qtd>();
         }
 
