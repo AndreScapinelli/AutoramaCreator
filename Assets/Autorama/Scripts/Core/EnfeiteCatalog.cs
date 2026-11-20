@@ -13,7 +13,7 @@ namespace Autorama
         // Nomes e grupos do Catalogo.asset, para o ferramentas/idiomas.js achar (item novo: ponha o nome aqui também).
         static readonly string[] Textos =
         {
-            L.N("Árvores"), L.N("Pedras"), L.N("Árvore redonda"), L.N("Pinheiro"), L.N("Bétula"), L.N("Árvore seca"),
+            L.N("Árvores"), L.N("Pedras"), L.N("Árvore frondosa"), L.N("Pinheiro"), L.N("Bétula"), L.N("Árvore seca"),
             L.N("Pedra"), L.N("Pedrinha"), L.N("Pedregulho"), L.N("Monte de pedras"),
         };
 

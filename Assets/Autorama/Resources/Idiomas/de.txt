@@ -1505,7 +1505,7 @@ O enfeite precisa ficar dentro da mesa.	Die Deko muss auf dem Tisch bleiben.
 O enfeite não pode ficar em cima da pista.	Die Deko darf nicht auf der Strecke stehen.
 Árvores	Bäume
 Pedras	Steine
-Árvore redonda	Runder Baum
+Árvore frondosa	Laubbaum
 Pinheiro	Kiefer
 Bétula	Birke
 Árvore seca	Toter Baum

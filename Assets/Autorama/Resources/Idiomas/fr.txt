@@ -1505,7 +1505,7 @@ O enfeite precisa ficar dentro da mesa.	La décoration doit rester sur la table.
 O enfeite não pode ficar em cima da pista.	La décoration ne peut pas être sur la piste.
 Árvores	Arbres
 Pedras	Rochers
-Árvore redonda	Arbre rond
+Árvore frondosa	Arbre feuillu
 Pinheiro	Pin
 Bétula	Bouleau
 Árvore seca	Arbre mort

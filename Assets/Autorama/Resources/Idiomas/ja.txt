@@ -1505,7 +1505,7 @@ O enfeite precisa ficar dentro da mesa.	装飾はテーブルの上に置いて�
 O enfeite não pode ficar em cima da pista.	装飾はコースの上に置けません。
 Árvores	木
 Pedras	岩
-Árvore redonda	丸い木
+Árvore frondosa	広葉樹
 Pinheiro	松
 Bétula	白樺
 Árvore seca	枯れ木

@@ -5493,7 +5493,7 @@ Aba **COSMÉTICOS** na paleta de baixo do construtor: árvores, pedras e o que v
 
 | id | Modelo (POLYGON Nature, Synty) | Grupo | Altura (células) | Preço |
 |---|---|---|---|---|
-| `arvore-redonda` | `SM_Tree_Generic_01` (o `SM_Tree_Round_01`, de copa lisa, destoava das outras) | Árvores | 3,0 | 80 |
+| `arvore-redonda` (nome: Árvore frondosa) | `SM_Tree_Generic_01` (o `SM_Tree_Round_01`, de copa lisa, destoava das outras; o id ficou o de antes) | Árvores | 3,0 | 80 |
 | `pinheiro` | `SM_Tree_Pine_01` | Árvores | 3,6 | 80 |
 | `betula` | `SM_Tree_Birch_01` | Árvores | 3,2 | 80 |
 | `arvore-seca` | `SM_Tree_Dead_01` | Árvores | 2,6 | 60 |

@@ -1505,7 +1505,7 @@ O enfeite precisa ficar dentro da mesa.	The decoration must stay on the table.
 O enfeite não pode ficar em cima da pista.	The decoration can't sit on the track.
 Árvores	Trees
 Pedras	Rocks
-Árvore redonda	Round tree
+Árvore frondosa	Leafy tree
 Pinheiro	Pine
 Bétula	Birch
 Árvore seca	Dead tree
