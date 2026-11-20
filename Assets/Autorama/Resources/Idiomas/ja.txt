@@ -1516,3 +1516,5 @@ Monte de pedras	石の山
 Cosméticos	装飾
 clique no cartão e na mesa para pôr; arrastar move · R gira · Delete tira · Esc solta	カードをクリックしてからテーブルをクリックで配置。ドラッグで移動 · R で回転 · Delete で削除 · Esc で解除
 A pista passou por cima de {0} enfeite(s), que saíram da mesa.	コースが {0} 個の装飾の上を通ったため、テーブルから外しました。
+Mestre: dosa o gatilho nas curvas	マスター：コーナーでトリガーを細かく調整する
+Lenda: entra acima do limite e quase nunca erra	レジェンド：限界を超えて進入し、ほとんどミスをしない

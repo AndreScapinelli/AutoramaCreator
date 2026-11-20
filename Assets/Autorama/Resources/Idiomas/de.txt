@@ -1516,3 +1516,5 @@ Monte de pedras	Steinhaufen
 Cosméticos	Deko
 clique no cartão e na mesa para pôr; arrastar move · R gira · Delete tira · Esc solta	Karte und dann den Tisch anklicken zum Platzieren; Ziehen verschiebt · R dreht · Entf entfernt · Esc lässt los
 A pista passou por cima de {0} enfeite(s), que saíram da mesa.	Die Strecke lief über {0} Deko-Objekt(e), die vom Tisch entfernt wurden.
+Mestre: dosa o gatilho nas curvas	Meister: dosiert den Abzug in Kurven
+Lenda: entra acima do limite e quase nunca erra	Legende: fährt über dem Limit ein und macht fast nie Fehler

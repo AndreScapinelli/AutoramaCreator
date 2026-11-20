@@ -74,7 +74,7 @@ namespace Autorama
             pAi.AddToClassList("setting"); pAi.AddToClassList("ai-toggle");
             form.Add(pAi);
             cSkillBox = El(null, form);
-            pSkill = new SliderInt(1, 100) { value = 50 };
+            pSkill = new SliderInt(1, RaceSim.AiMaxSkill) { value = 50 };
             pSkill.AddToClassList("setting");
             cSkillBox.Add(pSkill);
             cSkillHint = Text("", "small", cSkillBox);

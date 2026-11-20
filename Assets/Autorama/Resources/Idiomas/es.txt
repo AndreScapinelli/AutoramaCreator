@@ -1516,3 +1516,5 @@ Monte de pedras	Montón de piedras
 Cosméticos	Cosméticos
 clique no cartão e na mesa para pôr; arrastar move · R gira · Delete tira · Esc solta	haz clic en la tarjeta y en la mesa para colocar; arrastrar mueve · R gira · Supr quita · Esc suelta
 A pista passou por cima de {0} enfeite(s), que saíram da mesa.	La pista pasó por encima de {0} adorno(s), que salieron de la mesa.
+Mestre: dosa o gatilho nas curvas	Maestro: dosifica el gatillo en las curvas
+Lenda: entra acima do limite e quase nunca erra	Leyenda: entra por encima del límite y casi nunca falla

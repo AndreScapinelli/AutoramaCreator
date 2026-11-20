@@ -15,7 +15,7 @@ namespace Autorama
         public bool collide = true;
         public string track = "builder";
         public bool bot;                // corrida livre: o jogador 2 é um piloto IA
-        public int botSkill = 60;       // qualidade dele, 1–100
+        public int botSkill = 60;       // qualidade dele, 1–200
         public int cameraMode = 5;      // TopDownCamera.RaceViewMode: 5 TV, 2 perseguição, 4 primeira pessoa, 6 de cima
         public bool splitScreen = true; // tela dividida offline com 2 a 4 humanos
         public int[] paneCam = { 2, 2, 2, 2 };   // câmera de cada quadro da tela dividida (RaceViewMode: 2, 4 ou 6)
@@ -62,13 +62,13 @@ namespace Autorama
         // robô", os outros robôs, todos com a qualidade única de antes. Os de 6 lugares ganham 2 robôs no fim.
         public void FixSlots()
         {
-            if (slots != null && slots.Length == RaceSim.MaxCars) { foreach (var x in slots) { x.skill = Mathf.Clamp(x.skill, 1, 100); x.carro = x.carro.Clamped; } return; }
-            int q = Mathf.Clamp(botSkill, 1, 100);
+            if (slots != null && slots.Length == RaceSim.MaxCars) { foreach (var x in slots) { x.skill = Mathf.Clamp(x.skill, 1, RaceSim.AiMaxSkill); x.carro = x.carro.Clamped; } return; }
+            int q = Mathf.Clamp(botSkill, 1, RaceSim.AiMaxSkill);
             var old = slots;
             slots = new PilotSlot[RaceSim.MaxCars];
             for (int k = 0; k < slots.Length; k++)
                 slots[k] = old != null && k < old.Length && old[k] != null ? old[k] : new PilotSlot { ai = k == 1 ? bot : k > 1, skill = q };
-            foreach (var x in slots) x.skill = Mathf.Clamp(x.skill, 1, 100);
+            foreach (var x in slots) x.skill = Mathf.Clamp(x.skill, 1, RaceSim.AiMaxSkill);
             cars = Mathf.Clamp(cars, 1, RaceSim.MaxCars);
             raceFaixas = raceFaixas == 0 ? 0 : TrackMath.Faixas(raceFaixas);
         }
@@ -438,7 +438,7 @@ namespace Autorama
         public float? cutoff;                   // campeonato: a bateria acaba esse tanto depois da bandeirada do primeiro
         public float? bestT;                    // melhor volta da bateria até agora
         public const int MaxCars = 8;
-        public readonly int[] aiSkill = new int[MaxCars];   // 0: gente; 1–100: piloto IA com essa qualidade (101–200 só na carreira)
+        public readonly int[] aiSkill = new int[MaxCars];   // 0: gente; 1–200: piloto IA com essa qualidade (101–150 mestre, 151–200 lenda)
         public readonly int[] aiStyle = new int[MaxCars];   // jeito do piloto IA (seção 92): 0 normal · 1 agressivo · 2 constante · 3 nervoso
         public readonly LanePath[] paths = new LanePath[MaxCars];
         public CarState[] cars { get; private set; } = { new CarState(), new CarState() };

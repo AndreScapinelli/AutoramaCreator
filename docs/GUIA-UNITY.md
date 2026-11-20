@@ -5519,3 +5519,15 @@ O pacote fica em `Assets/PolygonNature` (materiais já em URP: SimpleLit e o Pol
 **Preço:** `PiecePrice.Total(peças, enfeites)` e `PiecePrice.Total(TrackSave)` somam o `preco` do catálogo, sem multiplicador de carreira. O pagar ao salvar (`PaySave`), o já pago (`Carteira.Pago`) e o RESUMO do construtor usam o total com os enfeites.
 
 **Teste (Play, rascunho com backup e restaurado):** pinheiro posto em (1,5; 4,5) → JSON `{'id':'pinheiro','x':1.5,'y':72.5,'h':135,'esc':1.08}` e volta igual (pos e giro); pedra em cima da pista recusada; girar −135 → 270 e desfazer volta −135; custo da pista 505 → 775 com 3 pinheiros e 1 pedra (3×80 + 30); RaceMode sem erro. Na tela (vista 3D): a aba com os 8 cartões e os modelos na mesa. Pedra posta 8 células à frente da largada e 4 retas compridas por cima: a pedra sai com o aviso. Não testado: o online com duas máquinas.
+
+## 98. IA até 200 fora da carreira
+
+Os jogadores achavam a IA fácil. Antes de mexer, a IA foi medida contra a física (IA sozinha, `CareerCalib`):
+
+- A lenda 200 já anda no limite: empata ou bate o piloto ótimo do `SetupCalib` (garagem-3 3,15 × 3,23; clube-3 5,24 × 5,18) e os fantasmas do jogador com o mesmo carro e regras (Pista 17 4,80 × 4,77; Oval 2.0 11,98 × 11,70; Tunak 14,22 × 15,45; Mizuka 14,45 × 17,49).
+- Duelo lenda × lenda, 12 provas de 6 voltas com turbo, uma mudança de cada vez: salto até 30% mais rápido (`JumpAi`) < 2% na volta; regra de turbo (só reta, sem defesa, sem turbo) ±0,2 s; sem erro de propósito ~0,1 s; folga `LegendHi` × 1,1 ~0,1 s. Nada disso ficou.
+- Os recordes online das pistas largas (Oval 2.0 9,56, Pista 1 13,73) são de builds antes das mudanças de velocidade de 18/11; hoje nem o piloto ótimo chega perto.
+
+**A mudança:** a corrida livre (`PilotSlot.skill`, `RaceSettings.botSkill`, cartão "Robô") e o campeonato offline (`Pilot.skill`, `ChampFiles.Clean`, formulário do piloto) iam só até 100, 15–20% mais lento que o ótimo. Agora vão até `RaceSim.AiMaxSkill` (200): 101–150 mestre, 151–200 lenda, a mesma IA da carreira. `Champ.SkillWord` ganhou "Mestre" (101–150) e "Lenda" (151–200). As moedas por IA continuam contando até 100 (`RaceController.Coins`). Saves antigos não mudam (o limite só subiu).
+
+Teste: `RaceSettings { botSkill = 200 }.FixSlots()` → vaga 2 com 200; oval sozinho: IA 100 4,67 · 150 4,00 · 200 3,68.

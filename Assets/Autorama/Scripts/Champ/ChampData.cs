@@ -19,7 +19,7 @@ namespace Autorama
     {
         public string id, name, tag, color;      // color: "#RRGGBB"
         public bool ai;                          // o computador dirige
-        public int skill = 50;                   // qualidade do piloto IA, 1–100
+        public int skill = 50;                   // qualidade do piloto IA, 1–200 (101–150 mestre, 151–200 lenda)
         public string uid;                       // online: o id fixo do jogador (jogador.json ou "steam:…"); vazio no offline
         public CarSetup carro;                   // o ajuste do carro (seção 47); no campeonato, o da etapa em andamento (seção 48)
         public int style, nivel;                 // nivel: carreira, garagem do piloto IA (0 = o da região)
@@ -303,7 +303,9 @@ namespace Autorama
 
         public static string SkillWord(int s) =>
             s <= 20 ? L.T("Iniciante: freia cedo e erra bastante") : s <= 45 ? L.T("Amador: anda seguro, às vezes passa do ponto")
-            : s <= 70 ? L.T("Bom: entra forte nas curvas") : s <= 90 ? L.T("Experiente: quase no limite, raramente sai") : L.T("Profissional: no limite da aderência");
+            : s <= 70 ? L.T("Bom: entra forte nas curvas") : s <= 90 ? L.T("Experiente: quase no limite, raramente sai")
+            : s <= 100 ? L.T("Profissional: no limite da aderência") : s <= 150 ? L.T("Mestre: dosa o gatilho nas curvas")
+            : L.T("Lenda: entra acima do limite e quase nunca erra");
 
         // Duração estimada: cada bateria ~ voltas × comprimento ÷ (60% da velocidade máxima), mais a largada.
         public static int EstimateMin(List<Stage> stages, int nPilots, float vmax, int faixas = 2, bool byTime = false)
@@ -407,7 +409,7 @@ namespace Autorama
             if (string.IsNullOrEmpty(Champ.TagOf(p.tag))) p.tag = Champ.TagOf(p.name);
             if (string.IsNullOrEmpty(p.tag)) p.tag = "P";
             if (!ColorUtility.TryParseHtmlString(p.color, out _)) p.color = Champ.Colors[0];
-            p.skill = Mathf.Clamp(p.skill <= 0 ? 50 : p.skill, 1, 100);
+            p.skill = Mathf.Clamp(p.skill <= 0 ? 50 : p.skill, 1, RaceSim.AiMaxSkill);
         }
     }
 }

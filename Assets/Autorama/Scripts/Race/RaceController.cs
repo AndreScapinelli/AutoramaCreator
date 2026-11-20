@@ -416,7 +416,7 @@ namespace Autorama
             {
                 var sl = set.slots[k];
                 sim.present[k] = k < cars;
-                sim.aiSkill[k] = k < cars && sl.ai ? Mathf.Clamp(sl.skill, 1, 100) : 0;
+                sim.aiSkill[k] = k < cars && sl.ai ? Mathf.Clamp(sl.skill, 1, RaceSim.AiMaxSkill) : 0;
                 sim.setup[k] = k < cars ? sl.carro : default;
                 if (k < sim.N && sim.aiSkill[k] == 0) sim.cars[k].held = false;     // virou gente: solta o acelerador que a IA segurava
             }
@@ -1025,7 +1025,7 @@ namespace Autorama
                 Btn(L.T("Robô"), () => SetSlotAi(idx, true), sl.ai ? "btn btn--on" : "btn", seg);
                 if (sl.ai)
                 {
-                    var q = new SliderInt(1, 100) { value = Mathf.Clamp(sl.skill, 1, 100), label = L.F("Qualidade: {0}", sl.skill) };
+                    var q = new SliderInt(1, RaceSim.AiMaxSkill) { value = Mathf.Clamp(sl.skill, 1, RaceSim.AiMaxSkill), label = L.F("Qualidade: {0}", sl.skill) };
                     q.AddToClassList("setting"); q.AddToClassList("pcard-skill");
                     card.Add(q);
                     var word = Text(Champ.SkillWord(sl.skill), "small", card);
