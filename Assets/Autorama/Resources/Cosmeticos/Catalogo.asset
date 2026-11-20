@@ -16,7 +16,7 @@ MonoBehaviour:
   - id: arvore-redonda
     nome: "\xC1rvore redonda"
     grupo: "\xC1rvores"
-    prefab: {fileID: 1646885935188752, guid: dafad5d52cd284f4b8229a896f9a966f, type: 3}
+    prefab: {fileID: 1325612589990884, guid: e377b882a13405d4b9d5c3e8e747595e, type: 3}
     preco: 80
     altura: 3
   - id: pinheiro
