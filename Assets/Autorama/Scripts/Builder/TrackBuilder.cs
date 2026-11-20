@@ -150,6 +150,10 @@ namespace Autorama
         public static Func<int, bool> GapOk;
         public static Func<bool> RiseOk;
         public static Func<PaletteEntry, string> LockTip;
+        // Mesa do jogador (seção 94): lado máximo da pista em células (0 = só o BoardMax). SaveGate: pagar a pista ao
+        // salvar (null = de graça); devolve "" se pagou, senão o aviso.
+        public static int BoardLimit;
+        public static Func<TrackSave, string> SaveGate;
 
         bool Refuse(PaletteEntry e)
         {
@@ -312,7 +316,7 @@ namespace Autorama
 
         string Snapshot() => ToSave().ToJson(false);
 
-        void Commit(Action change)
+        bool Commit(Action change)
         {
             CancelAutoClose();
             undo.Push(Snapshot());
@@ -321,10 +325,11 @@ namespace Autorama
             bool fitted = Fits();
             change();
             // Passou do tamanho máximo da mesa: desfaz e avisa. (Pista antiga que já não cabia continua editável.)
-            if (fitted && !Fits()) { Apply(TrackSave.FromJson(undo.Pop())); Notice?.Invoke(TooBig); Rebuild(); return; }
+            if (fitted && !Fits()) { Apply(TrackSave.FromJson(undo.Pop())); Notice?.Invoke(TooBig); Rebuild(); return false; }
             GrowBoard();
             SettleTail();
             Rebuild();
+            return true;
         }
 
         // Pista fechada é a mesma volta de qualquer jeito: já não há ponta de trás, então as peças voltam a contar a partir da largada.
@@ -337,7 +342,8 @@ namespace Autorama
         // esquerda ou de baixo, a pista inteira é empurrada para dentro (células inteiras: a largada continua encaixada)
         // e avisa quem mostra (Shifted), para a câmera acompanhar. A mesa nunca encolhe sozinha.
         const int BoardMargin = 1, BoardMax = 120;
-        static string TooBig => L.T("Não cabe: a mesa vai até 120 × 120 células.");
+        static int Limit => BoardLimit > 0 ? Mathf.Min(BoardLimit, BoardMax) : BoardMax;
+        static string TooBig => Limit < BoardMax ? L.F("Não cabe: sua mesa vai até {0} × {0} células. Mesas maiores em Peças, no menu inicial.", Limit) : L.T("Não cabe: a mesa vai até 120 × 120 células.");
 
         // Tamanho que a mesa precisa ter para a pista (sem o limite) e quanto a pista é empurrada para dentro.
         void Needed(Pose2 origin, out int dx, out int dz, out int w, out int h)
@@ -350,7 +356,15 @@ namespace Autorama
             if (b.yMax + dz > h + 0.01f) h = Mathf.CeilToInt(b.yMax + dz) + BoardMargin;
         }
 
-        bool Fits(Pose2 origin) { if (pieces.Count == 0) return true; Needed(origin, out _, out _, out int w, out int h); return w <= BoardMax && h <= BoardMax; }
+        bool Fits(Pose2 origin)
+        {
+            if (pieces.Count == 0) return true;
+            Needed(origin, out _, out _, out int w, out int h);
+            if (w > BoardMax || h > BoardMax) return false;
+            if (Limit >= BoardMax) return true;
+            var b = TrackLayout.Analyze(origin, TrackLayout.Build(origin, pieces, Tail, StartZ), Tail).bounds;   // o tamanho da pista, não o da mesa
+            return b.width <= Limit + 0.01f && b.height <= Limit + 0.01f;
+        }
         bool Fits() => Fits(Origin);
 
         bool GrowBoard()
@@ -500,7 +514,7 @@ namespace Autorama
             if (r.ok)
             {
                 int fe = FrontEnd;
-                Commit(() => { pieces.InsertRange(fe, r.pieces); Selected = -1; });
+                if (!Commit(() => { pieces.InsertRange(fe, r.pieces); Selected = -1; })) return true;   // não coube na mesa ou no estoque: o aviso já foi
             }
             Notice?.Invoke(r.message);
             return true;

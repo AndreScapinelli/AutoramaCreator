@@ -81,7 +81,7 @@ namespace Autorama
             mmOpts = Options().FindAll(o => o.closed);
             var names = mmOpts.ConvertAll(o => o.name + (o.sub != null && o.sub != "" ? " " + o.sub : ""));
             mmTrack.choices = names;
-            string key = PlayerPrefs.GetString(PrefMmTrack, "ex:oval");
+            string key = PlayerPrefs.GetString(PrefMmTrack, "");
             int sel = Mathf.Max(0, mmOpts.FindIndex(o => o.key == key));
             if (names.Count > 0) mmTrack.SetValueWithoutNotify(names[sel]); else mmTrack.SetValueWithoutNotify("");
             mmGo.SetEnabled(names.Count > 0);

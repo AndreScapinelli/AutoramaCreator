@@ -812,3 +812,17 @@
 /* Filtro das listas de pistas (TrackFilter, seção 84): Todas · Minhas · Baixadas. */
 .track-filter { margin: 0 0 6px 0; }
 .track-filter .btn { height: 26px; font-size: 12px; margin-bottom: 0; }
+
+/* ---------- Preço das peças e salvar em destaque (seção 95) ---------- */
+.tile-price { position: absolute; left: 5px; top: 4px; font-size: 10px; color: var(--destaque); -unity-font-style: bold; margin: 0; padding: 0; }
+.save-cta { margin: 8px 0 4px 0; padding: 10px; border-radius: 8px; border-width: 1px; border-color: var(--destaque); background-color: rgba(242, 184, 32, 0.08); }
+.save-cta-btn { height: 40px; font-size: 15px; -unity-font-style: bold; margin: 0; }
+.save-cta-cost { margin: 6px 0 0 0; padding: 0; font-size: 12px; color: var(--texto); -unity-text-align: middle-center; }
+.save-cta-wallet { margin: 0 0 6px 0; padding: 0; font-size: 13px; color: var(--destaque); -unity-font-style: bold; }
+.save-cta .name-field { margin: 0 0 6px 0; }
+.name-field--falta > .unity-text-field__input { border-color: rgb(230, 80, 70); border-width: 2px; }
+.new-track-btn { margin: 8px 0 0 0; height: 32px; font-size: 14px; -unity-font-style: bold; }
+.res-coins { margin-top: 6px; color: var(--destaque); -unity-font-style: bold; -unity-text-align: middle-center; }
+.tile--caro { border-color: rgba(230, 120, 60, 0.7); }
+.tile-price--caro { color: rgb(240, 130, 70); }
+.res-coins--none { color: var(--texto-fraco); -unity-font-style: normal; white-space: normal; }

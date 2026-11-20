@@ -170,6 +170,7 @@ namespace Autorama
         void OnDisable()
         {
             if (builder) { builder.Changed -= Refresh; builder.Notice -= Say; builder.Shifted -= cam.Nudge; }
+            Carteira.Changed -= RefreshWallet;
             if (instance == this) instance = null;
         }
 
@@ -320,6 +321,51 @@ namespace Autorama
 
         readonly List<(Image img, string name)> paletteIcons = new List<(Image, string)>();
         readonly List<(Button tile, PaletteEntry e)> paletteTiles = new List<(Button, PaletteEntry)>();
+        readonly List<(Label label, PaletteEntry e)> palettePrices = new List<(Label, PaletteEntry)>();
+        Button saveBig; Label saveCost, walletLabel; VisualElement saveBox;
+
+        // Moedas da carteira (seção 94) no bloco de salvar do construtor.
+        void RefreshWallet()
+        {
+            if (walletLabel != null) walletLabel.text = L.F("Suas moedas: {0}", PiecePrice.Money(Carteira.D.moedas));
+            DrawMesa();
+        }
+
+        // Mesa (seção 94) no construtor: a sua e a próxima, com o botão de comprar.
+        VisualElement mesaBox;
+        void DrawMesa()
+        {
+            if (mesaBox == null) return;
+            mesaBox.Clear();
+            if (Progresso.All) Text(L.T("Desbloquear tudo ligado: mesa sem limite e peças de graça (teste)."), "small", mesaBox);
+            else if (Progresso.Zerou) Text(L.T("Carreira zerada: mesa sem limite, peças e pistas de graça."), "small", mesaBox);
+            int cur = Mathf.Clamp(Carteira.D.mesa, 0, Carteira.Mesas.Length - 1);
+            var me = Carteira.Mesas[cur];
+            Text(L.F("{0} · {1} × {1} células", L.T(me.nome), me.celulas), "stats-val", mesaBox);
+            if (cur + 1 >= Carteira.Mesas.Length) return;
+            int next = cur + 1;
+            var nx = Carteira.Mesas[next];
+            Text(L.F("Próxima: {0} · {1} × {1} células", L.T(nx.nome), nx.celulas), "hint", mesaBox);
+            string why = Carteira.CanBuyMesa(next);
+            var b = Btn(L.F("Comprar · ◎ {0}", nx.preco.ToString("N0", L.Cultura)), () =>
+            {
+                if (!Carteira.BuyMesa(next)) return;
+                Progresso.ApplyGate();
+                Say(L.F("{0} comprada.", L.T(nx.nome)));
+                Refresh();
+            }, "btn btn--accent", mesaBox);
+            b.SetEnabled(why == "");
+            if (why != "") Text(why, "small", mesaBox);
+        }
+
+        // Preço no cartão; peça que a carreira ainda não abriu: "×N" e o cartão marcado (seção 94).
+        static void PriceLabel(Label label, PaletteEntry e)
+        {
+            int mult = PiecePrice.Mult(e.def.Id, e.rise);
+            label.text = (mult > 1 ? $"×{mult} · " : "") + PiecePrice.Money(PiecePrice.Of(e.def.Id, e.rise));
+            label.EnableInClassList("tile-price--caro", mult > 1);
+            label.parent?.EnableInClassList("tile--caro", mult > 1);
+        }
 
         // Construtor da carreira (seção 72): apaga as peças que a prova não deixa usar.
         public void RefreshAllowed()
@@ -329,7 +375,10 @@ namespace Autorama
                 bool ok = TrackBuilder.AllowedEntry == null || TrackBuilder.AllowedEntry(e);
                 tile.SetEnabled(ok);
                 tile.tooltip = ok ? L.F("{0} · {1} (tecla {2})", L.T(e.label), L.T(e.sub), KeyName(e.key)) : (TrackBuilder.LockTip?.Invoke(e) ?? L.T("Não vale aqui."));
+                int mult = PiecePrice.Mult(e.def.Id, e.rise);
+                if (ok && mult > 1) tile.tooltip += " · " + L.F("{0} Até lá, custa {1}× o preço.", Progresso.LockText(e.def.Id), mult);
             }
+            foreach (var (label, e) in palettePrices) PriceLabel(label, e);
         }
         Button kind2Btn, kind4Btn, kind6Btn, kind8Btn;
         Label subtitle;
@@ -347,6 +396,7 @@ namespace Autorama
             if (iconsFor == f) return;
             iconsFor = f;
             foreach (var (img, name) in paletteIcons) img.image = IconTex(name);
+            foreach (var (label, e) in palettePrices) PriceLabel(label, e);
         }
 
         // Trocar o tipo adapta a pista aberta: a mesma forma, com a largura e os trilhos do tipo novo (Ctrl+Z desfaz).
@@ -391,6 +441,17 @@ namespace Autorama
             closeBtn = Btn(L.T("Fechar circuito (Q)"), AutoClose, "btn btn--accent close-btn", content);
             closeBtn.tooltip = L.T("Completa a pista da ponta até a largada com o mínimo de peças, sem passar por cima da pista. Ctrl+Z desfaz.");
 
+            // Salvar em destaque (seção 95): o botão grande mostra quanto a pista custaria.
+            saveBox = El("save-cta", content);
+            walletLabel = Text("", "save-cta-wallet", saveBox);
+            walletLabel.pickingMode = PickingMode.Ignore;
+            Carteira.Changed += RefreshWallet;
+            RefreshWallet();
+            saveBig = Btn(L.T("Salvar pista"), SaveTrack, "btn btn--primary save-cta-btn", saveBox);
+            saveBig.tooltip = L.T("Salva na biblioteca com o nome de Minhas pistas (Ctrl+S)");
+            saveCost = Text("", "save-cta-cost", saveBox);
+            saveCost.pickingMode = PickingMode.Ignore;
+
             closeBox = El("close-box", content);
             closeLabel = Text("", "meter-label", closeBox);
             closeFill = El("meter-fill", El("meter", closeBox));
@@ -398,6 +459,9 @@ namespace Autorama
             closeBox.style.display = DisplayStyle.None;
 
             buildBox = El(null, content);
+            buildBox.Add(saveBox);     // só no construtor
+            mesaBox = El(null, Section(L.T("MESA")));
+            DrawMesa();
             raceBox = El(null, content);
             raceBox.style.display = DisplayStyle.None;
             champBox = El(null, content);
@@ -460,6 +524,10 @@ namespace Autorama
                 Text(L.T(e.label), "tile-name", texts).pickingMode = PickingMode.Ignore;
                 Text(L.T(e.sub), "tile-sub", texts).pickingMode = PickingMode.Ignore;
                 Text(KeyName(e.key), "key", tile).pickingMode = PickingMode.Ignore;
+                var price = Text("", "tile-price", tile);
+                PriceLabel(price, e);
+                price.pickingMode = PickingMode.Ignore;
+                palettePrices.Add((price, entry));
                 tile.tooltip = L.F("{0} · {1} (tecla {2})", L.T(e.label), L.T(e.sub), KeyName(e.key));
                 paletteTiles.Add((tile, entry));
                 tile.RegisterCallback<PointerEnterEvent>(_ => builder.ShowGhost(entry));
@@ -476,23 +544,21 @@ namespace Autorama
 
             // Minhas pistas
             var lib = Section(L.T("MINHAS PISTAS"));
-            var nameRow = El("name-row", lib);
             nameField = new TextField { maxLength = 60 };
             nameField.AddToClassList("name-field");
-            nameField.RegisterValueChangedCallback(ev => builder.TrackName = ev.newValue);
+            nameField.RegisterValueChangedCallback(ev => { builder.TrackName = ev.newValue; if (!string.IsNullOrWhiteSpace(ev.newValue)) nameField.RemoveFromClassList("name-field--falta"); });
             nameField.RegisterCallback<KeyDownEvent>(ev =>
             {
                 if (ev.keyCode == KeyCode.Return || ev.keyCode == KeyCode.KeypadEnter) { SaveTrack(); nameField.Blur(); }
                 if (ev.keyCode == KeyCode.Escape) nameField.Blur();
             }, TrickleDown.TrickleDown);
-            nameRow.Add(nameField);
-            Btn(L.T("Salvar"), SaveTrack, "btn btn--primary", nameRow).style.marginBottom = 0;
+            nameField.textEdition.placeholder = L.T("Nome da pista");
+            saveBox.Insert(1, nameField);      // no bloco de salvar, entre a carteira e o botão
+            // Nova pista: a primeira coisa do construtor, em cima do bloco de salvar.
+            var newBtn = Btn(L.T("Nova pista"), () => builder.NewTrack(), "btn btn--danger new-track-btn", buildBox);     // do mesmo tipo da atual
+            buildBox.Insert(0, newBtn);
             libFilter = new TrackFilter(lib, DrawLibrary);
             libList = El(null, Caixa(lib));
-            var libRow = El("row", lib);
-            Btn(L.T("Exemplo: oval"), () => Open(Kind(TrackSave.Oval())), "btn", libRow);
-            var newBtn = Btn(L.T("Nova pista"), null, "btn btn--danger", libRow);
-            newBtn.clicked += () => builder.NewTrack();     // do mesmo tipo da atual
             Text(L.F("Pasta: {0}", TrackLibrary.Folder), "small", lib);
 
             // Vista e edição
@@ -656,7 +722,7 @@ namespace Autorama
             if (cls != "") tableStatus.AddToClassList(cls);
             tableClose.style.display = !i.closed && builder.pieces.Count > 1 && i.overlaps.Count == 0 ? DisplayStyle.Flex : DisplayStyle.None;
             tableShow.style.display = i.overlaps.Count > 0 ? DisplayStyle.Flex : DisplayStyle.None;
-            tableRace.style.display = i.closed && i.overlaps.Count == 0 && !chromeHidden && TrackBuilder.AllowedEntry == null ? DisplayStyle.Flex : DisplayStyle.None;
+            tableRace.style.display = i.closed && i.overlaps.Count == 0 && !chromeHidden && TrackBuilder.AllowedEntry == null && TrackBuilder.SaveGate == null ? DisplayStyle.Flex : DisplayStyle.None;
             barUndo.SetEnabled(builder.CanUndo);
             barRedo.SetEnabled(builder.CanRedo);
             bool sel = builder.Selected >= 0;
@@ -690,6 +756,7 @@ namespace Autorama
 
         void Refresh()
         {
+            DrawMesa();     // o limite da mesa pode ter mudado (carreira, Desbloquear tudo)
             if (root == null || builder.Info == null) return;
             var i = builder.Info;
             if (Locked) return;              // fora do construtor, o status e a barra lateral são da aba em uso
@@ -812,12 +879,20 @@ namespace Autorama
             for (int l = 1; l < lens.Length; l++) { if (lens[l] < lens[lo]) lo = l; if (lens[l] > lens[hi]) hi = l; }
             float diff = lens[hi] - lens[lo];
             Stat(L.T("Peças"), builder.pieces.Count + (i.highCount > 0 ? L.F(" · {0} no alto", i.highCount) : ""));
+            int cost = PiecePrice.Total(builder.pieces);
+            Stat(L.T("Custo"), PiecePrice.Money(cost));
+            int due = TrackBuilder.SaveGate != null ? Carteira.APagar(TrackLibrary.Key(builder.TrackName ?? ""), cost) : 0;
+            if (due > 0 && due != cost) Stat(L.T("A pagar ao salvar"), PiecePrice.Money(due));
+            if (saveCost != null) saveCost.text = TrackBuilder.SaveGate == null ? L.F("Custo da pista: {0}", PiecePrice.Money(cost))
+                : due > 0 ? L.F("Salvar custa {0} (você tem {1}).", PiecePrice.Money(due), PiecePrice.Money(Carteira.D.moedas)) : L.T("Já paga: salvar não custa nada.");
             Stat(L.T("Linha central"), M(i.centerLength));
             for (int l = 0; l < lens.Length; l++) Stat(L.F("Trilho {0}", l + 1), M(lens[l]), LaneSwatch(l));
             Stat(L.T("Mais longo"), diff < 0.01f ? L.T("iguais") : L.F("trilho {0} +{1} cm", hi + 1, Num(diff * cm, 0)) + (lens.Length > 2 ? L.F(" (sobre o {0})", lo + 1) : ""));
             Stat(L.T("Área ocupada"), L.F("{0} × {1} m", Num(i.bounds.width * cm / 100f, 2), Num(i.bounds.height * cm / 100f, 2)));
             bool fits = i.bounds.xMin >= -0.01f && i.bounds.yMin >= -0.01f && i.bounds.xMax <= builder.boardSize.x + 0.01f && i.bounds.yMax <= builder.boardSize.y + 0.01f;
             Stat(L.T("Na mesa"), (fits ? L.T("cabe") : L.T("passa da borda")) + L.F(" · {0} × {1} cél.", builder.boardSize.x, builder.boardSize.y));
+            // Sua mesa (seção 94): quanto da mesa comprada a pista ocupa.
+            if (TrackBuilder.BoardLimit > 0) Stat(L.T("Sua mesa"), L.F("{0} × {1} de {2} × {2} cél.", Mathf.CeilToInt(i.bounds.width - 0.01f), Mathf.CeilToInt(i.bounds.height - 0.01f), TrackBuilder.BoardLimit));
         }
 
         void Stat(string key, string value, string swatch = null)
@@ -887,11 +962,25 @@ namespace Autorama
 
         void SaveTrack()
         {
-            if (string.IsNullOrWhiteSpace(builder.TrackName)) builder.TrackName = L.F("Pista {0}", library.Count + 1);
+            // Nome obrigatório (seção 95): sem nome, não salva e o campo pede.
+            if (string.IsNullOrWhiteSpace(builder.TrackName))
+            {
+                Say(L.T("Dê um nome à pista antes de salvar."));
+                nameField.AddToClassList("name-field--falta");
+                nameField.Focus();
+                return;
+            }
+            nameField.RemoveFromClassList("name-field--falta");
             if (string.IsNullOrWhiteSpace(builder.Author)) builder.Author = LocalAuthor;      // a pista é de quem a salvou primeiro
-            TrackLibrary.Save(builder.ToSave());
+            var save = builder.ToSave();
+            int antes = Carteira.D.moedas;
+            string why = TrackBuilder.SaveGate?.Invoke(save) ?? "";       // paga a pista (seção 94)
+            if (why != "") { Say(why); return; }
+            TrackLibrary.Save(save);
             RefreshLibrary();
-            Say(L.F("“{0}” salva.", builder.TrackName));
+            int pago = antes - Carteira.D.moedas;
+            Say(pago > 0 ? L.F("“{0}” salva · pagou {1}.", builder.TrackName, PiecePrice.Money(pago)) : L.F("“{0}” salva.", builder.TrackName));
+            Refresh();
         }
 
         // Os exemplos abrem no tipo da pista atual (a forma em células é a mesma).
@@ -984,6 +1073,7 @@ namespace Autorama
                 if (kb.tabKey.wasPressedThisFrame && !chromeHidden) SetSide(!sideVisible);
                 if (kb.cKey.wasPressedThisFrame && !kb.ctrlKey.isPressed) FrameTrack();
                 if (kb.qKey.wasPressedThisFrame && !Locked) AutoClose();
+                if (kb.sKey.wasPressedThisFrame && kb.ctrlKey.isPressed && !Locked && !builder.RaceMode) SaveTrack();
             }
             if (toast.style.display == DisplayStyle.Flex && Time.unscaledTime > toastUntil) toast.style.display = DisplayStyle.None;
             // Notas das pistas chegando da Steam (seção 83): redesenha a biblioteca, no máximo uma vez por segundo.

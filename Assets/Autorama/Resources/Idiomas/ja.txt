@@ -322,7 +322,6 @@ Seu arquivo (motor.wav)	自分のファイル (motor.wav)
 Motor curto	ショートモーター
 Motor longo	ロングモーター
 Voltar ao menu (Esc)	メニューに戻る (Esc)
-◀ Saves	◀ セーブ
 Garagem do carro (G)	車のガレージ (G)
 ← → escolhe a prova · Enter abre e corre · Esc volta	← → でレースを選ぶ · Enter で開いて走る · Esc で戻る
 PAUSA	ポーズ
@@ -330,7 +329,6 @@ Continuar (Esc)	続ける (Esc)
 Reiniciar	リスタート
 Voltar ao mapa	マップに戻る
 Cancelar	キャンセル
-Carreira {0}	キャリア {0}
 Nova carreira	新しいキャリア
 As outras regiões ainda não estão prontas.	他の地方はまだ準備中です。
 Seja campeão desta região para abrir a próxima.	この地方のチャンピオンになると次が解放されます。
@@ -1009,14 +1007,10 @@ trilho 	レーン
 trilho sem recorde	レコードなしのレーン
 seu melhor {0}	自己ベスト {0}
 primeira vez aqui	はじめてのコース
-Peças novas para o construtor. Cada uma abre quando você termina, com pelo menos ★, a prova da carreira que a apresenta. Correr numa pista com peça fechada sempre pode — só não dá para colocar a peça.	ビルダー用の新しいパーツ。それぞれ、そのパーツが登場するキャリアのレースを★1つ以上で終えると解放されます。ロックされたパーツがあるコースでも走ることはいつでもできます — パーツを置けないだけです。
 GARAGEM DO CARRO	車のガレージ
 Seu carro na carreira. Compre opções do ajuste e preparação com as moedas das provas. Fora da carreira o ajuste é livre e sem preparação.	キャリアでのあなたの車。レースで得たコインで、セッティングのオプションとチューンを買えます。キャリア以外では、セッティングは自由でチューンはありません。
 Fechar (G · Esc)	閉じる (G · Esc)
 Moedas da carreira · clique para abrir a garagem do carro	キャリアのコイン · クリックで車のガレージを開く
-liberada (teste)	解放(テスト)
-✓ aberta	✓ 解放済み
-Abre em 	解放場所:
 Desbloquear tudo: LIGADO (teste, até o jogo sair)	すべて解放:オン(テスト用、発売まで)
 Desbloquear tudo: desligado (teste, até o jogo sair)	すべて解放:オフ(テスト用、発売まで)
 Níveis à venda até o {0} (Garagem 3 · Clube 6 · Regional 8 · Nacional 10). O nível n custa {1} × n.	販売レベルは{0}まで(ガレージ3 · クラブ6 · 地方8 · 全国10)。レベルnの値段は {1} × n。
@@ -1448,3 +1442,56 @@ A Fórmula não tem níveis.	フォーミュラにはレベルがありません
 bolha Fórmula	フォーミュラボディ
 Um pouco da asa e um pouco da lisa.	ウイングとスリックの中間。
 Seja campeão do Mundial na carreira para abrir.	キャリアで世界選手権に優勝すると解放。
+Não cabe: sua mesa vai até {0} × {0} células. Mesas maiores em Peças, no menu inicial.	入りません：テーブルは {0} × {0} マスまでです。大きなテーブルはメインメニューの「パーツ」で。
+Mesa pequena	小さいテーブル
+Mesa média	中くらいのテーブル
+Mesa grande	大きいテーブル
+Salão	ホール
+Sem limite	無制限
+Rampa (subida ou descida)	スロープ（上りか下り）
+Você tem {0} × {1}. Compre mais em Peças, no menu inicial.	{1} は {0} 個持っています。メインメニューの「パーツ」で買い足せます。
+Compre a mesa de antes primeiro.	先に前のテーブルを買ってください。
+◀ Carreira	◀ キャリア
+Começar	始める
+Continuar	続ける
+Recomeçar do zero	最初からやり直す
+Clique de novo: apaga as estrelas (moedas, garagem e peças ficam)	もう一度クリック：星が消えます（コイン、ガレージ、パーツは残ります）
+PEÇAS E MESA	パーツとテーブル
+Seu kit para o construtor, comprado com as moedas da carreira. Cada pista usa até as peças que você tem (montar outra pista não gasta) e cabe na sua mesa. Peça nova abre na prova da carreira que a apresenta. Correr em qualquer pista sempre pode.	キャリアのコインで買うコース作りのキット。各コースは持っているパーツの数まで使えます（別のコースを作っても減りません）。コースはテーブルに収まる必要があります。新しいパーツは、それを紹介するキャリアのレースで開きます。どのコースでも走るのはいつでも自由です。
+Desbloquear tudo ligado: mesa e peças sem limite (teste).	すべて解除がオン：テーブルとパーツは無制限（テスト）。
+MESA	テーブル
+pista de até {0} × {0} células	{0} × {0} マスまでのコース
+✓ a sua	✓ あなたの
+✓	✓
+Comprar · ◎ {0}	購入 · ◎ {0}
+você tem {0} (kit: {1})	{0} 個（キット：{1}）
+você tem {0}	{0} 個
+Sua mesa	あなたのテーブル
+{0} × {1} de {2} × {2} cél.	{2} × {2} マス中 {0} × {1}
+Salvar pista	コースを保存
+Salva na biblioteca com o nome de Minhas pistas (Ctrl+S)	マイコースの名前でライブラリに保存します（Ctrl+S）
+Custo	コスト
+Custo da pista: {0}	コースのコスト：{0}
+“{0}” salva · custo {1}.	「{0}」を保存しました · コスト {1}。
+Ctrl+S	Ctrl+S
+salva a pista	コースを保存
+Nome da pista	コース名
+Suas moedas: {0}	所持コイン：{0}
+Dê um nome à pista antes de salvar.	保存する前にコースに名前を付けてください。
+{0} · {1} × {1} células	{0} · {1} × {1} マス
+Próxima: {0} · {1} × {1} células	次：{0} · {1} × {1} マス
+{0} comprada.	{0}を購入しました。
+Desbloquear tudo ligado: mesa sem limite e peças de graça (teste).	すべて解放オン：テーブル無制限、パーツ無料（テスト）。
+{0} Até lá, custa {1}× o preço.	{0} それまでは価格の{1}倍です。
+A pagar ao salvar	保存時の支払い
+Salvar custa {0} (você tem {1}).	保存には{0}かかります（所持：{1}）。
+Já paga: salvar não custa nada.	支払い済み：保存は無料です。
+“{0}” salva · pagou {1}.	「{0}」を保存・{1}を支払いました。
+Faltam {0} moedas para salvar esta pista.	このコースを保存するにはコインがあと{0}枚必要です。
+Carreira zerada: mesa sem limite, peças e pistas de graça.	キャリア制覇：テーブル無制限、パーツとコースは無料。
++{0} moedas	+{0}コイン
+Sem pilotos IA na pista: esta corrida não dá moedas.	コースにAIドライバーがいません：このレースではコインはもらえません。
+hoje no online: {0} de {1} (depois, metade)	今日のオンライン：{1}中{0}（以降は半分）
+limite do dia no online passou: pagando metade	オンラインの1日の上限を超えました：半分を支払い中
+hoje fora do online: {0} de {1}	今日のオフライン：{1}中{0}
+Limite do dia fora do online ({0}) atingido. Amanhã tem mais; a carreira e o online continuam pagando.	オフラインの1日の上限（{0}）に達しました。また明日。キャリアとオンラインは引き続き獲得できます。

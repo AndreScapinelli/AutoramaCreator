@@ -57,7 +57,7 @@ namespace Autorama
             kMap = El("k-full", kLayer);
             kMap.pickingMode = PickingMode.Ignore;
             var top = El("k-top", kMap);
-            Btn(L.T("◀ Saves"), () => CareerScreen(KScreen.Saves), "btn", top);
+            Btn(L.T("◀ Carreira"), () => CareerScreen(KScreen.Saves), "btn", top);
             var reg = El("k-top-mid", top);
             Btn("◀", () => CareerRegion(-1), "btn icon-btn", reg);
             kRegionLabel = Text("", "k-region", reg);
@@ -147,10 +147,13 @@ namespace Autorama
 
         // ---------- save ----------
 
+        bool kDelArmed;
+
         void DrawSaves()
         {
             var rows = kSaves.Q("rows");
             rows.Clear();
+            rows.style.flexDirection = FlexDirection.Column;     // um save só: o cartão na largura toda e o Recomeçar embaixo
             for (int i = 1; i <= Career.Slots; i++)
             {
                 int slot = i;
@@ -164,11 +167,27 @@ namespace Autorama
                 }
                 var b = new Button(() => { kSlot = slot; kSave = Career.Load(slot); kRegion = last; kSel = FirstOpen(); CareerScreen(KScreen.Map); });
                 b.AddToClassList("k-save");
-                Text(L.F("Carreira {0}", slot), "k-save-title", b).pickingMode = PickingMode.Ignore;
+                b.style.width = StyleKeyword.Auto;
+                b.style.alignSelf = Align.Stretch;
+                Text(sv.nos.Count == 0 ? L.T("Começar") : L.T("Continuar"), "k-save-title", b).pickingMode = PickingMode.Ignore;
                 Text(sv.nos.Count == 0 ? L.T("Nova carreira") : Career.Def.regioes[last].nome, "k-save-sub", b).pickingMode = PickingMode.Ignore;
-                Text($"★ {stars} / {total}  ·  ◎ {sv.moedas}", "k-save-stars", b).pickingMode = PickingMode.Ignore;
+                Text($"★ {stars} / {total}  ·  ◎ {Carteira.D.moedas}", "k-save-stars", b).pickingMode = PickingMode.Ignore;
                 rows.Add(b);
+                // Recomeçar (seção 94): apaga o save; moedas, garagem, mesa e peças ficam. Dois cliques.
+                if (sv.nos.Count == 0) continue;
+                Button del = null;
+                del = Btn(L.T("Recomeçar do zero"), () =>
+                {
+                    if (!kDelArmed) { kDelArmed = true; del.text = L.T("Clique de novo: apaga as estrelas (moedas, garagem e peças ficam)"); return; }
+                    kDelArmed = false;
+                    Career.Delete(slot);
+                    kSave = null;
+                    DrawSaves();
+                }, "btn", rows);
+                del.style.alignSelf = Align.FlexEnd;
+                del.style.marginTop = 8;
             }
+            kDelArmed = false;
         }
 
         // ---------- mapa ----------
@@ -539,11 +558,12 @@ namespace Autorama
             kGot = Career.Avaliar(KNode, kRes);
             kNew = Career.Record(kSave, KNode, kRes);
             int after = Career.Stars(kSave, KNode.id);
-            kCoins = CareerCoins(KNode, before, after, r.terminou ? Mathf.Max(0, r.carros - r.posicao) : 0);
+            int paid = Mathf.Max(before, Carteira.Estrelas(KNode.id));     // recomeçou: estrela já paga não paga de novo (seção 94)
+            kCoins = CareerCoins(KNode, paid, after, r.terminou ? Mathf.Max(0, r.carros - r.posicao) : 0);
             // Modelo de bolha novo (seção 80): só na primeira vez que o nó chega às estrelas que ele pede.
             kModelsNew.Clear();
             foreach (var x in Progresso.ModelsOf(KNode.id, after)) kModelsNew.Add(x);
-            foreach (var x in Progresso.ModelsOf(KNode.id, before)) kModelsNew.Remove(x);
+            foreach (var x in Progresso.ModelsOf(KNode.id, paid)) kModelsNew.Remove(x);
             if (KNode.tipo == "construtor" && kBuilt != null)
             {
                 var ns = Career.Of(kSave, KNode.id);
@@ -657,7 +677,7 @@ namespace Autorama
             }
             Text(kGot == 0 ? L.T("Não foi desta vez.") : kNew > 0 ? $"+{kNew} {(kNew == 1 ? L.T("estrela nova") : L.T("estrelas novas"))}" : L.T("Sem estrela nova."), "k-sub", box);
             if (kPurse > 0) Text(L.F("Prêmio do {0}º lugar: ◎ {1}", kRes.posicao, kPurse), "k-coins", box);
-            Text(L.F("+{0} moedas  ·  ◎ {1}  ·  gaste na garagem do carro (G no mapa)", kCoins, kSave.moedas), "k-coins", box);
+            Text(L.F("+{0} moedas  ·  ◎ {1}  ·  gaste na garagem do carro (G no mapa)", kCoins, Carteira.D.moedas), "k-coins", box);
             for (int i = 0; i < n.estrelas.Length; i++)
             {
                 bool ok = kGot > 0 && Career.Cumpre(n.estrelas[i], kRes);
@@ -792,6 +812,8 @@ namespace Autorama
             TrackBuilder.MaxPieces = n.maxPecas;
             TrackBuilder.RuleNotice = L.T("Esta peça não vale nesta prova.");
             TrackBuilder.GapOk = null;
+            TrackBuilder.BoardLimit = 0;        // a prova tem as suas regras: sem mesa e sem pagar (seção 94)
+            TrackBuilder.SaveGate = null;
             TrackBuilder.RiseOk = () => Career.RampasOk(n);
             TrackBuilder.LockTip = _ => L.T("Não vale nesta prova.");
             TrackCloser.Allowed = id => Career.PieceOk(n, id, 0);

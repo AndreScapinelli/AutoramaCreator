@@ -322,7 +322,6 @@ Seu arquivo (motor.wav)	Your file (motor.wav)
 Motor curto	Short motor
 Motor longo	Long motor
 Voltar ao menu (Esc)	Back to the menu (Esc)
-◀ Saves	◀ Saves
 Garagem do carro (G)	Car garage (G)
 ← → escolhe a prova · Enter abre e corre · Esc volta	← → picks the event · Enter opens and races · Esc goes back
 PAUSA	PAUSE
@@ -330,7 +329,6 @@ Continuar (Esc)	Continue (Esc)
 Reiniciar	Restart
 Voltar ao mapa	Back to the map
 Cancelar	Cancel
-Carreira {0}	Career {0}
 Nova carreira	New career
 As outras regiões ainda não estão prontas.	The other regions aren't ready yet.
 Seja campeão desta região para abrir a próxima.	Become champion of this region to unlock the next one.
@@ -1009,14 +1007,10 @@ trilho 	lane
 trilho sem recorde	lane without a record
 seu melhor {0}	your best {0}
 primeira vez aqui	first time here
-Peças novas para o construtor. Cada uma abre quando você termina, com pelo menos ★, a prova da carreira que a apresenta. Correr numa pista com peça fechada sempre pode — só não dá para colocar a peça.	New pieces for the builder. Each one unlocks when you finish, with at least ★, the career event that introduces it. You can always race on a track with a locked piece — you just can't place the piece.
 GARAGEM DO CARRO	CAR GARAGE
 Seu carro na carreira. Compre opções do ajuste e preparação com as moedas das provas. Fora da carreira o ajuste é livre e sem preparação.	Your car in the career. Buy setup options and tuning with the coins from the events. Outside the career the setup is free and without tuning.
 Fechar (G · Esc)	Close (G · Esc)
 Moedas da carreira · clique para abrir a garagem do carro	Career coins · click to open the car garage
-liberada (teste)	unlocked (test)
-✓ aberta	✓ unlocked
-Abre em 	Unlocks in
 Desbloquear tudo: LIGADO (teste, até o jogo sair)	Unlock everything: ON (test, until the game is released)
 Desbloquear tudo: desligado (teste, até o jogo sair)	Unlock everything: off (test, until the game is released)
 Níveis à venda até o {0} (Garagem 3 · Clube 6 · Regional 8 · Nacional 10). O nível n custa {1} × n.	Levels on sale up to {0} (Garage 3 · Club 6 · Regional 8 · National 10). Level n costs {1} × n.
@@ -1448,3 +1442,56 @@ A Fórmula não tem níveis.	The Formula has no levels.
 bolha Fórmula	Formula body
 Um pouco da asa e um pouco da lisa.	A bit of the wing and a bit of the slick.
 Seja campeão do Mundial na carreira para abrir.	Win the World Championship in the career to unlock.
+Não cabe: sua mesa vai até {0} × {0} células. Mesas maiores em Peças, no menu inicial.	Doesn't fit: your table goes up to {0} × {0} cells. Bigger tables in Pieces, on the main menu.
+Mesa pequena	Small table
+Mesa média	Medium table
+Mesa grande	Large table
+Salão	Hall
+Sem limite	No limit
+Rampa (subida ou descida)	Ramp (up or down)
+Você tem {0} × {1}. Compre mais em Peças, no menu inicial.	You have {0} × {1}. Buy more in Pieces, on the main menu.
+Compre a mesa de antes primeiro.	Buy the previous table first.
+◀ Carreira	◀ Career
+Começar	Start
+Continuar	Continue
+Recomeçar do zero	Start over
+Clique de novo: apaga as estrelas (moedas, garagem e peças ficam)	Click again: erases the stars (coins, garage and pieces stay)
+PEÇAS E MESA	PIECES AND TABLE
+Seu kit para o construtor, comprado com as moedas da carreira. Cada pista usa até as peças que você tem (montar outra pista não gasta) e cabe na sua mesa. Peça nova abre na prova da carreira que a apresenta. Correr em qualquer pista sempre pode.	Your builder kit, bought with career coins. Each track uses up to the pieces you own (building another track costs nothing) and must fit your table. New pieces open at the career event that introduces them. Racing on any track is always allowed.
+Desbloquear tudo ligado: mesa e peças sem limite (teste).	Unlock everything is on: table and pieces without limit (test).
+MESA	TABLE
+pista de até {0} × {0} células	tracks up to {0} × {0} cells
+✓ a sua	✓ yours
+✓	✓
+Comprar · ◎ {0}	Buy · ◎ {0}
+você tem {0} (kit: {1})	you have {0} (kit: {1})
+você tem {0}	you have {0}
+Sua mesa	Your table
+{0} × {1} de {2} × {2} cél.	{0} × {1} of {2} × {2} cells
+Salvar pista	Save track
+Salva na biblioteca com o nome de Minhas pistas (Ctrl+S)	Saves to the library with the name in My tracks (Ctrl+S)
+Custo	Cost
+Custo da pista: {0}	Track cost: {0}
+“{0}” salva · custo {1}.	“{0}” saved · cost {1}.
+Ctrl+S	Ctrl+S
+salva a pista	saves the track
+Nome da pista	Track name
+Suas moedas: {0}	Your coins: {0}
+Dê um nome à pista antes de salvar.	Name the track before saving.
+{0} · {1} × {1} células	{0} · {1} × {1} cells
+Próxima: {0} · {1} × {1} células	Next: {0} · {1} × {1} cells
+{0} comprada.	{0} bought.
+Desbloquear tudo ligado: mesa sem limite e peças de graça (teste).	Unlock everything on: unlimited table and free pieces (test).
+{0} Até lá, custa {1}× o preço.	{0} Until then, it costs {1}× the price.
+A pagar ao salvar	To pay when saving
+Salvar custa {0} (você tem {1}).	Saving costs {0} (you have {1}).
+Já paga: salvar não custa nada.	Already paid: saving costs nothing.
+“{0}” salva · pagou {1}.	“{0}” saved · paid {1}.
+Faltam {0} moedas para salvar esta pista.	You need {0} more coins to save this track.
+Carreira zerada: mesa sem limite, peças e pistas de graça.	Career completed: unlimited table, free pieces and tracks.
++{0} moedas	+{0} coins
+Sem pilotos IA na pista: esta corrida não dá moedas.	No AI drivers on the track: this race gives no coins.
+hoje no online: {0} de {1} (depois, metade)	today online: {0} of {1} (then half)
+limite do dia no online passou: pagando metade	online daily limit passed: paying half
+hoje fora do online: {0} de {1}	today outside online: {0} of {1}
+Limite do dia fora do online ({0}) atingido. Amanhã tem mais; a carreira e o online continuam pagando.	Daily limit outside online ({0}) reached. More tomorrow; career and online still pay.

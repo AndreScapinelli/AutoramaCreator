@@ -56,17 +56,17 @@ namespace Autorama
         Vector3[] tvSpots; int tvSpot = -1; float tvTime; Vector3 tvLook;
 
         const float ChaseBack = 3.4f, ChaseUp = 1.6f;         // no mundo (o carrinho não cresce com a pista): ~25° de cima
-        const float ChaseLookAhead = 0.55f;                   // 0 = olha o carrinho, 1 = olha o ponto à frente
-        const float ChaseTurnRate = 6f, ChasePosRate = 6f;
+        const float ChaseLookAhead = 0.55f;                   // quanto o olhar vira para o trilho à frente (0 = rumo do trilho atrás)
+        const float ChaseLookDist = 4f;                       // distância do ponto olhado à frente do carrinho (× distanceScale)
+        const float ChaseTurnRate = 12f, ChasePosRate = 12f;
         // Andando, a câmera recua até ChaseSpeedBack a mais (na velocidade máxima), devagar (ChaseSpeedRate), e sobe junto: o ângulo fica o mesmo.
-        const float ChaseSpeedBack = 0.5f, ChaseSpeedRate = 1.5f;
+        const float ChaseSpeedBack = 0f, ChaseSpeedRate = 1.5f;     // 0: a câmera não recua com a velocidade (o enquadramento não muda)
         readonly float[] carSpeed01 = new float[RaceSim.MaxCars];   // v / velocidade máxima do carrinho, 0 fora do trilho
+        const float ChaseZoom = 6f;                                 // graus de campo de visão a menos na velocidade máxima
+        float chaseZoom;                                            // v/vmax suavizado, para o zoom
         float chaseExtra;                                           // recuo atual, suavizado
         const float TvMargin = 2f, TvFrame = 2.2f, TvHold = 2.5f, TvSwitch = 1.35f, TvLookRate = 8f;
 
-        // "Atrás do carro": a câmera segue a direção suavizada do carro, não o rumo bruto. Ela gira no máximo
-        // ThirdTurnRate graus por segundo, então um rodopio do carrinho vira uma panorâmica, não um tranco.
-        const float ThirdTurnRate = 110f;     // graus por segundo, só enquanto o carrinho roda
         const float ThirdLookRate = 12f;      // suavização do ponto olhado
         Vector3 chaseFwd;                     // direção suavizada, no plano XZ
         Vector3 chaseLook;                    // ponto olhado suavizado
@@ -117,7 +117,6 @@ namespace Autorama
             bool before = spun[k];
             if (!onSlot || slip >= SpinIn) spun[k] = true;
             else if (slip < SpinOut) spun[k] = false;
-            if (spun[k] != before && k == ThirdPersonCar) chaseReady = false;   // o corte para a traseira começa do rumo atual
         }
 
         // A câmera mostra o interior deste carrinho? (só a primeira pessoa, e só do carrinho seguido)
@@ -142,6 +141,9 @@ namespace Autorama
         public void SetFollowCars(bool[] mask) { for (int k = 0; k < followCar.Length; k++) followCar[k] = k < mask.Length && mask[k]; }
 
         public void SetCarAhead(int k, Vector3 p) { if (k >= 0 && k < raceAhead.Length) raceAhead[k] = p; }
+        // Ponto do trilho atrás do carrinho: a Perseguição fica na corda trilho-atrás → carrinho, não no rumo do carro.
+        readonly Vector3[] raceBehind = new Vector3[RaceSim.MaxCars];
+        public void SetCarBehind(int k, Vector3 p) { if (k >= 0 && k < raceBehind.Length) raceBehind[k] = p; }
 
         // Loop perto do carrinho (seção 57): centro do anel e rumo da peça, para a Perseguição ir para o lado.
         readonly bool[] loopOn = new bool[RaceSim.MaxCars];
@@ -295,26 +297,33 @@ namespace Autorama
             float dt = Time.unscaledDeltaTime;
             float u = distanceScale;
             Vector3 car = raceCarPos[k];
+            // Rumo da câmera: a corda do trilho (ponto atrás → carrinho). Nas curvas ela gira junto com a pista,
+            // sem o balanço do rumo do carro nem da derrapagem.
+            Vector3 chord = car - raceBehind[k]; chord.y = 0f;
+            Vector3 trackFwd = chord.sqrMagnitude > 0.01f ? chord.normalized : carFwd;
             // Rodando (ou fora do trilho), o ponto à frente não vale: olha só para o carrinho.
-            Vector3 look = spun[k] ? car : Vector3.Lerp(car, raceAhead[k], ChaseLookAhead);
+            // O ponto olhado fica a ChaseLookDist (× distanceScale, como a câmera) à frente, puxado para o rumo do
+            // trilho à frente: o ângulo de cima fica o mesmo em qualquer distância (~12°) e a curva aparece antes.
+            Vector3 toAhead = raceAhead[k] - car; toAhead.y = 0f;
+            Vector3 lookDir = toAhead.sqrMagnitude > 0.01f ? Vector3.Slerp(trackFwd, toAhead.normalized, ChaseLookAhead).normalized : trackFwd;
+            Vector3 look = spun[k] ? car : car + lookDir * ChaseLookDist * u + Vector3.up * (raceAhead[k].y - car.y) * ChaseLookAhead;
 
             cam.nearClipPlane = nearDefault;
             float extraTarget = ChaseSpeedBack * carSpeed01[k];
             if (!chaseReady)
             {
-                chaseFwd = carFwd;
+                chaseFwd = trackFwd;
                 chaseLook = look;
                 chaseExtra = extraTarget;
-                transform.position = car - carFwd * (ChaseBack + chaseExtra) * u + Vector3.up * ChaseUp * (1f + chaseExtra / ChaseBack) * u;
+                transform.position = car - trackFwd * (ChaseBack + chaseExtra) * u + Vector3.up * ChaseUp * (1f + chaseExtra / ChaseBack) * u;
                 chaseOffset = transform.position - car;
                 chaseReady = true;
             }
             chaseExtra = Mathf.Lerp(chaseExtra, extraTarget, 1f - Mathf.Exp(-ChaseSpeedRate * dt));
 
-            if (spun[k])
-                chaseFwd = Vector3.RotateTowards(chaseFwd, carFwd, ThirdTurnRate * Mathf.Deg2Rad * dt, 0f).normalized;
-            else
-                chaseFwd = Vector3.Slerp(chaseFwd, carFwd, 1f - Mathf.Exp(-ChaseTurnRate * dt)).normalized;
+            // Rodando, a câmera segura o rumo e só acompanha a posição: o rodopio aparece, sem a tela girar.
+            if (!spun[k])
+                chaseFwd = Vector3.Slerp(chaseFwd, trackFwd, 1f - Mathf.Exp(-ChaseTurnRate * dt)).normalized;
 
             chaseLook = Vector3.Lerp(chaseLook, look, 1f - Mathf.Exp(-ThirdLookRate * dt));
             Vector3 desired = car - chaseFwd * (ChaseBack + chaseExtra) * u + Vector3.up * ChaseUp * (1f + chaseExtra / ChaseBack) * u;
@@ -345,7 +354,9 @@ namespace Autorama
             transform.rotation = Quaternion.LookRotation((lookAt - transform.position).normalized, Vector3.up);
 
             cam.orthographic = false;
-            cam.fieldOfView = 55f;
+            // Zoom com a velocidade: o campo de visão fecha até ChaseZoom graus no máximo, devagar. A posição não muda.
+            chaseZoom = Mathf.Lerp(chaseZoom, carSpeed01[k], 1f - Mathf.Exp(-ChaseSpeedRate * dt));
+            cam.fieldOfView = 55f - ChaseZoom * chaseZoom;
         }
 
         // Dentro do carrinho: o olho fica um pouco à frente do centro da cabine e olha reto para a frente (horizonte nivelado).

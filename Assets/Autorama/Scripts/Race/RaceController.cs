@@ -369,7 +369,6 @@ namespace Autorama
             var list = new List<Option>
             {
                 new Option { key = "builder", name = L.T("Pista do construtor"), sub = builderStash != null && builderStash.nome != "" ? $"“{builderStash.nome}”" : L.T("a que está aberta agora"), save = builderStash ?? builder.ToSave() },
-                new Option { key = "ex:oval", name = L.T("Exemplo: oval"), save = TrackSave.Oval() },
                 new Option { key = "ex:oito", name = L.T("Exemplo: 8 com ponte"), save = TrackSave.Eight() },
             };
             foreach (var e in TrackLibrary.List()) list.Add(new Option { key = e.path, name = e.save.nome, save = e.save });
@@ -516,7 +515,12 @@ namespace Autorama
                 carPos[k] = pos; carHeading[k] = p.heading;
                 // Ponto do trilho à frente, para a Perseguição olhar a curva antes de chegar.
                 var ahead = sim.PathOf(k).At(st.s + CamAhead);
-                for (int i = 0; i < CamCount; i++) PaneCam(i).SetCarAhead(k, new Vector3(ahead.pos.x, ahead.y, ahead.pos.y));
+                var behind = sim.PathOf(k).At(st.s - CamBehind);
+                for (int i = 0; i < CamCount; i++)
+                {
+                    PaneCam(i).SetCarAhead(k, new Vector3(ahead.pos.x, ahead.y, ahead.pos.y));
+                    PaneCam(i).SetCarBehind(k, new Vector3(behind.pos.x, behind.y, behind.pos.y));
+                }
                 // Loop logo à frente (ou o carrinho dentro dele): a Perseguição vai para o lado (seção 57).
                 bool nearLoop = sim.PathOf(k).LoopNear(st.s, LoopCamAfter * sim.Scale,
                     Mathf.Max(LoopCamMin * sim.Scale, st.v * LoopCamLead), out var loopC, out float loopH) && st.mode == CarMode.OnSlot;
@@ -864,6 +868,7 @@ namespace Autorama
                 ("Q", L.T("fecha o circuito sozinho (Esc cancela)")),
                 (L.T("Delete · Backspace"), L.T("apaga a selecionada · a última")),
                 (L.T("Ctrl+Z · Ctrl+Y (Ctrl+Shift+Z)"), L.T("desfaz · refaz")),
+                (L.T("Ctrl+S"), L.T("salva a pista")),
                 (L.T("Esc"), L.T("tira a seleção")),
                 (L.T("Clique"), L.T("seleciona a peça; arrastar a largada move a pista")),
             }),
@@ -1134,6 +1139,7 @@ namespace Autorama
             SetBot(); DrawRaceSetup();
         }
 
+        const float CamBehind = 0.3f;     // ponto do trilho logo atrás do carrinho: a corda até ele é quase o rumo do trilho ali (Perseguição)
         const float CamAhead = 2.2f;      // distância no mundo à frente do carrinho que a Perseguição olha (sem a escala da pista)
         const float LoopCamLead = 0.6f;   // segundos de antecedência para a câmera ir para o lado do loop
         const float LoopCamMin = 1.5f;    // células: antecedência mínima
@@ -1627,6 +1633,7 @@ namespace Autorama
                 foreach (var c in sim.cars) sb.Append('|').Append(c.finish).Append('|').Append(c.offs);
                 sig = sb.ToString();
             }
+            if (show) PayRace(sig);
             if (show == resShown && sig == resSig) return;
             resShown = show; resSig = sig;
             DrawResult(show);
@@ -1659,6 +1666,7 @@ namespace Autorama
                 Text(c.offs == 1 ? L.T("1 saída") : L.F("{0} saídas", c.offs), "res-cell res-cell--dim", r);
                 if (k == recCar) Text(L.T("RECORDE"), "res-badge", r);
             }
+            if (earnNote != null && coinSig == resSig) Text(earnNote, lastEarn > 0 ? "res-coins" : "res-coins res-coins--none", resTable);
             if (ChampLike)
             {
                 bool over = !HeatNow(out _, out _, out _, out _, out _);

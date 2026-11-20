@@ -322,7 +322,6 @@ Seu arquivo (motor.wav)	Deine Datei (motor.wav)
 Motor curto	Kurzer Motor
 Motor longo	Langer Motor
 Voltar ao menu (Esc)	Zurück zum Menü (Esc)
-◀ Saves	◀ Spielstände
 Garagem do carro (G)	Autowerkstatt (G)
 ← → escolhe a prova · Enter abre e corre · Esc volta	← → wählt das Event · Enter öffnet und fährt · Esc geht zurück
 PAUSA	PAUSE
@@ -330,7 +329,6 @@ Continuar (Esc)	Weiter (Esc)
 Reiniciar	Neu starten
 Voltar ao mapa	Zurück zur Karte
 Cancelar	Abbrechen
-Carreira {0}	Karriere {0}
 Nova carreira	Neue Karriere
 As outras regiões ainda não estão prontas.	Die anderen Regionen sind noch nicht fertig.
 Seja campeão desta região para abrir a próxima.	Werde Meister dieser Region, um die nächste freizuschalten.
@@ -1009,14 +1007,10 @@ trilho 	Spur
 trilho sem recorde	Spur ohne Rekord
 seu melhor {0}	deine Bestzeit {0}
 primeira vez aqui	zum ersten Mal hier
-Peças novas para o construtor. Cada uma abre quando você termina, com pelo menos ★, a prova da carreira que a apresenta. Correr numa pista com peça fechada sempre pode — só não dá para colocar a peça.	Neue Teile für den Streckenbau. Jedes wird freigeschaltet, wenn du das Karriere-Event, das es vorstellt, mit mindestens ★ abschließt. Auf einer Strecke mit gesperrtem Teil kannst du immer fahren — du kannst das Teil nur nicht setzen.
 GARAGEM DO CARRO	AUTOWERKSTATT
 Seu carro na carreira. Compre opções do ajuste e preparação com as moedas das provas. Fora da carreira o ajuste é livre e sem preparação.	Dein Auto in der Karriere. Kaufe Setup-Optionen und Tuning mit den Münzen aus den Events. Außerhalb der Karriere ist das Setup frei und ohne Tuning.
 Fechar (G · Esc)	Schließen (G · Esc)
 Moedas da carreira · clique para abrir a garagem do carro	Karrieremünzen · klicken, um die Autowerkstatt zu öffnen
-liberada (teste)	freigeschaltet (Test)
-✓ aberta	✓ freigeschaltet
-Abre em 	Freischaltung in
 Desbloquear tudo: LIGADO (teste, até o jogo sair)	Alles freischalten: AN (Test, bis zur Veröffentlichung)
 Desbloquear tudo: desligado (teste, até o jogo sair)	Alles freischalten: aus (Test, bis zur Veröffentlichung)
 Níveis à venda até o {0} (Garagem 3 · Clube 6 · Regional 8 · Nacional 10). O nível n custa {1} × n.	Stufen bis {0} zu kaufen (Garage 3 · Club 6 · Regional 8 · National 10). Stufe n kostet {1} × n.
@@ -1448,3 +1442,56 @@ A Fórmula não tem níveis.	Die Formel hat keine Stufen.
 bolha Fórmula	Formel-Karosserie
 Um pouco da asa e um pouco da lisa.	Ein bisschen Flügel und ein bisschen Glatt.
 Seja campeão do Mundial na carreira para abrir.	Gewinne die Weltmeisterschaft in der Karriere zum Freischalten.
+Não cabe: sua mesa vai até {0} × {0} células. Mesas maiores em Peças, no menu inicial.	Passt nicht: Dein Tisch geht bis {0} × {0} Felder. Größere Tische unter Teile im Hauptmenü.
+Mesa pequena	Kleiner Tisch
+Mesa média	Mittlerer Tisch
+Mesa grande	Großer Tisch
+Salão	Saal
+Sem limite	Ohne Grenze
+Rampa (subida ou descida)	Rampe (hoch oder runter)
+Você tem {0} × {1}. Compre mais em Peças, no menu inicial.	Du hast {0} × {1}. Kauf mehr unter Teile im Hauptmenü.
+Compre a mesa de antes primeiro.	Kauf zuerst den vorherigen Tisch.
+◀ Carreira	◀ Karriere
+Começar	Starten
+Continuar	Weiter
+Recomeçar do zero	Von vorn beginnen
+Clique de novo: apaga as estrelas (moedas, garagem e peças ficam)	Nochmal klicken: löscht die Sterne (Münzen, Garage und Teile bleiben)
+PEÇAS E MESA	TEILE UND TISCH
+Seu kit para o construtor, comprado com as moedas da carreira. Cada pista usa até as peças que você tem (montar outra pista não gasta) e cabe na sua mesa. Peça nova abre na prova da carreira que a apresenta. Correr em qualquer pista sempre pode.	Dein Bausatz für den Streckenbau, gekauft mit den Münzen der Karriere. Jede Strecke nutzt höchstens die Teile, die du hast (eine weitere Strecke kostet nichts), und muss auf deinen Tisch passen. Neue Teile öffnen sich im Karriererennen, das sie vorstellt. Fahren auf jeder Strecke geht immer.
+Desbloquear tudo ligado: mesa e peças sem limite (teste).	Alles freischalten ist an: Tisch und Teile ohne Grenze (Test).
+MESA	TISCH
+pista de até {0} × {0} células	Strecken bis {0} × {0} Felder
+✓ a sua	✓ deiner
+✓	✓
+Comprar · ◎ {0}	Kaufen · ◎ {0}
+você tem {0} (kit: {1})	du hast {0} (Bausatz: {1})
+você tem {0}	du hast {0}
+Sua mesa	Dein Tisch
+{0} × {1} de {2} × {2} cél.	{0} × {1} von {2} × {2} Feldern
+Salvar pista	Strecke speichern
+Salva na biblioteca com o nome de Minhas pistas (Ctrl+S)	Speichert in der Bibliothek unter dem Namen aus Meine Strecken (Strg+S)
+Custo	Kosten
+Custo da pista: {0}	Streckenkosten: {0}
+“{0}” salva · custo {1}.	„{0}“ gespeichert · Kosten {1}.
+Ctrl+S	Strg+S
+salva a pista	speichert die Strecke
+Nome da pista	Streckenname
+Suas moedas: {0}	Deine Münzen: {0}
+Dê um nome à pista antes de salvar.	Gib der Strecke vor dem Speichern einen Namen.
+{0} · {1} × {1} células	{0} · {1} × {1} Felder
+Próxima: {0} · {1} × {1} células	Nächste: {0} · {1} × {1} Felder
+{0} comprada.	{0} gekauft.
+Desbloquear tudo ligado: mesa sem limite e peças de graça (teste).	Alles freischalten an: Tisch ohne Limit und Teile gratis (Test).
+{0} Até lá, custa {1}× o preço.	{0} Bis dahin kostet es das {1}-Fache.
+A pagar ao salvar	Beim Speichern zu zahlen
+Salvar custa {0} (você tem {1}).	Speichern kostet {0} (du hast {1}).
+Já paga: salvar não custa nada.	Schon bezahlt: Speichern kostet nichts.
+“{0}” salva · pagou {1}.	„{0}“ gespeichert · {1} bezahlt.
+Faltam {0} moedas para salvar esta pista.	Dir fehlen {0} Münzen, um diese Strecke zu speichern.
+Carreira zerada: mesa sem limite, peças e pistas de graça.	Karriere abgeschlossen: Tisch ohne Limit, Teile und Strecken gratis.
++{0} moedas	+{0} Münzen
+Sem pilotos IA na pista: esta corrida não dá moedas.	Keine KI-Fahrer auf der Strecke: Dieses Rennen bringt keine Münzen.
+hoje no online: {0} de {1} (depois, metade)	heute online: {0} von {1} (danach die Hälfte)
+limite do dia no online passou: pagando metade	Tageslimit online überschritten: halbe Auszahlung
+hoje fora do online: {0} de {1}	heute offline: {0} von {1}
+Limite do dia fora do online ({0}) atingido. Amanhã tem mais; a carreira e o online continuam pagando.	Tageslimit offline ({0}) erreicht. Morgen gibt es mehr; Karriere und Online zahlen weiter.

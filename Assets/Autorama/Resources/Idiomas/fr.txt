@@ -322,7 +322,6 @@ Seu arquivo (motor.wav)	Votre fichier (motor.wav)
 Motor curto	Moteur court
 Motor longo	Moteur long
 Voltar ao menu (Esc)	Retour au menu (Échap)
-◀ Saves	◀ Sauvegardes
 Garagem do carro (G)	Garage de la voiture (G)
 ← → escolhe a prova · Enter abre e corre · Esc volta	← → choisit l'épreuve · Entrée ouvre et lance · Échap revient
 PAUSA	PAUSE
@@ -330,7 +329,6 @@ Continuar (Esc)	Continuer (Échap)
 Reiniciar	Recommencer
 Voltar ao mapa	Retour à la carte
 Cancelar	Annuler
-Carreira {0}	Carrière {0}
 Nova carreira	Nouvelle carrière
 As outras regiões ainda não estão prontas.	Les autres régions ne sont pas encore prêtes.
 Seja campeão desta região para abrir a próxima.	Devenez champion de cette région pour débloquer la suivante.
@@ -1009,14 +1007,10 @@ trilho 	voie
 trilho sem recorde	voie sans record
 seu melhor {0}	votre meilleur {0}
 primeira vez aqui	première fois ici
-Peças novas para o construtor. Cada uma abre quando você termina, com pelo menos ★, a prova da carreira que a apresenta. Correr numa pista com peça fechada sempre pode — só não dá para colocar a peça.	De nouvelles pièces pour le constructeur. Chacune se débloque quand vous terminez, avec au moins ★, l'épreuve de carrière qui la présente. Vous pouvez toujours courir sur un circuit avec une pièce verrouillée — vous ne pouvez juste pas poser la pièce.
 GARAGEM DO CARRO	GARAGE DE LA VOITURE
 Seu carro na carreira. Compre opções do ajuste e preparação com as moedas das provas. Fora da carreira o ajuste é livre e sem preparação.	Votre voiture en carrière. Achetez des options de réglage et de préparation avec les jetons des épreuves. Hors carrière, le réglage est libre et sans préparation.
 Fechar (G · Esc)	Fermer (G · Échap)
 Moedas da carreira · clique para abrir a garagem do carro	Jetons de carrière · cliquez pour ouvrir le garage de la voiture
-liberada (teste)	débloquée (test)
-✓ aberta	✓ débloquée
-Abre em 	Se débloque dans
 Desbloquear tudo: LIGADO (teste, até o jogo sair)	Tout débloquer : ACTIVÉ (test, jusqu'à la sortie du jeu)
 Desbloquear tudo: desligado (teste, até o jogo sair)	Tout débloquer : désactivé (test, jusqu'à la sortie du jeu)
 Níveis à venda até o {0} (Garagem 3 · Clube 6 · Regional 8 · Nacional 10). O nível n custa {1} × n.	Niveaux en vente jusqu'au {0} (Garage 3 · Club 6 · Régional 8 · National 10). Le niveau n coûte {1} × n.
@@ -1448,3 +1442,56 @@ A Fórmula não tem níveis.	La Formule n’a pas de niveaux.
 bolha Fórmula	carrosserie Formule
 Um pouco da asa e um pouco da lisa.	Un peu de l’aileron et un peu de la lisse.
 Seja campeão do Mundial na carreira para abrir.	Remportez le Mondial dans la carrière pour débloquer.
+Não cabe: sua mesa vai até {0} × {0} células. Mesas maiores em Peças, no menu inicial.	Ça ne rentre pas : votre table fait au plus {0} × {0} cases. Tables plus grandes dans Pièces, au menu principal.
+Mesa pequena	Petite table
+Mesa média	Table moyenne
+Mesa grande	Grande table
+Salão	Salle
+Sem limite	Sans limite
+Rampa (subida ou descida)	Rampe (montée ou descente)
+Você tem {0} × {1}. Compre mais em Peças, no menu inicial.	Vous avez {0} × {1}. Achetez-en plus dans Pièces, au menu principal.
+Compre a mesa de antes primeiro.	Achetez d'abord la table précédente.
+◀ Carreira	◀ Carrière
+Começar	Commencer
+Continuar	Continuer
+Recomeçar do zero	Recommencer à zéro
+Clique de novo: apaga as estrelas (moedas, garagem e peças ficam)	Cliquez encore : efface les étoiles (pièces de monnaie, garage et pièces restent)
+PEÇAS E MESA	PIÈCES ET TABLE
+Seu kit para o construtor, comprado com as moedas da carreira. Cada pista usa até as peças que você tem (montar outra pista não gasta) e cabe na sua mesa. Peça nova abre na prova da carreira que a apresenta. Correr em qualquer pista sempre pode.	Votre kit pour le constructeur, acheté avec les pièces de monnaie de la carrière. Chaque circuit utilise au plus les pièces que vous avez (construire un autre circuit ne coûte rien) et doit tenir sur votre table. Les nouvelles pièces s'ouvrent à l'épreuve de la carrière qui les présente. Courir sur n'importe quel circuit est toujours possible.
+Desbloquear tudo ligado: mesa e peças sem limite (teste).	Tout débloquer activé : table et pièces sans limite (test).
+MESA	TABLE
+pista de até {0} × {0} células	circuits jusqu'à {0} × {0} cases
+✓ a sua	✓ la vôtre
+✓	✓
+Comprar · ◎ {0}	Acheter · ◎ {0}
+você tem {0} (kit: {1})	vous en avez {0} (kit : {1})
+você tem {0}	vous en avez {0}
+Sua mesa	Votre table
+{0} × {1} de {2} × {2} cél.	{0} × {1} sur {2} × {2} cases
+Salvar pista	Enregistrer le circuit
+Salva na biblioteca com o nome de Minhas pistas (Ctrl+S)	Enregistre dans la bibliothèque sous le nom de Mes circuits (Ctrl+S)
+Custo	Coût
+Custo da pista: {0}	Coût du circuit : {0}
+“{0}” salva · custo {1}.	« {0} » enregistré · coût {1}.
+Ctrl+S	Ctrl+S
+salva a pista	enregistre le circuit
+Nome da pista	Nom du circuit
+Suas moedas: {0}	Vos pièces : {0}
+Dê um nome à pista antes de salvar.	Donnez un nom au circuit avant d’enregistrer.
+{0} · {1} × {1} células	{0} · {1} × {1} cases
+Próxima: {0} · {1} × {1} células	Suivante : {0} · {1} × {1} cases
+{0} comprada.	{0} : achetée.
+Desbloquear tudo ligado: mesa sem limite e peças de graça (teste).	Tout débloquer activé : table sans limite et pièces gratuites (test).
+{0} Até lá, custa {1}× o preço.	{0} D'ici là, elle coûte {1}× le prix.
+A pagar ao salvar	À payer à l'enregistrement
+Salvar custa {0} (você tem {1}).	Enregistrer coûte {0} (vous avez {1}).
+Já paga: salvar não custa nada.	Déjà payée : enregistrer ne coûte rien.
+“{0}” salva · pagou {1}.	« {0} » enregistrée · payé {1}.
+Faltam {0} moedas para salvar esta pista.	Il manque {0} pièces pour enregistrer ce circuit.
+Carreira zerada: mesa sem limite, peças e pistas de graça.	Carrière terminée : table sans limite, pièces et circuits gratuits.
++{0} moedas	+{0} pièces
+Sem pilotos IA na pista: esta corrida não dá moedas.	Aucun pilote IA sur la piste : cette course ne rapporte pas de pièces.
+hoje no online: {0} de {1} (depois, metade)	aujourd'hui en ligne : {0} sur {1} (ensuite, moitié)
+limite do dia no online passou: pagando metade	limite du jour en ligne dépassée : paiement de moitié
+hoje fora do online: {0} de {1}	aujourd'hui hors ligne : {0} sur {1}
+Limite do dia fora do online ({0}) atingido. Amanhã tem mais; a carreira e o online continuam pagando.	Limite du jour hors ligne ({0}) atteinte. Demain il y en aura plus ; la carrière et le jeu en ligne paient toujours.

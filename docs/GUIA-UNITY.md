@@ -1439,9 +1439,9 @@ Os modos antigos *3D* (1) e *Dinâmica* (3) saíram da corrida (eram ruins de as
 
 **Perseguição** (`TopDownCamera.ApplyThirdPerson`):
 
-- **Posição:** `carro − chaseFwd × (3,4 + recuo)u + cima × 1,6 × (1 + recuo/3,4)u` (~25° de cima, parado ou andando; era `1,2u` fixo, ~19° parado e ~13° na velocidade máxima, deitada demais), com `u = distância` do slider. **Recuo com a velocidade:** `ChaseSpeedBack 0,5 × v/vmax` (era 1,6) do carrinho (`vmax × Speed × setup.Top`; 0 fora do trilho), vindo de `SetCarTrack(k, noTrilho, derrapagem, speed01)`, com lerp lento `ChaseSpeedRate 1,5`: parado, 3,4 atrás; no máximo, 3,9. Parado o carrinho ficava bom, mas andando a câmera grudava nele. Lerp `ChasePosRate 6` só no deslocamento câmera − carrinho (`chaseOffset`), não na posição: antes ela seguia a posição absoluta e ficava v/6 para trás, muito longe e baixa no talo. Campo de visão 55°. Não multiplica pela escala da pista: o carrinho tem o mesmo tamanho em todas, e com `3,2 × escala` ele sumia na pista de 6 (9,6 atrás e 5,1 acima). Era `3,2u + 1,7u` antes.
-- **Ponto olhado:** `RaceController` manda a cada quadro o ponto do trilho `CamAhead 2,2` à frente (no mundo, sem a escala) (`SetCarAhead`); a câmera olha `ChaseLookAhead 0,55` do caminho entre o carrinho e esse ponto, com lerp `ThirdLookRate 12`. Assim a curva aparece antes de o carrinho chegar nela. Rodando, olha só o carrinho.
-- **Direção:** `chaseFwd` segue o rumo com lerp `ChaseTurnRate 6`; rodando, gira no máximo `ThirdTurnRate 110°/s`.
+- **Posição:** `carro − chaseFwd × (3,4 + recuo)u + cima × 1,6 × (1 + recuo/3,4)u` (~25° de cima, parado ou andando; era `1,2u` fixo, ~19° parado e ~13° na velocidade máxima, deitada demais), com `u = distância` do slider. **Recuo com a velocidade:** desligado (`ChaseSpeedBack 0`; o recuo mudava o enquadramento ao acelerar). No lugar, um zoom leve: o campo de visão vai de 55° a 49° na velocidade máxima (`ChaseZoom 6`, lerp `ChaseSpeedRate 1,5`), sem mexer na posição nem no ângulo. Antes: `ChaseSpeedBack 0,5 × v/vmax` (era 1,6) do carrinho (`vmax × Speed × setup.Top`; 0 fora do trilho), vindo de `SetCarTrack(k, noTrilho, derrapagem, speed01)`, com lerp lento `ChaseSpeedRate 1,5`: parado, 3,4 atrás; no máximo, 3,9. Parado o carrinho ficava bom, mas andando a câmera grudava nele. Lerp `ChasePosRate 6` só no deslocamento câmera − carrinho (`chaseOffset`), não na posição: antes ela seguia a posição absoluta e ficava v/6 para trás, muito longe e baixa no talo. Campo de visão 55°. Não multiplica pela escala da pista: o carrinho tem o mesmo tamanho em todas, e com `3,2 × escala` ele sumia na pista de 6 (9,6 atrás e 5,1 acima). Era `3,2u + 1,7u` antes.
+- **Ponto olhado:** `RaceController` manda a cada quadro o ponto do trilho `CamAhead 2,2` à frente (`SetCarAhead`). A câmera olha um ponto a `ChaseLookDist 4` × `distanceScale` à frente do carrinho, na direção que vira `ChaseLookAhead 0,55` do rumo do trilho para esse ponto (lerp `ThirdLookRate 12`). Como o ponto olhado escala junto com a câmera, o ângulo de cima fica em ~12° em qualquer distância (antes, na distância 0,4, ele ia a 41° e as faixas abriam em leque). Rodando, olha só o carrinho.
+- **Direção:** `chaseFwd` segue o rumo do trilho no carrinho (corda do ponto `CamBehind 0,3` atrás → carrinho, `SetCarBehind`), não o rumo do carro, com lerp `ChaseTurnRate 12` (posição: `ChasePosRate 12`). Com 1,5 atrás e lerp 6 a corda e o atraso deixavam a câmera de lado do carrinho nas curvas; agora ela fica sempre atrás. Assim a câmera gira junto com a curva, sem balançar com a derrapagem. Rodando ou fora do trilho, segura o rumo e só acompanha a posição (sem corte: a troca de "rodando" não reinicia mais a câmera).
 - **Reinício:** trocar de modo ou de carrinho zera a direção (corte direto para a posição).
 
 **Primeira pessoa** (`TopDownCamera.ApplyFirstPerson`, `SetCarTrack`, `InFirstPersonOf`):
@@ -5410,3 +5410,76 @@ Uma **quarta bolha** (`CarSetup.bolha = 3`, `CarBody.Formula`), com física pró
 - **Servidor Node:** o `in` cortava o código do carro em 162, então o turbo e o modelo de um visitante nunca chegavam ao host pelo servidor (pela Steam chegavam). Agora o corte é 1944. `npm test` passa.
 - **Carreira:** de Fórmula correm o Felix (rival e campeonatos), as lendas do Mundial e das Lendas e, na Copa Global, a Sofia e a Aiko. O resultado do Mundial mostra "bolha Fórmula" ao abrir.
 - **Teste:** foto (renderização à parte no Play) e corrida de 6 carros na oval com a Fórmula. Textos nas cinco tabelas. **Não testado:** abrir de verdade, ganhando o Mundial.
+
+## 94. Carteira, save único, mesa e pagar a pista
+
+Os jogadores montavam pistas enormes desde o primeiro minuto. Agora o construtor tem progressão: o tamanho da mesa se compra e a pista se paga com as moedas da carreira.
+
+- **Carteira** (`Profile/Carteira.cs`, `autorama/carteira.json`) é do jogador, não do save. Guarda:
+  - as moedas e a garagem do carro (antes ficavam em `CareerSave.moedas`/`garagem`, que agora só são lidas na migração);
+  - o nível da mesa e quanto já pagou por cada pista (`pagas`, lista `Qtd`: arquivo da biblioteca → moedas);
+  - as melhores estrelas de cada prova de sempre (`estrelas`) e a região mais adiantada (`regiao`). Essas estrelas servem para três coisas: a estrela já paga não paga de novo (`paid` em `RaceController.Career.cs`), peças e modelos abertos continuam abertos e `Progresso.Scan` passa a ler daqui.
+  - `Career.Save` chama `Carteira.Sync` e `Carteira.Save`.
+- **Moedas iniciais:** `Carteira.Inicial 1000`, para quem cria a carteira do zero (sem `carteira.json`). Quem vem de um save antigo fica com as moedas dele (migração).
+- **Save único:** `Career.Slots = 1`. A tela da carreira mostra Começar/Continuar e "Recomeçar do zero" (dois cliques). `Career.Delete` copia o save para `.bak` e apaga. Moedas, garagem, mesa e pistas pagas ficam.
+- **Migração** (só quando ainda não existe `carteira.json`):
+  - fica o save com mais estrelas, que vira o `carreira-1`; o 1 de antes vai para `.bak`;
+  - as moedas e a garagem vêm desse save;
+  - as estrelas vêm de todos os saves (o que estava aberto continua aberto).
+- **Mesa** (`Carteira.Mesas`): a pista inteira precisa caber num quadrado do tamanho da mesa (`TrackBuilder.BoardLimit`; `Fits` mede a caixa da pista).
+
+  | Mesa | Células | Preço | Abre na região |
+  |---|---|---|---|
+  | pequena | 20 | grátis | — |
+  | média | 35 | 1.500 | Clube |
+  | grande | 55 | 4.000 | Regional |
+  | Salão | 80 | 9.000 | Nacional |
+  | Sem limite | 120 (o `BoardMax`) | 20.000 | Global |
+
+  Cada mesa só se compra depois da anterior.
+- **Sem estoque nem kit** (até a versão de antes havia estoque por tipo, kit grátis e preço subindo 5% por unidade; saiu tudo). Toda peça pode ser colocada no construtor, e a pista é paga **ao salvar**.
+  - Preço base (`Carteira.Pecas`), fixo: curtinha 10; reta curta e meia curva 15; curva longa 20; reta comprida 25; curva em C e curva curta inclinada 30; curva longa inclinada e rampa 40; C inclinada e cruzamento curto 50; cruzamento 60; salto 250; loop 400. Peça com subida ou descida custa como rampa; a largada não custa.
+  - **Peça que a carreira ainda não abriu** (`PiecePrice.Mult`): pode ser usada, mas custa ×3 (`LockMult`) se abre na região em que o jogador está, mais ×2 (`RegionMult`) por região à frente (`Career.RegionOf` do nó que abre o grupo − `Progresso.RegionReached`). Rampa usa o grupo "rampas"; salto de vão 2 e 3 vale o mais caro entre "salto" e "salto-grande". Peça aberta: ×1.
+- **Pagar ao salvar** (`TrackBuilder.SaveGate` = `Progresso.PaySave`): `SaveTrack` cobra `custo − já pago` pela pista (`Carteira.APagar`, chave `TrackLibrary.Key(nome)`, o nome do arquivo). Sem moedas, não salva e avisa "Faltam N moedas para salvar esta pista.". Salvar de novo cobra só o que passou do já pago; tirar peça não devolve. O bloco de salvar mostra "Salvar custa N (você tem M)." ou "Já paga: salvar não custa nada.", e o Resumo mostra "A pagar ao salvar" quando é diferente do custo.
+  - Montar, correr no rascunho e o Q não cobram. O Q (`TrackCloser.Allowed`) usa só peças abertas.
+  - `Progresso.ApplyGate` liga a mesa e o pagar. O construtor da carreira (`StartBuild`) e o "Desbloquear tudo" desligam os dois. O "Correr nesta pista" da mesa continua só com os dois desligados, como antes.
+  - Paleta: o preço do cartão já vem multiplicado; a dica da peça fechada diz em que prova abre e o multiplicador.
+- **Loja:** a tela "Peças e mesa" do menu inicial ficou só com as moedas e as 5 mesas.
+- **Balanço:** prêmio de campeonato (`premio` no `carreira.json`) × 1,5; estrelas 75/100/150; campeão de região 800/1.200/2.000/3.000/5.000. Uma passada completa paga ~67.000. Os gastos somam ~89.000: garagem 42.500, mesa 34.500 e um estoque grande ~12.000. Quem quer tudo repete campeonatos, que pagam toda vez.
+- **Teste (`script eval`):**
+  - preço com o jogador na região 2 (Desbloquear tudo desligado): reta curta 15, inclinada 40, salto 250 (abertos, ×1); loop 2.000 e salto de vão 3 1.250 (região 3, ×5);
+  - pagar: pista de 500 com 1.000 moedas → paga 500; de novo → 0; a mesma com custo 650 → 150; custo 5.000 → "Faltam 4000 moedas…" (carteira restaurada depois);
+  - na mesa de 20, uma reta de largada mais 8 retas curtas cabe e a 9ª não;
+  - preços: reta curta 15 (5 por 80), loop 400;
+  - a migração rodou nos dados reais (6.655 moedas, região 2, 22 provas com estrelas).
+  - **Não testado na tela:** a loja nova, o Recomeçar e a mudança de mesa no Play.
+
+## 95. Custo das peças e salvar em destaque
+
+Construir é livre; a pista é paga ao salvar (seção 94).
+
+- **Preço da peça** (`Core/PiecePrice.cs`): é o preço base (`Carteira.Pecas`, seção 94) vezes o multiplicador da peça ainda fechada (`Mult`). Peça que sobe ou desce custa como rampa (`Carteira.Key`) e a largada não custa nada. `PiecePrice.Total` soma a pista e `Money` formata como na loja (`◎ 1.234`).
+- **Paleta:** cada cartão mostra o preço no canto de cima, à esquerda (`.tile-price`, cor de destaque). A tecla continua à direita.
+- **Salvar em destaque:** no topo da aba Construtor, um bloco com borda de destaque (`.save-cta`) é o único lugar de salvar (Minhas pistas ficou só com a lista). De cima para baixo, ele traz: "Suas moedas: $ N" (`Carteira.D.moedas`, atualizado em `Carteira.Changed`), o campo do nome ("Nome da pista"), o botão grande "Salvar pista" (40 px) e, "Custo da pista: $ N", atualizado a cada mudança (em `DrawSummary`). Ele só aparece no construtor (fica dentro do `buildBox`). O Resumo ganhou a linha "Custo", e o aviso ao salvar diz o custo.
+- **Nome obrigatório:** sem nome, `SaveTrack` não salva. Ele avisa "Dê um nome à pista antes de salvar.", deixa o campo com borda vermelha (`.name-field--falta`) e põe o foco nele. A borda sai quando o nome é escrito.
+- **Mesa no construtor:** logo abaixo do bloco de salvar, a seção "MESA" (`DrawMesa`) mostra a sua mesa e a próxima, com o botão "Comprar · ◎ N" (`Carteira.BuyMesa` e depois `Progresso.ApplyGate`). O botão fica apagado, com o motivo embaixo, se faltam moedas, se a região ainda não abriu ou se falta a mesa de antes. A seção aparece sempre. Com o Desbloquear tudo, ela avisa que a mesa está sem limite e a compra continua valendo para quando ele for desligado. O construtor da carreira esconde o painel inteiro. É redesenhada em `Refresh` e em `Carteira.Changed`. Os valores usam `◎` e `L.Cultura`, como na loja.
+- **Ctrl+S** salva (fora da corrida e sem estar digitando). Está no `AllKeys`.
+- **Nova pista no topo:** o botão "Nova pista" (`.new-track-btn`) é o primeiro item do construtor, em cima do bloco de salvar (saiu da linha de Minhas pistas).
+- **O oval vem na biblioteca:** o botão "Exemplo: oval" saiu (também da lista de pistas da corrida). `TrackLibrary.List` chama `GiveOval`: com a biblioteca vazia, salva o oval (`oval.json`) e o marca como pago (`Carteira.Dar`, custo 205). Volta se o jogador apagar todas as pistas. O "8 com ponte" continua como exemplo na corrida.
+- **Teste:** compila; o custo da pista aberta foi conferido por `script eval`. Não foi visto na tela.
+
+## 96. Moedas em todos os modos e carreira zerada
+
+A carreira continua sendo onde mais se ganha; corrida livre, campeonato offline e online também pagam, um pouco por corrida terminada (`Race/RaceController.Coins.cs`).
+
+- **Quando:** `SetResult` chama `PayRace` uma vez por resultado (`coinSig` = a assinatura do resultado), só com `sim.phase == Done`. A carreira não passa por aqui (tem o prêmio dela, seção 78). O ganho aparece num toast e numa linha "+N moedas" (`.res-coins`) embaixo da classificação.
+- **Na tela:** a linha embaixo da classificação (`earnNote`) diz o ganho e o limite: "+N moedas · hoje no online: X de 3.000 (depois, metade)", "… hoje fora do online: X de 2.000", "Limite do dia fora do online (2.000) atingido…" ou "Sem pilotos IA na pista: esta corrida não dá moedas." (cinza, `.res-coins--none`).
+- **Peça cara no construtor:** o cartão da peça ainda fechada mostra "×N · ◎ preço" em laranja e a borda laranja (`PriceLabel`, `.tile--caro`, `.tile-price--caro`).
+- **Quem recebe:** online, o meu carro (`IsMyLane`, `pl[k].id == myId`); offline, a pessoa mais bem colocada.
+- **Online** (partida rápida e cada bateria do campeonato online): `OnBase 40` + `OnPerHuman 20` por pessoa que ficou atrás (IA e o 2º jogador do mesmo computador não contam).
+- **Offline** (corrida livre e campeonato offline): `OffBase 5` + `OffPerAi 10` × qualidade/100 por IA que ficou atrás. Sem IA na pista, não paga (dois amigos no mesmo teclado não farmam).
+- **Duração:** × tempo do meu carro / `FullTime 120 s`, entre `MinShare 0,25` e 1.
+- **Limite do dia** (`CarteiraData.dia`, `hojeOn`, `hojeOff`): online paga cheio até `OnDay 3.000` e metade depois; offline para em `OffDay 2.000`.
+- **Exemplos:** partida rápida de 4 (4:00), em 1º: 40 + 3 × 20 = 100. Corrida livre de 3 min contra 3 IAs de qualidade 60, em 1º: 5 + 3 × 6 = 23.
+- **Carreira zerada** (`Progresso.Zerou`, campeão do Mundial: a mesma condição da bolha Fórmula, seção 93): o construtor fica sem limite. `ApplyGate` tira a mesa (`BoardLimit 0`) e o pagar (`SaveGate null`), `PiecePrice.Mult` volta 1 para tudo, e a seção MESA avisa "Carreira zerada: mesa sem limite, peças e pistas de graça.".
+- **Teste (`script eval`, carteira restaurada):** online 100 com o dia zerado → 100; com 2.950 já ganhos → 75 (50 cheio + 25 pela metade). Offline 300 → 300; com 700 → 100; depois → 0 (teste com o limite de 800 da época; hoje é 2.000). Não visto na tela; a corrida inteira não foi jogada.

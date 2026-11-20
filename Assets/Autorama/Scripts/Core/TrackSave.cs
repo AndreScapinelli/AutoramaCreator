@@ -138,7 +138,7 @@ namespace Autorama
         public static List<Entry> List()
         {
             var list = new List<Entry>();
-            if (!Directory.Exists(Folder)) return list;
+            GiveOval();
             foreach (var f in Directory.GetFiles(Folder, "*.json"))
             {
                 try { list.Add(new Entry { path = f, save = TrackSave.FromJson(File.ReadAllText(f)) }); }
@@ -146,6 +146,15 @@ namespace Autorama
             }
             list.Sort((a, b) => File.GetLastWriteTimeUtc(b.path).CompareTo(File.GetLastWriteTimeUtc(a.path)));
             return list;
+        }
+
+        // Todo jogador já recebe o oval (era o botão "Exemplo: oval"): volta sempre que a biblioteca está vazia, já paga.
+        static void GiveOval()
+        {
+            if (Directory.Exists(Folder) && Directory.GetFiles(Folder, "*.json").Length > 0) return;
+            var oval = TrackSave.Oval();
+            Save(oval);
+            Carteira.Dar(Key(oval.nome), PiecePrice.Total(oval.Pieces()));
         }
 
         // Salva com o nome do arquivo derivado do nome da pista (substitui uma de mesmo nome).
@@ -170,6 +179,9 @@ namespace Autorama
             try { return File.Exists(DraftPath) ? TrackSave.FromJson(File.ReadAllText(DraftPath)) : null; }
             catch { return null; }
         }
+
+        // O nome do arquivo da pista na biblioteca (o que já foi pago por ela fica com essa chave, seção 94).
+        public static string Key(string name) => Slug(name);
 
         static string Slug(string name)
         {

@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Autorama
 {
     // Perfil do jogador (seção 78 do guia): por enquanto só o "Desbloquear tudo" de teste. Um por computador, em
-    // persistentDataPath/autorama/perfil.json. As moedas ficam no save da carreira (CareerSave.moedas).
+    // persistentDataPath/autorama/perfil.json. As moedas ficam na Carteira (carteira.json, seção 94).
     [Serializable]
     public class PlayerProfile
     {
@@ -120,6 +120,8 @@ namespace Autorama
         // A bolha Fórmula (seção 93): campeão do Mundial (★★) em algum save.
         public const string FormulaNo = "global-mundial";
         static bool formula;
+        // Zerou a carreira (campeão do Mundial): o construtor fica sem limite (mesa máxima, peças ×1, salvar de graça).
+        public static bool Zerou => FormulaOk;
         public static bool FormulaOk { get { if (All) return true; if (open == null) Scan(); return formula; } }
         static void Scan()
         {
@@ -128,14 +130,13 @@ namespace Autorama
             reached = 0;
             formula = false;
             int n = Career.Def.regioes.Length;
-            for (int slot = 1; slot <= Career.Slots; slot++)
-            {
-                var s = Career.Load(slot);
-                foreach (var u in Pecas) if (Career.Stars(s, u.no) > 0) open.Add(u.id);
-                foreach (var u in Modelos) if (Career.Stars(s, u.no) >= u.estrelas) models.Add(u);
-                if (Career.Stars(s, FormulaNo) >= 2) formula = true;
-                for (int i = 0; i < n; i++) if (Career.RegionOpen(s, i)) reached = Mathf.Max(reached, i);
-            }
+            // As melhores estrelas de sempre (Carteira, seção 94): recomeçar a carreira não fecha o que já abriu.
+            var s = Career.Load(1);
+            Carteira.Sync(s);
+            foreach (var u in Pecas) if (Carteira.Estrelas(u.no) > 0) open.Add(u.id);
+            foreach (var u in Modelos) if (Carteira.Estrelas(u.no) >= u.estrelas) models.Add(u);
+            if (Carteira.Estrelas(FormulaNo) >= 2) formula = true;
+            reached = Mathf.Min(Carteira.D.regiao, n - 1);
         }
         public static bool Owns(string item) { if (string.IsNullOrEmpty(item) || All) return true; if (open == null) Scan(); return open.Contains(item); }
 
@@ -174,15 +175,26 @@ namespace Autorama
             return u != null ? L.F("{0}: abre na carreira ({1}).", L.T(u.nome), WhereText(u)) : L.T("Abre na carreira.");
         }
 
-        // Liga as travas da carreira no construtor e no Q (fora do construtor da carreira, que tem as regras da prova).
+        // Fora do construtor da carreira (que tem as regras da prova): toda peça pode ser colocada, e a que ainda não
+        // abriu só custa mais (PiecePrice.Mult). O Q usa só as abertas. Mesa e pagar a pista ao salvar (seção 94).
         public static void ApplyGate()
         {
-            TrackBuilder.AllowedEntry = All ? null : EntryOk;
-            TrackBuilder.RuleNotice = L.T("Esta peça abre na carreira (menu inicial › Peças mostra em que prova).");
+            TrackBuilder.AllowedEntry = null;
             TrackBuilder.MaxPieces = 0;
-            TrackBuilder.GapOk = v => v <= 1 || Owns("salto-grande");
-            TrackBuilder.RiseOk = () => Owns("rampas");
+            TrackBuilder.GapOk = null;
+            TrackBuilder.RiseOk = null;
             TrackCloser.Allowed = All ? null : PieceOk;
+            TrackBuilder.BoardLimit = All || Zerou ? 0 : Carteira.MesaMax;
+            TrackBuilder.SaveGate = All || Zerou ? null : PaySave;
+        }
+
+        static string PaySave(TrackSave s)
+        {
+            string key = TrackLibrary.Key(s.nome);
+            int custo = PiecePrice.Total(s.Pieces());
+            string why = Carteira.CanPay(key, custo);
+            if (why == "") Carteira.Pay(key, custo);
+            return why;
         }
     }
 }

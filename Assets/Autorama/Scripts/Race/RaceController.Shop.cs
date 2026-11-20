@@ -10,7 +10,7 @@ namespace Autorama
     public partial class RaceController
     {
         VisualElement shopLayer, shopList, coinChip, garLayer, garList;
-        Label coinText, coinPop, garCoins;
+        Label coinText, coinPop, garCoins, shopCoins;
         float coinShown, coinPopT, coinPulseT;
         const float CoinPopTime = 2.2f, CoinCountRate = 3f;
         Button shopAll;
@@ -22,7 +22,7 @@ namespace Autorama
             coinPulseT = 0.5f;
         }
 
-        int CoinsNow => kSave != null ? kSave.moedas : 0;
+        int CoinsNow => Carteira.D.moedas;
 
         // A cada quadro: o selo só existe na carreira, fora da tela de saves; na prova só aparece com o "+N".
         void CoinTick()
@@ -57,10 +57,15 @@ namespace Autorama
             // Peças (menu inicial): o que já abriu e em que prova abre o resto.
             shopLayer = El("k-full k-dim", panel.Root);
             shopLayer.style.display = DisplayStyle.None;
-            var card = El("k-panel k-shop", shopLayer);
-            Text(L.T("PEÇAS"), "k-title", card);
-            Text(L.T("Peças novas para o construtor. Cada uma abre quando você termina, com pelo menos ★, a prova da carreira que a apresenta. Correr numa pista com peça fechada sempre pode — só não dá para colocar a peça."), "k-sub", card);
-            shopList = El(null, card);
+            var card = El("k-panel k-shop k-garage", shopLayer);
+            var sh = El("k-shop-head", card);
+            Text(L.T("PEÇAS E MESA"), "k-title", sh);
+            shopCoins = Text("", "k-stars", sh);
+            Text(L.T("Seu kit para o construtor, comprado com as moedas da carreira. Cada pista usa até as peças que você tem (montar outra pista não gasta) e cabe na sua mesa. Peça nova abre na prova da carreira que a apresenta. Correr em qualquer pista sempre pode."), "k-sub", card);
+            var ss = new ScrollView(ScrollViewMode.Vertical);
+            ss.AddToClassList("k-garage-scroll");
+            card.Add(ss);
+            shopList = ss.contentContainer;
             if (Progresso.Teste)
                 shopAll = Btn("", () => { Progresso.P.tudo = !Progresso.P.tudo; Progresso.Save(); }, "btn start-btn", card);
             Btn(L.T("Fechar (Esc)"), () => ShowShop(false), "btn start-btn", card);
@@ -90,6 +95,7 @@ namespace Autorama
             coinPop.pickingMode = PickingMode.Ignore;
 
             panel.ShopRequested += () => ShowShop(true);
+            Carteira.Changed += () => { if (ShopOpen) DrawShop(); };
             Progresso.Changed += OnProfileChanged;
             OnProfileChanged();
         }
@@ -113,21 +119,25 @@ namespace Autorama
         void DrawShop()
         {
             shopList.Clear();
-            foreach (var u in Progresso.Pecas)
+            shopCoins.text = $"◎ {Carteira.D.moedas.ToString("N0", L.Cultura)}";
+            if (Progresso.All) Text(L.T("Desbloquear tudo ligado: mesa sem limite e peças de graça (teste)."), "k-shop-own", shopList);
+
+            // Mesa (seção 94): 5 tamanhos, um depois do outro.
+            Text(L.T("MESA"), "k-gar-head", shopList);
+            for (int i = 0; i < Carteira.Mesas.Length; i++)
             {
+                int m = i;
+                var me = Carteira.Mesas[i];
                 var row = El("k-shop-row", shopList);
                 var texts = El("k-shop-texts", row);
-                Text(L.T(u.nome), "k-save-title", texts);
-                Text(L.T(u.pecas), "k-sub", texts);
-                if (Progresso.Owns(u.id)) Text(Progresso.All && !ReallyOpen(u) ? L.T("liberada (teste)") : L.T("✓ aberta"), "k-shop-own", row);
-                else Text(L.T("Abre em ") + Progresso.WhereText(u), "k-shop-why", row);
+                Text(L.T(me.nome), "k-save-title", texts);
+                Text(L.F("pista de até {0} × {0} células", me.celulas), "k-sub", texts);
+                if (i <= Carteira.D.mesa) { Text(i == Carteira.D.mesa ? L.T("✓ a sua") : L.T("✓"), "k-shop-own", row); continue; }
+                string why = Carteira.CanBuyMesa(i);
+                var b = Btn(L.F("Comprar · ◎ {0}", me.preco.ToString("N0", L.Cultura)), () => { if (Carteira.BuyMesa(m)) Progresso.ApplyGate(); }, "btn", row);
+                b.SetEnabled(why == "");
+                if (why != "") Text(why, "k-shop-why", row);
             }
-        }
-
-        static bool ReallyOpen(PieceUnlock u)
-        {
-            for (int slot = 1; slot <= Career.Slots; slot++) if (Career.Stars(Career.Load(slot), u.no) > 0) return true;
-            return false;
         }
 
         // Perfil ou carreira mudou ("Desbloquear tudo", peça aberta): travas, botões e telas.
@@ -161,9 +171,9 @@ namespace Autorama
         // opção escolhida.
         void DrawGarage()
         {
-            var g = kSave.garagem;
+            var g = Carteira.D.garagem;
             CarShop.Fix(g);
-            garCoins.text = $"◎ {kSave.moedas}";
+            garCoins.text = $"◎ {Carteira.D.moedas}";
             garList.Clear();
             Text(L.F("Níveis à venda até o {0} (Garagem 3 · Clube 6 · Regional 8 · Nacional 10). O nível n custa {1} × n.", CarShop.Cap(kSave), CarShop.LevelStep), "k-sub", garList);
             foreach (var peca in CarShop.Pecas)
@@ -232,7 +242,7 @@ namespace Autorama
             if (kSave.seguidas > Career.Streak) { race *= 0.5f; kPurse /= 2; }
             c += kPurse;
             c += Mathf.RoundToInt(race);
-            kSave.moedas += c;
+            Carteira.D.moedas += c;
             if (c > 0) OnEarned(c);
             return c;
         }

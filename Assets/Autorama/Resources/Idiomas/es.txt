@@ -322,7 +322,6 @@ Seu arquivo (motor.wav)	Tu archivo (motor.wav)
 Motor curto	Motor corto
 Motor longo	Motor largo
 Voltar ao menu (Esc)	Volver al menú (Esc)
-◀ Saves	◀ Partidas
 Garagem do carro (G)	Garaje del coche (G)
 ← → escolhe a prova · Enter abre e corre · Esc volta	← → elige la prueba · Enter abre y corre · Esc vuelve
 PAUSA	PAUSA
@@ -330,7 +329,6 @@ Continuar (Esc)	Continuar (Esc)
 Reiniciar	Reiniciar
 Voltar ao mapa	Volver al mapa
 Cancelar	Cancelar
-Carreira {0}	Trayectoria {0}
 Nova carreira	Nueva trayectoria
 As outras regiões ainda não estão prontas.	Las otras regiones aún no están listas.
 Seja campeão desta região para abrir a próxima.	Sé campeón de esta región para desbloquear la siguiente.
@@ -1009,14 +1007,10 @@ trilho 	carril
 trilho sem recorde	carril sin récord
 seu melhor {0}	tu mejor {0}
 primeira vez aqui	primera vez aquí
-Peças novas para o construtor. Cada uma abre quando você termina, com pelo menos ★, a prova da carreira que a apresenta. Correr numa pista com peça fechada sempre pode — só não dá para colocar a peça.	Piezas nuevas para el constructor. Cada una se desbloquea cuando terminas, con al menos ★, la prueba de la trayectoria que la presenta. Siempre puedes correr en una pista con una pieza bloqueada: solo no puedes colocar la pieza.
 GARAGEM DO CARRO	GARAJE DEL COCHE
 Seu carro na carreira. Compre opções do ajuste e preparação com as moedas das provas. Fora da carreira o ajuste é livre e sem preparação.	Tu coche en la trayectoria. Compra opciones de ajuste y preparación con las monedas de las pruebas. Fuera de la trayectoria el ajuste es libre y sin preparación.
 Fechar (G · Esc)	Cerrar (G · Esc)
 Moedas da carreira · clique para abrir a garagem do carro	Monedas de la trayectoria · haz clic para abrir el garaje del coche
-liberada (teste)	desbloqueada (prueba)
-✓ aberta	✓ desbloqueada
-Abre em 	Se desbloquea en
 Desbloquear tudo: LIGADO (teste, até o jogo sair)	Desbloquear todo: ACTIVADO (prueba, hasta que salga el juego)
 Desbloquear tudo: desligado (teste, até o jogo sair)	Desbloquear todo: desactivado (prueba, hasta que salga el juego)
 Níveis à venda até o {0} (Garagem 3 · Clube 6 · Regional 8 · Nacional 10). O nível n custa {1} × n.	Niveles a la venta hasta el {0} (Garaje 3 · Club 6 · Regional 8 · Nacional 10). El nivel n cuesta {1} × n.
@@ -1448,3 +1442,56 @@ A Fórmula não tem níveis.	La Fórmula no tiene niveles.
 bolha Fórmula	carrocería Fórmula
 Um pouco da asa e um pouco da lisa.	Un poco del alerón y un poco de la lisa.
 Seja campeão do Mundial na carreira para abrir.	Gana el Mundial en la carrera para desbloquear.
+Não cabe: sua mesa vai até {0} × {0} células. Mesas maiores em Peças, no menu inicial.	No cabe: tu mesa llega hasta {0} × {0} celdas. Mesas más grandes en Piezas, en el menú principal.
+Mesa pequena	Mesa pequeña
+Mesa média	Mesa mediana
+Mesa grande	Mesa grande
+Salão	Salón
+Sem limite	Sin límite
+Rampa (subida ou descida)	Rampa (subida o bajada)
+Você tem {0} × {1}. Compre mais em Peças, no menu inicial.	Tienes {0} × {1}. Compra más en Piezas, en el menú principal.
+Compre a mesa de antes primeiro.	Compra primero la mesa anterior.
+◀ Carreira	◀ Carrera
+Começar	Empezar
+Continuar	Continuar
+Recomeçar do zero	Empezar de cero
+Clique de novo: apaga as estrelas (moedas, garagem e peças ficam)	Haz clic otra vez: borra las estrellas (monedas, garaje y piezas se quedan)
+PEÇAS E MESA	PIEZAS Y MESA
+Seu kit para o construtor, comprado com as moedas da carreira. Cada pista usa até as peças que você tem (montar outra pista não gasta) e cabe na sua mesa. Peça nova abre na prova da carreira que a apresenta. Correr em qualquer pista sempre pode.	Tu kit para el constructor, comprado con las monedas de la carrera. Cada pista usa hasta las piezas que tienes (montar otra pista no gasta) y cabe en tu mesa. Las piezas nuevas se abren en la prueba de la carrera que las presenta. Correr en cualquier pista siempre se puede.
+Desbloquear tudo ligado: mesa e peças sem limite (teste).	Desbloquear todo activado: mesa y piezas sin límite (prueba).
+MESA	MESA
+pista de até {0} × {0} células	pistas de hasta {0} × {0} celdas
+✓ a sua	✓ la tuya
+✓	✓
+Comprar · ◎ {0}	Comprar · ◎ {0}
+você tem {0} (kit: {1})	tienes {0} (kit: {1})
+você tem {0}	tienes {0}
+Sua mesa	Tu mesa
+{0} × {1} de {2} × {2} cél.	{0} × {1} de {2} × {2} celdas
+Salvar pista	Guardar pista
+Salva na biblioteca com o nome de Minhas pistas (Ctrl+S)	Guarda en la biblioteca con el nombre de Mis pistas (Ctrl+S)
+Custo	Coste
+Custo da pista: {0}	Coste de la pista: {0}
+“{0}” salva · custo {1}.	“{0}” guardada · coste {1}.
+Ctrl+S	Ctrl+S
+salva a pista	guarda la pista
+Nome da pista	Nombre de la pista
+Suas moedas: {0}	Tus monedas: {0}
+Dê um nome à pista antes de salvar.	Ponle un nombre a la pista antes de guardar.
+{0} · {1} × {1} células	{0} · {1} × {1} celdas
+Próxima: {0} · {1} × {1} células	Siguiente: {0} · {1} × {1} celdas
+{0} comprada.	{0}: comprada.
+Desbloquear tudo ligado: mesa sem limite e peças de graça (teste).	Desbloquear todo activado: mesa sin límite y piezas gratis (prueba).
+{0} Até lá, custa {1}× o preço.	{0} Hasta entonces, cuesta {1}× el precio.
+A pagar ao salvar	A pagar al guardar
+Salvar custa {0} (você tem {1}).	Guardar cuesta {0} (tienes {1}).
+Já paga: salvar não custa nada.	Ya pagada: guardar no cuesta nada.
+“{0}” salva · pagou {1}.	“{0}” guardada · pagaste {1}.
+Faltam {0} moedas para salvar esta pista.	Faltan {0} monedas para guardar esta pista.
+Carreira zerada: mesa sem limite, peças e pistas de graça.	Carrera completada: mesa sin límite, piezas y pistas gratis.
++{0} moedas	+{0} monedas
+Sem pilotos IA na pista: esta corrida não dá moedas.	Sin pilotos IA en la pista: esta carrera no da monedas.
+hoje no online: {0} de {1} (depois, metade)	hoy en línea: {0} de {1} (después, la mitad)
+limite do dia no online passou: pagando metade	límite diario en línea superado: pagando la mitad
+hoje fora do online: {0} de {1}	hoy fuera de línea: {0} de {1}
+Limite do dia fora do online ({0}) atingido. Amanhã tem mais; a carreira e o online continuam pagando.	Límite diario fuera de línea ({0}) alcanzado. Mañana hay más; la carrera y el modo en línea siguen pagando.

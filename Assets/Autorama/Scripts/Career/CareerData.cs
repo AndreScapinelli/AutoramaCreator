@@ -95,7 +95,7 @@ namespace Autorama
         public List<NodeSave> nos = new List<NodeSave>();
         public Championship campeonato;   // o campeonato da região em andamento (seção 73); sem baterias = nenhum
         public string campNo;             // o nó dele
-        // Moedas e garagem do carro (seção 78): cada save tem as suas.
+        // Moedas e garagem de antes da carteira (seção 94): só lidas uma vez, para passar para a Carteira.
         public int moedas;
         public CarGarage garagem = new CarGarage();
         public string ultimoNo;           // contra farm: a mesma prova várias vezes seguidas paga menos
@@ -105,7 +105,7 @@ namespace Autorama
 
     public static class Career
     {
-        public const int Slots = 3;
+        public const int Slots = 1;     // um save só (seção 94); recomeçar apaga ele
 
         static CareerDef def;
         public static CareerDef Def => def ??= Traduz(JsonUtility.FromJson<CareerDef>(Resources.Load<TextAsset>("Carreira/carreira").text));
@@ -226,6 +226,13 @@ namespace Autorama
 
         // Região aberta: a primeira, ou a anterior com o último nó concluído; se ele é o campeonato, só sendo campeão (★★).
         // Com estrelasAbrir (seção 92), também as estrelas somadas das regiões anteriores.
+        // A região do nó (-1 se não existe).
+        public static int RegionOf(string no)
+        {
+            for (int r = 0; r < Def.regioes.Length; r++) foreach (var n in Def.regioes[r].nos) if (n.id == no) return r;
+            return -1;
+        }
+
         public static bool RegionOpen(CareerSave s, int i)
         {
             if (i <= 0) return true;
@@ -281,9 +288,9 @@ namespace Autorama
 
         // Prêmios em moedas (seção 78): cada estrela nova de um nó paga uma vez; rival vencido e campeão da região, uma
         // vez; a corrida em si, 10 + 5 por carro que ficou atrás (metade a partir da 4ª vez seguida na mesma prova).
-        public static readonly int[] StarPrize = { 50, 75, 100 };
+        public static readonly int[] StarPrize = { 75, 100, 150 };
         public const int RivalPrize = 300, RacePrize = 10, PlacePrize = 5, Streak = 3;
-        public static readonly int[] ChampPrize = { 500, 800, 1200, 2000, 3000 };   // campeão da região pela 1ª vez (só o último nó)
+        public static readonly int[] ChampPrize = { 800, 1200, 2000, 3000, 5000 };   // campeão da região pela 1ª vez (só o último nó)
         // Prêmio do campeonato por posição (seção 92): o 1º leva NodeDef.premio; os outros, esta fração dele. Paga toda vez.
         public static readonly float[] PursePart = { 1f, 0.6f, 0.4f, 0.25f, 0.15f, 0.1f, 0.06f, 0.04f };
         public static int Purse(NodeDef n, int pos) => n.premio <= 0 || pos < 1 || pos > PursePart.Length ? 0 : Mathf.RoundToInt(n.premio * PursePart[pos - 1] / 10f) * 10;
@@ -330,6 +337,17 @@ namespace Autorama
                 }
         }
 
+        // O save como está no arquivo (a Carteira lê assim ao migrar, antes de existir).
+        public static CareerSave LoadRaw(int slot) => Load(slot);
+
+        // Recomeçar (seção 94): o save vira .bak e a carreira começa do zero. A carteira fica.
+        public static void Delete(int slot)
+        {
+            try { var p = PathOf(slot); if (File.Exists(p)) { File.Copy(p, p + ".bak", true); File.Delete(p); } }
+            catch (Exception e) { Debug.LogWarning("Carreira não apagada: " + e.Message); }
+            Progresso.Refresh();
+        }
+
         public static CareerSave Load(int slot)
         {
             try
@@ -345,7 +363,7 @@ namespace Autorama
 
         public static bool Save(int slot, CareerSave s)
         {
-            try { Directory.CreateDirectory(TrackLibrary.Root); File.WriteAllText(PathOf(slot), JsonUtility.ToJson(s, true)); Progresso.Refresh(); return true; }
+            try { Directory.CreateDirectory(TrackLibrary.Root); File.WriteAllText(PathOf(slot), JsonUtility.ToJson(s, true)); Carteira.Sync(s); Carteira.Save(); Progresso.Refresh(); return true; }
             catch (Exception e) { Debug.LogWarning("Carreira não salva: " + e.Message); return false; }
         }
     }

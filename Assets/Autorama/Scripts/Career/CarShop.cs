@@ -70,18 +70,18 @@ namespace Autorama
         // "" se pode comprar; senão o motivo.
         public static string CanBuyOpt(CareerSave s, string peca, int v)
         {
-            if (HasOpt(s.garagem, peca, v)) return L.T("Já é sua.");
+            if (HasOpt(Carteira.D.garagem, peca, v)) return L.T("Já é sua.");
             int r = OptRegion(peca);
             if (!RegionOk(s, r)) return L.F("Abre na região {0}.", RegionName(r));
-            if (s.moedas < OptPrice(peca)) return L.F("Faltam {0} moedas.", OptPrice(peca) - s.moedas);
+            if (Carteira.D.moedas < OptPrice(peca)) return L.F("Faltam {0} moedas.", OptPrice(peca) - Carteira.D.moedas);
             return "";
         }
 
         public static bool BuyOpt(CareerSave s, string peca, int v)
         {
             if (CanBuyOpt(s, peca, v) != "") return false;
-            s.moedas -= OptPrice(peca);
-            s.garagem.opcoes.Add($"{peca}-{v}");
+            Carteira.D.moedas -= OptPrice(peca);
+            Carteira.D.garagem.opcoes.Add($"{peca}-{v}");
             return true;
         }
 
@@ -104,23 +104,23 @@ namespace Autorama
         public static string CanBuyLevel(CareerSave s, string peca, int opt)
         {
             if (opt > 2) return L.T("A Fórmula não tem níveis.");
-            int lv = Level(s.garagem, peca, opt);
+            int lv = Level(Carteira.D.garagem, peca, opt);
             if (lv >= MaxNivel) return L.T("Nível máximo.");
-            if (!HasOpt(s.garagem, peca, opt)) return L.T("Abra a opção primeiro.");
+            if (!HasOpt(Carteira.D.garagem, peca, opt)) return L.T("Abra a opção primeiro.");
             if (lv >= Cap(s))
             {
                 for (int r = 0; r < LevelCap.Length; r++) if (LevelCap[r] > lv) return L.F("Nível {0} abre na região {1}.", lv + 1, RegionName(r));
             }
-            if (s.moedas < LevelPrice(lv + 1)) return L.F("Faltam {0} moedas.", LevelPrice(lv + 1) - s.moedas);
+            if (Carteira.D.moedas < LevelPrice(lv + 1)) return L.F("Faltam {0} moedas.", LevelPrice(lv + 1) - Carteira.D.moedas);
             return "";
         }
 
         public static bool BuyLevel(CareerSave s, string peca, int opt)
         {
             if (CanBuyLevel(s, peca, opt) != "") return false;
-            int lv = Level(s.garagem, peca, opt);
-            s.moedas -= LevelPrice(lv + 1);
-            s.garagem.niveis[Idx(peca) * 3 + opt] = lv + 1;
+            int lv = Level(Carteira.D.garagem, peca, opt);
+            Carteira.D.moedas -= LevelPrice(lv + 1);
+            Carteira.D.garagem.niveis[Idx(peca) * 3 + opt] = lv + 1;
             return true;
         }
 
@@ -128,7 +128,7 @@ namespace Autorama
         // "carro", sempre com os níveis que a garagem tem para as opções que ele usa.
         public static CarSetup RaceCar(CareerSave s, NodeDef n)
         {
-            var g = s.garagem;
+            var g = Carteira.D.garagem;
             CarSetup c;
             if (n != null && n.Has("carro"))
             {
