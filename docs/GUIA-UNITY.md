@@ -5608,7 +5608,7 @@ Teste (`PecasTeste.Fechadas`: todos os trilhos com IA, batida ligada, 4 provas d
 | Fechada | `fechada` | `clube-funil` "Funil do Clube" (Clube, pista `clube-9`) | 150 |
 | Meia curva em C | `meia-c` | `regional-cotovelos` "Cotovelos em C" (Regional, `regional-9`) | 25 (inclinada 45) |
 | Muro de parede | `muro` | `nacional-parede` "Parede da Morte" (Nacional, desafio de sobrevivência, `nacional-9`) | 300 |
-| Parafuso | `parafuso` | `global-parafuso` "Parafuso Mundial" (Global, `global-10`) | 450 |
+| Parafuso | `parafuso` | `global-parafuso` "Parafuso Mundial" (Global, `global-10`) | 1500 |
 
 A carreira passou de 70 para 74 provas. As provas novas são ramos laterais: abrem depois da prova 2 da região (no Global, depois da `global-6`) e não trancam nenhuma outra. Cada oficina libera as peças novas da sua região e das anteriores.
 
