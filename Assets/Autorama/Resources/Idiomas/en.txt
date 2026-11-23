@@ -1546,3 +1546,5 @@ Funil do Clube	Club Funnel
 Cotovelos em C	C Elbows
 Parede da Morte	Wall of Death
 Parafuso Mundial	World Corkscrew
+Ângulo	Angle
+ · {0}°	 · {0}°

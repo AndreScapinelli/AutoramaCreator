@@ -255,6 +255,14 @@ namespace Autorama
             if (raio != pieces[Selected].raio) Commit(() => pieces[Selected].raio = raio);
         }
 
+        // Ângulo do muro selecionado, em graus (seção 99.2b): muda a física (o carrinho fica menos de lado).
+        public void SetMuroAngle(int deg)
+        {
+            if (Selected <= 0 || pieces[Selected].Def.Twist != 1) return;
+            int v = deg >= 90 ? 0 : deg;
+            if (v != pieces[Selected].ang) Commit(() => pieces[Selected].ang = v);
+        }
+
         // Inclinação da curva inclinada selecionada, em graus (seção 50.7): só visual.
         public void SetBank(int deg)
         {

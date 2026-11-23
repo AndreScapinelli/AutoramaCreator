@@ -104,10 +104,17 @@ namespace Autorama
         // ----- Torção (seção 99) -----
         // Rolamento da pista (graus, sem sinal) a u células do começo. Muro: deita 90° em MuroIn células, fica em pé e
         // volta em MuroIn. Parafuso: plano ScrewFlat em cada ponta e uma volta inteira no meio. Suave nas emendas.
-        // holdIn/holdOut (muro): a vizinha é outro muro para o mesmo lado, então a pista fica em pé naquela ponta.
-        public float RollAt(float u, bool holdIn = false, bool holdOut = false)
+        // Muro: jIn/jOut é o ângulo do muro vizinho para o mesmo lado (< 0: não há). Na ponta solta, do plano ao próprio
+        // ângulo em MuroIn células. Entre dois muros, uma curva só de meio a meio das peças (sem parar na emenda): a
+        // sequência de muros fica lisa e cada um tem o seu ângulo no meio.
+        public float RollAt(float u, float jIn = -1f, float jOut = -1f, float ang = 90f)
         {
-            if (Twist == 1) return 90f * Smoother(Mathf.Min(holdIn ? float.MaxValue : u, holdOut ? float.MaxValue : Length - u) / (PieceCatalog.MuroIn * Length / 6f));
+            if (Twist == 1)
+            {
+                float ramp = PieceCatalog.MuroIn * Length / 6f, half = Length * 0.5f;
+                if (u < half) return jIn < 0f ? ang * Smoother(u / ramp) : Mathf.Lerp(jIn, ang, Smoother((u + half) / Length));
+                return jOut < 0f ? ang * Smoother((Length - u) / ramp) : Mathf.Lerp(jOut, ang, Smoother((Length - u + half) / Length));
+            }
             if (Twist == 2) return 360f * Smooth((u - PieceCatalog.ScrewFlat * Length / 8f) / (Length * 0.75f));
             return 0f;
         }
@@ -120,10 +127,10 @@ namespace Autorama
         // a altura acima do nível da peça e o rolamento com sinal (o "bank" do carrinho).
         // Muro: gira em volta da borda que fica embaixo e desliza meia célula, para ficar em pé no meio da fileira.
         // Parafuso: gira em volta do eixo meia célula acima da pista (de cabeça para baixo, a pista fica a 1 célula).
-        const float ScrewBase = 0.1f;   // espessura da base em células, com folga (TrackPieceView.Thickness 0,09 / escala)
-        public void TwistPoint(int dir, float t, float o, float dy, out float lat, out float h, out float roll, bool holdIn = false, bool holdOut = false)
+        const float ScrewLift = 0.23f, ScrewRise = 1.3f;   // parafuso: quanto o eixo sobe e em quantas células
+        public void TwistPoint(int dir, float t, float o, float dy, out float lat, out float h, out float roll, float jIn = -1f, float jOut = -1f, float ang = 90f)
         {
-            roll = (dir < 0 ? -1f : 1f) * RollAt(t * Length, holdIn, holdOut);
+            roll = (dir < 0 ? -1f : 1f) * RollAt(t * Length, jIn, jOut, ang);
             float r = roll * Mathf.Deg2Rad, c = Mathf.Cos(r), sn = Mathf.Sin(r);
             if (Twist == 1)
             {
@@ -133,10 +140,11 @@ namespace Autorama
                 h = x * sn + dy * c;
                 return;
             }
-            // O canto da pista fica a √0,5 do eixo: o eixo sobe o bastante para a borda de baixo (com a base, ScrewBase
-            // células) nunca entrar na mesa. Nas pontas (rolamento 0) fica nos 0,5 de sempre.
-            float yy = dy - 0.5f;
-            float axis = Mathf.Max(0.5f, 0.5f * Mathf.Abs(sn) + 0.5f * Mathf.Max(c, 0f)) + ScrewBase * Mathf.Abs(sn);
+            // O canto da pista fica a √0,5 do eixo: girando em volta dele, a borda de baixo desceria até 0,21 abaixo da mesa.
+            // O eixo sobe ScrewLift ao longo da peça, em ScrewRise células a partir do começo do giro (um pouco à frente
+            // dele) e desce igual no fim. Sem quina e sem entrar na mesa (seção 100).
+            float yy = dy - 0.5f, u = t * Length, k = Length / 8f;
+            float axis = 0.5f + ScrewLift * Mathf.Min(Smooth((u - PieceCatalog.ScrewFlat * k) / (ScrewRise * k)), Smooth((Length - PieceCatalog.ScrewFlat * k - u) / (ScrewRise * k)));
             lat = o * c - yy * sn;
             h = axis + o * sn + yy * c;
         }
@@ -239,6 +247,7 @@ namespace Autorama
         public static PieceDef HalfCOf(int raio, bool banked) => (banked ? halfCsB : halfCs)[Mathf.Clamp(raio, 1, MaxHairpin) - 1];
 
         // Muro de parede (99.2), parafuso (99.3) e fechada (99.4). Medidas em células, na peça no eixo.
+        public static readonly int[] MuroAngles = { 30, 45, 60, 90 };     // ângulo do muro (seção 99.2b); 90 é o padrão
         public const float MuroIn = 2.5f, ScrewFlat = 1f, FunnelIn = 1.25f;
         public static readonly PieceDef Muro = PieceDef.MakeTwist("muro", L.N("Muro de parede"), 6f, 1);
         public static readonly PieceDef Screw = PieceDef.MakeTwist("parafuso", L.N("Parafuso"), 8f, 2);
@@ -276,13 +285,15 @@ namespace Autorama
         public int vao = 1; // só no salto: o vão em células (1 a PieceCatalog.MaxGap)
         public int raio = 1; // só na curva em C: raio raio·0,5, saída raio fileiras ao lado (1 a PieceCatalog.MaxHairpin)
         public int incl;     // só na curva inclinada: graus (0 = PieceCatalog.BankAngle, o das pistas antigas)
+        public int ang;      // só no muro: graus que ele deita (0 = 90, o padrão; PieceCatalog.MuroAngles)
+        public float MuroDeg => ang > 0 ? ang : 90f;
         public float BankDeg => incl > 0 ? incl : PieceCatalog.BankAngle;
         public float BankTan => Def != null && Def.Banked ? Mathf.Tan(BankDeg * Mathf.Deg2Rad) : 0f;
 
         public TrackPiece(string id, int dir = 0, int rise = 0, int vao = 1, int raio = 1) { this.id = id; this.dir = dir; this.rise = rise; this.vao = vao; this.raio = raio; }
 
         public PieceDef Def => PieceCatalog.Resolve(id, vao, raio);
-        public TrackPiece Clone() => new TrackPiece(id, dir, rise, vao, raio) { incl = incl };
+        public TrackPiece Clone() => new TrackPiece(id, dir, rise, vao, raio) { incl = incl, ang = ang };
 
         public string Describe()
         {
@@ -292,6 +303,7 @@ namespace Autorama
             if (rise != 0) s += rise > 0 ? L.T(" · sobe") : L.T(" · desce");
             if (d.IsJump) s += L.F(" · vão {0}", vao);
             if (d.IsHairpin && raio > 1) s += L.F(" · {0} fileiras", raio);
+            if (d.Twist == 1 && MuroDeg < 90f) s += L.F(" · {0}°", (int)MuroDeg);
             return s;
         }
     }

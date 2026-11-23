@@ -109,10 +109,10 @@ namespace Autorama
 
         // Velocidade constante (o gatilho na fração certa) pela peça: cai ou não? Devolve a menor velocidade (células/s)
         // que passa, de 0,5 em 0,5.
-        public static string Limite(string id, int dir = 1, int faixas = 2)
+        public static string Limite(string id, int dir = 1, int faixas = 2, int ang = 0)
         {
             var origin = TrackMath.SnapStart(new Pose2(new Vector2(10f, 12.5f), 0f));
-            var ps = new List<TrackPiece> { new TrackPiece(PieceCatalog.Start.Id), new TrackPiece("reta-comprida"), new TrackPiece(id, dir), new TrackPiece("reta-comprida") };
+            var ps = new List<TrackPiece> { new TrackPiece(PieceCatalog.Start.Id), new TrackPiece("reta-comprida"), new TrackPiece(id, dir) { ang = ang }, new TrackPiece("reta-comprida") };
             var segs = TrackLayout.Build(origin, ps);
             var sb = new StringBuilder(id + ":");
             foreach (var su in new[] { new CarSetup(), new CarSetup { chassi = 1 }, new CarSetup { chassi = 2 }, new CarSetup { pneu = 1 } })
@@ -140,5 +140,77 @@ namespace Autorama
             }
             return sb.ToString();
         }
-    }
+    
+        // Emendas (seção 100): para cada par de tipos de peça, monta reta + A + B + reta e anda pela pista em passos de
+        // 0,05 célula medindo a altura das duas bordas (como a malha: SurfaceY ou TwistPoint). Salto = desnível de um
+        // passo para o outro; quina = mudança de inclinação (1/célula) de um passo para o outro. Devolve os piores.
+        public static string Emendas(int top = 40)
+        {
+            string[] ids = { "reta-comprida", "curva-longa", "curva-longa-inclinada", "meia-curva", "curva-curta-inclinada", "curva-c", "curva-c-inclinada",
+                             "meia-curva-c", "meia-curva-c-inclinada", "muro", "parafuso", "fechada", "cruzamento", "salto" };
+            var casos = new List<(string, TrackPiece, TrackPiece)>();
+            var lista = new List<TrackPiece>();
+            foreach (var id in ids)
+            {
+                var d = PieceCatalog.ById(id);
+                lista.Add(new TrackPiece(id, d.Sided ? 1 : 0));
+                if (d.Sided) lista.Add(new TrackPiece(id, -1));
+            }
+            lista.Add(new TrackPiece("reta-comprida", 0, 1));
+            lista.Add(new TrackPiece("curva-longa", 1, 1));
+            lista.Add(new TrackPiece("curva-longa-inclinada", 1, 1));
+            foreach (var a in lista) foreach (var b in lista) casos.Add((Nome(a) + " > " + Nome(b), a, b));
+            var res = new List<(float score, string txt)>();
+            var origin = new Pose2(new Vector2(40f, 40f), 0f);
+            foreach (var (nome, a, b) in casos)
+            {
+                var ps = new List<TrackPiece> { new TrackPiece("largada"), new TrackPiece("reta-comprida"), a.Clone(), b.Clone(), new TrackPiece("reta-comprida") };
+                var segs = TrackLayout.Build(origin, ps);
+                TrackLayout.ComputeBanking(segs, false);
+                float worstJ = 0f, worstK = 0f; string where = "";
+                foreach (float o in new[] { -0.5f, 0.5f })
+                {
+                    var hs = new List<float>(); var at = new List<string>();
+                    for (int i = 1; i < segs.Count; i++)
+                    {
+                        var sg = segs[i];
+                        int n = Mathf.Max(2, Mathf.CeilToInt(sg.def.CenterLength / 0.05f));
+                        for (int j = (i == 1 ? 0 : 1); j <= n; j++)
+                        {
+                            float t = j / (float)n;
+                            if (sg.def.IsJump && sg.def.JumpOpenAt(t * sg.def.Length)) { hs.Add(float.NaN); at.Add(""); continue; }
+                            hs.Add(Edge(sg, t, o)); at.Add(Nome(sg.piece) + $" t={t:0.00}");
+                        }
+                    }
+                    float st = 0.05f;
+                    for (int k = 2; k < hs.Count; k++)
+                    {
+                        if (float.IsNaN(hs[k]) || float.IsNaN(hs[k - 1]) || float.IsNaN(hs[k - 2])) continue;
+                        float jmp = Mathf.Abs(hs[k] - hs[k - 1]) - 0.05f;            // mais que 45° de rampa num passo
+                        float kink = Mathf.Abs((hs[k] - hs[k - 1]) - (hs[k - 1] - hs[k - 2])) / (st * st);
+                        if (jmp > worstJ) worstJ = jmp;
+                        if (kink > worstK) { worstK = kink; where = at[k - 1]; }
+                    }
+                }
+                res.Add((worstK + worstJ * 100f, $"{nome}: quina {worstK:0.0} em {where}" + (worstJ > 0.001f ? $" · salto {worstJ:0.000}" : "")));
+            }
+            res.Sort((x, y) => y.score.CompareTo(x.score));
+            var sb = new StringBuilder($"{res.Count} pares\n");
+            for (int i = 0; i < Mathf.Min(top, res.Count); i++) sb.Append(res[i].txt).Append('\n');
+            return sb.ToString();
+        }
+
+        static string Nome(TrackPiece p) => p.id + (p.dir > 0 ? "+" : p.dir < 0 ? "-" : "") + (p.rise > 0 ? "^" : p.rise < 0 ? "v" : "");
+
+        // Altura da borda o (±0,5) da pista em t, como a malha a desenha.
+        static float Edge(Segment s, float t, float o)
+        {
+            if (s.def.IsTwist)
+            {
+                s.def.TwistPoint(s.piece.dir, t, o, 0f, out _, out float h, out _, s.wallIn, s.wallOut, s.piece.MuroDeg);
+                return TrackLayout.SurfaceY(s, t, 0f) + h;
+            }
+            return TrackLayout.SurfaceY(s, t, o);
+        }
+}
 }

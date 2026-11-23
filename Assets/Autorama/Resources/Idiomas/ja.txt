@@ -1546,3 +1546,5 @@ Funil do Clube	クラブのじょうご
 Cotovelos em C	Cのひじ
 Parede da Morte	死の壁
 Parafuso Mundial	ワールドスクリュー
+Ângulo	角度
+ · {0}°	 · {0}°

@@ -9,7 +9,7 @@ namespace Autorama
     // O HTML usa Y para baixo e ângulo no sentido horário; aqui, z = altura da mesa − y e ângulo = −h.
     [Serializable] public class BoardSave  { public int w = 32, h = 20; }
     [Serializable] public class OriginSave { public float x, y, h; public int nivel; }   // nivel: altura da largada (0 = chão)
-    [Serializable] public class PieceSave  { public string tipo; public string sentido; public string altura; public int vao; public int raio; public int inclinacao; }   // inclinacao: graus, só na curva inclinada (sem o campo: 15)   // raio: só na curva em C (sem o campo: 1)   // vao: só no salto (sem o campo: 1)
+    [Serializable] public class PieceSave  { public string tipo; public string sentido; public string altura; public int vao; public int raio; public int inclinacao; public int angulo; }   // inclinacao: graus, só na curva inclinada (sem o campo: 15)   // raio: só na curva em C (sem o campo: 1)   // vao: só no salto (sem o campo: 1)
 
     [Serializable]
     public class TrackSave
@@ -78,7 +78,7 @@ namespace Autorama
                 int dir = def.Sided ? (p.sentido == "esquerda" ? -1 : 1) : 0;
                 int rise = p.altura == "sobe" ? 1 : p.altura == "desce" ? -1 : 0;
                 list.Add(new TrackPiece(def.Id, dir, rise, def.IsJump ? Mathf.Clamp(p.vao, 1, PieceCatalog.MaxGap) : 1,
-                    def.IsHairpin ? Mathf.Clamp(p.raio, 1, PieceCatalog.MaxHairpin) : 1) { incl = def.Banked && p.inclinacao > 0 ? Mathf.Clamp(p.inclinacao, 5, 45) : 0 });
+                    def.IsHairpin ? Mathf.Clamp(p.raio, 1, PieceCatalog.MaxHairpin) : 1) { incl = def.Banked && p.inclinacao > 0 ? Mathf.Clamp(p.inclinacao, 5, 45) : 0, ang = def.Twist == 1 && p.angulo > 0 && p.angulo < 90 ? Mathf.Clamp(p.angulo, 15, 90) : 0 });
             }
             return list;
         }
@@ -105,6 +105,7 @@ namespace Autorama
                     vao = p.Def.IsJump ? p.vao : 0,
                     raio = p.Def.IsHairpin ? p.raio : 0,
                     inclinacao = p.Def.Banked ? p.incl : 0,
+                    angulo = p.Def.Twist == 1 && p.MuroDeg < 90f ? p.ang : 0,
                 });
             }
             return s;

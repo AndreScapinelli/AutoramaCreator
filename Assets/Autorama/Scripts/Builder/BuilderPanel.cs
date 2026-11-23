@@ -862,6 +862,16 @@ namespace Autorama
                     Btn((v > 1 ? L.F("{0} fileiras", v) : L.T("1 fileira")), () => builder.SetHairpin(raio), p.raio == raio ? "btn btn--on" : "btn", rv);
                 }
             }
+            if (p.Def.Twist == 1)
+            {
+                var av = El("segmented", selectedBox);
+                Text(L.T("Ângulo"), "seg-label", av);
+                foreach (int g in PieceCatalog.MuroAngles)
+                {
+                    int deg = g;
+                    Btn(L.F("{0}°", deg), () => builder.SetMuroAngle(deg), (int)p.MuroDeg == deg ? "btn btn--on" : "btn", av);
+                }
+            }
             if (p.Def.Banked)
             {
                 var iv = El("segmented", selectedBox);

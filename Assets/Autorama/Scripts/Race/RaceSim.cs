@@ -244,7 +244,7 @@ namespace Autorama
                         if (d.IsTwist)
                         {
                             // Muro e parafuso (seção 99): o trilho gira com a pista; o rolamento vira o "bank" do carrinho.
-                            d.TwistPoint(s.piece.dir, t, o, 0f, out float lat, out float hh, out float roll, s.wallIn, s.wallOut);
+                            d.TwistPoint(s.piece.dir, t, o, 0f, out float lat, out float hh, out float roll, s.wallIn, s.wallOut, s.piece.MuroDeg);
                             kinds.Add(4); dfs.Add(d); lps.Add(roll); hds.Add(s.a.heading);
                             pts.Add(TrackMath.Offset(q, lat) * scale);
                             ys.Add((TrackLayout.SurfaceY(s, t, 0f) + hh) * scale);

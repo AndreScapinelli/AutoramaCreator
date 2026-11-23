@@ -558,7 +558,7 @@ namespace Autorama
             if (s.def.IsTwist)
             {
                 // Muro e parafuso (seção 99): o ponto (o, dy) gira com a pista em volta do eixo da peça.
-                s.def.TwistPoint(s.piece.dir, t, o, dy, out float lat, out float h, out _, s.wallIn, s.wallOut);
+                s.def.TwistPoint(s.piece.dir, t, o, dy, out float lat, out float h, out _, s.wallIn, s.wallOut, s.piece.MuroDeg);
                 Vector2 w = TrackMath.Offset(q, lat);
                 return new Vector3(w.x, y(t, 0f) + h, w.y);
             }

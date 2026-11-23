@@ -1546,3 +1546,5 @@ Funil do Clube	Entonnoir du Club
 Cotovelos em C	Coudes en C
 Parede da Morte	Mur de la Mort
 Parafuso Mundial	Tire-bouchon Mondial
+Ângulo	Angle
+ · {0}°	 · {0}°

@@ -1546,3 +1546,5 @@ Funil do Clube	Embudo del Club
 Cotovelos em C	Codos en C
 Parede da Morte	Muro de la Muerte
 Parafuso Mundial	Sacacorchos Mundial
+Ângulo	Ángulo
+ · {0}°	 · {0}°

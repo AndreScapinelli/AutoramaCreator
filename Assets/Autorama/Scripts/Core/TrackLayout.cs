@@ -16,7 +16,7 @@ namespace Autorama
         public int bankDirIn, bankDirOut; // (plana) dir da peça inclinada vizinha, 0 se não há; a inclinação espalha por ela
         public float bankTanIn, bankTanOut; // tangente da inclinação da vizinha inclinada (seção 50.7), 0 se não há
 
-        public bool wallIn, wallOut;     // (muro) a vizinha é muro para o mesmo lado: fica em pé naquela ponta (seção 99.2)
+        public float wallIn = -1f, wallOut = -1f;   // (muro) ângulo do muro vizinho para o mesmo lado; -1 se não há (seção 99.2)
         public bool rampIn, rampOut;     // (rampa) a vizinha continua a subida ou a descida: sem arredondar naquela ponta
 
         // Nível em linha reta: vale para as regras (sobreposição, colisão, pilares). A superfície usa ZSmooth.
@@ -192,8 +192,8 @@ namespace Autorama
                 s.bankIn = prevLinked && SameBank(prev, s);
                 s.bankOut = nextLinked && SameBank(next, s);
                 bool muro = s.def.Twist == 1;
-                s.wallIn = muro && prevLinked && prev.def.Twist == 1 && prev.piece.dir == s.piece.dir;
-                s.wallOut = muro && nextLinked && next.def.Twist == 1 && next.piece.dir == s.piece.dir;
+                s.wallIn = muro && prevLinked && prev.def.Twist == 1 && prev.piece.dir == s.piece.dir ? prev.piece.MuroDeg : -1f;
+                s.wallOut = muro && nextLinked && next.def.Twist == 1 && next.piece.dir == s.piece.dir ? next.piece.MuroDeg : -1f;
                 // Vizinha plana: a inclinação dela continua pela peça plana (Spill), então não precisa de rampa de 20%.
                 // O loop não recebe a inclinação (a volta é a volta): a inclinada faz a transição dentro dela, como contra a oposta.
                 s.flatIn = prevLinked && !prev.def.Banked && !prev.def.NoSpill;
@@ -270,21 +270,25 @@ namespace Autorama
             // Vizinha inclinada para o mesmo lado com outro ângulo: na emenda as duas ficam na média e cada uma chega
             // ao seu ângulo a CrossLength dentro dela (sem degrau).
             float own = s.piece.BankTan, tan = own, len0 = s.def.CenterLength;
-            if (s.bankIn && s.bankTanIn != own) tan += (s.bankTanIn - own) / 2f * (1f - Cross(t * len0));
-            if (s.bankOut && s.bankTanOut != own) tan += (s.bankTanOut - own) / 2f * (1f - Cross((1f - t) * len0));
+            // A transição tem que acabar dentro da peça (a meia C tem 0,79 célula): com transição nas duas pontas, metade
+            // para cada uma; senão sobra um degrau na outra emenda.
+            bool tIn = !s.bankIn && !s.flatIn || s.bankIn && s.bankTanIn != own, tOut = !s.bankOut && !s.flatOut || s.bankOut && s.bankTanOut != own;
+            float cl = Mathf.Min(CrossLength, tIn && tOut ? len0 / 2f : len0);
+            if (s.bankIn && s.bankTanIn != own) tan += (s.bankTanIn - own) / 2f * (1f - Cross(t * len0, cl));
+            if (s.bankOut && s.bankTanOut != own) tan += (s.bankTanOut - own) / 2f * (1f - Cross((1f - t) * len0, cl));
             // Emenda com inclinada de sentido oposto (ou ponta aberta): a inclinação zera na emenda, com suavização de
             // CrossLength célula (sem vinco). Assim o lado de fora passa pela altura da pista plana no meio.
             float w = 1f;
-            if (!s.bankIn && !s.flatIn) w = Mathf.Min(w, Cross(t * s.def.CenterLength));
-            if (!s.bankOut && !s.flatOut) w = Mathf.Min(w, Cross((1f - t) * s.def.CenterLength));
+            if (!s.bankIn && !s.flatIn) w = Mathf.Min(w, Cross(t * len0, cl));
+            if (!s.bankOut && !s.flatOut) w = Mathf.Min(w, Cross((1f - t) * len0, cl));
             return y + (0.5f - s.piece.dir * lateral) * tan * Mathf.Clamp01(w);
         }
 
         public const float CrossLength = 1.5f;   // células: suavização de inclinada contra inclinada de sentido oposto
         // Subida suave (smoothstep): 0 na emenda, 1 a CrossLength dentro da peça.
-        static float Cross(float dist)
+        static float Cross(float dist, float length = CrossLength)
         {
-            float p = Mathf.Clamp01(dist / CrossLength);
+            float p = Mathf.Clamp01(dist / length);
             return p * p * (3f - 2f * p);
         }
 
