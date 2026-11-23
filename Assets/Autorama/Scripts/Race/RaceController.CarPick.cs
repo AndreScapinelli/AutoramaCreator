@@ -44,7 +44,10 @@ namespace Autorama
             foreach (var p in d.pecas)
             {
                 string t = p.tipo ?? "";
-                float len = t == "curva-c" ? PieceCatalog.HairpinOf(p.raio).CenterLength : t == "curva-c-inclinada" ? PieceCatalog.HairpinBOf(p.raio).CenterLength : t.Contains("curva") ? 2.5f * (t.Contains("longa") ? 90f : 45f) * Mathf.Deg2Rad
+                var def = PieceCatalog.Resolve(t, p.vao, p.raio);
+                // As peças da seção 99 pelo comprimento de verdade; as antigas como sempre (o carro do robô não muda).
+                bool novo = def != null && (def.IsTwist || def.IsFunnel || (def.IsC && def.Angle < 179f));
+                float len = novo ? def.CenterLength : t == "curva-c" ? PieceCatalog.HairpinOf(p.raio).CenterLength : t == "curva-c-inclinada" ? PieceCatalog.HairpinBOf(p.raio).CenterLength : t.Contains("curva") ? 2.5f * (t.Contains("longa") ? 90f : 45f) * Mathf.Deg2Rad
                           : t.Contains("comprida") ? 4f : t.Contains("curtinha") ? 1f : 2f;
                 all += len;
                 if (t.Contains("curva")) curve += len;
@@ -206,11 +209,13 @@ namespace Autorama
             bool open = ChampLike && !showLights && CarPickOpen(out C, out s);
             if (!open)
             {
-                if (carPickShown) { carPickShown = false; carPick.style.display = DisplayStyle.None; carPickSig = null; DrawResult(resShown); }
+                if (carPickShown) { carPickShown = false; carPick.style.display = DisplayStyle.None; padsBox.style.display = DisplayStyle.Flex; carPickSig = null; DrawResult(resShown); }
                 return false;
             }
             carPickShown = true;
             carPick.style.display = DisplayStyle.Flex;
+            // A escolha fica sozinha: sem a nota da pista nem os painéis dos jogadores embaixo dela.
+            rateBox.style.display = padsBox.style.display = DisplayStyle.None;
             banner.style.display = DisplayStyle.Flex;
             banner.pickingMode = PickingMode.Position;
             DrawRecCard(false);

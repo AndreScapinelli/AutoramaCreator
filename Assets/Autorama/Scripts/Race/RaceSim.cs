@@ -178,6 +178,9 @@ namespace Autorama
         public bool loop, jump, gap;   // gap: o trecho do salto sem pista
         public PieceDef def;
         public float pitch;
+        // Muro e parafuso (seção 99): no trecho torcido, roll é o rolamento da pista (graus, = bank).
+        public bool twist;
+        public float roll;
     }
 
     // Um trilho como polilinha com distância acumulada. Cada ponto sabe a curvatura, a aderência, a altura e a peça.
@@ -203,6 +206,7 @@ namespace Autorama
         public LanePath(List<Segment> segs, float offset, float scale = 1f, bool open = false)
         {
             this.open = open;
+            int faixas = Mathf.RoundToInt(2f * scale);       // 1 célula = 2, 4, 6 ou 8 trilhos
             int crosses = 0;
             foreach (var s in segs) if (s.def.IsCross) crosses++;
             int laps = !open && crosses % 2 == 1 ? 2 : 1;
@@ -235,12 +239,24 @@ namespace Autorama
                             kind = (byte)(d.JumpGapAt(t * len) ? 3 : 2);
                             slope = d.JumpSlope(t * len) / TrackMath.LevelHeight;
                         }
-                        kinds.Add(kind); dfs.Add(d); lps.Add(lp); hds.Add(s.a.heading);
-                        float o = d.LaneOffsetAt(off, t);
+                        float o = d.LaneOffsetAt(off, t, faixas);
                         var q = TrackMath.PoseAt(s.a, d, s.piece.dir, t);
-                        pts.Add(TrackMath.Offset(q, o) * scale);
-                        ys.Add(TrackLayout.SurfaceY(s, t, o) * scale);
-                        bks.Add(Mathf.Atan2(TrackLayout.SurfaceY(s, t, o + 0.1f) - TrackLayout.SurfaceY(s, t, o - 0.1f), 0.2f) * Mathf.Rad2Deg);
+                        if (d.IsTwist)
+                        {
+                            // Muro e parafuso (seção 99): o trilho gira com a pista; o rolamento vira o "bank" do carrinho.
+                            d.TwistPoint(s.piece.dir, t, o, 0f, out float lat, out float hh, out float roll, s.wallIn, s.wallOut);
+                            kinds.Add(4); dfs.Add(d); lps.Add(roll); hds.Add(s.a.heading);
+                            pts.Add(TrackMath.Offset(q, lat) * scale);
+                            ys.Add((TrackLayout.SurfaceY(s, t, 0f) + hh) * scale);
+                            bks.Add(roll);
+                        }
+                        else
+                        {
+                            kinds.Add(kind); dfs.Add(d); lps.Add(lp); hds.Add(s.a.heading);
+                            pts.Add(TrackMath.Offset(q, o) * scale);
+                            ys.Add(TrackLayout.SurfaceY(s, t, o) * scale);
+                            bks.Add(Mathf.Atan2(TrackLayout.SurfaceY(s, t, o + 0.1f) - TrackLayout.SurfaceY(s, t, o - 0.1f), 0.2f) * Mathf.Rad2Deg);
+                        }
                         ks.Add(d.Lead > 0f && !d.OnArc(t) ? 0f : kap); gm.Add(d.GripMultiplier); zs.Add(s.ZAt(t)); gs.Add(slope); pis.Add(si);
                     }
                     if (d.IsCross) off = -off;
@@ -334,6 +350,7 @@ namespace Autorama
                 k = ks[hi], grip = gm[hi], slope = gs[hi], z = Mathf.Lerp(zs[lo], zs[hi], t), piece = pis[hi],
                 loop = loop, jump = kinds[hi] >= 2, gap = kinds[hi] == 3, def = dfs[hi],
                 pitch = loop ? Mathf.Lerp(kinds[lo] == 1 ? lps[lo] : 0f, lps[hi], t) : 0f,
+                twist = kinds[hi] == 4, roll = kinds[hi] == 4 ? Mathf.Lerp(kinds[lo] == 4 ? lps[lo] : 0f, lps[hi], t) : 0f,
             };
         }
 
@@ -426,6 +443,11 @@ namespace Autorama
         // IA: velocidade que ela busca na ponta da rampa de salto (por vão: 1, 2, 3) e a mínima dentro do loop (células por segundo).
         static readonly float[] JumpAi = { 7.5f, 8.5f, 9f };
         const float LoopAi = 5f;
+        // Muro e parafuso (seção 99): na reta não há curva segurando o carro, só o ímã. De lado (sen² do rolamento) a
+        // gravidade enche a derrapagem por tempo, menos quanto mais rápido (some em TwistSafe); abaixo de WallMinV, de
+        // lado, cai na hora. De cabeça para baixo (cos < 0) só segura acima de ScrewMinV × √(−cos). A IA não deixa a
+        // velocidade cair abaixo de TwistAi dentro da peça e logo antes dela.
+        public static float WallSlip = 9f, TwistSafe = 10f, WallMinV = 4f, ScrewMinV = 6f, TwistAi = 8.5f, TwistAiLead = 1.5f;
         const float CrossHitAngle = 30f;
         const float RubKick = 0.15f, RubKickV = 0.03f, RubSlip = 8f, RubDrag = 1.2f, HitSlip = 0.12f, HitSlipSide = 0.14f, HitSpin = 60f;
 
@@ -610,6 +632,14 @@ namespace Autorama
                         c.exitS = P.StartOf(c.s) - (JumpBack - 0.4f) * Scale;     // volta antes da peça, para pegar embalo
                         continue;
                     }
+                    if (q.twist && TwistFall(k, q, dt))
+                    {
+                        float v0 = c.v;
+                        Deslot(k, null);
+                        c.flyVel = TrackMath.Dir(q.heading) * (v0 * 0.5f);
+                        c.exitS = P.StartOf(c.s) - (JumpBack - 0.4f) * Scale;     // volta antes da peça, para pegar embalo
+                        continue;
+                    }
                     if (q.k != 0f) c.side = q.k > 0f ? 1 : -1;
                     // Bolha: a aderência cresce com (v / vmax)² (com Aero 0 o fator é 1 e a conta é a de antes).
                     float vr = c.v / (set.vmax * Speed);
@@ -640,6 +670,19 @@ namespace Autorama
                     if (present[k] && cars[k].mode == CarMode.OnSlot && cars[k].s >= PathOf(k).Total - TestEnd * Scale)
                         cars[k] = new CarState { s = GridPos, lane = k };
             if (set.collide) Collide(dt);
+        }
+
+        // Muro e parafuso (seção 99): o ímã segura o carro no trilho torcido? Enche a derrapagem de lado e devolve se caiu
+        // (devagar demais de lado ou de cabeça para baixo, ou a derrapagem encheu). Pneu e chassi entram como na curva.
+        bool TwistFall(int k, LanePoint q, float dt)
+        {
+            var c = cars[k];
+            var su = setup[k];
+            float r = q.roll * Mathf.Deg2Rad, sn = Mathf.Sin(r), cs = Mathf.Cos(r), v = c.v / Speed;
+            if (cs < 0f && v < ScrewMinV * Mathf.Sqrt(-cs)) return true;
+            if (sn * sn > 0.5f && v < WallMinV) return true;
+            c.slip += WallSlip * sn * sn * Mathf.Max(0f, 1f - v / TwistSafe) * su.Slip / su.Grip * dt;
+            return c.slip >= 1f;
         }
 
         // No ar depois do salto: a velocidade na planta não muda (sem trilho não há motor nem freio) e a altura cai com JumpG.
@@ -709,7 +752,7 @@ namespace Autorama
                 c.s = f * to.Total;
                 // Parado dentro do loop ou do salto ele cairia (e no loop cairia de novo): volta para antes da peça.
                 var qs = to.At(c.s);
-                if (qs.loop || qs.jump) c.s = Mathf.Max(0f, to.StartOf(c.s) - JumpBack * Scale);
+                if (qs.loop || qs.jump || qs.twist) c.s = Mathf.Max(0f, to.StartOf(c.s) - JumpBack * Scale);
                 c.crossBase = c.cross - (to.LineCount(c.s) - 1);
                 c.v = 0f; c.slip = 0f; c.mode = CarMode.OnSlot; c.backT = 0f; c.air = false;
                 c.lapDirty = c.cross >= 0;
@@ -1005,7 +1048,7 @@ namespace Autorama
         // junto (CrossGap s), quem não tem a vez tira o pé até ele passar: a vez é de quem chega antes; empatados, de
         // gente e depois do carro de número menor. Sem isso, na largada com o cruzamento logo à frente, batiam todos.
         public static float CrossGap = 0.35f, CrossLift = 0.6f, CrossFloor = 2f;
-        float CrossYield(int k, float dc)
+        float CrossYield(int k, float dc, bool pair = false)
         {
             var c = cars[k];
             // Na própria rampa de salto (pousando) ou com alguém colado atrás no mesmo trilho, frear causa a batida.
@@ -1020,6 +1063,7 @@ namespace Autorama
             {
                 var o = cars[j];
                 if (j == k || !present[j] || o.mode != CarMode.OnSlot || o.finish != null || o.lane == c.lane) continue;
+                if (pair && o.lane / 2 != c.lane / 2) continue;      // na fechada (seção 99) só o vizinho do par disputa o trilho
                 var pj = PathOf(j).At(o.s);
                 var to = x0 - pj.pos;
                 float dj = to.magnitude;
@@ -1087,7 +1131,8 @@ namespace Autorama
                 }
             }
             bool here = true;                                   // ainda na curva em que o carro está agora
-            float crossD = -1f, crossLen = 0f;                  // o próximo cruzamento (troca de faixa) à frente
+            float crossD = -1f, crossLen = 0f;                  // o próximo cruzamento (troca de faixa) ou fechada à frente
+            bool crossPair = false;
             for (int i = 0; i * step <= AiLook * Scale; i++)
             {
                 float d = i * step;
@@ -1100,7 +1145,7 @@ namespace Autorama
                     need = Mathf.Min(need, Mathf.Sqrt(vj * vj + 2f * AiBrake * G * d));
                     jumpNear = true;
                 }
-                if (crossD < 0f && q.def.IsCross) { crossD = i == 0 ? 0f : d; crossLen = q.def.CenterLength * Scale; }
+                if (crossD < 0f && (q.def.IsCross || q.def.IsFunnel)) { crossD = i == 0 ? 0f : d; crossLen = q.def.CenterLength * Scale; crossPair = q.def.IsFunnel; }
                 if (q.k == 0f) continue;
                 // Curva em C (seção 50.3): entra no limite (sem contar com a derrapagem) e freia mais cedo, porque o freio
                 // perde força em baixa velocidade e a C pede quase parar.
@@ -1120,9 +1165,11 @@ namespace Autorama
                 float vc = Mathf.Sqrt(v * v + 2f * (pin ? AiBrakePin : AiBrake) * G * d);
                 need = Mathf.Min(need, vc); needCurve = Mathf.Min(needCurve, vc);
             }
-            if (crossD > 0f && set.collide && !jumpNear) need = Mathf.Min(need, CrossYield(k, crossD + crossLen * 0.5f));
+            if (crossD > 0f && set.collide && !jumpNear) need = Mathf.Min(need, CrossYield(k, crossD + crossLen * 0.5f, crossPair));
             // Dentro do loop não deixa a velocidade cair abaixo de LoopAi, mesmo com curva logo depois.
             if (P.At(c.s).loop) need = Mathf.Max(need, LoopAi * Speed);
+            // Muro e parafuso (seção 99): dentro e logo antes, não tira o pé abaixo de TwistAi (devagar, cai).
+            if (P.At(c.s).twist || P.At(c.s + TwistAiLead * Scale).twist) need = Mathf.Max(need, TwistAi * Speed);
             c.held = c.v < need;
             bool accel = c.held;
             // Chegando no salto ela não solta o botão: dosa o gatilho (1% ou 100%). Soltar e apertar de novo faz o

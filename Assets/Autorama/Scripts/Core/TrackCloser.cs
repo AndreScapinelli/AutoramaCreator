@@ -78,6 +78,17 @@ namespace Autorama
             new Move { def = PieceCatalog.HairpinOf(2), dir = -1 },
             new Move { def = PieceCatalog.HairpinOf(3), dir = 1 },
             new Move { def = PieceCatalog.HairpinOf(3), dir = -1 },
+            // Meia curva em C (seção 99.1), de 1 a 3 fileiras: só para percorrer.
+            new Move { def = PieceCatalog.HalfCOf(1, false), dir = 1 },
+            new Move { def = PieceCatalog.HalfCOf(1, false), dir = -1 },
+            new Move { def = PieceCatalog.HalfCOf(2, false), dir = 1 },
+            new Move { def = PieceCatalog.HalfCOf(2, false), dir = -1 },
+            new Move { def = PieceCatalog.HalfCOf(3, false), dir = 1 },
+            new Move { def = PieceCatalog.HalfCOf(3, false), dir = -1 },
+            // Salto de vão 1 a 3 (21 a 23): na diagonal ele não estica como as retas (PieceDef.At), por isso tem movimento próprio.
+            new Move { def = PieceCatalog.JumpOf(1), dir = 0 },
+            new Move { def = PieceCatalog.JumpOf(2), dir = 0 },
+            new Move { def = PieceCatalog.JumpOf(3), dir = 0 },
         };
         const int SearchMoves = 7;         // os primeiros de Moves: os que a busca pode colocar
 
@@ -124,19 +135,23 @@ namespace Autorama
         }
 
         // Movimento com a mesma geometria de uma peça (a largada é uma reta curta; as inclinadas são iguais às planas;
-        // o cruzamento e a rampa de salto são retas na planta). O salto de vão 2 ou 3 (5 ou 6 células) vira dois movimentos.
+        // o cruzamento e a rampa de salto são retas na planta; o salto tem movimento próprio, porque não estica na diagonal).
         static int[] MovesOf(TrackPiece p)
         {
             var d = p.Def;
             if (d.IsLoop) return new[] { p.dir > 0 ? 7 : 8 };
+            if (d.IsJump) return new[] { 20 + Mathf.Clamp(p.vao, 1, PieceCatalog.MaxGap) };
             if (!d.IsCurve)
             {
+                // Retas de qualquer comprimento inteiro (muro de 6, parafuso de 8): retas de 4, 2 e 1.
                 int n = Mathf.RoundToInt(d.Length);
-                if (n == 6) return new[] { 0, 1 };
-                if (n == 5) return new[] { 0, 6 };
-                return new[] { n == 4 ? 0 : n == 2 ? 1 : 6 };
+                var l = new List<int>();
+                for (; n >= 4; n -= 4) l.Add(0);
+                if (n >= 2) { l.Add(1); n -= 2; }
+                if (n >= 1) l.Add(6);
+                return l.ToArray();
             }
-            if (d.IsHairpin) return new[] { 9 + 2 * (Mathf.Clamp(p.raio, 1, PieceCatalog.MaxHairpin) - 1) + (p.dir > 0 ? 0 : 1) };
+            if (d.IsHairpin) return new[] { (d.Angle >= 179f ? 9 : 15) + 2 * (Mathf.Clamp(p.raio, 1, PieceCatalog.MaxHairpin) - 1) + (p.dir > 0 ? 0 : 1) };
             bool half = Mathf.Approximately(d.Angle, 45f);
             return new[] { half ? (p.dir > 0 ? 4 : 5) : (p.dir > 0 ? 2 : 3) };
         }
@@ -506,7 +521,7 @@ namespace Autorama
 
         // Curva à direita percorrida de ré vira curva à esquerda (e vice-versa); retas não mudam, nem o loop
         // (de ré ele desliza para o mesmo lado: é o TrackMath.EntryFor).
-        static int Mirror(int m) => m switch { 2 => 3, 3 => 2, 4 => 5, 5 => 4, 9 => 10, 10 => 9, 11 => 12, 12 => 11, 13 => 14, 14 => 13, _ => m };
+        static int Mirror(int m) => m switch { 2 => 3, 3 => 2, 4 => 5, 5 => 4, 9 => 10, 10 => 9, 11 => 12, 12 => 11, 13 => 14, 14 => 13, 15 => 16, 16 => 15, 17 => 18, 18 => 17, 19 => 20, 20 => 19, _ => m };
 
         static float Length(List<int> seq) { float s = 0; foreach (int m in seq) s += Moves[m].def.CenterLength; return s; }
         static int Curves(List<int> seq) { int c = 0; foreach (int m in seq) if (Moves[m].def.IsCurve) c++; return c; }

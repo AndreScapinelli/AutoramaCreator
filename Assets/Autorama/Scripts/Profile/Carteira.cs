@@ -64,6 +64,11 @@ namespace Autorama
             new Peca { id = "cruzamento",            nome = L.N("Cruzamento"),            preco = 60 },
             new Peca { id = "salto",                 nome = L.N("Rampa de salto"),        preco = 250 },
             new Peca { id = "loop",                  nome = L.N("Loop"),                  preco = 400 },
+            new Peca { id = "meia-curva-c",          nome = L.N("Meia curva em C"),       preco = 25 },
+            new Peca { id = "meia-curva-c-inclinada", nome = L.N("Meia curva em C inclinada"), preco = 45 },
+            new Peca { id = "fechada",               nome = L.N("Fechada"),               preco = 150 },
+            new Peca { id = "muro",                  nome = L.N("Muro de parede"),        preco = 300 },
+            new Peca { id = "parafuso",              nome = L.N("Parafuso"),              preco = 450 },
         };
         public static Peca PecaOf(string id) { foreach (var p in Pecas) if (p.id == id) return p; return null; }
 

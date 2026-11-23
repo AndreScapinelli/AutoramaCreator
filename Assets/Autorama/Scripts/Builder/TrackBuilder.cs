@@ -47,6 +47,16 @@ namespace Autorama
             new PaletteEntry(PieceCatalog.Loop,  -1,  0, Key.K,      L.N("Loop"), L.N("sai à esquerda"), "icone-loop-esquerda"),
             new PaletteEntry(PieceCatalog.Loop,   1,  0, Key.L,      L.N("Loop"), L.N("sai à direita"), "icone-loop-direita"),
             new PaletteEntry(PieceCatalog.Jump,   0,  0, Key.J,      L.N("Rampa de salto"), L.N("4 a 6 células"), "icone-salto"),
+            // Seção 99: meia curva em C, muro de parede, parafuso e fechada.
+            new PaletteEntry(PieceCatalog.HalfC, -1, 0, Key.Y,       L.N("Meia curva em C"), L.N("90° esquerda"), "icone-meia-curva-c-esquerda"),
+            new PaletteEntry(PieceCatalog.HalfC,  1, 0, Key.I,       L.N("Meia curva em C"), L.N("90° direita"), "icone-meia-curva-c-direita"),
+            new PaletteEntry(PieceCatalog.HalfCB,-1, 0, Key.O,       L.N("Meia curva em C inclinada"), L.N("90° esquerda"), "icone-meia-curva-c-inclinada-esquerda"),
+            new PaletteEntry(PieceCatalog.HalfCB, 1, 0, Key.A,       L.N("Meia curva em C inclinada"), L.N("90° direita"), "icone-meia-curva-c-inclinada-direita"),
+            new PaletteEntry(PieceCatalog.Muro,  -1, 0, Key.W,       L.N("Muro de parede"), L.N("deita à esquerda · 6 células"), "icone-muro-esquerda"),
+            new PaletteEntry(PieceCatalog.Muro,   1, 0, Key.S,       L.N("Muro de parede"), L.N("deita à direita · 6 células"), "icone-muro-direita"),
+            new PaletteEntry(PieceCatalog.Screw, -1, 0, Key.Comma,   L.N("Parafuso"), L.N("gira à esquerda · 8 células"), "icone-parafuso-esquerda"),
+            new PaletteEntry(PieceCatalog.Screw,  1, 0, Key.Period,  L.N("Parafuso"), L.N("gira à direita · 8 células"), "icone-parafuso-direita"),
+            new PaletteEntry(PieceCatalog.Funnel, 0, 0, Key.Z,       L.N("Fechada"), L.N("os trilhos se juntam · 4 células"), "icone-fechada"),
         };
 
         public string TrackName { get; set; } = "";
@@ -222,7 +232,7 @@ namespace Autorama
         public void SetRise(int rise)
         {
             if (Selected <= 0) return;
-            if (rise != 0 && pieces[Selected].Def.GroundOnly) { Notice?.Invoke(L.T("Loop e rampa de salto não sobem nem descem de nível.")); return; }
+            if (rise != 0 && pieces[Selected].Def.GroundOnly) { Notice?.Invoke(L.T("Esta peça não sobe nem desce de nível.")); return; }
             if (rise != 0 && Selected >= FrontEnd) { Notice?.Invoke(NoRampBehind); return; }
             if (rise != 0 && RiseOk != null && !RiseOk()) { Notice?.Invoke(L.T(RuleNotice)); return; }
             Commit(() => pieces[Selected].rise = rise);

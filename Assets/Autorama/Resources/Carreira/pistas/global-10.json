@@ -1,0 +1,255 @@
+{
+    "formato": "autorama-pista",
+    "versao": 1,
+    "nome": "Parafuso Mundial",
+    "autor": "",
+    "baixada": false,
+    "mesa": {
+        "w": 34,
+        "h": 22
+    },
+    "escalaCm": 15.0,
+    "largada": {
+        "x": 7.0,
+        "y": 2.5,
+        "h": 0.0,
+        "nivel": 0
+    },
+    "pecas": [
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "parafuso",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "curva-longa-inclinada",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "fechada",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "curva-longa-inclinada",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "muro",
+            "sentido": "esquerda",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "curva-longa-inclinada",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "curva-longa-inclinada",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "curva-curta-inclinada",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 25
+        },
+        {
+            "tipo": "curva-curta-inclinada",
+            "sentido": "esquerda",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 25
+        },
+        {
+            "tipo": "curva-longa-inclinada",
+            "sentido": "esquerda",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 25
+        },
+        {
+            "tipo": "curva-longa-inclinada",
+            "sentido": "esquerda",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 25
+        },
+        {
+            "tipo": "reta-comprida",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "reta-curtinha",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "curva-longa-inclinada",
+            "sentido": "esquerda",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 25
+        },
+        {
+            "tipo": "curva-longa-inclinada",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 25
+        },
+        {
+            "tipo": "curva-longa-inclinada",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 25
+        },
+        {
+            "tipo": "reta-curtinha",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        },
+        {
+            "tipo": "curva-longa-inclinada",
+            "sentido": "direita",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 25
+        },
+        {
+            "tipo": "reta-curta",
+            "sentido": "",
+            "altura": "",
+            "vao": 0,
+            "raio": 0,
+            "inclinacao": 0
+        }
+    ],
+    "atras": 0,
+    "faixas": 8,
+    "enfeites": []
+}

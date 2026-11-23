@@ -498,7 +498,7 @@ namespace Autorama
             var palTiles = El("pal-tiles", palBar);
             var groups = new Dictionary<string, VisualElement>();
             var groupTabs = new List<(Button tab, VisualElement grid)>();
-            foreach (var g in new[] { L.T("RETAS"), L.T("CURVAS"), L.T("CURVAS INCLINADAS"), L.T("CRUZAMENTOS E RAMPAS"), L.T("LOOP E SALTO"), L.T("COSMÉTICOS") })
+            foreach (var g in new[] { L.T("RETAS"), L.T("CURVAS"), L.T("CURVAS INCLINADAS"), L.T("CRUZAMENTOS E RAMPAS"), L.T("LOOP E SALTO"), L.T("MURO, PARAFUSO E FECHADA"), L.T("COSMÉTICOS") })
             {
                 var grid = groups[g] = El("palette", palTiles);
                 Button tab = null;
@@ -679,10 +679,11 @@ namespace Autorama
 
         static string PaletteGroup(PaletteEntry e)
         {
+            if (e.def.IsTwist || e.def.IsFunnel) return L.T("MURO, PARAFUSO E FECHADA");
             if (e.def.GroundOnly) return L.T("LOOP E SALTO");
             if (e.rise != 0 || e.def == PieceCatalog.Cross || e.def == PieceCatalog.CrossS) return L.T("CRUZAMENTOS E RAMPAS");
-            if (e.def == PieceCatalog.CurveB || e.def == PieceCatalog.HalfB || e.def == PieceCatalog.HairpinB) return L.T("CURVAS INCLINADAS");
-            if (e.def == PieceCatalog.Curve || e.def == PieceCatalog.Half || e.def == PieceCatalog.Hairpin) return L.T("CURVAS");
+            if (e.def == PieceCatalog.CurveB || e.def == PieceCatalog.HalfB || e.def == PieceCatalog.HairpinB || e.def == PieceCatalog.HalfCB) return L.T("CURVAS INCLINADAS");
+            if (e.def == PieceCatalog.Curve || e.def == PieceCatalog.Half || e.def == PieceCatalog.Hairpin || e.def == PieceCatalog.HalfC) return L.T("CURVAS");
             return L.T("RETAS");
         }
 
@@ -1246,7 +1247,7 @@ namespace Autorama
             return d == PieceCatalog.Half ? "icone-meia-curva-" + side : $"icone-{d.Id}-{side}";
         }
 
-        static string Side(TrackPiece p) => p.Def.IsLoop ? L.F("Sai à {0} · ", (p.dir < 0 ? L.T("esquerda") : L.T("direita"))) : p.Def.IsJump ? L.T("Salto · ") : !p.Def.IsCurve ? L.T("Reta · ") : L.F("Vira à {0} · {1}° · ", p.dir < 0 ? L.T("esquerda") : L.T("direita"), p.Def.Angle);
+        static string Side(TrackPiece p) => p.Def.IsTwist ? L.F("Deita à {0} · ", (p.dir < 0 ? L.T("esquerda") : L.T("direita"))) : p.Def.IsFunnel ? L.T("Fechada · ") : p.Def.IsLoop ?L.F("Sai à {0} · ", (p.dir < 0 ? L.T("esquerda") : L.T("direita"))) : p.Def.IsJump ? L.T("Salto · ") : !p.Def.IsCurve ? L.T("Reta · ") : L.F("Vira à {0} · {1}° · ", p.dir < 0 ? L.T("esquerda") : L.T("direita"), p.Def.Angle);
         static string KeyName(Key k) { string s = k.ToString(); return s.StartsWith("Digit") ? s.Substring(5) : s; }
         static string Level(int z) => z == 0 ? L.T("chão") : L.F("nível {0}", z);
         internal static string Num(float v, int dec = 1) => v.ToString("N" + dec, L.Cultura);

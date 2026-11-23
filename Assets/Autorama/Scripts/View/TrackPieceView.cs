@@ -37,6 +37,8 @@ namespace Autorama
             int n = d.IsCurve ? TrackMath.Steps(d, 4f / stepK)
                 : d.IsJump ? 4 * Mathf.CeilToInt(d.Length * stepK / 0.175f / 4f)
                 : d.IsLoop ? Mathf.CeilToInt(d.CenterLength * stepK / 0.175f)
+                : d.IsTwist ? Mathf.CeilToInt(d.Length * stepK / 0.1f)        // muro e parafuso (seção 99): a torção pede fatias finas
+                : d.IsFunnel ? Mathf.CeilToInt(d.Length * stepK / 0.125f)
                 : s.IsRamp || s.bankDirIn != 0 || s.bankDirOut != 0 ?Mathf.CeilToInt(d.Length * stepK / 0.175f) : 1;
             var ts = new float[n + 1];
             for (int j = 0; j <= n; j++) ts[j] = j / (float)n;
@@ -101,7 +103,8 @@ namespace Autorama
                     AddBand(Surface, s, ts, At(-kIn - kB, kH), At(-kIn), vScale, Y);
                     from = -kIn;
                 }
-                foreach (float l in TrackMath.LanesOf(faixas))
+                if (d.IsFunnel) { FunnelSurface(s, ts, faixas, hw, depth, vScale, Y); from = 0.5f; }
+                else foreach (float l in TrackMath.LanesOf(faixas))
                 {
                     Edge dark(float o, float dy) => t => (o, dy, l + 0.5f);
                     AddBand(Surface, s, ts, At(from), At(l - hw), vScale, Y);
@@ -163,7 +166,7 @@ namespace Autorama
                 AddBand(Side, s, ts, Foot(-0.5f), At(-0.5f, wallL ? wallH : 0f), 1f, Y);
                 AddBand(Side, s, ts, At(0.5f, wallR ? wallH : 0f), Foot(0.5f), 1f, Y);
                 if (d.IsJump) { if (s.High) AddBand(Side, s, ts, Foot(0.5f), Foot(-0.5f), 1f, Y); }     // salto no alto: fundo reto
-                else if (s.High || d.IsLoop) AddBand(Side, s, ts, At(0.5f, -thick), At(-0.5f, -thick), 1f, Y);     // o lado de fora da volta aparece
+                else if (s.High || d.IsLoop || d.IsTwist) AddBand(Side, s, ts, At(0.5f, -thick), At(-0.5f, -thick), 1f, Y);     // o lado de fora da volta aparece
                 AddCaps(s, thick, Y, solid);
             }
 
@@ -486,6 +489,41 @@ namespace Autorama
             }
         }
 
+        // Fechada (seção 99.4): as fendas andam de lado e cada par vira uma. O tampo entre elas segue junto, e o u da
+        // textura é refeito por trechos (lateral de agora → a do trilho na reta), para a pintura das fendas acompanhar.
+        static void FunnelSurface(Segment s, float[] ts, int faixas, float hw, float depth, float vScale, System.Func<float, float, float> y)
+        {
+            var lanes = TrackMath.LanesOf(faixas);
+            var d = s.def;
+            float Lo(int i, float t) => d.FunnelOffset(lanes[i], t, faixas);
+            float U(float o, float t)
+            {
+                float a0 = -0.5f, b0 = -0.5f;
+                for (int i = 0; i <= lanes.Length; i++)
+                {
+                    float a1 = i < lanes.Length ? Lo(i, t) : 0.5f, b1 = i < lanes.Length ? lanes[i] : 0.5f;
+                    if (o <= a1 + 1e-5f) return (a1 - a0 < 1e-4f ? b1 : b0 + (b1 - b0) * (o - a0) / (a1 - a0)) + 0.5f;
+                    a0 = a1; b0 = b1;
+                }
+                return 1f;
+            }
+            Edge E(System.Func<float, float> o, float dy = 0f) => t => (o(t), dy, U(o(t), t));
+            System.Func<float, float> from = t => -0.5f;
+            for (int i = 0; i < lanes.Length; i++)
+            {
+                int li = i;
+                float uDark = lanes[i] + 0.5f;
+                System.Func<float, float> l0 = t => Lo(li, t) - hw, l1 = t => Lo(li, t) + hw;
+                Edge dark(System.Func<float, float> o, float dy) => t => (o(t), dy, uDark);
+                AddBand(Surface, s, ts, E(from), E(l0), vScale, y);
+                AddBand(Surface, s, ts, dark(l0, 0f), dark(l0, -depth), vScale, y);
+                AddBand(Surface, s, ts, dark(l0, -depth), dark(l1, -depth), vScale, y);
+                AddBand(Surface, s, ts, dark(l1, -depth), dark(l1, 0f), vScale, y);
+                from = l1;
+            }
+            AddBand(Surface, s, ts, E(from), E(t => 0.5f), vScale, y);
+        }
+
         static void AddBand(List<int> tri, Segment s, float[] ts, Edge a, Edge b, float vScale, System.Func<float, float, float> y)
         {
             int start = V.Count;
@@ -517,6 +555,13 @@ namespace Autorama
         // direção do centro da volta (a pista fica de lado e de cabeça para baixo), não para cima.
         static Vector3 Point(Segment s, Pose2 q, float t, float o, float dy, System.Func<float, float, float> y)
         {
+            if (s.def.IsTwist)
+            {
+                // Muro e parafuso (seção 99): o ponto (o, dy) gira com a pista em volta do eixo da peça.
+                s.def.TwistPoint(s.piece.dir, t, o, dy, out float lat, out float h, out _, s.wallIn, s.wallOut);
+                Vector2 w = TrackMath.Offset(q, lat);
+                return new Vector3(w.x, y(t, 0f) + h, w.y);
+            }
             Vector2 p = TrackMath.Offset(q, o);
             if (!s.def.IsLoop) return new Vector3(p.x, y(t, o) + dy, p.y);
             TrackMath.LoopAt(t, out _, out _, out float phi);

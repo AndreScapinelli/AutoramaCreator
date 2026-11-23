@@ -16,6 +16,7 @@ namespace Autorama
         // Peças em texto, separadas por espaço: código + lado (e/d) + altura (^ sobe, v desce) + número (vão ou raio).
         // R reta curta · L comprida · t curtinha · X cruzamento · x cruzamento curto · C curva longa · M meia curva
         // B curva longa inclinada · b curta inclinada · U curva em C · O loop · J salto
+        // Seção 99: H meia curva em C · h meia curva em C inclinada · W muro · S parafuso · F fechada
         struct Def { public string id, nome, pecas; public int faixas; public bool inclinada; }
 
         static Def P(string id, string nome, int faixas, string pecas, bool inclinada = false) =>
@@ -51,6 +52,7 @@ namespace Autorama
             P("clube-c1", "Taça Clube · Rápida", 4, "L L L Bd Bd R L L L Bd Bd", true),
             P("clube-c2", "Taça Clube · Troca", 4, "L R X Cd Cd L Me Md Cd|L R X Cd Cd L L Cd Cd|L R X Cd Cd"),
             P("clube-c3", "Taça Clube · Ponte", 4, "L^ t Lv Cd Cd L Md Me Cd", true),
+            P("clube-9", "Funil do Clube", 4, "L F L Bd Bd R F L Bd Bd|L F L Bd Bd L L Bd Bd", true),
 
             // ----- 3 · Regional (6 faixas): + curva em C e salto (vão 1) -----
             P("regional-1", "Ginásio", 6, "L L J L Bd Bd R L Bd Bd|L L J L Bd Bd|L J L Bd Bd", true),
@@ -64,6 +66,7 @@ namespace Autorama
             P("regional-c2", "Regional · Troca", 6, "L R X J L Bd Bd L L Bd Bd|L X J L Bd Bd|L X L Bd Bd", true),
             P("regional-c3", "Regional · Gancho", 6, "L R Ud R Ce Ce L Md Me|L R Ud L Ce L|L L Ud L", true),
             P("regional-c4", "Regional · Final", 6, "L J L Bd R bd bd Bd L", true),
+            P("regional-9", "Cotovelos em C", 6, "L L Hd2 Hd2 L R He2 L Hd2 Hd2|L L Hd2 Hd2 L Hd2 Hd2|L L Hd2 L Hd2"),
 
             // ----- 4 · Nacional (8 faixas): + loop e saltos de vão 2 e 3 -----
             P("nacional-1", "Estádio", 8, "L L O L Bd Bd L L Bd Bd", true),
@@ -79,6 +82,7 @@ namespace Autorama
             P("nacional-c3", "Nacional · Salto", 8, "L J3 L Bd Bd R Md Me Bd", true),
             P("nacional-c4", "Nacional · Troca", 8, "L J X Bd bd bd L J2 Bd Bd|L J X Bd Bd L J2|L J X Bd Bd L", true),
             P("nacional-c5", "Nacional · Grande Final", 8, "L L O L Bd bd bd J2 L Bd Bd", true),
+            P("nacional-9", "Parede da Morte", 8, "L Wd L Bd Bd L We L Bd Bd|L Wd L Bd Bd L L Bd Bd", true),
 
             // ----- 5 · Global (8 faixas, seção 92): tudo junto, voltas mais longas e peças em sequência -----
             P("mapa-global", "Mapa · Global", 2, "L L L L Cd Cd L Ce Ce L Cd Cd L Ce Ce L L Cd Cd|L L L Cd Cd L Ce Ce L L Cd Cd|L L Cd Cd L L Cd Cd"),
@@ -96,10 +100,11 @@ namespace Autorama
             P("global-c2", "Copa Global · Ásia", 8, "L Md Me Md Me t J2 L Bd L L Bd L L L L L L Bd L L L Bd", true),
             P("global-c3", "Mundial · Américas", 8, "R t L O L L Bd L L bd bd J2 L L J3 Bd L L t bd bd", true),
             P("global-c4", "Mundial · Oceania", 8, "L^ t Lv L J3 L Bd L L O L Bd L L L L L L Bd L L L R Bd", true),
+            P("global-10", "Parafuso Mundial", 8, "L L Sd L Bd L F L Bd L L We L Bd L hd2 hd2 L L Bd|L L Sd L Bd L F L Bd L L We L Bd L L Bd", true),
             P("global-c5", "Mundial · Grande Final", 8, "L L L O L L Bd L L L bd bd J2 L R Ud R Ue L L J3 L Bd L L R t Bd R t", true),
         };
 
-        static readonly Regex Tok = new Regex(@"^(t|x|b|[RLXCMBUOJ])([ed])?([\^v])?(\d)?$");
+        static readonly Regex Tok = new Regex(@"^(t|x|b|h|[RLXCMBUOJHWSF])([ed])?([\^v])?(\d)?$");
 
         static List<TrackPiece> Parse(string s)
         {
@@ -112,7 +117,8 @@ namespace Autorama
                 {
                     "R" => "reta-curta", "L" => "reta-comprida", "t" => "reta-curtinha", "X" => "cruzamento", "x" => "cruzamento-curto",
                     "C" => "curva-longa", "M" => "meia-curva", "B" => "curva-longa-inclinada", "b" => "curva-curta-inclinada",
-                    "U" => "curva-c", "O" => "loop", _ => "salto",
+                    "U" => "curva-c", "O" => "loop", "H" => "meia-curva-c", "h" => "meia-curva-c-inclinada",
+                    "W" => "muro", "S" => "parafuso", "F" => "fechada", _ => "salto",
                 };
                 var def = PieceCatalog.ById(id);
                 int dir = def.Sided ? (m.Groups[2].Value == "e" ? -1 : 1) : 0;

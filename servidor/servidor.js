@@ -5,7 +5,7 @@
 const http = require('http');
 const { WebSocketServer } = require('ws');
 
-const PROTOCOL = 6;                    // muda quando as mensagens deixam de combinar com o cliente (OnlineClient.Protocol)
+const PROTOCOL = 7;                    // muda quando as mensagens deixam de combinar com o cliente (OnlineClient.Protocol)
 const MAX_PLAYERS = 8;                 // o mesmo limite do campeonato
 const MAX_STAGES = 12;
 const MAX_TRACK_JSON = 100 * 1024;     // por pista

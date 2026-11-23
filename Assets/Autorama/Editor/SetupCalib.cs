@@ -72,6 +72,8 @@ namespace Autorama
             p.gas = GasMin;
             for (float t = 0f; t < Horizon; t += Dt)
             {
+                // Muro e parafuso (seção 99): frear lá dentro derruba; a sonda passa por eles acelerando.
+                p.gas = probe.PathOf(lane).At(p.s).twist ? 1f : GasMin;
                 probe.Step(Dt);
                 if (p.mode != CarMode.OnSlot || p.slip > SlipMax) return false;
                 if (p.v < 1f) break;

@@ -37,6 +37,11 @@ namespace Autorama
             new PieceUnlock("curva-c", L.N("Curva em C"), L.N("curva em C plana e inclinada (1 a 3 fileiras)"), "regional-3"),
             new PieceUnlock("loop", L.N("Loop"), L.N("loop"), "nacional-1"),
             new PieceUnlock("salto-grande", L.N("Saltos grandes"), L.N("salto de vão 2 e 3"), "nacional-2"),
+            // Seção 99.
+            new PieceUnlock("fechada", L.N("Fechada"), L.N("os trilhos de cada par se juntam num só"), "clube-funil"),
+            new PieceUnlock("meia-c", L.N("Meia curva em C"), L.N("meia curva em C plana e inclinada (1 a 3 fileiras)"), "regional-cotovelos"),
+            new PieceUnlock("muro", L.N("Muro de parede"), L.N("a pista deita de lado: devagar, cai"), "nacional-parede"),
+            new PieceUnlock("parafuso", L.N("Parafuso"), L.N("a pista dá uma volta inteira no eixo"), "global-parafuso"),
         };
 
         // Modelos de bolha (seção 80): vencer o rival ou ser campeão da região abre um modelo em todos os modos.
@@ -88,6 +93,10 @@ namespace Autorama
             "curva-c" or "curva-c-inclinada" => "curva-c",
             "salto" => "salto",
             "loop" => "loop",
+            "fechada" => "fechada",
+            "meia-curva-c" or "meia-curva-c-inclinada" => "meia-c",
+            "muro" => "muro",
+            "parafuso" => "parafuso",
             _ => "",
         };
 

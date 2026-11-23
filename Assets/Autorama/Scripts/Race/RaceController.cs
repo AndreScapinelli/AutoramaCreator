@@ -862,6 +862,11 @@ namespace Autorama
                 ("K · L", L.T("loop saindo à esquerda · à direita")),
                 ("J", L.T("rampa de salto")),
                 ("X · B", L.T("cruzamento · cruzamento curto")),
+                ("Y · I", L.T("meia curva em C esquerda · direita")),
+                ("O · A", L.T("meia curva em C inclinada esquerda · direita")),
+                ("W · S", L.T("muro de parede à esquerda · à direita")),
+                (L.T("Vírgula · Ponto"), L.T("parafuso à esquerda · à direita")),
+                ("Z", L.T("fechada (os trilhos se juntam)")),
                 ("F", L.T("troca o lado (esquerda · direita) da peça selecionada")),
                 ("E", L.T("troca a ponta de encaixe: fim da pista · atrás da largada")),
                 ("R", L.T("gira a pista 90° em volta da largada")),
@@ -1694,7 +1699,7 @@ namespace Autorama
         // para a pista, com a média de todos. Só com a Steam (a nota fica no placar dela).
         void DrawRate(bool show)
         {
-            string hash = show && OnlineRun && TrackRatings.Available && HeatNow(out _, out _, out _, out var st, out _) ? st.hash : null;
+            string hash = show && !carPickShown && OnlineRun && TrackRatings.Available && HeatNow(out _, out _, out _, out var st, out _) ? st.hash : null;
             rateHash = hash;
             rateBox.style.display = hash != null ? DisplayStyle.Flex : DisplayStyle.None;
             if (hash == null) return;

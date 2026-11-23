@@ -1518,3 +1518,31 @@ clique no cartão e na mesa para pôr; arrastar move · R gira · Delete tira ·
 A pista passou por cima de {0} enfeite(s), que saíram da mesa.	The track ran over {0} decoration(s), which were removed from the table.
 Mestre: dosa o gatilho nas curvas	Master: modulates the trigger through corners
 Lenda: entra acima do limite e quase nunca erra	Legend: enters above the limit and almost never makes mistakes
+MURO, PARAFUSO E FECHADA	WALL, CORKSCREW AND SQUEEZE
+Deita à {0} · 	Leans {0} · 
+Fechada · 	Squeeze · 
+Meia curva em C	C half curve
+Meia curva em C inclinada	Banked C half curve
+Muro de parede	Wall ride
+deita à esquerda · 6 células	leans left · 6 cells
+deita à direita · 6 células	leans right · 6 cells
+Parafuso	Corkscrew
+gira à esquerda · 8 células	twists left · 8 cells
+gira à direita · 8 células	twists right · 8 cells
+Fechada	Squeeze
+os trilhos se juntam · 4 células	the lanes merge · 4 cells
+Esta peça não sobe nem desce de nível.	This piece doesn't go up or down a level.
+os trilhos de cada par se juntam num só	each pair of lanes merges into one
+meia curva em C plana e inclinada (1 a 3 fileiras)	flat and banked C half curve (1 to 3 rows)
+a pista deita de lado: devagar, cai	the track lies on its side: too slow and you fall
+a pista dá uma volta inteira no eixo	the track makes a full turn around its axis
+meia curva em C esquerda · direita	C half curve left · right
+meia curva em C inclinada esquerda · direita	banked C half curve left · right
+muro de parede à esquerda · à direita	wall ride to the left · to the right
+Vírgula · Ponto	Comma · Period
+parafuso à esquerda · à direita	corkscrew to the left · to the right
+fechada (os trilhos se juntam)	squeeze (the lanes merge)
+Funil do Clube	Club Funnel
+Cotovelos em C	C Elbows
+Parede da Morte	Wall of Death
+Parafuso Mundial	World Corkscrew

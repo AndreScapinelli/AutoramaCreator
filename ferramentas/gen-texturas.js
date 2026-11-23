@@ -214,7 +214,37 @@ const PIECES = {
   'loop-esquerda':       { kind:'l', dir:-1 },
   'loop-direita':        { kind:'l', dir:1 },
   'salto':               { kind:'s', len:4, jump:true },
+  // Seção 99: meia curva em C (90° de raio 0,5), muro, parafuso (no ícone com 4 células) e fechada.
+  'meia-curva-c-esquerda':           { kind:'c', angle:90, dir:-1, r:.5 },
+  'meia-curva-c-direita':            { kind:'c', angle:90, dir:1, r:.5 },
+  'meia-curva-c-inclinada-esquerda': { kind:'c', angle:90, dir:-1, r:.5, bank:true },
+  'meia-curva-c-inclinada-direita':  { kind:'c', angle:90, dir:1, r:.5, bank:true },
+  'muro-esquerda':       { kind:'s', len:4, twist:1, dir:-1 },
+  'muro-direita':        { kind:'s', len:4, twist:1, dir:1 },
+  'parafuso-esquerda':   { kind:'s', len:4, twist:2, dir:-1 },
+  'parafuso-direita':    { kind:'s', len:4, twist:2, dir:1 },
+  'fechada':             { kind:'s', len:4, funnel:true },
 };
+// Trilho l (deslocamento na reta) no ponto s da peça: o S do cruzamento ou o par que se junta na fechada.
+function laneAt(p, l, s, n){
+  if (p.cross) return l * Math.cos(Math.PI * s / p.len);
+  if (!p.funnel) return l;
+  const i = Math.round((l + .5) * n - .5), center = (2 * Math.floor(i / 2) + 1) / n - .5;
+  const q = Math.max(0, Math.min(1, Math.min(s, p.len - s) / 1.25)), w = q * q * (3 - 2 * q);
+  return l + (center - l) * w;
+}
+// Marca da torção: o muro clareia o lado que sobe e tem listras; o parafuso, listras em hélice.
+function twistMark(p, L, c, light, stripe){
+  if (!p.twist) return c;
+  if (p.twist === 1){
+    const up = Math.max(0, Math.min(1, Math.min(L.s, p.len - L.s) / 1.3));
+    c = mix(c, light, up * Math.max(0, .5 + p.dir * L.o) * .55);
+    if (up > .9 && ((L.s * 2.5) % 1) < .18 && Math.abs(L.o) < .46) c = stripe;
+    return c;
+  }
+  const k = ((L.s / p.len * 2 + p.dir * L.o * 1.2) % .5 + .5) % .5;
+  return k < .09 && Math.abs(L.o) < .46 ? stripe : c;
+}
 // Distância de um ponto até um segmento, em coordenadas locais da peça (s ao longo, o de lado).
 function segDistLocal(s, o, s1, o1, s2, o2){
   const ds = s2 - s1, dO = o2 - o1, t = Math.max(0, Math.min(1, ((s - s1) * ds + (o - o1) * dO) / (ds * ds + dO * dO)));
@@ -274,8 +304,9 @@ for (const [name, p] of Object.entries(PIECES)){
     if (p.bank) c = mix(c, C.edge, Math.floor((.5 - p.dir * L.o) * 4) / 4 * .28);   // clareia rumo ao lado de fora
     if (p.bank && Math.abs(L.o) < .46 && L.s % .3 < .11) c = C.accent;                // listras amarelas transversais
     // No cruzamento, os trilhos trocam de lado em S; nas outras peças ficam em ±0,25.
-    const la = p.cross ? -.25 * Math.cos(Math.PI * L.s / p.len) : -.25;
-    if (Math.abs(L.o + la) < .045) c = C.laneB;
+    c = twistMark(p, L, c, C.edge, C.accent);
+    const la = laneAt(p, -.25, L.s, 2), lb = laneAt(p, .25, L.s, 2);
+    if (Math.abs(L.o - lb) < .045) c = C.laneB;
     if (Math.abs(L.o - la) < .045) c = C.laneA;
     if (p.start && Math.abs(L.s - 1) < .11) c = (Math.floor((L.o + .5) / .125) + Math.floor((L.s - .89) / .11)) % 2 ? C.slot : C.edge;
     if (p.rise && onChevron(L, p.rise, p.len)) c = C.accent;
@@ -425,11 +456,12 @@ for (const [name, p] of Object.entries(PIECES)){
     if (outer && p.bank) c = C4.wall;
     if (ao > .46 && !outer) c = C4.edge;
     LANES4.forEach((l, i) => {
-      const at = p.cross ? l * Math.cos(Math.PI * L.s / p.len) : l;
+      const at = laneAt(p, l, L.s, 4);
       if (Math.abs(L.o - at) < .03) c = C4.lanes[i];
     });
     if (p.start && Math.abs(L.s - 1.3) < .1 && ao < .46) c = (Math.floor((L.o + .5) / .125) + Math.floor((L.s - 1.2) / .1)) % 2 ? C4.slot : C4.edge;
     if (p.rise && onChevron(L, p.rise, p.len)) c = C4.chevron;
+    c = twistMark(p, L, c, C4.wallHi, C4.chevron);
     return [...c, 1];
   }));
 }
@@ -526,11 +558,12 @@ function widePack(n, carNames){
       if (outer && p.bank) c = C4.wall;
       if (ao > .46 && !outer) c = C4.edge;
       LANES.forEach((l, i) => {
-        const at = p.cross ? l * Math.cos(Math.PI * L.s / p.len) : l;
+        const at = laneAt(p, l, L.s, n);
         if (Math.abs(L.o - at) < .033 * R) c = C4.lanes[i];
       });
       if (p.start && Math.abs(L.s - 1.3) < .1 && ao < .46) c = (Math.floor((L.o + .5) / .125) + Math.floor((L.s - 1.2) / .1)) % 2 ? C4.slot : C4.edge;
       if (p.rise && onChevron(L, p.rise, p.len)) c = C4.chevron;
+      c = twistMark(p, L, c, C4.wallHi, C4.chevron);
       return [...c, 1];
     }));
   }

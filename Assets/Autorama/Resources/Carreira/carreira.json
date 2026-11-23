@@ -591,7 +591,8 @@
             "curva-longa-inclinada",
             "curva-curta-inclinada",
             "cruzamento",
-            "cruzamento-curto"
+            "cruzamento-curto",
+            "fechada"
           ],
           "rampas": true,
           "maxPecas": 40,
@@ -641,6 +642,33 @@
           ],
           "regras": [
             "molhada"
+          ]
+        },
+        {
+          "id": "clube-funil",
+          "nome": "Funil do Clube",
+          "tipo": "corrida",
+          "depois": [
+            "clube-2"
+          ],
+          "pista": "clube-9",
+          "voltas": 5,
+          "ia": 108,
+          "adversarios": 3,
+          "turbo": true,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semSair",
+              "valor": 0
+            }
           ]
         },
         {
@@ -1152,7 +1180,10 @@
             "cruzamento",
             "cruzamento-curto",
             "curva-c",
-            "salto"
+            "salto",
+            "fechada",
+            "meia-curva-c",
+            "meia-curva-c-inclinada"
           ],
           "rampas": true,
           "maxPecas": 48,
@@ -1209,6 +1240,33 @@
           "regras": [
             "molhada",
             "carro"
+          ]
+        },
+        {
+          "id": "regional-cotovelos",
+          "nome": "Cotovelos em C",
+          "tipo": "corrida",
+          "depois": [
+            "regional-2"
+          ],
+          "pista": "regional-9",
+          "voltas": 5,
+          "ia": 124,
+          "adversarios": 4,
+          "turbo": true,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semTurbo",
+              "valor": 0
+            }
           ]
         },
         {
@@ -1870,7 +1928,11 @@
             "cruzamento-curto",
             "curva-c",
             "salto",
-            "loop"
+            "loop",
+            "fechada",
+            "meia-curva-c",
+            "meia-curva-c-inclinada",
+            "muro"
           ],
           "rampas": true,
           "maxPecas": 56,
@@ -1921,6 +1983,37 @@
           "limite": 2,
           "regras": [
             "sobrevivencia"
+          ]
+        },
+        {
+          "id": "nacional-parede",
+          "nome": "Parede da Morte",
+          "tipo": "desafio",
+          "depois": [
+            "nacional-2"
+          ],
+          "pista": "nacional-9",
+          "voltas": 6,
+          "ia": 150,
+          "adversarios": 5,
+          "turbo": true,
+          "limite": 2,
+          "regras": [
+            "sobrevivencia"
+          ],
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semSair",
+              "valor": 0
+            }
           ]
         },
         {
@@ -2655,7 +2748,12 @@
             "cruzamento-curto",
             "curva-c",
             "salto",
-            "loop"
+            "loop",
+            "fechada",
+            "meia-curva-c",
+            "meia-curva-c-inclinada",
+            "muro",
+            "parafuso"
           ],
           "rampas": true,
           "maxPecas": 64,
@@ -2764,6 +2862,33 @@
             {
               "tipo": "semSair",
               "valor": 1
+            }
+          ]
+        },
+        {
+          "id": "global-parafuso",
+          "nome": "Parafuso Mundial",
+          "tipo": "corrida",
+          "depois": [
+            "global-6"
+          ],
+          "pista": "global-10",
+          "voltas": 5,
+          "ia": 178,
+          "adversarios": 7,
+          "turbo": true,
+          "estrelas": [
+            {
+              "tipo": "posicao",
+              "valor": 3
+            },
+            {
+              "tipo": "posicao",
+              "valor": 1
+            },
+            {
+              "tipo": "semSair",
+              "valor": 0
             }
           ]
         },

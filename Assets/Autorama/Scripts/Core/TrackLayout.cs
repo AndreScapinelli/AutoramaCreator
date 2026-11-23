@@ -16,6 +16,7 @@ namespace Autorama
         public int bankDirIn, bankDirOut; // (plana) dir da peça inclinada vizinha, 0 se não há; a inclinação espalha por ela
         public float bankTanIn, bankTanOut; // tangente da inclinação da vizinha inclinada (seção 50.7), 0 se não há
 
+        public bool wallIn, wallOut;     // (muro) a vizinha é muro para o mesmo lado: fica em pé naquela ponta (seção 99.2)
         public bool rampIn, rampOut;     // (rampa) a vizinha continua a subida ou a descida: sem arredondar naquela ponta
 
         // Nível em linha reta: vale para as regras (sobreposição, colisão, pilares). A superfície usa ZSmooth.
@@ -127,6 +128,8 @@ namespace Autorama
                     float u = t * s.def.Length;
                     if (s.def.JumpOpenAt(u)) continue;
                     list.Add(new Vector3(q.pos.x, q.pos.y, s.ZAt(t) + BankLift(s)));
+                    // Muro e parafuso ficam em pé (até 1 célula de altura): a ponte de 1 nível acima bate neles.
+                    if (s.def.IsTwist) list.Add(new Vector3(q.pos.x, q.pos.y, s.ZAt(t) + 1f));
                     bx0 = Mathf.Min(bx0, q.pos.x); by0 = Mathf.Min(by0, q.pos.y);
                     bx1 = Mathf.Max(bx1, q.pos.x); by1 = Mathf.Max(by1, q.pos.y);
                 }
@@ -146,6 +149,9 @@ namespace Autorama
                 // Vizinhas da lista se encostam; só a ponta da frente e a de trás, quando abertas, podem estar sobrepostas.
                 if (j == i + 1 && !(tail > 0 && i == fe - 1 && !r.closed)) continue;
                 if ((r.closed || tail > 0) && i == 0 && j == n - 1) continue;    // vizinhas pelo fechamento
+                // Meia curva em C fechada (seção 99.1): a peça de antes e a de depois quase se encostam na quina.
+                if (j == i + 2 && TightCorner(segs[i + 1])) continue;
+                if (r.closed && ((i == 0 && j == n - 2 && TightCorner(segs[n - 1])) || (i == 1 && j == n - 1 && TightCorner(segs[0])))) continue;
                 Rect a = boxes[i], b = boxes[j];
                 if (a.xMax + 1 < b.xMin || b.xMax + 1 < a.xMin || a.yMax + 1 < b.yMin || b.yMax + 1 < a.yMin) continue;
                 if (InCross(crossings, i, j)) continue;   // retas que se cruzam no chão (seção 63)
@@ -185,10 +191,13 @@ namespace Autorama
                 var next = segs[i == n - 1 ? 0 : i + 1];
                 s.bankIn = prevLinked && SameBank(prev, s);
                 s.bankOut = nextLinked && SameBank(next, s);
+                bool muro = s.def.Twist == 1;
+                s.wallIn = muro && prevLinked && prev.def.Twist == 1 && prev.piece.dir == s.piece.dir;
+                s.wallOut = muro && nextLinked && next.def.Twist == 1 && next.piece.dir == s.piece.dir;
                 // Vizinha plana: a inclinação dela continua pela peça plana (Spill), então não precisa de rampa de 20%.
                 // O loop não recebe a inclinação (a volta é a volta): a inclinada faz a transição dentro dela, como contra a oposta.
-                s.flatIn = prevLinked && !prev.def.Banked && !prev.def.IsLoop;
-                s.flatOut = nextLinked && !next.def.Banked && !next.def.IsLoop;
+                s.flatIn = prevLinked && !prev.def.Banked && !prev.def.NoSpill;
+                s.flatOut = nextLinked && !next.def.Banked && !next.def.NoSpill;
                 s.bankDirIn = prevLinked && prev.def.Banked ? prev.piece.dir : 0;
                 s.bankDirOut = nextLinked && next.def.Banked ? next.piece.dir : 0;
                 s.bankTanIn = s.bankDirIn != 0 ? prev.piece.BankTan : 0f;
@@ -248,6 +257,7 @@ namespace Autorama
                 return s.zIn * TrackMath.LevelHeight + PieceCatalog.LoopRadius * (1f - Mathf.Cos(phi));
             }
             float y = s.ZSmooth(t) * TrackMath.LevelHeight;
+            if (s.def.IsTwist) return y;          // a torção (seção 99) é aplicada por cima, no TwistPoint
             if (s.def.IsJump) y += s.def.JumpY(t * s.def.Length);
             if (!s.def.Banked)
             {
@@ -315,6 +325,8 @@ namespace Autorama
             return r;
         }
 
+        static bool TightCorner(Segment s) => s.def.IsC && s.def.Angle < 179f && s.def.Radius < 0.9f;
+
         static bool InCross(List<FlatX> xs, int i, int j)
         {
             foreach (var c in xs)
@@ -323,7 +335,7 @@ namespace Autorama
         }
 
         static bool CrossOk(Segment s) => s.def.Kind == PieceKind.Straight && !s.def.IsCross && !s.def.IsJump
-            && !s.def.IsLoop && !s.High && !s.IsRamp;
+            && !s.def.IsLoop && !s.def.IsTwist && !s.def.IsFunnel && !s.High && !s.IsRamp;
 
         // Curva inclinada muito levantada (seção 50.7): a borda de fora mais o muro passam da altura livre embaixo de
         // uma ponte. Sobe os pontos dela o que passar, em níveis, e a ponte por cima vira sobreposição (35° sim, 25° não).

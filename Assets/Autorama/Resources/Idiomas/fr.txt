@@ -1518,3 +1518,31 @@ clique no cartão e na mesa para pôr; arrastar move · R gira · Delete tira ·
 A pista passou por cima de {0} enfeite(s), que saíram da mesa.	La piste est passée sur {0} décoration(s), retirée(s) de la table.
 Mestre: dosa o gatilho nas curvas	Maître : dose la gâchette dans les virages
 Lenda: entra acima do limite e quase nunca erra	Légende : entre au-delà de la limite et ne se trompe presque jamais
+MURO, PARAFUSO E FECHADA	MUR, TIRE-BOUCHON ET RÉTRÉCISSEMENT
+Deita à {0} · 	Penche à {0} · 
+Fechada · 	Rétrécissement · 
+Meia curva em C	Demi-virage en C
+Meia curva em C inclinada	Demi-virage en C relevé
+Muro de parede	Mur vertical
+deita à esquerda · 6 células	penche à gauche · 6 cases
+deita à direita · 6 células	penche à droite · 6 cases
+Parafuso	Tire-bouchon
+gira à esquerda · 8 células	tourne à gauche · 8 cases
+gira à direita · 8 células	tourne à droite · 8 cases
+Fechada	Rétrécissement
+os trilhos se juntam · 4 células	les voies se rejoignent · 4 cases
+Esta peça não sobe nem desce de nível.	Cette pièce ne monte ni ne descend de niveau.
+os trilhos de cada par se juntam num só	chaque paire de voies se rejoint en une seule
+meia curva em C plana e inclinada (1 a 3 fileiras)	demi-virage en C plat et relevé (1 à 3 rangées)
+a pista deita de lado: devagar, cai	la piste se couche sur le côté : trop lent, on tombe
+a pista dá uma volta inteira no eixo	la piste fait un tour complet sur son axe
+meia curva em C esquerda · direita	demi-virage en C gauche · droite
+meia curva em C inclinada esquerda · direita	demi-virage en C relevé gauche · droite
+muro de parede à esquerda · à direita	mur vertical à gauche · à droite
+Vírgula · Ponto	Virgule · Point
+parafuso à esquerda · à direita	tire-bouchon à gauche · à droite
+fechada (os trilhos se juntam)	rétrécissement (les voies se rejoignent)
+Funil do Clube	Entonnoir du Club
+Cotovelos em C	Coudes en C
+Parede da Morte	Mur de la Mort
+Parafuso Mundial	Tire-bouchon Mondial

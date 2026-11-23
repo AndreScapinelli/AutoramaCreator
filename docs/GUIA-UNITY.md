@@ -3689,6 +3689,7 @@ Com o salto selecionado, o painel da peça mostra **Vão: 1 célula · 2 célula
 - **Identidade:** só o salto com vão maior que 1 acrescenta `:vao` (`salto:0:0:3`). Com vão 1 o texto é o mesmo de antes: oval `a34f4cb9`, e a pista largada + salto (vão 1) dá `5776bfde` com ou sem o campo.
 
 - **Fechar sozinho (Q):** `TrackCloser.MovesOf` percorre o salto de 5 células como reta comprida + reta curtinha e o de 6 como reta comprida + reta curta. Antes, o salto que não tinha 4 ou 2 células virava uma reta curtinha só: a ponta calculada ficava 4 ou 5 células atrás da real e o Q não achava fechamento. Teste (o rascunho de quem achou o erro: salto, 2 cruzamentos, 2 curvas longas e uma reta comprida): vão 1, 2 e 3 fecham com 5, 6 e 5 peças, em 52 a 61 ms; antes, os vãos 2 e 3 desistiam depois de 20 s.
+- **Salto na diagonal no Q:** o salto não estica na diagonal (`PieceDef.At`), mas o Q o percorria como reta comprida, que estica para 4·√2: a ponta calculada ficava ~1,2 célula em x e em y longe da real e o Q nunca fechava (nem via que a pista já estava fechada). Agora o salto tem movimento próprio no `Moves` (21 a 23, `JumpOf(1..3)`, fora da busca) e `MovesOf` usa `20 + vao`. Teste: o rascunho com salto a 225° (34 peças) mostra "A ponta já está na largada"; cortado em 17, 20 e 28 peças, fecha com 5 a 6 peças; largada + meia curva + salto de vão 1, 2 e 3 fecha.
 
 **Testes** (`script eval`; oval com o salto na reta da largada e a reta de baixo esticada para fechar; gatilho fixo por 40 s, velocidade na ponta da rampa):
 
@@ -3971,7 +3972,7 @@ O campeonato (offline e online) passa a correr com o ajuste do carro (seção 47
 
 ### 48.2 A tela de escolha
 
-No banner do meio da mesa (`carPick`, dentro de `banner`), no lugar do cartão de recordes: título "Escolha do carro · etapa N: pista", um cartão por piloto que escolhe aqui (o `DrawCarCard` da seção 47.5 sem a linha da curva, com o resumo e o botão **Pronto**) e uma lista dos outros (robô / pronto / escolhendo / saiu). Mudar uma peça tira o "pronto". Largar fica bloqueado (`ChampStart`, `OnlineStart`) enquanto a escolha está aberta.
+No banner do meio da mesa (`carPick`, dentro de `banner`), no lugar do cartão de recordes: título "Escolha do carro · etapa N: pista", um cartão por piloto que escolhe aqui (o `DrawCarCard` da seção 47.5 sem a linha da curva, com o resumo e o botão **Pronto**) e uma lista dos outros (robô / pronto / escolhendo / saiu). Mudar uma peça tira o "pronto". Largar fica bloqueado (`ChampStart`, `OnlineStart`) enquanto a escolha está aberta. Com a escolha aberta, a nota da pista (`rateBox`, seção 83) e os painéis dos jogadores (`padsBox`) ficam escondidos, e a lista dos outros vira uma grade de linhas de 280 px (até 860 px de largura), para o cartão não ser empurrado para fora da tela com 8 pilotos.
 
 - **Offline:** cartões para todos os pilotos de gente. Fecha quando todos ficam prontos; **Enter** (ou Start do controle) deixa todos prontos com o que está escolhido. Grava em `campeonatos.json` a cada clique.
 - **Robôs:** `AiCar(pista)` pela fração do comprimento em curva (curva de 90° = 2,5 × π/2 células, 45° = metade; retas 1, 2 ou 4): **≥ 45%** curto · asa · macio · pesado; menos, longo · lisa · duro · pesado (regra da seção 52.5).
@@ -5531,3 +5532,102 @@ Os jogadores achavam a IA fácil. Antes de mexer, a IA foi medida contra a físi
 **A mudança:** a corrida livre (`PilotSlot.skill`, `RaceSettings.botSkill`, cartão "Robô") e o campeonato offline (`Pilot.skill`, `ChampFiles.Clean`, formulário do piloto) iam só até 100, 15–20% mais lento que o ótimo. Agora vão até `RaceSim.AiMaxSkill` (200): 101–150 mestre, 151–200 lenda, a mesma IA da carreira. `Champ.SkillWord` ganhou "Mestre" (101–150) e "Lenda" (151–200). As moedas por IA continuam contando até 100 (`RaceController.Coins`). Saves antigos não mudam (o limite só subiu).
 
 Teste: `RaceSettings { botSkill = 200 }.FixSlots()` → vaga 2 com 200; oval sozinho: IA 100 4,67 · 150 4,00 · 200 3,68.
+
+## 99. Peças novas: meia curva em C, muro de parede, parafuso e fechada
+
+Quatro peças novas no catálogo (`Core/Pieces.cs`), com ids novos no JSON. Os ids e a identidade das peças antigas não mudaram: oval `a34f4cb9` e 8 com ponte `81546106`, conferidos por `PecasTeste.Run`.
+
+| Peça | id | Medidas | Tecla |
+|---|---|---|---|
+| Meia curva em C | `meia-curva-c` · `meia-curva-c-inclinada` | 90°, raio `raio`·0,5 (1 a 3 fileiras), com `sentido` | Y · I (inclinada: O · A) |
+| Muro de parede | `muro` | reta de 6 células, com `sentido` | W · S |
+| Parafuso | `parafuso` | reta de 8 células, com `sentido` | Vírgula · Ponto |
+| Fechada | `fechada` | reta de 4 células | Z |
+
+Muro, parafuso e fechada são `GroundOnly`: não sobem nem descem de nível, mas podem ficar no alto. Na diagonal ficam √2 maiores, como as retas. O muro e o parafuso são `Sided`, então F inverte o lado. Ficam no grupo "MURO, PARAFUSO E FECHADA" da paleta. A meia curva em C fica nos grupos de curvas.
+
+### 99.1 Meia curva em C
+
+É a família da curva em C (`PieceDef.IsC`, `PieceCatalog.Family`), com 90° no lugar de 180°: raio n·0,5, com a saída n/2 célula para a frente e n/2 para o lado (a ponta cai na grade). Tem a aderência da C (`HairpinGrip`, e × `BankGrip` na inclinada) e a frenagem de C da IA (`pin`). `IsHairpin` agora quer dizer `IsC`. O seletor "Tamanho", o `raio` no JSON e o `:r` na identidade valem para as duas.
+
+Na de 1 fileira (raio 0,5), a peça de antes e a de depois ficam a 0,7 célula na quina. O `Analyze` não conta essa sobreposição (`TightCorner`).
+
+### 99.2 e 99.3 Torção: muro de parede e parafuso
+
+Na planta são retas. A pista gira em volta do próprio eixo com `PieceDef.RollAt(u)` (graus, com smoothstep nas emendas):
+
+- **Muro:** de 0 a 90° nas primeiras `MuroIn` = 2,5 células, em pé na 1 do meio e de volta nas 2,5 últimas, com smootherstep (`6p⁵ − 15p⁴ + 10p³`, sem tranco na curvatura: a emenda com a peça plana fica suave; antes, 2 células e smoothstep). Teste (`PecasTeste.Limite("muro")`): menor velocidade que passa 5,0 células/s no padrão (leve 6,5, pesado 4,0, macio 5,0); IA 100 sai 0,05 vez por volta. Gira em volta da borda que fica embaixo e desliza meia célula, para ficar em pé no meio da fileira (trilhos a 0,25 e 0,75 de altura, na pista de 2).
+- **Parafuso:** plano `ScrewFlat` = 1 célula em cada ponta e uma volta inteira (360°) nas 6 do meio, em volta do eixo meia célula acima da pista. De cabeça para baixo, a pista fica a 1 célula de altura. O canto da pista fica a √0,5 do eixo, então o eixo sobe com o rolamento, `max(0,5; 0,5·|sen| + 0,5·max(cos, 0)) + ScrewBase·|sen|` (`ScrewBase 0.1`, a base com folga): a borda de baixo nunca desce mais que a base das pontas planas (antes, perto de 45°, entrava ~0,2 célula na mesa). Teste: menor altura da base girando = −0,09 (igual à ponta plana), centro no máximo 1,01.
+- **Muros seguidos:** muro depois de muro para o mesmo lado fica em pé na emenda (`Segment.wallIn`/`wallOut`, em `TrackLayout.ComputeBanking`; `RollAt(u, holdIn, holdOut)`), sem voltar a deitar entre os dois. Para o lado oposto, cada um deita e volta. Teste: muro +1, muro +1, muro −1 dá rolamento 0 → 90 → 90 | 90 → 90 → 0 | 0 → −90 → 0.
+
+`PieceDef.TwistPoint(dir, t, o, dy)` dá a lateral na planta, a altura e o rolamento com sinal (dir +1: o lado direito sobe). A malha (`TrackPieceView.Point`, fatias de 0,1 célula) e o caminho do trilho (`LanePath`, ponto do tipo 4, `LanePoint.twist`/`roll`) usam a mesma conta. O rolamento vira o `bank` do carrinho, que deita junto. A inclinação da curva vizinha não entra na peça (`NoSpill`). Na sobreposição, a peça conta também 1 nível acima, porque a ponte logo em cima bate nela.
+
+**Física** (`RaceSim.TwistFall`): na reta não há curva segurando o carro, só o ímã.
+
+- **De lado:** a derrapagem enche `WallSlip` (9) × sen²(rolamento) × (1 − v/`TwistSafe` (10 c/s)) × `Slip` ÷ `Grip` por segundo. Ela esvazia como sempre (3/s), então quem passa rápido não enche.
+- **Abaixo de `WallMinV` (4 c/s):** com mais de 45° de rolamento, o carro cai na hora.
+- **De cabeça para baixo** (cos < 0): só segura acima de `ScrewMinV` (6 c/s) × √(−cos).
+
+Velocidades em células/s; no mundo, × `Speed`. Quem cai volta antes da peça, como no loop. Na troca de trilho, quem parar dentro da peça também volta.
+
+Velocidade constante mínima que passa (`PecasTeste.Limite`), igual nas pistas de 2, 4 e 8:
+
+| | padrão | chassi leve | chassi pesado | pneu macio |
+|---|---|---|---|---|
+| muro | 5,5 | 6,5 | 4,0 | 5,0 |
+| parafuso | 6,0 | 6,0 | 6,0 | 6,0 |
+
+**IA:** dentro da peça e até `TwistAiLead` = 1,5 célula antes dela, não deixa a velocidade cair abaixo de `TwistAi` (8,5 c/s). O piloto ótimo do `SetupCalib` passa pela peça acelerando na sonda de frenagem.
+
+### 99.4 Fechada
+
+Cada par de trilhos vizinhos (1 e 2, 3 e 4…) vai para o meio do par em `FunnelIn` = 1,25 célula, fica junto 1,5 célula e abre de novo. Na pista de 2, os dois trilhos viram um só (`PieceDef.FunnelOffset`, usado por `LaneOffsetAt(o, t, faixas)`). Na malha (`FunnelSurface`), as fendas andam junto, e o u da textura é refeito por trechos para a pintura seguir as fendas. A colisão é a de sempre, então quem vem atrás e encosta raspa e perde velocidade.
+
+**IA:** a fechada conta como o cruzamento no `CrossYield`, só com o vizinho do par. Quem chega depois tira o pé até o outro passar.
+
+Teste (`PecasTeste.Fechadas`: todos os trilhos com IA, batida ligada, 4 provas de 5 voltas), saídas e batidas por volta por carro:
+
+| | IA 50 | IA 100 | IA 180 |
+|---|---|---|---|
+| 2 faixas | 0 · 0 | 0 · 0 | 0 · 0 |
+| 4 faixas | 0 · 0 | 0 · 0 | 0,03 · 0,08 |
+| 8 faixas | 0 · 0 | 0 · 0 | 0,02 · 0,03 (sem a fechada: 0,06 · 0,18) |
+
+### 99.5 Fechar sozinho (Q)
+
+- **Retas:** `TrackCloser.MovesOf` decompõe uma reta de qualquer comprimento inteiro em retas de 4, 2 e 1 (o salto de 5 e 6 dá o mesmo de antes; o muro dá 4 + 2; o parafuso, 4 + 4).
+- **Meia curva em C:** ganhou os movimentos 15 a 20 (raios 1 a 3, dos dois lados) e o `Mirror` deles. Como a C, a busca só percorre essas peças, não as coloca.
+
+`PecasTeste.Run` monta uma pista com cada peça e fecha com o Q. Todas fecharam sem sobreposição: meia C de raio 1, 2 inclinada e 3, muro depois de reta e depois de C, parafuso depois de reta e depois de curva, fechada, e muro na diagonal. A IA de 20 a 200 não saiu da pista em nenhuma.
+
+### 99.6 Carreira, preço e ícones
+
+| Peça | Grupo (`Progresso.ItemOf`) | Abre na prova | Preço |
+|---|---|---|---|
+| Fechada | `fechada` | `clube-funil` "Funil do Clube" (Clube, pista `clube-9`) | 150 |
+| Meia curva em C | `meia-c` | `regional-cotovelos` "Cotovelos em C" (Regional, `regional-9`) | 25 (inclinada 45) |
+| Muro de parede | `muro` | `nacional-parede` "Parede da Morte" (Nacional, desafio de sobrevivência, `nacional-9`) | 300 |
+| Parafuso | `parafuso` | `global-parafuso` "Parafuso Mundial" (Global, `global-10`) | 450 |
+
+A carreira passou de 70 para 74 provas. As provas novas são ramos laterais: abrem depois da prova 2 da região (no Global, depois da `global-6`) e não trancam nenhuma outra. Cada oficina libera as peças novas da sua região e das anteriores.
+
+O `CareerTracks` ganhou os códigos H, h (meia curva em C plana e inclinada), W (muro), S (parafuso) e F (fechada).
+
+IA sozinha (`CareerCalib.Table`), volta média e saídas:
+
+| Pista | Piloto ótimo | IA |
+|---|---|---|
+| clube-9 | 5,18 | 108: 5,31, 0 saídas |
+| regional-9 | 8,61 | 124: 10,43 (a mesma proporção da regional-3, com C) |
+| nacional-9 | 7,78 | 150: 7,83 |
+| global-10 | 17,52 | 178: 17,75 |
+
+O carro do robô (`AiCar`) conta as peças novas pelo comprimento de verdade, e as antigas como antes.
+
+Os ícones (`icone-`, `icone4-`, `icone6-`, `icone8-` + `meia-curva-c[-inclinada]-lado`, `muro-lado`, `parafuso-lado` e `fechada`) saem do `gen-texturas.js` (`laneAt`, `twistMark`). Para o tema enxergar ícones novos, use **Atualizar materiais e ícones**.
+
+`Editor/PecasVista.cs` desenha uma pista de teste longe da mesa, para capturar a malha: `PecasVista.Show(faixas, yaw, pitch, dist, peças…)` e depois `Clear()`.
+
+### 99.7 Protocolo online 7
+
+Um jogo antigo não abre pista com peça nova (`Peça desconhecida`). Por isso o protocolo subiu de 6 para 7 (`OnlineClient.Protocol`, `PROTOCOL` no `servidor.js`): o servidor Node recusa a versão diferente com "Atualize o jogo", e na Steam o filtro `ver` do lobby só mostra salas da mesma versão. As mensagens não mudaram. Teste: `cd servidor && npm test`, tudo certo.
