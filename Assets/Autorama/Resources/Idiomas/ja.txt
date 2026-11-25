@@ -1631,3 +1631,130 @@ Entrega: {0}	報酬：{0}
 Sem turbo: você ainda não tem a lata de nitro.	ターボなし：まだニトロ缶を持っていません。
 Ganhou: {0}	入手：{0}
 ACELERAR  {0}{1}	アクセル  {0}{1}
+A caixa estava atrás das latas de tinta, com o seu nome escrito a caneta.	その箱はペンキ缶の奥にあって、ペンで君の名前が書いてあった。
+Dentro: um carrinho vermelho, um controle de lata e um bilhete. "Para quando você tiver idade. — Fê."	中には赤いミニカーとブリキのコントローラー、そしてメモ。「大きくなったら使え。— フェー」
+Fê? O seu tio que sumiu? O Zé da oficina conhecia ele. Vamos lá!	フェー？いなくなった君のおじさん？工房のゼーさんが知ってたはず。行こう！
+Esse controle aí só tem acelerar. Ou vai, ou para. Solta antes da curva, não dentro.	そのコントローラーはアクセルだけだ。走るか止まるか。カーブの中じゃなく、手前で離せ。
+Saiu da pista? Recoloca e segue. Todo mundo sai.	コースアウトした？戻して続けろ。誰だって飛び出すさ。
+Abri o seu controle. O Fê tinha soldado um segundo estágio aqui dentro e desligado. Liguei.	コントローラーを開けてみた。フェーが中に二段目をハンダ付けして、切ってあったんだ。つないでおいた。
+Agora tem meia aceleração: segura no meio e o carro passa na curva sem soltar.	これでハーフスロットルが使える。半分で押さえれば、離さずにカーブを抜けられる。
+Achei isso no fundo da caixa. Está escrito "só nas retas".	箱の底でこれを見つけたよ。「直線だけ」って書いてある。
+É turbo! Enche um pouco a cada volta, e quem está atrás ganha mais.	ターボだ！1周ごとに少したまって、後ろにいる人ほど多くもらえるんだ。
+Esse carro é do Fê. Onde você achou isso?	それはフェーの車だ。どこで見つけた？
+Ele largou tudo aqui e foi embora. Monto autorama desde antes de você nascer. Mostra o que sabe.	あいつは全部置いて出ていった。おれは君が生まれる前からコースを組んでる。腕を見せてみろ。
+...Você freia igualzinho a ele.	……ブレーキのかけ方があいつにそっくりだ。
+Tem mais uma caixa dele no sótão. Nunca tive coragem de abrir. Fica com ela.	屋根裏にもうひとつ、あいつの箱がある。開ける勇気がなかった。持っていけ。
+Na caixa grande: cartas, um carro azul de turismo e um recorte de jornal rasgado bem no nome.	大きな箱の中には、手紙と青いツーリングカー、そして名前のところで破れた新聞の切り抜き。
+A garagem ficou pequena. O Clube do centro tem pista de quatro carros.	ガレージじゃもう狭いな。街のクラブには4台走れるコースがある。
+Procura a Dona Célia. Se alguém sabe do Fê, é ela.	セリアさんを探せ。フェーのことを知ってるとしたら、あの人だ。
+Novato com carro velho? A Marina vai te engolir.	古い車の新人か？マリーナに食われるぞ。
+No fundo do salão, uma senhora lustra um controle preto com fita no gatilho.	ホールの奥で、年配の女性がトリガーにテープを巻いた黒いコントローラーを磨いている。
+Esse chassi... Faz muito tempo que não vejo esse carro.	そのシャシー……その車を見るのは久しぶりだね。
+Corre primeiro. Depois a gente conversa.	まず走りなさい。話はそれから。
+Tá, tá... você freia melhor que eu.	わかった、わかったよ……ブレーキはあんたの方がうまい。
+Na Taça Clube eu te pego. E a Dona Célia só dá o controle dela para quem ganha a Taça.	クラブ杯では負けないから。それに、セリアさんはカップを勝った人にしかコントローラーを渡さないよ。
+Seu tio e eu corremos em dupla seis anos. Ele era rápido; eu era precisa.	あなたのおじさんとは6年間ペアで走った。あの人は速くて、私は正確だった。
+Este controle tem o ajuste fino: muda a meia aceleração no meio da volta. Para cada curva, um ponto.	このコントローラーには微調整がある。周回の途中でハーフスロットルを変えられる。カーブごとに、ちょうどいい加減を。
+Ele foi embora numa noite e nunca mais escreveu. Se você achar ele, diz que eu guardei o lugar dele.	ある晩いなくなって、それきり手紙もない。もし見つけたら、席は取ってあるって伝えて。
+Seis faixas, salto, curva em C. Aqui sorte não vale nada.	6レーン、ジャンプ、Cカーブ。ここでは運なんて役に立たない。
+No corredor do ginásio, uma foto: a Dona Célia jovem e, ao lado, um piloto de boné com o rosto riscado.	体育館の廊下に一枚の写真。若い頃のセリアさんと、その隣に顔をひっかき消された帽子の男。
+Quem risca a cara de alguém numa foto?	写真の顔をひっかくなんて、誰がやるの？
+Fica com o meu caderno. Anotei tudo de um piloto que freava tarde como você.	私のノートをあげよう。君のように遅くブレーキをかける男のことを、全部書き留めてある。
+Ele assinava as voltas com duas letras: F.B.	彼は周回の記録に2文字でサインしていた。F.B.と。
+Oito carros, loop, salto grande. A gente chegou.	8台、ループ、大ジャンプ。とうとう来たね。
+O Campeão não perde aqui há quinze anos.	チャンピオンはここで15年負けていない。
+Esse carro... eu perdi para um carro igual a esse. Uma vez só.	その車……同じような車に負けたことがある。たった一度だけな。
+Final de 96. Ele me passou na última curva e nunca mais correu aqui. Foi correr lá fora.	96年の決勝。あいつは最終コーナーでおれを抜いて、それきりここでは走らなかった。海外へ行ったんだ。
+Na foto inteira, sem risco, o piloto de boné segura a taça. Embaixo, a assinatura: Felix Badar.	傷のない写真の全体で、帽子の男がトロフィーを掲げている。その下にサイン。フェリックス・バダール。
+Felix Badar. F.B. Não sabia que ele tinha família.	フェリックス・バダール。F.B.か。家族がいたとは知らなかった。
+Um envelope sem remetente: "Convite: Felix Badar". Dentro, uma frase só.	差出人のない封筒。「招待：フェリックス・バダール」。中には一文だけ。
+Mais um que veio atrás do Felix. Entra na fila: eu estou nela há dez anos.	またフェリックスを追ってきたやつか。列に並べよ。おれは10年並んでる。
+Ninguém passa ele há trinta anos. Ninguém nem sabe onde ele mora.	30年間、誰もあいつを抜いてない。どこに住んでるかさえ誰も知らない。
+Eu sei. E empato com ele quase sempre. Quase.	おれは知ってる。それに、あいつとはほとんど互角だ。ほとんどな。
+Ele tira o boné. É o rosto da foto, trinta anos depois.	彼が帽子を取る。写真の顔だ。30年後の。
+Achou a caixa, então.	箱を見つけたんだな。
+Não vim conversar. Vim correr. Vence a série e a gente conversa.	話しに来たんじゃない。走りに来た。シリーズに勝ったら話そう。
+Você solta antes da curva. Eu escrevi isso numa carta, não foi?	カーブの手前で離すんだな。手紙にそう書いただろう？
+Fui embora porque o Beto queria a garagem e eu queria o mundo. Fiquei tempo demais.	ベトはガレージを、おれは世界を欲しがった。だから出ていった。長く離れすぎたな。
+Falta o Mundial. Lá eu não vou te deixar passar.	残るは世界選手権だ。あそこでは抜かせない。
+Leva o meu carro. E leva um recado para a Dona Célia e para o Beto: eu volto no Natal.	おれの車を持っていけ。それとセリアとベトに伝えてくれ。クリスマスには帰る、と。
+Construtor sem limite. Bolha Fórmula aberta em todos os modos.	ビルダーは無制限。フォーミュラボディが全モードで解放。
+Na garagem, o Tio Beto pendurou a foto de 96 na parede. Sem risco.	ガレージで、ベトおじさんは96年の写真を壁に掛けた。傷のないまま。
+Pista nova no Natal. Grande. Monta você.	クリスマスには新しいコースだ。大きいやつ。君が組め。
+Enter ou clique continua · Esc pula	Enter かクリックで次へ・Esc でスキップ
+Prova de relógio: ninguém na pista e nada de turbo. É você contra o cronômetro.	タイムアタックだ。コースには誰もいないし、ターボもなし。君とストップウォッチの勝負さ。
+O Fê passava a tarde nessa bancada, batendo a própria volta.	フェーはこの作業台で午後じゅう、自分のラップを縮めてたよ。
+O Zé lavou o chão e a pista molhou junto. Hoje o pneu escorrega.	ゼーさんが床を洗ったら、コースまで濡れちゃった。今日はタイヤが滑るよ。
+Freia mais cedo. E o carro é o da oficina: hoje não dá para mexer no ajuste.	早めにブレーキ。それに今日は工房の車だから、セッティングはいじれないよ。
+Hoje você sai depois de todo mundo. Paciência: a corrida é longa.	今日は君だけ遅れてスタートだ。焦るな、レースは長い。
+O Beto fazia isso com o Fê de castigo. E o Fê ganhava assim mesmo.	ベトはよく罰としてフェーにこれをやらせてた。それでもフェーは勝ってたけどな。
+Campeonato: várias baterias, e cada um larga de um trilho. Vale o total, não uma corrida só.	選手権は何レースもあって、全員が順番にレーンを回る。大事なのは合計だ、一回のレースじゃない。
+Eu vou correr também. E não vou facilitar!	あたしも出るよ。手加減しないからね！
+Rei da Garagem! Vou pintar uma coroa no seu carro.	ガレージの王様！君の車に王冠を描いちゃおう。
+Pinta não, que o Fê me mata. ...Se ele voltar um dia.	やめとけ、フェーに殺される。…いつか戻ってくればの話だが。
+Carro do Fê não faz piloto. Volta quando souber frear.	フェーの車に乗ったって、レーサーにはなれない。ブレーキを覚えたら出直してこい。
+Ele está resmungando, mas ficou um tempão olhando o seu carro.	ぶつぶつ言ってるけど、君の車をずっと見てたよ。
+Primeira vez no viaduto? Na subida o carro perde força; na descida, embala.	陸橋は初めて？上りでは車の勢いが落ちて、下りでは加速するよ。
+Segura o gatilho na descida, ou a curva lá embaixo te joga fora.	下りでは少しゆるめて。じゃないと下のカーブで飛ばされるよ。
+Choveu no telhado do salão. Goteira na pista é tradição aqui.	ホールの屋根に雨が降った。コースの雨漏りはここの伝統よ。
+Na pista molhada, quem freia cedo chega primeiro.	濡れたコースでは、早くブレーキをかけた者が先に着く。
+Viu a fechada? Duas faixas viram uma. Quem chega depois espera.	合流が見える？2本のレーンが1本になる。後から来たほうが待つんだ。
+Ou bate. Eu prefiro que você bata.	それか、ぶつかる。君がぶつかってくれるほうがいいな。
+Sobrevivência: de tempos em tempos, o último sai. Até sobrar um.	サバイバルよ。一定時間ごとに最下位が脱落、最後の一人になるまで。
+E quem sobra sou eu.	で、最後に残るのはあたし。
+Você solta antes da curva. Quem te ensinou isso?	カーブの手前で離すのね。誰に教わったの？
+...Ele dizia a mesma coisa. Com essas palavras.	…あの人も同じことを言ってた。そのままの言葉で。
+Viu? Carro velho, piloto novo. Treina mais.	ほらね。古い車に新人レーサー。もっと練習しな。
+Ela freia tarde demais. Na próxima, espera ela errar.	あの子はブレーキが遅すぎる。次は、あの子のミスを待ちなさい。
+O Convite é só para quem a Dona Célia chama. Ela chamou você?	招待戦はセリアさんが選んだ人だけ。君、選ばれたの？
+Então tá. Aqui ninguém faz corpo mole.	そっか。ここじゃ誰も手を抜かないよ。
+Curva em C: raio pequeno, volta grande. A velocidade segura cai com o raio.	Cカーブは半径が小さくて回りが長い。半径が小さいほど、安全な速度は下がる。
+Traduzindo: entra devagar e sai acelerando.	つまり、ゆっくり入って、加速しながら出ろということだ。
+Ziguezague molhado e carro emprestado. Quem inventou essa prova?	濡れたジグザグに借り物の車。誰がこんなレース考えたの？
+Eu. Para medir quem pensa antes de acelerar.	私だ。アクセルの前に考える者を測るためにね。
+Salto: devagar, você cai no vão. Rápido demais, o pouso rouba velocidade.	ジャンプは、遅ければ隙間に落ちる。速すぎれば着地で速度を失う。
+Existe um número certo. Ache.	正しい数値がある。見つけたまえ。
+Quinze voltas. Quem sai da pista toda volta não chega no fim.	15周。毎周コースアウトしてたら最後までもたないよ。
+Guarda o turbo: vai ter muita reta.	ターボは取っておいて。ストレートはたくさんあるから。
+Na mesa do mirante, um adesivo velho, quase apagado: "Recorde da pista — F.B., 1994".	展望台のテーブルに、色あせた古いステッカー。「コースレコード — F.B.、1994年」
+F.B. de novo. O mesmo da placa do seu carro. Esse cara passou por todo lugar.	またF.B.だ。君の車のプレートと同じ。この人、どこにでも来てたんだね。
+Você entrou rápido demais na terceira curva. Eu medi.	3つ目のカーブへの進入が速すぎた。測ったからね。
+Volte com outro número.	別の数値を持って出直したまえ。
+Você ganhou a região. Vou para o Nacional também: nem pense que se livrou de mim.	地方大会は君の勝ち。あたしも全国に行くから、逃げられたと思わないでよ。
+No estádio são oito faixas. Leve o meu caderno, e leve a cabeça.	スタジアムは8レーンだ。私のノートと、自分の頭を持っていきたまえ。
+Um loop. De cabeça para baixo, quem segura o carro é a velocidade.	ループだ。逆さまのとき、車を支えてるのはスピードだけ。
+Chega devagar e ele cai. Já aconteceu comigo.	遅く入ったら落ちる。あたしもやったことある。
+Parede da Morte: a pista deita de lado. Devagar demais, o carro descola.	死の壁。コースが横に倒れる。遅すぎると車がはがれるよ。
+E aqui cada saída conta. Poucas e você está fora.	しかもここはコースアウトが数えられる。何回かで失格だよ。
+A Serra molhada é a minha pista preferida. Ninguém aqui gosta de chuva.	濡れた山道は私の好きなコースだ。ここの連中は誰も雨が好きじゃない。
+Por isso eu gosto.	だから私は好きなんだ。
+Vim de ônibus só para ver isso. Vinte voltas! Não queima tudo no começo.	これを見るためにバスで来たんだ。20周だぞ！最初から飛ばしすぎるなよ。
+A Lu mandou dizer que está torcendo pela tevê. E o Beto fingiu que não ouviu.	ルーはテレビで応援してるってさ。ベトは聞こえないふりをしてたけどな。
+Quinze anos. Ninguém passa.	15年だ。誰も抜けない。
+Ele freia na mesma marca toda volta. Dá para usar isso.	あの人、毎周同じ場所でブレーキしてる。そこを使えるよ。
+No jornal do dia seguinte: "Piloto novo vence o GP com o carro de um campeão sumido".	翌日の新聞に「新人、消えた王者の車でGP制覇」。
+Recortei a notícia. Não conta para o Zé que eu fiquei feliz.	記事を切り抜いておいた。喜んでたってゼーには言うなよ。
+Primeira corrida no Mundial? Aqui ninguém tira o pé.	世界で初めてのレース？ここじゃ誰もアクセルを緩めないぜ。
+Eu tiro. Na curva. Por isso ainda estou na pista.	俺は緩めるよ。カーブでね。だからまだコースにいられる。
+Reta dos Recordes. A melhor volta daqui é do Felix faz vinte anos.	記録のストレート。ここのベストラップは20年間フェリックスのものだ。
+Dizem que ele treina sozinho de madrugada. Só ele e o cronômetro.	夜明け前に一人で練習してるらしい。あいつとストップウォッチだけでな。
+Sobrevivência Mundial! O último sai, de tempos em tempos. Eu sempre sobro.	ワールド・サバイバル！時間ごとに最下位が脱落。俺はいつも残るんだ。
+Ele sobra porque ninguém passa ele na reta. Fica atrás e espera a curva.	あいつが残るのは、ストレートで誰も抜けないからだ。後ろについてカーブを待て。
+Tempestade. Na minha terra, a gente corre assim o inverno inteiro.	嵐ね。私の国では、冬じゅうこんな感じで走るの。
+Na minha, a gente fica em casa.	俺の国じゃ、家にいるね。
+O parafuso gira a pista inteira. Lento demais, o carro solta no meio.	スクリューはコースごとねじれる。遅すぎると途中で車が落ちるよ。
+Rápido demais também. Boa sorte!	速すぎてもね。がんばって！
+Perseguição: você larga depois de todo mundo. Bem-vindo à minha vida: dez anos vendo o Felix de costas.	追走戦だ。君は全員の後からスタート。俺の人生へようこそ。10年間、フェリックスの背中ばかり見てきた。
+Segundo lugar eu já sei ser. Terceiro, não vou virar agora.	2位には慣れてる。今さら3位になる気はない。
+...Tá. Você anda muito.	…わかったよ。君は速い。
+Se for passar o Felix, passa de vez. Não deixa pela metade.	フェリックスを抜くなら、きっちり抜け。中途半端はやめろ。
+Vinte voltas no Mundial. A cabeça cansa antes do carro.	世界戦で20周。車より先に頭が疲れるわよ。
+Por isso eu trouxe lanche.	だからおやつを持ってきたんだ。
+Rei do Mundo. Eu ganhei três vezes. O Felix também.	キング・オブ・ザ・ワールド。俺は3回勝った。フェリックスもだ。
+Quero ver se você desempata.	君が決着をつけるか、見せてもらうよ。
+Você corre parecido com ele. Solta antes da curva.	君の走りはあいつに似てる。カーブの手前で離すところとか。
+Ele está te esperando. Não fala, mas está.	あいつは君を待ってる。口には出さないけどね。
+Mais cedo. Você soltou tarde na última curva.	もっと早く。最後のカーブで離すのが遅かった。
+De novo. O relógio não tem pressa.	もう一度。時計は急がない。
+Lendas: os três melhores do mundo na mesma largada. E você.	レジェンド：世界のトップ3が同じスタートラインに。そして君。
+Eu, o Felix e o Ianzin. Sobrou pouco espaço no pódio.	俺とフェリックスとイアンジン。表彰台にはもう空きがないぜ。

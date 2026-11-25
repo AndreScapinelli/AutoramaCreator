@@ -92,6 +92,7 @@ namespace Autorama
             Btn(L.T("Cancelar"), BuildCancel, "btn", brow);
             Btn(L.T("Correr nesta pista"), BuildDone, "btn btn--primary", brow);
 
+            BuildCenaUI();
             TopDownCamera.Moved += CareerPlacePins;
         }
 
@@ -113,6 +114,7 @@ namespace Autorama
         {
             if (kLayer == null || kLayer.style.display == DisplayStyle.None) return;
             kLayer.style.display = DisplayStyle.None;
+            if (kCena != null) { kCena.style.display = DisplayStyle.None; kCenaDone = null; }
             kPause = false;
             System.Array.Clear(sim.aiStyle, 0, sim.aiStyle.Length);       // o jeito da IA é só da carreira
             ShowGarage(false);
@@ -343,6 +345,7 @@ namespace Autorama
             kRegionLabel.text = L.F("{0} · {1} faixas", R.nome, R.faixas);
             kStarsLabel.text = $"★ {Career.RegionStars(kSave, R)} / {R.nos.Length * 3}";
             ColorPins();
+            CenaRegiao();
             kCardBox.Clear();
             var n = KNode;
             kCardBox.style.display = kCard && n != null ? DisplayStyle.Flex : DisplayStyle.None;
@@ -426,6 +429,7 @@ namespace Autorama
         // Correr a prova (no rival, começa a série).
         void CareerRun()
         {
+            if (CenaAntes()) return;
             if (KNode != null && KNode.tipo == "construtor" && (kBuilt ??= SavedBuilt(KNode)) == null) { StartBuild(); return; }
             if (IsChamp) { ChampGo(); return; }
             kHeat = kWins = kLosses = kSerOffs = 0; kSerBest = -1f; kSerTurbo = false;
@@ -569,6 +573,7 @@ namespace Autorama
             kModelsNew.Clear();
             foreach (var x in Progresso.ModelsOf(KNode.id, after)) kModelsNew.Add(x);
             foreach (var x in Progresso.ModelsOf(KNode.id, paid)) kModelsNew.Remove(x);
+            CenasDepois(before, after);
             kItemsNew.Clear();
             foreach (var i in Career.ItemsOf(KNode.id, after)) if (before < i.estrelas) kItemsNew.Add(i);
             if (KNode.tipo == "construtor" && kBuilt != null)
@@ -706,6 +711,7 @@ namespace Autorama
             Btn(L.T("Correr de novo"), CareerRun, "btn", row);
             Btn(L.T("Mapa (Esc)"), () => CareerScreen(KScreen.Map), "btn", row);
             Btn(L.T("Próxima prova (Enter)"), CareerNext, "btn btn--primary", row);
+            PlayCenas(kCenasNew, null);
         }
 
         // Rival, no meio da série: quem ganhou a bateria e o placar.
@@ -755,6 +761,7 @@ namespace Autorama
             var kb = Keyboard.current;
             if (kb == null || IsTyping || keysOpen) return;
             bool esc = kb.escapeKey.wasPressedThisFrame, enter = kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame || AnyPadStart();
+            if (CenaOn) { if (esc) CenaClose(); else if (enter || kb.spaceKey.wasPressedThisFrame) CenaNext(); return; }
             if (GarageOpen) { if (esc || kb.gKey.wasPressedThisFrame) ShowGarage(false); return; }
             if (kScreen == KScreen.Map && kb.gKey.wasPressedThisFrame) { ShowGarage(true); return; }
             switch (kScreen)

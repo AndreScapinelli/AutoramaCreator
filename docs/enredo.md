@@ -49,7 +49,7 @@ A garagem do carro ganha o mesmo motivo, sem mudar a regra: o Zé abre motor e p
 
 Formato: quadrinho por cima do mapa 3D, retrato e balão, 2 a 4 falas, Enter avança, "Pular" fecha. Cada cena aparece uma vez por save (`vistas` no save); o Álbum mostra de novo.
 
-Gatilhos: `regiao` (entrar na região pela 1ª vez), `antes` (abrir o cartão do nó pela 1ª vez), `depois` (1ª vez que o nó chega às estrelas pedidas), `item` (junto do objeto).
+Gatilhos: `regiao` (entrar na região pela 1ª vez), `antes` (abrir o cartão do nó pela 1ª vez), `depois` (1ª vez que o nó chega às estrelas pedidas), `derrota` (a prova não deu estrela e o nó segue sem nenhuma), `item` (junto do objeto).
 
 ### Garagem
 
@@ -164,6 +164,172 @@ Gatilhos: `regiao` (entrar na região pela 1ª vez), `antes` (abrir o cartão do
 > *(narração)* Na Garagem, o Tio Beto pendurou a foto de 96 na parede. Sem risco.
 > **Tio Beto:** Pista nova no Natal. Grande. Monta você.
 
+## Cenas da 2ª leva
+
+Falas curtas entre as cenas principais: peça ou regra nova, pistas do Fê no meio das regiões, campeonatos, derrotas para os rivais (`derrota`) e a turma do Global. Ficam no `cenas.json` com as outras.
+
+### Garagem
+
+**g7-relogio** (`antes`, garagem-2)
+> **Zé da Oficina:** Prova de relógio: ninguém na pista e nada de turbo. É você contra o cronômetro.
+> **Zé da Oficina:** O Fê passava a tarde nessa bancada, batendo a própria volta.
+
+**g8-chuva** (`antes`, garagem-4)
+> **Lu Parafuso:** O Zé lavou o chão e a pista molhou junto. Hoje o pneu escorrega.
+> **Lu Parafuso:** Freia mais cedo. E o carro é o da oficina: hoje não dá para mexer no ajuste.
+
+**g9-atrasada** (`antes`, garagem-7)
+> **Zé da Oficina:** Hoje você sai depois de todo mundo. Paciência: a corrida é longa.
+> **Zé da Oficina:** O Beto fazia isso com o Fê de castigo. E o Fê ganhava assim mesmo.
+
+**g10-copinha** (`antes`, garagem-copinha)
+> **Zé da Oficina:** Campeonato: várias baterias, e cada um larga de um trilho. Vale o total, não uma corrida só.
+> **Lu Parafuso:** Eu vou correr também. E não vou facilitar!
+
+**g11-rei** (`depois`, garagem-rei)
+> **Lu Parafuso:** Rei da Garagem! Vou pintar uma coroa no seu carro.
+> **Zé da Oficina:** Pinta não, que o Fê me mata. ...Se ele voltar um dia.
+
+**g12-beto-perde** (`derrota`, garagem-9)
+> **Tio Beto:** Carro do Fê não faz piloto. Volta quando souber frear.
+> **Lu Parafuso:** Ele está resmungando, mas ficou um tempão olhando o seu carro.
+
+### Clube
+
+**c4-viaduto** (`antes`, clube-3)
+> **Nina Pistão:** Primeira vez no viaduto? Na subida o carro perde força; na descida, embala.
+> **Nina Pistão:** Segura o gatilho na descida, ou a curva lá embaixo te joga fora.
+
+**c5-chuva** (`antes`, clube-chuva)
+> **Dona Célia:** Choveu no telhado do salão. Goteira na pista é tradição aqui.
+> **Dona Célia:** Na pista molhada, quem freia cedo chega primeiro.
+
+**c6-funil** (`antes`, clube-funil)
+> **Rafa Turbo:** Viu a fechada? Duas faixas viram uma. Quem chega depois espera.
+> **Rafa Turbo:** Ou bate. Eu prefiro que você bata.
+
+**c7-elim** (`antes`, clube-elim)
+> **Marina Faísca:** Sobrevivência: de tempos em tempos, o último sai. Até sobrar um.
+> **Marina Faísca:** E quem sobra sou eu.
+
+**c8-celia-copa** (`depois`, clube-copa)
+> **Dona Célia:** Você solta antes da curva. Quem te ensinou isso?
+> **Dona Célia:** ...Ele dizia a mesma coisa. Com essas palavras.
+
+**c9-marina-perde** (`derrota`, clube-marina)
+> **Marina Faísca:** Viu? Carro velho, piloto novo. Treina mais.
+> **Dona Célia:** Ela freia tarde demais. Na próxima, espera ela errar.
+
+**c10-convite** (`antes`, clube-convite)
+> **Rafa Turbo:** O Convite é só para quem a Dona Célia chama. Ela chamou você?
+> **Rafa Turbo:** Então tá. Aqui ninguém faz corpo mole.
+
+### Regional
+
+**r3-c** (`antes`, regional-3)
+> **Dr. Curva:** Curva em C: raio pequeno, volta grande. A velocidade segura cai com o raio.
+> **Dr. Curva:** Traduzindo: entra devagar e sai acelerando.
+
+**r4-chuva** (`antes`, regional-chuva)
+> **Marina Faísca:** Ziguezague molhado e carro emprestado. Quem inventou essa prova?
+> **Dr. Curva:** Eu. Para medir quem pensa antes de acelerar.
+
+**r5-salto** (`antes`, regional-6)
+> **Dr. Curva:** Salto: devagar, você cai no vão. Rápido demais, o pouso rouba velocidade.
+> **Dr. Curva:** Existe um número certo. Ache.
+
+**r6-resist** (`antes`, regional-resist)
+> **Nina Pistão:** Quinze voltas. Quem sai da pista toda volta não chega no fim.
+> **Nina Pistão:** Guarda o turbo: vai ter muita reta.
+
+**r7-adesivo** (`depois`, regional-mirante)
+> *(narração)* Na mesa do mirante, um adesivo velho, quase apagado: "Recorde da pista — F.B., 1994".
+> **Marina Faísca:** F.B. de novo. O mesmo da placa do seu carro. Esse cara passou por todo lugar.
+
+**r8-curva-perde** (`derrota`, regional-drcurva)
+> **Dr. Curva:** Você entrou rápido demais na terceira curva. Eu medi.
+> **Dr. Curva:** Volte com outro número.
+
+**r9-copa** (`depois`, regional-copa)
+> **Marina Faísca:** Você ganhou a região. Vou para o Nacional também: nem pense que se livrou de mim.
+> **Dr. Curva:** No estádio são oito faixas. Leve o meu caderno, e leve a cabeça.
+
+### Nacional
+
+**n4-loop** (`antes`, nacional-3)
+> **Marina Faísca:** Um loop. De cabeça para baixo, quem segura o carro é a velocidade.
+> **Marina Faísca:** Chega devagar e ele cai. Já aconteceu comigo.
+
+**n5-parede** (`antes`, nacional-parede)
+> **Nina Pistão:** Parede da Morte: a pista deita de lado. Devagar demais, o carro descola.
+> **Nina Pistão:** E aqui cada saída conta. Poucas e você está fora.
+
+**n6-serra** (`antes`, nacional-serra)
+> **O Campeão:** A Serra molhada é a minha pista preferida. Ninguém aqui gosta de chuva.
+> **O Campeão:** Por isso eu gosto.
+
+**n7-resist** (`antes`, nacional-resist)
+> **Zé da Oficina:** Vim de ônibus só para ver isso. Vinte voltas! Não queima tudo no começo.
+> **Zé da Oficina:** A Lu mandou dizer que está torcendo pela tevê. E o Beto fingiu que não ouviu.
+
+**n8-campeao-perde** (`derrota`, nacional-campeao)
+> **O Campeão:** Quinze anos. Ninguém passa.
+> **Marina Faísca:** Ele freia na mesma marca toda volta. Dá para usar isso.
+
+**n9-gp** (`depois`, nacional-gp)
+> *(narração)* No jornal do dia seguinte: "Piloto novo vence o GP com o carro de um campeão sumido".
+> **Tio Beto:** Recortei a notícia. Não conta para o Zé que eu fiquei feliz.
+
+### Global
+
+**w5-autodromo** (`antes`, global-1)
+> **Kojiro:** Primeira corrida no Mundial? Aqui ninguém tira o pé.
+> **Leector:** Eu tiro. Na curva. Por isso ainda estou na pista.
+
+**w6-recordes** (`antes`, global-2)
+> **Devair:** Reta dos Recordes. A melhor volta daqui é do Felix faz vinte anos.
+> **Devair:** Dizem que ele treina sozinho de madrugada. Só ele e o cronômetro.
+
+**w7-elim** (`antes`, global-elim)
+> **Bilboque:** Sobrevivência Mundial! O último sai, de tempos em tempos. Eu sempre sobro.
+> **Nebrown:** Ele sobra porque ninguém passa ele na reta. Fica atrás e espera a curva.
+
+**w8-tempestade** (`antes`, global-chuva)
+> **Sofia Lindqvist:** Tempestade. Na minha terra, a gente corre assim o inverno inteiro.
+> **Mateo Ruiz:** Na minha, a gente fica em casa.
+
+**w9-parafuso** (`antes`, global-parafuso)
+> **Peripato:** O parafuso gira a pista inteira. Lento demais, o carro solta no meio.
+> **Peripato:** Rápido demais também. Boa sorte!
+
+**w10-rios** (`antes`, global-perseg)
+> **Rios:** Perseguição: você larga depois de todo mundo. Bem-vindo à minha vida: dez anos vendo o Felix de costas.
+> **Rios:** Segundo lugar eu já sei ser. Terceiro, não vou virar agora.
+
+**w11-rios-depois** (`depois`, global-perseg)
+> **Rios:** ...Tá. Você anda muito.
+> **Rios:** Se for passar o Felix, passa de vez. Não deixa pela metade.
+
+**w12-resist** (`antes`, global-resist)
+> **Aiko Tanabe:** Vinte voltas no Mundial. A cabeça cansa antes do carro.
+> **SquadFun:** Por isso eu trouxe lanche.
+
+**w13-ianzin** (`antes`, global-rei)
+> **Ianzin:** Rei do Mundo. Eu ganhei três vezes. O Felix também.
+> **Ianzin:** Quero ver se você desempata.
+
+**w14-copa** (`depois`, global-copa)
+> **Ianzin:** Você corre parecido com ele. Solta antes da curva.
+> **Ianzin:** Ele está te esperando. Não fala, mas está.
+
+**w15-felix-perde** (`derrota`, global-felix)
+> **Felix Badar:** Mais cedo. Você soltou tarde na última curva.
+> **Felix Badar:** De novo. O relógio não tem pressa.
+
+**w16-lendas** (`antes`, global-convite)
+> *(narração)* Lendas: os três melhores do mundo na mesma largada. E você.
+> **Rios:** Eu, o Felix e o Ianzin. Sobrou pouco espaço no pódio.
+
 ## Cartas do Fê
 
 Uma por região, ganha com **★★★** na prova de relógio do meio (a volta perfeita é a obsessão dele). Cada carta tem uma dica real e uma pista do mistério. Ficam no Álbum.
@@ -197,6 +363,6 @@ Uma por região, ganha com **★★★** na prova de relógio do meio (a volta p
 ## Ordem sugerida
 
 1. ~~Objetos e trava dos controles na carreira (sem tela de cena): já muda o jogo.~~ Pronto (seção 104 do guia; os objetos ficam em `Career.Itens`, lidos das estrelas, sem campo novo no save). Parciais e fantasma do caderno ficam para depois.
-2. Tela de cena e as cenas principais (G0, G4, G5, C3, N2, W1, W3).
+2. ~~Tela de cena e as cenas principais.~~ Pronto, com todas as cenas deste roteiro (seção 106 do guia; `Resources/Carreira/cenas.json`). O caderno do Dr. Curva ainda não abre parciais nem fantasma, então a fala dele diz só que anotou as voltas do "F.B.".
 3. Resto das cenas, cartas e Álbum.
 4. Retratos e tradução.

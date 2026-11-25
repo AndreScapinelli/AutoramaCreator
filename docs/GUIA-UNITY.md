@@ -5888,3 +5888,39 @@ Primeira etapa do enredo "A caixa do Tio Fê" (`docs/enredo.md`, fase H do `docs
 | global-1 (salto) | 70 · 100 · 130 · 180 | 0 → 0 | 14,79→14,07 · 13,89→13,30 · 13,47→12,96 · 12,47 |
 
 Na global-1 as curvas são inclinadas e longas: mesmo a 1,6 × o limite o carro bate na velocidade máxima antes, e não sai. Os tempos do relógio da carreira (seção 70) vieram da IA de antes; nas pistas com salto a IA ficou ~4% mais rápida.
+
+## 106. Cenas do enredo na carreira
+
+Segunda etapa do enredo "A caixa do Tio Fê" (`docs/enredo.md`): a história aparece na tela em quadrinho, por cima da carreira.
+
+**Dados:** `Resources/Carreira/cenas.json`, fora do `carreira.json`.
+- `elenco`: nome e cor de quem fala. A cor pinta o retrato e o nome.
+- `cenas`: `id`, `quando`, `no`, `estrelas` (padrão 1) e `falas` (`quem`, `texto`; `quem` vazio = narração, em itálico e sem retrato).
+- `quando`:
+  - `regiao`: `no` é o id da região; aparece quando o mapa dela abre e a região ainda não tem estrelas.
+  - `antes`: `no` é o id do nó; aparece ao correr o nó pela 1ª vez (sem estrelas). No fim, a prova larga sozinha.
+  - `depois`: aparece no resultado, quando o nó passa das `estrelas` pedidas nesta prova (`before < estrelas <= after`).
+  - `derrota`: aparece no resultado quando a prova não deu estrela e o nó continua sem nenhuma (`after == 0`). Usada nos rivais: a provocação do rival e um conselho de quem está por perto.
+- `Career/Cenas.cs`: carrega e traduz (`L.T` em cada `texto`; o `quem` fica em português, é a chave da cor, e é traduzido na tela), `De(quando, no)`, `Cor`, `Iniciais` ("Dona Célia" → DC, "Ianzin" → IA).
+
+**Tela** (`Race/RaceController.Cenas.cs`, classes `.k-cena*` no `Construtor.uss`): fundo escurecido, caixa embaixo (acima dos painéis dos pilotos), retrato redondo com as iniciais na cor do personagem, nome, fala e a dica "Enter ou clique continua · Esc pula". Enter, Espaço ou clique avançam; Esc pula a cena (as outras teclas da carreira ficam paradas enquanto ela está aberta).
+
+**Uma vez por save:** `CareerSave.vistas` guarda os ids das cenas vistas (pular também conta). Save antigo: as cenas de região e de "antes" só aparecem se a região ou o nó ainda não tem estrelas, e as de "depois" só na hora em que as estrelas chegam; quem já passou de uma parte não vê a cena dela.
+
+**Cuidado:** `PlayCenas` salva o save por último. Salvar chama o `Progresso.Refresh`, que redesenha o mapa e pergunta de novo pelas cenas; se salvar antes de mostrar, a segunda chamada apagava as falas (a lista nova é montada à parte e `PlayCenas` não faz nada com uma cena já aberta).
+
+**Cenas da 1ª leva (23, 57 falas):** chegada em cada região (5), Zé antes da 1ª prova, o gatilho, a lata de nitro, o Tio Beto antes e depois, a ida para o Clube, a Dona Célia (antes da 1ª prova do Clube e o controle na Taça), Marina, Dr. Curva e o caderno, a foto riscada, O Campeão e a foto de 96, o convite, o Felix antes e depois da série, o carro do Fê e o epílogo. Texto completo e ordem em `docs/enredo.md`. Duas falas do Felix são as `rivalFrase`/`rivalVitoria` dele, com a tradução que já existia.
+
+**Idiomas:** as 57 falas e a dica estão nas 5 tabelas. O `ferramentas/idiomas.js` passou a ler o `cenas.json` (`texto` e `quem`).
+
+**Mais falas (106.1):** 38 cenas novas, 76 falas. Total: 61 cenas, 133 falas.
+- Peça ou regra nova, na 1ª vez: relógio (`garagem-2`), chuva (`garagem-4`, `clube-chuva`, `regional-chuva`, `nacional-serra`, `global-chuva`), largada atrasada (`garagem-7`, `global-perseg`), campeonato (`garagem-copinha`), viaduto, funil, eliminação (`clube-elim`, `global-elim`), curva em C, salto, resistência (3), loop, parede, parafuso.
+- Pistas do Fê no meio das regiões: a bancada do relógio, o castigo do Beto, a Dona Célia depois da `clube-copa`, o adesivo "F.B., 1994" no `regional-mirante`, a notícia do GP que o Beto recorta.
+- Depois dos campeonatos: `garagem-rei`, `clube-copa`, `regional-copa`, `nacional-gp`, `global-copa`.
+- Derrota (5): Tio Beto, Marina, Dr. Curva, O Campeão e Felix.
+- Global: uma cena com cada amigo (Kojiro e Leector, Devair, Bilboque e Nebrown, Peripato, SquadFun), as lendas (Sofia e Mateo, Aiko), o Rios antes e depois da Perseguição, o Ianzin antes do Rei do Mundo e depois da Copa, e a largada das Lendas.
+- O elenco ganhou Bilboque, Kojiro, Leector, Devair, Nebrown, Peripato, Sofia Lindqvist, Mateo Ruiz e Aiko Tanabe, com a cor do `carreira.json`.
+- Teste (`script eval`): 61 cenas, todas num nó que existe e com quem fala no elenco; `CenasDepois` no `garagem-9`: 0→0 dá `g12-beto-perde`, 0→1 dá `g5-caixa-grande`. `idiomas.js`: faltam 0 nas 5 tabelas.
+
+**Teste** (Play, save novo só na memória, com backup e restauração dos dados do jogador): abrir o mapa da Garagem → a chegada (2 narrações e a Lu), `vistas = g0-caixa`; correr `garagem-1` → as 2 falas do Zé e, no fim, a prova larga (`tela = Race`); `garagem-9` com 0→1 estrela → a cena do Tio Beto. Validação do JSON (`script eval`): 23 cenas, todas ligadas a um nó ou região que existe, e todo personagem com cor no elenco. Na captura, a caixa ficava em cima dos painéis dos pilotos; subiu para 170 px do fundo.
+

@@ -1631,3 +1631,130 @@ Entrega: {0}	Reward: {0}
 Sem turbo: você ainda não tem a lata de nitro.	No turbo: you don't have the nitro can yet.
 Ganhou: {0}	Got: {0}
 ACELERAR  {0}{1}	THROTTLE  {0}{1}
+A caixa estava atrás das latas de tinta, com o seu nome escrito a caneta.	The box was behind the paint cans, with your name written on it in pen.
+Dentro: um carrinho vermelho, um controle de lata e um bilhete. "Para quando você tiver idade. — Fê."	Inside: a little red car, a tin controller and a note. "For when you are old enough. — Fê."
+Fê? O seu tio que sumiu? O Zé da oficina conhecia ele. Vamos lá!	Fê? Your uncle who disappeared? Zé from the workshop knew him. Come on!
+Esse controle aí só tem acelerar. Ou vai, ou para. Solta antes da curva, não dentro.	That controller only has throttle. Either it goes or it stops. Let go before the curve, not in it.
+Saiu da pista? Recoloca e segue. Todo mundo sai.	Flew off the track? Put it back and keep going. Everybody flies off.
+Abri o seu controle. O Fê tinha soldado um segundo estágio aqui dentro e desligado. Liguei.	I opened your controller. Fê had soldered a second stage inside and switched it off. I turned it on.
+Agora tem meia aceleração: segura no meio e o carro passa na curva sem soltar.	Now it has half throttle: hold it halfway and the car takes the curve without letting go.
+Achei isso no fundo da caixa. Está escrito "só nas retas".	I found this at the bottom of the box. It says "straights only".
+É turbo! Enche um pouco a cada volta, e quem está atrás ganha mais.	It's turbo! It fills a little every lap, and whoever is behind gets more.
+Esse carro é do Fê. Onde você achou isso?	That is Fê's car. Where did you find it?
+Ele largou tudo aqui e foi embora. Monto autorama desde antes de você nascer. Mostra o que sabe.	He left everything here and went away. I've been building slot tracks since before you were born. Show me what you've got.
+...Você freia igualzinho a ele.	...You brake exactly like him.
+Tem mais uma caixa dele no sótão. Nunca tive coragem de abrir. Fica com ela.	There's another box of his in the attic. I never had the nerve to open it. Keep it.
+Na caixa grande: cartas, um carro azul de turismo e um recorte de jornal rasgado bem no nome.	In the big box: letters, a blue touring car and a newspaper clipping torn right through the name.
+A garagem ficou pequena. O Clube do centro tem pista de quatro carros.	The garage got too small for you. The downtown Club has a four-car track.
+Procura a Dona Célia. Se alguém sabe do Fê, é ela.	Look for Dona Célia. If anyone knows about Fê, it's her.
+Novato com carro velho? A Marina vai te engolir.	A rookie with an old car? Marina is going to eat you alive.
+No fundo do salão, uma senhora lustra um controle preto com fita no gatilho.	At the back of the hall, an older lady polishes a black controller with tape on the trigger.
+Esse chassi... Faz muito tempo que não vejo esse carro.	That chassis... It's been a long time since I saw that car.
+Corre primeiro. Depois a gente conversa.	Race first. We'll talk later.
+Tá, tá... você freia melhor que eu.	Fine, fine... you brake better than me.
+Na Taça Clube eu te pego. E a Dona Célia só dá o controle dela para quem ganha a Taça.	I'll get you in the Club Cup. And Dona Célia only gives her controller to whoever wins the Cup.
+Seu tio e eu corremos em dupla seis anos. Ele era rápido; eu era precisa.	Your uncle and I raced as a pair for six years. He was fast; I was precise.
+Este controle tem o ajuste fino: muda a meia aceleração no meio da volta. Para cada curva, um ponto.	This controller has fine-tuning: it changes the half throttle mid-lap. A different point for every curve.
+Ele foi embora numa noite e nunca mais escreveu. Se você achar ele, diz que eu guardei o lugar dele.	He left one night and never wrote again. If you find him, tell him I kept his place.
+Seis faixas, salto, curva em C. Aqui sorte não vale nada.	Six lanes, jumps, C-curves. Luck is worth nothing here.
+No corredor do ginásio, uma foto: a Dona Célia jovem e, ao lado, um piloto de boné com o rosto riscado.	In the gym corridor, a photo: a young Dona Célia and, next to her, a driver in a cap with his face scratched out.
+Quem risca a cara de alguém numa foto?	Who scratches out someone's face in a photo?
+Fica com o meu caderno. Anotei tudo de um piloto que freava tarde como você.	Keep my notebook. I wrote down everything about a driver who braked late like you.
+Ele assinava as voltas com duas letras: F.B.	He signed his laps with two letters: F.B.
+Oito carros, loop, salto grande. A gente chegou.	Eight cars, loops, big jumps. We made it.
+O Campeão não perde aqui há quinze anos.	The Champion hasn't lost here in fifteen years.
+Esse carro... eu perdi para um carro igual a esse. Uma vez só.	That car... I lost to a car just like that one. Only once.
+Final de 96. Ele me passou na última curva e nunca mais correu aqui. Foi correr lá fora.	The '96 final. He passed me on the last curve and never raced here again. He went to race abroad.
+Na foto inteira, sem risco, o piloto de boné segura a taça. Embaixo, a assinatura: Felix Badar.	In the whole photo, unscratched, the driver in the cap holds the trophy. Below it, the signature: Felix Badar.
+Felix Badar. F.B. Não sabia que ele tinha família.	Felix Badar. F.B. I didn't know he had family.
+Um envelope sem remetente: "Convite: Felix Badar". Dentro, uma frase só.	An envelope with no sender: "Invitation: Felix Badar". Inside, a single sentence.
+Mais um que veio atrás do Felix. Entra na fila: eu estou nela há dez anos.	Another one chasing Felix. Get in line: I've been in it for ten years.
+Ninguém passa ele há trinta anos. Ninguém nem sabe onde ele mora.	Nobody has passed him in thirty years. Nobody even knows where he lives.
+Eu sei. E empato com ele quase sempre. Quase.	I know. And I tie with him almost every time. Almost.
+Ele tira o boné. É o rosto da foto, trinta anos depois.	He takes off his cap. It's the face from the photo, thirty years later.
+Achou a caixa, então.	So you found the box.
+Não vim conversar. Vim correr. Vence a série e a gente conversa.	I didn't come to talk. I came to race. Win the series and we'll talk.
+Você solta antes da curva. Eu escrevi isso numa carta, não foi?	You let go before the curve. I wrote that in a letter, didn't I?
+Fui embora porque o Beto queria a garagem e eu queria o mundo. Fiquei tempo demais.	I left because Beto wanted the garage and I wanted the world. I stayed away too long.
+Falta o Mundial. Lá eu não vou te deixar passar.	The World Championship is left. There, I won't let you pass.
+Leva o meu carro. E leva um recado para a Dona Célia e para o Beto: eu volto no Natal.	Take my car. And take a message to Dona Célia and Beto: I'm coming back for Christmas.
+Construtor sem limite. Bolha Fórmula aberta em todos os modos.	Builder without limits. Formula body unlocked in every mode.
+Na garagem, o Tio Beto pendurou a foto de 96 na parede. Sem risco.	In the garage, Uncle Beto hung the '96 photo on the wall. Unscratched.
+Pista nova no Natal. Grande. Monta você.	New track for Christmas. A big one. You build it.
+Enter ou clique continua · Esc pula	Enter or click to continue · Esc to skip
+Prova de relógio: ninguém na pista e nada de turbo. É você contra o cronômetro.	Time trial: nobody else on the track and no turbo. It's you against the clock.
+O Fê passava a tarde nessa bancada, batendo a própria volta.	Fê used to spend whole afternoons at this bench, beating his own lap.
+O Zé lavou o chão e a pista molhou junto. Hoje o pneu escorrega.	Zé washed the floor and the track got wet too. The tyres will slide today.
+Freia mais cedo. E o carro é o da oficina: hoje não dá para mexer no ajuste.	Brake earlier. And it's the workshop car: no changing the setup today.
+Hoje você sai depois de todo mundo. Paciência: a corrida é longa.	Today you start after everyone else. Be patient: it's a long race.
+O Beto fazia isso com o Fê de castigo. E o Fê ganhava assim mesmo.	Beto used to do this to Fê as a punishment. And Fê still won.
+Campeonato: várias baterias, e cada um larga de um trilho. Vale o total, não uma corrida só.	Championship: several heats, and everyone takes a turn on each lane. The total counts, not one race.
+Eu vou correr também. E não vou facilitar!	I'm racing too. And I won't go easy on you!
+Rei da Garagem! Vou pintar uma coroa no seu carro.	King of the Garage! I'm painting a crown on your car.
+Pinta não, que o Fê me mata. ...Se ele voltar um dia.	Don't you dare, Fê would kill me. ...If he ever comes back.
+Carro do Fê não faz piloto. Volta quando souber frear.	Fê's car doesn't make you a driver. Come back when you know how to brake.
+Ele está resmungando, mas ficou um tempão olhando o seu carro.	He's grumbling, but he spent ages staring at your car.
+Primeira vez no viaduto? Na subida o carro perde força; na descida, embala.	First time on the overpass? Going up the car loses power; going down, it picks up speed.
+Segura o gatilho na descida, ou a curva lá embaixo te joga fora.	Ease off on the way down, or the curve at the bottom will throw you off.
+Choveu no telhado do salão. Goteira na pista é tradição aqui.	It rained on the hall's roof. A leak over the track is a tradition here.
+Na pista molhada, quem freia cedo chega primeiro.	On a wet track, whoever brakes early gets there first.
+Viu a fechada? Duas faixas viram uma. Quem chega depois espera.	See the merge? Two lanes become one. Whoever gets there second waits.
+Ou bate. Eu prefiro que você bata.	Or crashes. I'd rather you crash.
+Sobrevivência: de tempos em tempos, o último sai. Até sobrar um.	Survival: every so often, the last car is out. Until only one is left.
+E quem sobra sou eu.	And the one left will be me.
+Você solta antes da curva. Quem te ensinou isso?	You let go before the curve. Who taught you that?
+...Ele dizia a mesma coisa. Com essas palavras.	...He used to say the same thing. In those very words.
+Viu? Carro velho, piloto novo. Treina mais.	See? Old car, new driver. Practise more.
+Ela freia tarde demais. Na próxima, espera ela errar.	She brakes too late. Next time, wait for her to make a mistake.
+O Convite é só para quem a Dona Célia chama. Ela chamou você?	The Invitational is only for people Dona Célia picks. She picked you?
+Então tá. Aqui ninguém faz corpo mole.	Fine, then. Nobody takes it easy in here.
+Curva em C: raio pequeno, volta grande. A velocidade segura cai com o raio.	C curve: small radius, long turn. The safe speed drops with the radius.
+Traduzindo: entra devagar e sai acelerando.	In plain words: go in slow and come out accelerating.
+Ziguezague molhado e carro emprestado. Quem inventou essa prova?	Wet zigzag and a borrowed car. Who came up with this race?
+Eu. Para medir quem pensa antes de acelerar.	I did. To measure who thinks before they accelerate.
+Salto: devagar, você cai no vão. Rápido demais, o pouso rouba velocidade.	The jump: too slow and you fall into the gap. Too fast and the landing steals your speed.
+Existe um número certo. Ache.	There is a right number. Find it.
+Quinze voltas. Quem sai da pista toda volta não chega no fim.	Fifteen laps. Whoever comes off every lap won't make it to the end.
+Guarda o turbo: vai ter muita reta.	Save your turbo: there'll be plenty of straights.
+Na mesa do mirante, um adesivo velho, quase apagado: "Recorde da pista — F.B., 1994".	On the lookout's table, an old, faded sticker: "Track record — F.B., 1994".
+F.B. de novo. O mesmo da placa do seu carro. Esse cara passou por todo lugar.	F.B. again. Same as the plate on your car. This guy has been everywhere.
+Você entrou rápido demais na terceira curva. Eu medi.	You went into the third curve too fast. I measured it.
+Volte com outro número.	Come back with a different number.
+Você ganhou a região. Vou para o Nacional também: nem pense que se livrou de mim.	You won the region. I'm going to the Nationals too: don't think you're rid of me.
+No estádio são oito faixas. Leve o meu caderno, e leve a cabeça.	The stadium has eight lanes. Take my notebook, and take your head.
+Um loop. De cabeça para baixo, quem segura o carro é a velocidade.	A loop. Upside down, the only thing holding the car is speed.
+Chega devagar e ele cai. Já aconteceu comigo.	Arrive too slow and it falls. It's happened to me.
+Parede da Morte: a pista deita de lado. Devagar demais, o carro descola.	Wall of Death: the track tips onto its side. Too slow and the car comes off.
+E aqui cada saída conta. Poucas e você está fora.	And here every off counts. A few and you're out.
+A Serra molhada é a minha pista preferida. Ninguém aqui gosta de chuva.	The wet Mountain is my favourite track. Nobody here likes rain.
+Por isso eu gosto.	That's why I like it.
+Vim de ônibus só para ver isso. Vinte voltas! Não queima tudo no começo.	I came by bus just to watch this. Twenty laps! Don't burn everything at the start.
+A Lu mandou dizer que está torcendo pela tevê. E o Beto fingiu que não ouviu.	Lu says she's cheering for you on TV. And Beto pretended not to hear.
+Quinze anos. Ninguém passa.	Fifteen years. Nobody gets past.
+Ele freia na mesma marca toda volta. Dá para usar isso.	He brakes at the same mark every lap. You can use that.
+No jornal do dia seguinte: "Piloto novo vence o GP com o carro de um campeão sumido".	In the next day's paper: "New driver wins the GP in a vanished champion's car".
+Recortei a notícia. Não conta para o Zé que eu fiquei feliz.	I cut out the article. Don't tell Zé I was happy.
+Primeira corrida no Mundial? Aqui ninguém tira o pé.	First race at the World level? Nobody lifts off here.
+Eu tiro. Na curva. Por isso ainda estou na pista.	I do. In the curves. That's why I'm still on the track.
+Reta dos Recordes. A melhor volta daqui é do Felix faz vinte anos.	Straight of Records. The best lap here has been Felix's for twenty years.
+Dizem que ele treina sozinho de madrugada. Só ele e o cronômetro.	They say he trains alone before dawn. Just him and the stopwatch.
+Sobrevivência Mundial! O último sai, de tempos em tempos. Eu sempre sobro.	World Survival! The last car goes out every so often. I'm always left standing.
+Ele sobra porque ninguém passa ele na reta. Fica atrás e espera a curva.	He survives because nobody can pass him on the straight. Stay behind and wait for the curve.
+Tempestade. Na minha terra, a gente corre assim o inverno inteiro.	A storm. Where I come from, we race like this all winter.
+Na minha, a gente fica em casa.	Where I come from, we stay home.
+O parafuso gira a pista inteira. Lento demais, o carro solta no meio.	The corkscrew twists the whole track. Too slow and the car drops off halfway.
+Rápido demais também. Boa sorte!	Too fast, too. Good luck!
+Perseguição: você larga depois de todo mundo. Bem-vindo à minha vida: dez anos vendo o Felix de costas.	Pursuit: you start after everyone else. Welcome to my life: ten years looking at Felix's back.
+Segundo lugar eu já sei ser. Terceiro, não vou virar agora.	I already know how to be second. I'm not becoming third now.
+...Tá. Você anda muito.	...Fine. You're fast.
+Se for passar o Felix, passa de vez. Não deixa pela metade.	If you're going to pass Felix, do it properly. Don't stop halfway.
+Vinte voltas no Mundial. A cabeça cansa antes do carro.	Twenty laps at World level. Your head tires before the car does.
+Por isso eu trouxe lanche.	That's why I brought snacks.
+Rei do Mundo. Eu ganhei três vezes. O Felix também.	King of the World. I've won it three times. So has Felix.
+Quero ver se você desempata.	Let's see if you break the tie.
+Você corre parecido com ele. Solta antes da curva.	You race a lot like him. You let go before the curve.
+Ele está te esperando. Não fala, mas está.	He's waiting for you. He won't say it, but he is.
+Mais cedo. Você soltou tarde na última curva.	Earlier. You let go late on the last curve.
+De novo. O relógio não tem pressa.	Again. The clock is in no hurry.
+Lendas: os três melhores do mundo na mesma largada. E você.	Legends: the three best in the world on the same grid. And you.
+Eu, o Felix e o Ianzin. Sobrou pouco espaço no pódio.	Me, Felix and Ianzin. There's not much room left on the podium.

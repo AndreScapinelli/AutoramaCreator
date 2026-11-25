@@ -1,0 +1,1057 @@
+{
+  "elenco": [
+    {
+      "nome": "Tio Beto",
+      "cor": "#8B5A2B"
+    },
+    {
+      "nome": "Zé da Oficina",
+      "cor": "#2563EB"
+    },
+    {
+      "nome": "Lu Parafuso",
+      "cor": "#16A34A"
+    },
+    {
+      "nome": "Dona Célia",
+      "cor": "#0EA5B7"
+    },
+    {
+      "nome": "Marina Faísca",
+      "cor": "#E04B95"
+    },
+    {
+      "nome": "Rafa Turbo",
+      "cor": "#F97316"
+    },
+    {
+      "nome": "Nina Pistão",
+      "cor": "#A3E635"
+    },
+    {
+      "nome": "Dr. Curva",
+      "cor": "#9333EA"
+    },
+    {
+      "nome": "O Campeão",
+      "cor": "#F2B705"
+    },
+    {
+      "nome": "Felix Badar",
+      "cor": "#E5E7EB"
+    },
+    {
+      "nome": "Rios",
+      "cor": "#0284C7"
+    },
+    {
+      "nome": "SquadFun",
+      "cor": "#22C55E"
+    },
+    {
+      "nome": "Ianzin",
+      "cor": "#6366F1"
+    },
+    {
+      "nome": "Bilboque",
+      "cor": "#A855F7"
+    },
+    {
+      "nome": "Kojiro",
+      "cor": "#F97316"
+    },
+    {
+      "nome": "Leector",
+      "cor": "#14B8A6"
+    },
+    {
+      "nome": "Devair",
+      "cor": "#EAB308"
+    },
+    {
+      "nome": "Nebrown",
+      "cor": "#92400E"
+    },
+    {
+      "nome": "Peripato",
+      "cor": "#84CC16"
+    },
+    {
+      "nome": "Sofia Lindqvist",
+      "cor": "#38BDF8"
+    },
+    {
+      "nome": "Mateo Ruiz",
+      "cor": "#EF4444"
+    },
+    {
+      "nome": "Aiko Tanabe",
+      "cor": "#F472B6"
+    }
+  ],
+  "cenas": [
+    {
+      "id": "g0-caixa",
+      "quando": "regiao",
+      "no": "garagem",
+      "falas": [
+        {
+          "quem": "",
+          "texto": "A caixa estava atrás das latas de tinta, com o seu nome escrito a caneta."
+        },
+        {
+          "quem": "",
+          "texto": "Dentro: um carrinho vermelho, um controle de lata e um bilhete. \"Para quando você tiver idade. — Fê.\""
+        },
+        {
+          "quem": "Lu Parafuso",
+          "texto": "Fê? O seu tio que sumiu? O Zé da oficina conhecia ele. Vamos lá!"
+        }
+      ]
+    },
+    {
+      "id": "g1-lata",
+      "quando": "antes",
+      "no": "garagem-1",
+      "falas": [
+        {
+          "quem": "Zé da Oficina",
+          "texto": "Esse controle aí só tem acelerar. Ou vai, ou para. Solta antes da curva, não dentro."
+        },
+        {
+          "quem": "Zé da Oficina",
+          "texto": "Saiu da pista? Recoloca e segue. Todo mundo sai."
+        }
+      ]
+    },
+    {
+      "id": "g2-gatilho",
+      "quando": "depois",
+      "no": "garagem-oficina",
+      "falas": [
+        {
+          "quem": "Zé da Oficina",
+          "texto": "Abri o seu controle. O Fê tinha soldado um segundo estágio aqui dentro e desligado. Liguei."
+        },
+        {
+          "quem": "Zé da Oficina",
+          "texto": "Agora tem meia aceleração: segura no meio e o carro passa na curva sem soltar."
+        }
+      ]
+    },
+    {
+      "id": "g3-nitro",
+      "quando": "depois",
+      "no": "garagem-8",
+      "falas": [
+        {
+          "quem": "Lu Parafuso",
+          "texto": "Achei isso no fundo da caixa. Está escrito \"só nas retas\"."
+        },
+        {
+          "quem": "Lu Parafuso",
+          "texto": "É turbo! Enche um pouco a cada volta, e quem está atrás ganha mais."
+        }
+      ]
+    },
+    {
+      "id": "g4-beto",
+      "quando": "antes",
+      "no": "garagem-9",
+      "falas": [
+        {
+          "quem": "Tio Beto",
+          "texto": "Esse carro é do Fê. Onde você achou isso?"
+        },
+        {
+          "quem": "Tio Beto",
+          "texto": "Ele largou tudo aqui e foi embora. Monto autorama desde antes de você nascer. Mostra o que sabe."
+        }
+      ]
+    },
+    {
+      "id": "g5-caixa-grande",
+      "quando": "depois",
+      "no": "garagem-9",
+      "falas": [
+        {
+          "quem": "Tio Beto",
+          "texto": "...Você freia igualzinho a ele."
+        },
+        {
+          "quem": "Tio Beto",
+          "texto": "Tem mais uma caixa dele no sótão. Nunca tive coragem de abrir. Fica com ela."
+        },
+        {
+          "quem": "",
+          "texto": "Na caixa grande: cartas, um carro azul de turismo e um recorte de jornal rasgado bem no nome."
+        }
+      ]
+    },
+    {
+      "id": "g6-clube",
+      "quando": "depois",
+      "no": "garagem-copa",
+      "falas": [
+        {
+          "quem": "Zé da Oficina",
+          "texto": "A garagem ficou pequena. O Clube do centro tem pista de quatro carros."
+        },
+        {
+          "quem": "Zé da Oficina",
+          "texto": "Procura a Dona Célia. Se alguém sabe do Fê, é ela."
+        }
+      ],
+      "estrelas": 2
+    },
+    {
+      "id": "c0-salao",
+      "quando": "regiao",
+      "no": "clube",
+      "falas": [
+        {
+          "quem": "Rafa Turbo",
+          "texto": "Novato com carro velho? A Marina vai te engolir."
+        },
+        {
+          "quem": "Marina Faísca",
+          "texto": "Turbo é para usar. Vem que eu largo na sua frente."
+        }
+      ]
+    },
+    {
+      "id": "c1-celia",
+      "quando": "antes",
+      "no": "clube-1",
+      "falas": [
+        {
+          "quem": "",
+          "texto": "No fundo do salão, uma senhora lustra um controle preto com fita no gatilho."
+        },
+        {
+          "quem": "Dona Célia",
+          "texto": "Esse chassi... Faz muito tempo que não vejo esse carro."
+        },
+        {
+          "quem": "Dona Célia",
+          "texto": "Corre primeiro. Depois a gente conversa."
+        }
+      ]
+    },
+    {
+      "id": "c2-marina",
+      "quando": "depois",
+      "no": "clube-marina",
+      "falas": [
+        {
+          "quem": "Marina Faísca",
+          "texto": "Tá, tá... você freia melhor que eu."
+        },
+        {
+          "quem": "Marina Faísca",
+          "texto": "Na Taça Clube eu te pego. E a Dona Célia só dá o controle dela para quem ganha a Taça."
+        }
+      ]
+    },
+    {
+      "id": "c3-controle",
+      "quando": "depois",
+      "no": "clube-taca",
+      "falas": [
+        {
+          "quem": "Dona Célia",
+          "texto": "Seu tio e eu corremos em dupla seis anos. Ele era rápido; eu era precisa."
+        },
+        {
+          "quem": "Dona Célia",
+          "texto": "Este controle tem o ajuste fino: muda a meia aceleração no meio da volta. Para cada curva, um ponto."
+        },
+        {
+          "quem": "Dona Célia",
+          "texto": "Ele foi embora numa noite e nunca mais escreveu. Se você achar ele, diz que eu guardei o lugar dele."
+        }
+      ],
+      "estrelas": 2
+    },
+    {
+      "id": "r0-ginasio",
+      "quando": "regiao",
+      "no": "regional",
+      "falas": [
+        {
+          "quem": "Dr. Curva",
+          "texto": "Seis faixas, salto, curva em C. Aqui sorte não vale nada."
+        },
+        {
+          "quem": "Dr. Curva",
+          "texto": "Curva inclinada não é sorte, é geometria."
+        }
+      ]
+    },
+    {
+      "id": "r1-foto",
+      "quando": "antes",
+      "no": "regional-meio",
+      "falas": [
+        {
+          "quem": "",
+          "texto": "No corredor do ginásio, uma foto: a Dona Célia jovem e, ao lado, um piloto de boné com o rosto riscado."
+        },
+        {
+          "quem": "Marina Faísca",
+          "texto": "Quem risca a cara de alguém numa foto?"
+        }
+      ]
+    },
+    {
+      "id": "r2-caderno",
+      "quando": "depois",
+      "no": "regional-drcurva",
+      "falas": [
+        {
+          "quem": "Dr. Curva",
+          "texto": "Brilhante. A geometria está do seu lado."
+        },
+        {
+          "quem": "Dr. Curva",
+          "texto": "Fica com o meu caderno. Anotei tudo de um piloto que freava tarde como você."
+        },
+        {
+          "quem": "Dr. Curva",
+          "texto": "Ele assinava as voltas com duas letras: F.B."
+        }
+      ]
+    },
+    {
+      "id": "n0-estadio",
+      "quando": "regiao",
+      "no": "nacional",
+      "falas": [
+        {
+          "quem": "Marina Faísca",
+          "texto": "Oito carros, loop, salto grande. A gente chegou."
+        },
+        {
+          "quem": "Nina Pistão",
+          "texto": "O Campeão não perde aqui há quinze anos."
+        }
+      ]
+    },
+    {
+      "id": "n1-campeao",
+      "quando": "antes",
+      "no": "nacional-campeao",
+      "falas": [
+        {
+          "quem": "O Campeão",
+          "texto": "Muitos chegaram até aqui. Nenhum passou."
+        },
+        {
+          "quem": "O Campeão",
+          "texto": "Esse carro... eu perdi para um carro igual a esse. Uma vez só."
+        }
+      ]
+    },
+    {
+      "id": "n2-foto96",
+      "quando": "depois",
+      "no": "nacional-campeao",
+      "falas": [
+        {
+          "quem": "O Campeão",
+          "texto": "Então é você. A mesa é sua."
+        },
+        {
+          "quem": "O Campeão",
+          "texto": "Final de 96. Ele me passou na última curva e nunca mais correu aqui. Foi correr lá fora."
+        },
+        {
+          "quem": "",
+          "texto": "Na foto inteira, sem risco, o piloto de boné segura a taça. Embaixo, a assinatura: Felix Badar."
+        },
+        {
+          "quem": "O Campeão",
+          "texto": "Felix Badar. F.B. Não sabia que ele tinha família."
+        }
+      ]
+    },
+    {
+      "id": "n3-convite",
+      "quando": "antes",
+      "no": "nacional-convite",
+      "falas": [
+        {
+          "quem": "",
+          "texto": "Um envelope sem remetente: \"Convite: Felix Badar\". Dentro, uma frase só."
+        },
+        {
+          "quem": "Felix Badar",
+          "texto": "Eu não corro contra você. Corro contra o relógio."
+        }
+      ]
+    },
+    {
+      "id": "w0-mundo",
+      "quando": "regiao",
+      "no": "global",
+      "falas": [
+        {
+          "quem": "Rios",
+          "texto": "Mais um que veio atrás do Felix. Entra na fila: eu estou nela há dez anos."
+        },
+        {
+          "quem": "SquadFun",
+          "texto": "Ninguém passa ele há trinta anos. Ninguém nem sabe onde ele mora."
+        },
+        {
+          "quem": "Ianzin",
+          "texto": "Eu sei. E empato com ele quase sempre. Quase."
+        }
+      ]
+    },
+    {
+      "id": "w1-felix",
+      "quando": "antes",
+      "no": "global-felix",
+      "falas": [
+        {
+          "quem": "",
+          "texto": "Ele tira o boné. É o rosto da foto, trinta anos depois."
+        },
+        {
+          "quem": "Felix Badar",
+          "texto": "Achou a caixa, então."
+        },
+        {
+          "quem": "Felix Badar",
+          "texto": "Não vim conversar. Vim correr. Vence a série e a gente conversa."
+        }
+      ]
+    },
+    {
+      "id": "w2-conversa",
+      "quando": "depois",
+      "no": "global-felix",
+      "falas": [
+        {
+          "quem": "Felix Badar",
+          "texto": "Você solta antes da curva. Eu escrevi isso numa carta, não foi?"
+        },
+        {
+          "quem": "Felix Badar",
+          "texto": "Fui embora porque o Beto queria a garagem e eu queria o mundo. Fiquei tempo demais."
+        },
+        {
+          "quem": "Felix Badar",
+          "texto": "Falta o Mundial. Lá eu não vou te deixar passar."
+        }
+      ]
+    },
+    {
+      "id": "w3-carro",
+      "quando": "depois",
+      "no": "global-mundial",
+      "falas": [
+        {
+          "quem": "Felix Badar",
+          "texto": "Faz trinta anos que ninguém me passa. A mesa agora é sua."
+        },
+        {
+          "quem": "Felix Badar",
+          "texto": "Leva o meu carro. E leva um recado para a Dona Célia e para o Beto: eu volto no Natal."
+        },
+        {
+          "quem": "",
+          "texto": "Construtor sem limite. Bolha Fórmula aberta em todos os modos."
+        }
+      ],
+      "estrelas": 2
+    },
+    {
+      "id": "w4-epilogo",
+      "quando": "depois",
+      "no": "global-mundial",
+      "falas": [
+        {
+          "quem": "",
+          "texto": "Na garagem, o Tio Beto pendurou a foto de 96 na parede. Sem risco."
+        },
+        {
+          "quem": "Tio Beto",
+          "texto": "Pista nova no Natal. Grande. Monta você."
+        }
+      ],
+      "estrelas": 2
+    },
+    {
+      "id": "g7-relogio",
+      "quando": "antes",
+      "no": "garagem-2",
+      "falas": [
+        {
+          "quem": "Zé da Oficina",
+          "texto": "Prova de relógio: ninguém na pista e nada de turbo. É você contra o cronômetro."
+        },
+        {
+          "quem": "Zé da Oficina",
+          "texto": "O Fê passava a tarde nessa bancada, batendo a própria volta."
+        }
+      ]
+    },
+    {
+      "id": "g8-chuva",
+      "quando": "antes",
+      "no": "garagem-4",
+      "falas": [
+        {
+          "quem": "Lu Parafuso",
+          "texto": "O Zé lavou o chão e a pista molhou junto. Hoje o pneu escorrega."
+        },
+        {
+          "quem": "Lu Parafuso",
+          "texto": "Freia mais cedo. E o carro é o da oficina: hoje não dá para mexer no ajuste."
+        }
+      ]
+    },
+    {
+      "id": "g9-atrasada",
+      "quando": "antes",
+      "no": "garagem-7",
+      "falas": [
+        {
+          "quem": "Zé da Oficina",
+          "texto": "Hoje você sai depois de todo mundo. Paciência: a corrida é longa."
+        },
+        {
+          "quem": "Zé da Oficina",
+          "texto": "O Beto fazia isso com o Fê de castigo. E o Fê ganhava assim mesmo."
+        }
+      ]
+    },
+    {
+      "id": "g10-copinha",
+      "quando": "antes",
+      "no": "garagem-copinha",
+      "falas": [
+        {
+          "quem": "Zé da Oficina",
+          "texto": "Campeonato: várias baterias, e cada um larga de um trilho. Vale o total, não uma corrida só."
+        },
+        {
+          "quem": "Lu Parafuso",
+          "texto": "Eu vou correr também. E não vou facilitar!"
+        }
+      ]
+    },
+    {
+      "id": "g11-rei",
+      "quando": "depois",
+      "no": "garagem-rei",
+      "falas": [
+        {
+          "quem": "Lu Parafuso",
+          "texto": "Rei da Garagem! Vou pintar uma coroa no seu carro."
+        },
+        {
+          "quem": "Zé da Oficina",
+          "texto": "Pinta não, que o Fê me mata. ...Se ele voltar um dia."
+        }
+      ]
+    },
+    {
+      "id": "g12-beto-perde",
+      "quando": "derrota",
+      "no": "garagem-9",
+      "falas": [
+        {
+          "quem": "Tio Beto",
+          "texto": "Carro do Fê não faz piloto. Volta quando souber frear."
+        },
+        {
+          "quem": "Lu Parafuso",
+          "texto": "Ele está resmungando, mas ficou um tempão olhando o seu carro."
+        }
+      ]
+    },
+    {
+      "id": "c4-viaduto",
+      "quando": "antes",
+      "no": "clube-3",
+      "falas": [
+        {
+          "quem": "Nina Pistão",
+          "texto": "Primeira vez no viaduto? Na subida o carro perde força; na descida, embala."
+        },
+        {
+          "quem": "Nina Pistão",
+          "texto": "Segura o gatilho na descida, ou a curva lá embaixo te joga fora."
+        }
+      ]
+    },
+    {
+      "id": "c5-chuva",
+      "quando": "antes",
+      "no": "clube-chuva",
+      "falas": [
+        {
+          "quem": "Dona Célia",
+          "texto": "Choveu no telhado do salão. Goteira na pista é tradição aqui."
+        },
+        {
+          "quem": "Dona Célia",
+          "texto": "Na pista molhada, quem freia cedo chega primeiro."
+        }
+      ]
+    },
+    {
+      "id": "c6-funil",
+      "quando": "antes",
+      "no": "clube-funil",
+      "falas": [
+        {
+          "quem": "Rafa Turbo",
+          "texto": "Viu a fechada? Duas faixas viram uma. Quem chega depois espera."
+        },
+        {
+          "quem": "Rafa Turbo",
+          "texto": "Ou bate. Eu prefiro que você bata."
+        }
+      ]
+    },
+    {
+      "id": "c7-elim",
+      "quando": "antes",
+      "no": "clube-elim",
+      "falas": [
+        {
+          "quem": "Marina Faísca",
+          "texto": "Sobrevivência: de tempos em tempos, o último sai. Até sobrar um."
+        },
+        {
+          "quem": "Marina Faísca",
+          "texto": "E quem sobra sou eu."
+        }
+      ]
+    },
+    {
+      "id": "c8-celia-copa",
+      "quando": "depois",
+      "no": "clube-copa",
+      "falas": [
+        {
+          "quem": "Dona Célia",
+          "texto": "Você solta antes da curva. Quem te ensinou isso?"
+        },
+        {
+          "quem": "Dona Célia",
+          "texto": "...Ele dizia a mesma coisa. Com essas palavras."
+        }
+      ]
+    },
+    {
+      "id": "c9-marina-perde",
+      "quando": "derrota",
+      "no": "clube-marina",
+      "falas": [
+        {
+          "quem": "Marina Faísca",
+          "texto": "Viu? Carro velho, piloto novo. Treina mais."
+        },
+        {
+          "quem": "Dona Célia",
+          "texto": "Ela freia tarde demais. Na próxima, espera ela errar."
+        }
+      ]
+    },
+    {
+      "id": "c10-convite",
+      "quando": "antes",
+      "no": "clube-convite",
+      "falas": [
+        {
+          "quem": "Rafa Turbo",
+          "texto": "O Convite é só para quem a Dona Célia chama. Ela chamou você?"
+        },
+        {
+          "quem": "Rafa Turbo",
+          "texto": "Então tá. Aqui ninguém faz corpo mole."
+        }
+      ]
+    },
+    {
+      "id": "r3-c",
+      "quando": "antes",
+      "no": "regional-3",
+      "falas": [
+        {
+          "quem": "Dr. Curva",
+          "texto": "Curva em C: raio pequeno, volta grande. A velocidade segura cai com o raio."
+        },
+        {
+          "quem": "Dr. Curva",
+          "texto": "Traduzindo: entra devagar e sai acelerando."
+        }
+      ]
+    },
+    {
+      "id": "r4-chuva",
+      "quando": "antes",
+      "no": "regional-chuva",
+      "falas": [
+        {
+          "quem": "Marina Faísca",
+          "texto": "Ziguezague molhado e carro emprestado. Quem inventou essa prova?"
+        },
+        {
+          "quem": "Dr. Curva",
+          "texto": "Eu. Para medir quem pensa antes de acelerar."
+        }
+      ]
+    },
+    {
+      "id": "r5-salto",
+      "quando": "antes",
+      "no": "regional-6",
+      "falas": [
+        {
+          "quem": "Dr. Curva",
+          "texto": "Salto: devagar, você cai no vão. Rápido demais, o pouso rouba velocidade."
+        },
+        {
+          "quem": "Dr. Curva",
+          "texto": "Existe um número certo. Ache."
+        }
+      ]
+    },
+    {
+      "id": "r6-resist",
+      "quando": "antes",
+      "no": "regional-resist",
+      "falas": [
+        {
+          "quem": "Nina Pistão",
+          "texto": "Quinze voltas. Quem sai da pista toda volta não chega no fim."
+        },
+        {
+          "quem": "Nina Pistão",
+          "texto": "Guarda o turbo: vai ter muita reta."
+        }
+      ]
+    },
+    {
+      "id": "r7-adesivo",
+      "quando": "depois",
+      "no": "regional-mirante",
+      "falas": [
+        {
+          "quem": "",
+          "texto": "Na mesa do mirante, um adesivo velho, quase apagado: \"Recorde da pista — F.B., 1994\"."
+        },
+        {
+          "quem": "Marina Faísca",
+          "texto": "F.B. de novo. O mesmo da placa do seu carro. Esse cara passou por todo lugar."
+        }
+      ]
+    },
+    {
+      "id": "r8-curva-perde",
+      "quando": "derrota",
+      "no": "regional-drcurva",
+      "falas": [
+        {
+          "quem": "Dr. Curva",
+          "texto": "Você entrou rápido demais na terceira curva. Eu medi."
+        },
+        {
+          "quem": "Dr. Curva",
+          "texto": "Volte com outro número."
+        }
+      ]
+    },
+    {
+      "id": "r9-copa",
+      "quando": "depois",
+      "no": "regional-copa",
+      "falas": [
+        {
+          "quem": "Marina Faísca",
+          "texto": "Você ganhou a região. Vou para o Nacional também: nem pense que se livrou de mim."
+        },
+        {
+          "quem": "Dr. Curva",
+          "texto": "No estádio são oito faixas. Leve o meu caderno, e leve a cabeça."
+        }
+      ]
+    },
+    {
+      "id": "n4-loop",
+      "quando": "antes",
+      "no": "nacional-3",
+      "falas": [
+        {
+          "quem": "Marina Faísca",
+          "texto": "Um loop. De cabeça para baixo, quem segura o carro é a velocidade."
+        },
+        {
+          "quem": "Marina Faísca",
+          "texto": "Chega devagar e ele cai. Já aconteceu comigo."
+        }
+      ]
+    },
+    {
+      "id": "n5-parede",
+      "quando": "antes",
+      "no": "nacional-parede",
+      "falas": [
+        {
+          "quem": "Nina Pistão",
+          "texto": "Parede da Morte: a pista deita de lado. Devagar demais, o carro descola."
+        },
+        {
+          "quem": "Nina Pistão",
+          "texto": "E aqui cada saída conta. Poucas e você está fora."
+        }
+      ]
+    },
+    {
+      "id": "n6-serra",
+      "quando": "antes",
+      "no": "nacional-serra",
+      "falas": [
+        {
+          "quem": "O Campeão",
+          "texto": "A Serra molhada é a minha pista preferida. Ninguém aqui gosta de chuva."
+        },
+        {
+          "quem": "O Campeão",
+          "texto": "Por isso eu gosto."
+        }
+      ]
+    },
+    {
+      "id": "n7-resist",
+      "quando": "antes",
+      "no": "nacional-resist",
+      "falas": [
+        {
+          "quem": "Zé da Oficina",
+          "texto": "Vim de ônibus só para ver isso. Vinte voltas! Não queima tudo no começo."
+        },
+        {
+          "quem": "Zé da Oficina",
+          "texto": "A Lu mandou dizer que está torcendo pela tevê. E o Beto fingiu que não ouviu."
+        }
+      ]
+    },
+    {
+      "id": "n8-campeao-perde",
+      "quando": "derrota",
+      "no": "nacional-campeao",
+      "falas": [
+        {
+          "quem": "O Campeão",
+          "texto": "Quinze anos. Ninguém passa."
+        },
+        {
+          "quem": "Marina Faísca",
+          "texto": "Ele freia na mesma marca toda volta. Dá para usar isso."
+        }
+      ]
+    },
+    {
+      "id": "n9-gp",
+      "quando": "depois",
+      "no": "nacional-gp",
+      "falas": [
+        {
+          "quem": "",
+          "texto": "No jornal do dia seguinte: \"Piloto novo vence o GP com o carro de um campeão sumido\"."
+        },
+        {
+          "quem": "Tio Beto",
+          "texto": "Recortei a notícia. Não conta para o Zé que eu fiquei feliz."
+        }
+      ]
+    },
+    {
+      "id": "w5-autodromo",
+      "quando": "antes",
+      "no": "global-1",
+      "falas": [
+        {
+          "quem": "Kojiro",
+          "texto": "Primeira corrida no Mundial? Aqui ninguém tira o pé."
+        },
+        {
+          "quem": "Leector",
+          "texto": "Eu tiro. Na curva. Por isso ainda estou na pista."
+        }
+      ]
+    },
+    {
+      "id": "w6-recordes",
+      "quando": "antes",
+      "no": "global-2",
+      "falas": [
+        {
+          "quem": "Devair",
+          "texto": "Reta dos Recordes. A melhor volta daqui é do Felix faz vinte anos."
+        },
+        {
+          "quem": "Devair",
+          "texto": "Dizem que ele treina sozinho de madrugada. Só ele e o cronômetro."
+        }
+      ]
+    },
+    {
+      "id": "w7-elim",
+      "quando": "antes",
+      "no": "global-elim",
+      "falas": [
+        {
+          "quem": "Bilboque",
+          "texto": "Sobrevivência Mundial! O último sai, de tempos em tempos. Eu sempre sobro."
+        },
+        {
+          "quem": "Nebrown",
+          "texto": "Ele sobra porque ninguém passa ele na reta. Fica atrás e espera a curva."
+        }
+      ]
+    },
+    {
+      "id": "w8-tempestade",
+      "quando": "antes",
+      "no": "global-chuva",
+      "falas": [
+        {
+          "quem": "Sofia Lindqvist",
+          "texto": "Tempestade. Na minha terra, a gente corre assim o inverno inteiro."
+        },
+        {
+          "quem": "Mateo Ruiz",
+          "texto": "Na minha, a gente fica em casa."
+        }
+      ]
+    },
+    {
+      "id": "w9-parafuso",
+      "quando": "antes",
+      "no": "global-parafuso",
+      "falas": [
+        {
+          "quem": "Peripato",
+          "texto": "O parafuso gira a pista inteira. Lento demais, o carro solta no meio."
+        },
+        {
+          "quem": "Peripato",
+          "texto": "Rápido demais também. Boa sorte!"
+        }
+      ]
+    },
+    {
+      "id": "w10-rios",
+      "quando": "antes",
+      "no": "global-perseg",
+      "falas": [
+        {
+          "quem": "Rios",
+          "texto": "Perseguição: você larga depois de todo mundo. Bem-vindo à minha vida: dez anos vendo o Felix de costas."
+        },
+        {
+          "quem": "Rios",
+          "texto": "Segundo lugar eu já sei ser. Terceiro, não vou virar agora."
+        }
+      ]
+    },
+    {
+      "id": "w11-rios-depois",
+      "quando": "depois",
+      "no": "global-perseg",
+      "falas": [
+        {
+          "quem": "Rios",
+          "texto": "...Tá. Você anda muito."
+        },
+        {
+          "quem": "Rios",
+          "texto": "Se for passar o Felix, passa de vez. Não deixa pela metade."
+        }
+      ]
+    },
+    {
+      "id": "w12-resist",
+      "quando": "antes",
+      "no": "global-resist",
+      "falas": [
+        {
+          "quem": "Aiko Tanabe",
+          "texto": "Vinte voltas no Mundial. A cabeça cansa antes do carro."
+        },
+        {
+          "quem": "SquadFun",
+          "texto": "Por isso eu trouxe lanche."
+        }
+      ]
+    },
+    {
+      "id": "w13-ianzin",
+      "quando": "antes",
+      "no": "global-rei",
+      "falas": [
+        {
+          "quem": "Ianzin",
+          "texto": "Rei do Mundo. Eu ganhei três vezes. O Felix também."
+        },
+        {
+          "quem": "Ianzin",
+          "texto": "Quero ver se você desempata."
+        }
+      ]
+    },
+    {
+      "id": "w14-copa",
+      "quando": "depois",
+      "no": "global-copa",
+      "falas": [
+        {
+          "quem": "Ianzin",
+          "texto": "Você corre parecido com ele. Solta antes da curva."
+        },
+        {
+          "quem": "Ianzin",
+          "texto": "Ele está te esperando. Não fala, mas está."
+        }
+      ]
+    },
+    {
+      "id": "w15-felix-perde",
+      "quando": "derrota",
+      "no": "global-felix",
+      "falas": [
+        {
+          "quem": "Felix Badar",
+          "texto": "Mais cedo. Você soltou tarde na última curva."
+        },
+        {
+          "quem": "Felix Badar",
+          "texto": "De novo. O relógio não tem pressa."
+        }
+      ]
+    },
+    {
+      "id": "w16-lendas",
+      "quando": "antes",
+      "no": "global-convite",
+      "falas": [
+        {
+          "quem": "",
+          "texto": "Lendas: os três melhores do mundo na mesma largada. E você."
+        },
+        {
+          "quem": "Rios",
+          "texto": "Eu, o Felix e o Ianzin. Sobrou pouco espaço no pódio."
+        }
+      ]
+    }
+  ]
+}

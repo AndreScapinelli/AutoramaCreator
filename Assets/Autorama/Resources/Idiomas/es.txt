@@ -1631,3 +1631,130 @@ Entrega: {0}	Entrega: {0}
 Sem turbo: você ainda não tem a lata de nitro.	Sin turbo: aún no tienes la lata de nitro.
 Ganhou: {0}	Ganaste: {0}
 ACELERAR  {0}{1}	ACELERAR  {0}{1}
+A caixa estava atrás das latas de tinta, com o seu nome escrito a caneta.	La caja estaba detrás de las latas de pintura, con tu nombre escrito a bolígrafo.
+Dentro: um carrinho vermelho, um controle de lata e um bilhete. "Para quando você tiver idade. — Fê."	Dentro: un cochecito rojo, un mando de lata y una nota. «Para cuando tengas edad. — Fê.»
+Fê? O seu tio que sumiu? O Zé da oficina conhecia ele. Vamos lá!	¿Fê? ¿Tu tío que desapareció? Zé, el del taller, lo conocía. ¡Vamos!
+Esse controle aí só tem acelerar. Ou vai, ou para. Solta antes da curva, não dentro.	Ese mando solo tiene acelerador. O va, o para. Suelta antes de la curva, no dentro.
+Saiu da pista? Recoloca e segue. Todo mundo sai.	¿Te saliste de la pista? Vuelve a ponerlo y sigue. Todos se salen.
+Abri o seu controle. O Fê tinha soldado um segundo estágio aqui dentro e desligado. Liguei.	Abrí tu mando. Fê había soldado una segunda etapa aquí dentro y la había desconectado. La conecté.
+Agora tem meia aceleração: segura no meio e o carro passa na curva sem soltar.	Ahora tiene media aceleración: mantenla a medias y el coche pasa la curva sin soltar.
+Achei isso no fundo da caixa. Está escrito "só nas retas".	Encontré esto en el fondo de la caja. Dice «solo en las rectas».
+É turbo! Enche um pouco a cada volta, e quem está atrás ganha mais.	¡Es turbo! Se llena un poco en cada vuelta, y quien va detrás gana más.
+Esse carro é do Fê. Onde você achou isso?	Ese coche es de Fê. ¿Dónde lo encontraste?
+Ele largou tudo aqui e foi embora. Monto autorama desde antes de você nascer. Mostra o que sabe.	Lo dejó todo aquí y se fue. Monto autódromos desde antes de que nacieras. Muéstrame lo que sabes.
+...Você freia igualzinho a ele.	...Frenas igualito que él.
+Tem mais uma caixa dele no sótão. Nunca tive coragem de abrir. Fica com ela.	Hay otra caja suya en el desván. Nunca tuve valor para abrirla. Quédatela.
+Na caixa grande: cartas, um carro azul de turismo e um recorte de jornal rasgado bem no nome.	En la caja grande: cartas, un coche azul de turismo y un recorte de periódico roto justo en el nombre.
+A garagem ficou pequena. O Clube do centro tem pista de quatro carros.	El garaje se te quedó pequeño. El Club del centro tiene pista de cuatro coches.
+Procura a Dona Célia. Se alguém sabe do Fê, é ela.	Busca a Doña Célia. Si alguien sabe de Fê, es ella.
+Novato com carro velho? A Marina vai te engolir.	¿Novato con coche viejo? Marina te va a comer vivo.
+No fundo do salão, uma senhora lustra um controle preto com fita no gatilho.	Al fondo del salón, una señora pule un mando negro con cinta en el gatillo.
+Esse chassi... Faz muito tempo que não vejo esse carro.	Ese chasis... Hace mucho que no veo ese coche.
+Corre primeiro. Depois a gente conversa.	Corre primero. Después hablamos.
+Tá, tá... você freia melhor que eu.	Vale, vale... frenas mejor que yo.
+Na Taça Clube eu te pego. E a Dona Célia só dá o controle dela para quem ganha a Taça.	En la Copa Club te alcanzo. Y Doña Célia solo da su mando a quien gana la Copa.
+Seu tio e eu corremos em dupla seis anos. Ele era rápido; eu era precisa.	Tu tío y yo corrimos en pareja seis años. Él era rápido; yo era precisa.
+Este controle tem o ajuste fino: muda a meia aceleração no meio da volta. Para cada curva, um ponto.	Este mando tiene el ajuste fino: cambia la media aceleración en mitad de la vuelta. Para cada curva, un punto.
+Ele foi embora numa noite e nunca mais escreveu. Se você achar ele, diz que eu guardei o lugar dele.	Se fue una noche y nunca más escribió. Si lo encuentras, dile que le guardé el lugar.
+Seis faixas, salto, curva em C. Aqui sorte não vale nada.	Seis carriles, saltos, curvas en C. Aquí la suerte no vale nada.
+No corredor do ginásio, uma foto: a Dona Célia jovem e, ao lado, um piloto de boné com o rosto riscado.	En el pasillo del gimnasio, una foto: Doña Célia de joven y, a su lado, un piloto con gorra y la cara tachada.
+Quem risca a cara de alguém numa foto?	¿Quién tacha la cara de alguien en una foto?
+Fica com o meu caderno. Anotei tudo de um piloto que freava tarde como você.	Quédate con mi cuaderno. Anoté todo de un piloto que frenaba tarde como tú.
+Ele assinava as voltas com duas letras: F.B.	Firmaba sus vueltas con dos letras: F.B.
+Oito carros, loop, salto grande. A gente chegou.	Ocho coches, loop, salto grande. Llegamos.
+O Campeão não perde aqui há quinze anos.	El Campeón no pierde aquí desde hace quince años.
+Esse carro... eu perdi para um carro igual a esse. Uma vez só.	Ese coche... perdí contra un coche igual a ese. Una sola vez.
+Final de 96. Ele me passou na última curva e nunca mais correu aqui. Foi correr lá fora.	Final del 96. Me pasó en la última curva y nunca más corrió aquí. Se fue a correr afuera.
+Na foto inteira, sem risco, o piloto de boné segura a taça. Embaixo, a assinatura: Felix Badar.	En la foto entera, sin tachar, el piloto de gorra sostiene la copa. Abajo, la firma: Felix Badar.
+Felix Badar. F.B. Não sabia que ele tinha família.	Felix Badar. F.B. No sabía que tenía familia.
+Um envelope sem remetente: "Convite: Felix Badar". Dentro, uma frase só.	Un sobre sin remitente: «Invitación: Felix Badar». Dentro, una sola frase.
+Mais um que veio atrás do Felix. Entra na fila: eu estou nela há dez anos.	Otro más que viene detrás de Felix. Ponte a la cola: yo llevo diez años en ella.
+Ninguém passa ele há trinta anos. Ninguém nem sabe onde ele mora.	Nadie lo pasa desde hace treinta años. Nadie sabe ni dónde vive.
+Eu sei. E empato com ele quase sempre. Quase.	Yo lo sé. Y empato con él casi siempre. Casi.
+Ele tira o boné. É o rosto da foto, trinta anos depois.	Se quita la gorra. Es la cara de la foto, treinta años después.
+Achou a caixa, então.	Así que encontraste la caja.
+Não vim conversar. Vim correr. Vence a série e a gente conversa.	No vine a hablar. Vine a correr. Gana la serie y hablamos.
+Você solta antes da curva. Eu escrevi isso numa carta, não foi?	Sueltas antes de la curva. Lo escribí en una carta, ¿verdad?
+Fui embora porque o Beto queria a garagem e eu queria o mundo. Fiquei tempo demais.	Me fui porque Beto quería el garaje y yo quería el mundo. Me quedé demasiado tiempo.
+Falta o Mundial. Lá eu não vou te deixar passar.	Falta el Mundial. Ahí no te voy a dejar pasar.
+Leva o meu carro. E leva um recado para a Dona Célia e para o Beto: eu volto no Natal.	Llévate mi coche. Y lleva un recado a Doña Célia y a Beto: vuelvo en Navidad.
+Construtor sem limite. Bolha Fórmula aberta em todos os modos.	Constructor sin límite. Carrocería Fórmula desbloqueada en todos los modos.
+Na garagem, o Tio Beto pendurou a foto de 96 na parede. Sem risco.	En el garaje, el tío Beto colgó la foto del 96 en la pared. Sin tachar.
+Pista nova no Natal. Grande. Monta você.	Pista nueva en Navidad. Grande. La montas tú.
+Enter ou clique continua · Esc pula	Enter o clic continúa · Esc salta
+Prova de relógio: ninguém na pista e nada de turbo. É você contra o cronômetro.	Contrarreloj: nadie en la pista y nada de turbo. Eres tú contra el cronómetro.
+O Fê passava a tarde nessa bancada, batendo a própria volta.	Fê se pasaba la tarde en este banco, batiendo su propia vuelta.
+O Zé lavou o chão e a pista molhou junto. Hoje o pneu escorrega.	Zé lavó el suelo y la pista se mojó también. Hoy el neumático resbala.
+Freia mais cedo. E o carro é o da oficina: hoje não dá para mexer no ajuste.	Frena antes. Y el coche es el del taller: hoy no se puede tocar el ajuste.
+Hoje você sai depois de todo mundo. Paciência: a corrida é longa.	Hoy sales después de todos. Paciencia: la carrera es larga.
+O Beto fazia isso com o Fê de castigo. E o Fê ganhava assim mesmo.	Beto le hacía esto a Fê como castigo. Y Fê ganaba igual.
+Campeonato: várias baterias, e cada um larga de um trilho. Vale o total, não uma corrida só.	Campeonato: varias mangas, y cada uno sale de un carril. Cuenta el total, no una sola carrera.
+Eu vou correr também. E não vou facilitar!	Yo también corro. ¡Y no te lo voy a poner fácil!
+Rei da Garagem! Vou pintar uma coroa no seu carro.	¡Rey del Garaje! Voy a pintar una corona en tu coche.
+Pinta não, que o Fê me mata. ...Se ele voltar um dia.	Ni se te ocurra, que Fê me mata. ...Si algún día vuelve.
+Carro do Fê não faz piloto. Volta quando souber frear.	El coche de Fê no te hace piloto. Vuelve cuando sepas frenar.
+Ele está resmungando, mas ficou um tempão olhando o seu carro.	Está refunfuñando, pero se quedó un buen rato mirando tu coche.
+Primeira vez no viaduto? Na subida o carro perde força; na descida, embala.	¿Primera vez en el viaducto? En la subida el coche pierde fuerza; en la bajada, se embala.
+Segura o gatilho na descida, ou a curva lá embaixo te joga fora.	Suelta un poco en la bajada, o la curva de abajo te saca.
+Choveu no telhado do salão. Goteira na pista é tradição aqui.	Llovió sobre el techo del salón. La gotera en la pista es tradición aquí.
+Na pista molhada, quem freia cedo chega primeiro.	En pista mojada, quien frena antes llega primero.
+Viu a fechada? Duas faixas viram uma. Quem chega depois espera.	¿Viste el embudo? Dos carriles se vuelven uno. El que llega después espera.
+Ou bate. Eu prefiro que você bata.	O choca. Prefiero que choques tú.
+Sobrevivência: de tempos em tempos, o último sai. Até sobrar um.	Supervivencia: cada cierto tiempo, el último sale. Hasta que quede uno.
+E quem sobra sou eu.	Y la que queda soy yo.
+Você solta antes da curva. Quem te ensinou isso?	Sueltas antes de la curva. ¿Quién te enseñó eso?
+...Ele dizia a mesma coisa. Com essas palavras.	...Él decía lo mismo. Con esas palabras.
+Viu? Carro velho, piloto novo. Treina mais.	¿Viste? Coche viejo, piloto nuevo. Entrena más.
+Ela freia tarde demais. Na próxima, espera ela errar.	Ella frena demasiado tarde. La próxima vez, espera a que se equivoque.
+O Convite é só para quem a Dona Célia chama. Ela chamou você?	El Convite es solo para quien elige Dona Célia. ¿Te eligió a ti?
+Então tá. Aqui ninguém faz corpo mole.	Pues vale. Aquí nadie se relaja.
+Curva em C: raio pequeno, volta grande. A velocidade segura cai com o raio.	Curva en C: radio pequeño, giro largo. La velocidad segura baja con el radio.
+Traduzindo: entra devagar e sai acelerando.	Traducido: entra despacio y sal acelerando.
+Ziguezague molhado e carro emprestado. Quem inventou essa prova?	Zigzag mojado y coche prestado. ¿Quién inventó esta prueba?
+Eu. Para medir quem pensa antes de acelerar.	Yo. Para medir quién piensa antes de acelerar.
+Salto: devagar, você cai no vão. Rápido demais, o pouso rouba velocidade.	El salto: despacio, caes al hueco. Demasiado rápido, el aterrizaje te roba velocidad.
+Existe um número certo. Ache.	Existe un número correcto. Encuéntralo.
+Quinze voltas. Quem sai da pista toda volta não chega no fim.	Quince vueltas. Quien se sale cada vuelta no llega al final.
+Guarda o turbo: vai ter muita reta.	Guarda el turbo: habrá muchas rectas.
+Na mesa do mirante, um adesivo velho, quase apagado: "Recorde da pista — F.B., 1994".	En la mesa del mirador, una pegatina vieja, casi borrada: «Récord de la pista — F.B., 1994».
+F.B. de novo. O mesmo da placa do seu carro. Esse cara passou por todo lugar.	F.B. otra vez. El mismo de la placa de tu coche. Este tipo pasó por todas partes.
+Você entrou rápido demais na terceira curva. Eu medi.	Entraste demasiado rápido en la tercera curva. Lo medí.
+Volte com outro número.	Vuelve con otro número.
+Você ganhou a região. Vou para o Nacional também: nem pense que se livrou de mim.	Ganaste la región. Yo también voy al Nacional: ni pienses que te libraste de mí.
+No estádio são oito faixas. Leve o meu caderno, e leve a cabeça.	En el estadio hay ocho carriles. Llévate mi cuaderno, y la cabeza.
+Um loop. De cabeça para baixo, quem segura o carro é a velocidade.	Un loop. Boca abajo, lo que sujeta el coche es la velocidad.
+Chega devagar e ele cai. Já aconteceu comigo.	Llega despacio y se cae. Ya me pasó.
+Parede da Morte: a pista deita de lado. Devagar demais, o carro descola.	Pared de la Muerte: la pista se tumba de lado. Demasiado despacio, el coche se despega.
+E aqui cada saída conta. Poucas e você está fora.	Y aquí cada salida cuenta. Unas pocas y estás fuera.
+A Serra molhada é a minha pista preferida. Ninguém aqui gosta de chuva.	La Sierra mojada es mi pista favorita. Aquí a nadie le gusta la lluvia.
+Por isso eu gosto.	Por eso me gusta.
+Vim de ônibus só para ver isso. Vinte voltas! Não queima tudo no começo.	Vine en autobús solo para ver esto. ¡Veinte vueltas! No lo quemes todo al principio.
+A Lu mandou dizer que está torcendo pela tevê. E o Beto fingiu que não ouviu.	Lu dice que te anima por la tele. Y Beto hizo como que no oía.
+Quinze anos. Ninguém passa.	Quince años. Nadie pasa.
+Ele freia na mesma marca toda volta. Dá para usar isso.	Frena en la misma marca cada vuelta. Eso se puede usar.
+No jornal do dia seguinte: "Piloto novo vence o GP com o carro de um campeão sumido".	En el periódico del día siguiente: «Piloto novato gana el GP con el coche de un campeón desaparecido».
+Recortei a notícia. Não conta para o Zé que eu fiquei feliz.	Recorté la noticia. No le digas a Zé que me alegré.
+Primeira corrida no Mundial? Aqui ninguém tira o pé.	¿Primera carrera en el Mundial? Aquí nadie levanta el pie.
+Eu tiro. Na curva. Por isso ainda estou na pista.	Yo sí. En la curva. Por eso sigo en la pista.
+Reta dos Recordes. A melhor volta daqui é do Felix faz vinte anos.	Recta de los Récords. La mejor vuelta de aquí es de Felix desde hace veinte años.
+Dizem que ele treina sozinho de madrugada. Só ele e o cronômetro.	Dicen que entrena solo de madrugada. Solo él y el cronómetro.
+Sobrevivência Mundial! O último sai, de tempos em tempos. Eu sempre sobro.	¡Supervivencia Mundial! El último sale cada cierto tiempo. Yo siempre quedo.
+Ele sobra porque ninguém passa ele na reta. Fica atrás e espera a curva.	Queda porque nadie lo pasa en la recta. Quédate detrás y espera la curva.
+Tempestade. Na minha terra, a gente corre assim o inverno inteiro.	Tormenta. En mi tierra corremos así todo el invierno.
+Na minha, a gente fica em casa.	En la mía, nos quedamos en casa.
+O parafuso gira a pista inteira. Lento demais, o carro solta no meio.	El sacacorchos gira toda la pista. Demasiado lento, el coche se suelta a la mitad.
+Rápido demais também. Boa sorte!	Demasiado rápido, también. ¡Buena suerte!
+Perseguição: você larga depois de todo mundo. Bem-vindo à minha vida: dez anos vendo o Felix de costas.	Persecución: sales después de todos. Bienvenido a mi vida: diez años viendo a Felix de espaldas.
+Segundo lugar eu já sei ser. Terceiro, não vou virar agora.	Ser segundo ya lo sé. Tercero no me voy a volver ahora.
+...Tá. Você anda muito.	...Vale. Eres rápido.
+Se for passar o Felix, passa de vez. Não deixa pela metade.	Si vas a pasar a Felix, hazlo del todo. No lo dejes a medias.
+Vinte voltas no Mundial. A cabeça cansa antes do carro.	Veinte vueltas en el Mundial. La cabeza se cansa antes que el coche.
+Por isso eu trouxe lanche.	Por eso traje merienda.
+Rei do Mundo. Eu ganhei três vezes. O Felix também.	Rey del Mundo. Lo gané tres veces. Felix también.
+Quero ver se você desempata.	A ver si tú desempatas.
+Você corre parecido com ele. Solta antes da curva.	Corres parecido a él. Sueltas antes de la curva.
+Ele está te esperando. Não fala, mas está.	Te está esperando. No lo dice, pero sí.
+Mais cedo. Você soltou tarde na última curva.	Antes. Soltaste tarde en la última curva.
+De novo. O relógio não tem pressa.	Otra vez. El reloj no tiene prisa.
+Lendas: os três melhores do mundo na mesma largada. E você.	Leyendas: los tres mejores del mundo en la misma salida. Y tú.
+Eu, o Felix e o Ianzin. Sobrou pouco espaço no pódio.	Yo, Felix e Ianzin. Queda poco sitio en el podio.

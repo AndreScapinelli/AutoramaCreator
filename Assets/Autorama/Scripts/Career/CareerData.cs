@@ -101,6 +101,7 @@ namespace Autorama
         public CarGarage garagem = new CarGarage();
         public string ultimoNo;           // contra farm: a mesma prova várias vezes seguidas paga menos
         public int seguidas;
+        public List<string> vistas = new List<string>();   // cenas do enredo já vistas (seção 106)
         public int versao;                // 1: moedas no save (os antigos recebem as moedas das estrelas que já têm); 2: níveis por opção
     }
 

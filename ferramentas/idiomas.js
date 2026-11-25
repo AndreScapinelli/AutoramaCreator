@@ -39,6 +39,9 @@ function chaves() {
         else anda(v);
       }
   })(car);
+  // Cenas do enredo (seção 106): as falas e quem fala.
+  const cen = JSON.parse(fs.readFileSync(path.join(raiz, 'Resources', 'Carreira', 'cenas.json'), 'utf8'));
+  for (const c of cen.cenas || []) for (const f of c.falas || []) { if (f.texto) set.add(f.texto); if (f.quem) set.add(f.quem); }
   return set;
 }
 

@@ -836,3 +836,14 @@
 .tile--caro { border-color: rgba(230, 120, 60, 0.7); }
 .tile-price--caro { color: rgb(240, 130, 70); }
 .res-coins--none { color: var(--texto-fraco); -unity-font-style: normal; white-space: normal; }
+
+/* Cenas do enredo (seção 106) */
+.k-cena { justify-content: flex-end; padding-bottom: 170px; }
+.k-cena-box { flex-direction: row; align-items: flex-start; width: 760px; max-width: 92%; min-height: 120px; padding: 18px 22px; }
+.k-cena-pic { width: 72px; height: 72px; border-radius: 36px; margin-right: 18px; flex-shrink: 0; align-items: center; justify-content: center; border-width: 2px; border-color: rgba(255, 255, 255, 0.25); }
+.k-cena-ini { font-size: 24px; -unity-font-style: bold; margin: 0; padding: 0; -unity-text-align: middle-center; }
+.k-cena-col { flex-grow: 1; flex-shrink: 1; }
+.k-cena-nome { font-size: 15px; -unity-font-style: bold; margin: 0 0 6px 0; padding: 0; }
+.k-cena-texto { font-size: 19px; color: var(--texto); white-space: normal; margin: 0; padding: 0; }
+.k-cena-narra { -unity-font-style: italic; color: var(--texto-fraco); }
+.k-cena-dica { font-size: 12px; color: var(--texto-fraco); margin: 12px 0 0 0; padding: 0; -unity-text-align: middle-right; }
