@@ -5806,3 +5806,41 @@ O destaque pulsa. A raiz alterna `tut-pulse` a cada 450 ms, e `.tut-pulse .tut-h
 - texto dentro do destaque: aceita;
 - cartão da paleta sem destaque: recusa, e aceita com `tiles`;
 - outro botão: recusa.
+
+## 103. Pilotos com nome nas provas comuns da carreira e os pilotos do Global
+
+Antes, nas provas comuns da carreira (corrida, desafio, construtor, eliminação), só o jogador ("VOCÊ") e o rival tinham nome. Os outros carros apareciam como **"ROBÔ · TRILHO N"** no painel, na etiqueta (F1) e na narração. Agora cada carro tem o nome e a cor de um piloto da região.
+
+- **`RegionDef.pilotos`** (`"pilotos"` em cada região do `carreira.json`): nome e cor de quem corre nas provas comuns. O carro e o jeito de pilotar continuam pela regra de antes (carro pela pista, jeito revezado por `StyleOf`, níveis da região), para não mudar a dificuldade.
+- **`Career.Grid(região, nó, ais, grid)`**: embaralha os pilotos da região com a semente do nó (`SeedOf(n.id, 0)`), tira o rival da prova e põe um em cada carro de 1 a `ais`; num nó rival, a partir do carro 2. É a mesma prova, então são os mesmos pilotos nos mesmos carros.
+- `RaceController.Career`: `kGrid` é preenchido ao largar. `CareerName` e `CareerColor` usam o `kGrid` quando a prova não é campeonato nem o carro do rival. A eliminação avisa "Marina Faísca eliminado · sobram 3".
+- Fora da carreira (corrida livre, campeonato offline) o "ROBÔ · TRILHO N" continua, porque ali o jogador escolhe o robô.
+
+| Região | Pilotos das provas comuns |
+|---|---|
+| Garagem | Zé da Oficina, Lu Parafuso, Bia Roda (nova) |
+| Clube | Rafa Turbo, Nina Pistão, Marina Faísca, Zé da Oficina, Lu Parafuso |
+| Regional | Marina, Rafa, Nina, Dona Célia, Tio Beto, Lu, Zé |
+| Nacional | Marina, Rafa, Nina, Dona Célia, Tio Beto, Dr. Curva, Zé, Lu |
+| Global | SquadFun, Bilboque, Kojiro, Leector, Devair, Nebrown, Peripato, Sofia Lindqvist, Mateo Ruiz, Aiko Tanabe |
+
+Nenhuma região tem menos pilotos que o maior número de adversários das provas dela. O Felix Badar, o Ianzin e o Rios não entram nas provas comuns: só nos campeonatos do Global e, o Felix, como rival.
+
+### Pilotos do Global
+
+Nove pilotos novos que só aparecem na região Global: **Ianzin**, **Rios**, SquadFun, Bilboque, Kojiro, Leector, Devair, Nebrown e Peripato. Eles entraram no lugar de Lukas Brandt, Chloé Marchand, O Campeão e Dr. Curva nos campeonatos do Global; O Campeão e o Dr. Curva continuam nas regiões de antes.
+
+- **Ianzin**: tão bom quanto o Felix: IA 200 e garagem nível 11 (`"nivel": 11`), Fórmula com turbo eficiente, jeito constante.
+- **Rios**: o segundo melhor: IA 196–198 e nível 10, motor longo, asa, macio e turbo explosivo, jeito agressivo.
+- Os outros: IA 174–190, cada um com carro, cor e jeito próprios.
+
+| Campeonato | Pilotos (IA) |
+|---|---|
+| Copa Global | Aiko 184, Sofia 182, Mateo 180, SquadFun 178, Bilboque 176, Peripato 176, Nebrown 174 |
+| Lendas (convite) | Felix 200 (n11), Ianzin 200 (n11), Rios 198 (n10), Aiko 194, Kojiro 190, Leector 188, Devair 186 |
+| Mundial | Felix 200 (n11), Ianzin 200 (n11), Rios 196 (n10), Kojiro 186, SquadFun 184, Leector 182, Peripato 180 |
+
+Cada campeonato tem 7 pilotos mais o jogador, o mesmo que antes (`Champ.MaxPilots = 8`). Os nomes estão nas 5 tabelas de idioma, iguais em todas.
+
+**Teste** (`script eval`, `Career.Grid` em todas as provas comuns): nenhum carro sem piloto. `garagem-1`: Zé da Oficina; `clube-1`: Lu Parafuso, Marina Faísca; `nacional-1`: Rafa Turbo, Zé da Oficina, Dr. Curva, Lu Parafuso, Tio Beto; `global-1`: Peripato, Aiko, Sofia, Mateo, Nebrown, Bilboque, Kojiro; nos rivais o carro 1 fica com o rival. Os três campeonatos do Global leem 7 pilotos, com o Ianzin em IA 200 e nível 11.
+

@@ -1604,3 +1604,14 @@ Desbloquear tudo ligado: mesa e peças sem limite (teste).	すべて解除がオ
 você tem {0} (kit: {1})	{0} 個（キット：{1}）
 você tem {0}	{0} 個
 “{0}” salva · custo {1}.	「{0}」を保存しました · コスト {1}。
+{0} eliminado · sobram {1}	{0}が脱落・残り{1}台
+Bia Roda	Bia Roda
+SquadFun	SquadFun
+Bilboque	Bilboque
+Kojiro	Kojiro
+Leector	Leector
+Devair	Devair
+Nebrown	Nebrown
+Peripato	Peripato
+Ianzin	Ianzin
+Rios	Rios

@@ -1604,3 +1604,14 @@ Desbloquear tudo ligado: mesa e peças sem limite (teste).	Alles freischalten is
 você tem {0} (kit: {1})	du hast {0} (Bausatz: {1})
 você tem {0}	du hast {0}
 “{0}” salva · custo {1}.	„{0}“ gespeichert · Kosten {1}.
+{0} eliminado · sobram {1}	{0} ausgeschieden · noch {1}
+Bia Roda	Bia Roda
+SquadFun	SquadFun
+Bilboque	Bilboque
+Kojiro	Kojiro
+Leector	Leector
+Devair	Devair
+Nebrown	Nebrown
+Peripato	Peripato
+Ianzin	Ianzin
+Rios	Rios

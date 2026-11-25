@@ -1604,3 +1604,14 @@ Desbloquear tudo ligado: mesa e peças sem limite (teste).	Desbloquear todo acti
 você tem {0} (kit: {1})	tienes {0} (kit: {1})
 você tem {0}	tienes {0}
 “{0}” salva · custo {1}.	“{0}” guardada · coste {1}.
+{0} eliminado · sobram {1}	{0} eliminado · quedan {1}
+Bia Roda	Bia Roda
+SquadFun	SquadFun
+Bilboque	Bilboque
+Kojiro	Kojiro
+Leector	Leector
+Devair	Devair
+Nebrown	Nebrown
+Peripato	Peripato
+Ianzin	Ianzin
+Rios	Rios

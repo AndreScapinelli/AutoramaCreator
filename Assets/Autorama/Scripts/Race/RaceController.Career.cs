@@ -444,6 +444,7 @@ namespace Autorama
             sim.cutoff = null;
             int ais = clock ? 0 : n.adversarios;
             var t = n.tipo == "construtor" ? kBuilt : Career.Track(n.pista);
+            Career.Grid(KRegion, n, ais, kGrid);
             for (int k = 0; k < RaceSim.MaxCars; k++)
             {
                 sim.present[k] = k <= ais;
@@ -547,7 +548,7 @@ namespace Autorama
             if (alive <= 1) return;
             if (last == 0) { kElimPos = alive; kOut = true; return; }
             sim.present[last] = false;
-            panel.Toast(L.F("Carro {0} eliminado · sobram {1}", last + 1, alive - 1));
+            panel.Toast(kGrid[last] != null ? L.F("{0} eliminado · sobram {1}", L.T(kGrid[last].nome), alive - 1) : L.F("Carro {0} eliminado · sobram {1}", last + 1, alive - 1));
             if (alive - 1 == 1) { kElimPos = 1; kOut = true; }
         }
 
@@ -871,7 +872,11 @@ namespace Autorama
 
         // Na prova da carreira: o jogador é "VOCÊ" e o rival tem nome e cor (placar de cima, controles, etiquetas).
         bool CareerRacing => panel.CareerMode && kScreen != KScreen.Map && kScreen != KScreen.Saves;
-        string CareerName(int k) => !CareerRacing ? null : k == 0 ? L.T("VOCÊ") : IsChamp ? ChampName(k) : k == 1 && IsRival ? KNode.rival.ToUpperInvariant() : null;
-        Color? CareerColor(int k) => !CareerRacing ? null : IsChamp ? ChampColor(k) : k == 1 && IsRival && ColorUtility.TryParseHtmlString(KNode.rivalCor, out var c) ? c : (Color?)null;
+        // Os outros carros das provas comuns têm o nome e a cor de um piloto da região (kGrid, Career.Grid), nunca "robô".
+        readonly PilotoDef[] kGrid = new PilotoDef[RaceSim.MaxCars];
+        string CareerName(int k) => !CareerRacing ? null : k == 0 ? L.T("VOCÊ") : IsChamp ? ChampName(k) : k == 1 && IsRival ? KNode.rival.ToUpperInvariant()
+                                  : kGrid[k] != null ? L.T(kGrid[k].nome).ToUpperInvariant() : null;
+        Color? CareerColor(int k) => !CareerRacing ? null : IsChamp ? ChampColor(k) : k == 1 && IsRival && ColorUtility.TryParseHtmlString(KNode.rivalCor, out var c) ? c
+                                   : kGrid[k] != null && ColorUtility.TryParseHtmlString(kGrid[k].cor, out var g) ? g : (Color?)null;
     }
 }

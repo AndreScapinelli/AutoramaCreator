@@ -18,6 +18,7 @@ namespace Autorama
         public int estrelasRival;   // estrelas da região para abrir o nó "rival"
         public int estrelasAbrir;   // estrelas somadas das regiões anteriores para abrir esta (seção 92; 0 = só ser campeão da anterior)
         public int nivelIA;         // nível da garagem dos carros da IA (0–10, seção 92): todas as trilhas da opção que eles usam
+        public PilotoDef[] pilotos; // quem corre nas provas comuns da região (nome e cor; o carro e o jeito seguem a regra da IA)
         public NodeDef[] nos;
     }
 
@@ -258,6 +259,20 @@ namespace Autorama
             int f = 2;
             for (int i = 0; i < Def.regioes.Length; i++) if (RegionOpen(s, i)) f = Mathf.Max(f, Def.regioes[i].faixas);
             return f;
+        }
+
+        // Pilotos dos carros 1..ais de uma prova comum: os da região (RegionDef.pilotos) embaralhados pela prova, sem o
+        // rival dela (o rival é o carro 1). Mesma prova, mesmos pilotos nos mesmos carros. Faltando gente, fica null.
+        public static void Grid(RegionDef r, NodeDef n, int ais, PilotoDef[] grid)
+        {
+            System.Array.Clear(grid, 0, grid.Length);
+            if (r?.pilotos == null) return;
+            var pool = new List<PilotoDef>();
+            foreach (var p in r.pilotos) if (p != null && !string.IsNullOrEmpty(p.nome) && p.nome != n.rival) pool.Add(p);
+            var rnd = new System.Random(RaceController.SeedOf(n.id, 0));
+            for (int i = pool.Count - 1; i > 0; i--) { int j = rnd.Next(i + 1); (pool[i], pool[j]) = (pool[j], pool[i]); }
+            int first = n.tipo == "rival" ? 2 : 1;
+            for (int k = first, i = 0; k <= ais && k < grid.Length && i < pool.Count; k++, i++) grid[k] = pool[i];
         }
 
         public static bool NodeOpen(CareerSave s, RegionDef r, NodeDef n)

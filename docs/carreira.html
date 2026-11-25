@@ -198,11 +198,26 @@ th { color:var(--mut); font-weight:600; }
 </ul>
 </div>
 
+<div class="fase">
+<h3>H · Enredo: "A caixa do Tio Fê" <span class="tag todo">planejada</span></h3>
+<p>O tio sumido deu o primeiro carrinho; no fim ele é o Felix Badar. Cada coisa que abre aos poucos chega como objeto da história. Roteiro completo em <code>docs/enredo.md</code>.</p>
+<ul class="chk">
+<li>Objetos (<code>Progresso.Itens</code>): gatilho de dois estágios (meia aceleração, Zé da Oficina), lata de nitro (turbo), controle da Dona Célia (ajuste fino, campeã da Taça Clube), caderno do Dr. Curva (parciais e fantasma), foto de 96 (revelação), carro do Fê (bolha Fórmula)</li>
+<li>Trava dos controles <b>só na carreira</b>: meia, meia −/+ e turbo sem o objeto não fazem nada; fora da carreira tudo continua aberto</li>
+<li>Tela de cena (quadrinho por cima do mapa, Enter avança, Esc pula), uma vez por save (<code>vistas</code>)</li>
+<li>Cenas: chegada em cada região, antes e depois dos rivais, ao ganhar objeto, epílogo</li>
+<li>Cartas do Fê: uma por região, ★★★ na prova de relógio do meio, com dica e pista</li>
+<li>Álbum: objetos, cartas e cenas para reler</li>
+<li>Retratos simples e tradução das falas</li>
+</ul>
+</div>
+
 <h2>Decisões</h2>
 <ul>
 <li class="f"><b>Decidido:</b> carreira com telas próprias, fora do painel lateral; só pelo menu inicial.</li>
 <li class="f"><b>Decidido:</b> mapa 3D (maquete na mesa).</li>
-<li class="f"><b>Decidido:</b> adversários simples, sem personagem (IA e qualidade).</li>
+<li class="f"><b>Decidido:</b> adversários simples, sem personagem (IA e qualidade). <b>Mudou (24/11/2026):</b> os pilotos com nome ganham papel no enredo (fase H); os sem nome continuam simples.</li>
+<li class="f"><b>Decidido (24/11/2026):</b> os controles abertos pelo enredo travam só na carreira; corrida livre, campeonato, online e tutorial têm tudo.</li>
 <li class="f"><b>Decidido:</b> sem XP; desbloqueio por moedas. A carreira abre a peça para compra, a moeda compra.</li>
 <li class="f"><b>Decidido:</b> o jogo não foi lançado, todo mundo começa do zero. Enquanto isso, um botão <b>"Desbloquear tudo"</b> nas Opções libera todas as peças, regiões e nós (sem gastar moedas e sem apagar o progresso). Ele fica atrás de uma constante (<code>Progresso.Teste = true</code>) e some no lançamento trocando para <code>false</code>.</li>
 <li>Construtor livre: peças bloqueadas até a carreira liberar, ou tudo livre fora da carreira?</li>
@@ -212,6 +227,7 @@ th { color:var(--mut); font-weight:600; }
 
 <h2>Diário</h2>
 <ul class="log">
+<li><b>24/11/2026</b> · Plano da fase H: enredo do Tio Fê (Felix Badar), objetos que abrem meia, turbo, ajuste fino, parciais e fantasma na carreira; cenas, cartas e Álbum. Roteiro em <code>docs/enredo.md</code>.</li>
 <li><b>17/11/2026</b> · Fase B: 3 modelos por bolha (6 novos), abertos por rivais e campeonatos, usados em todos os modos. Seção 80 do guia.</li>
 <li><b>17/11/2026</b> · Garagem: no lugar da preparação de 3 níveis, 10 níveis por opção (motor curto e longo evoluem separados), níveis abertos por região, 50 × n moedas. A preparação antiga volta em moedas. Seção 78 do guia.</li>
 <li><b>17/11/2026</b> · Fase U pronta: peças abertas pela carreira (tela Peças), moedas no save, garagem do carro (opções e preparação em 3 níveis), save antigo convertido. Turbo explosivo ou eficiente, ganho a cada volta (mais para os últimos). Seções 78 e 79 do guia.</li>

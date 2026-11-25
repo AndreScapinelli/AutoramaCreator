@@ -5,6 +5,11 @@
       "nome": "Garagem",
       "faixas": 2,
       "estrelasRival": 12,
+      "pilotos": [
+        { "nome": "Zé da Oficina", "cor": "#2563EB" },
+        { "nome": "Lu Parafuso", "cor": "#16A34A" },
+        { "nome": "Bia Roda", "cor": "#0F766E" }
+      ],
       "nos": [
         {
           "id": "garagem-1",
@@ -490,6 +495,13 @@
       "nome": "Clube",
       "faixas": 4,
       "estrelasRival": 14,
+      "pilotos": [
+        { "nome": "Rafa Turbo", "cor": "#F97316" },
+        { "nome": "Nina Pistão", "cor": "#A3E635" },
+        { "nome": "Marina Faísca", "cor": "#E04B95" },
+        { "nome": "Zé da Oficina", "cor": "#2563EB" },
+        { "nome": "Lu Parafuso", "cor": "#16A34A" }
+      ],
       "nos": [
         {
           "id": "clube-1",
@@ -1077,6 +1089,15 @@
       "nome": "Regional",
       "faixas": 6,
       "estrelasRival": 16,
+      "pilotos": [
+        { "nome": "Marina Faísca", "cor": "#E04B95" },
+        { "nome": "Rafa Turbo", "cor": "#F97316" },
+        { "nome": "Nina Pistão", "cor": "#A3E635" },
+        { "nome": "Dona Célia", "cor": "#0EA5B7" },
+        { "nome": "Tio Beto", "cor": "#8B5A2B" },
+        { "nome": "Lu Parafuso", "cor": "#16A34A" },
+        { "nome": "Zé da Oficina", "cor": "#2563EB" }
+      ],
       "nos": [
         {
           "id": "regional-1",
@@ -1823,6 +1844,16 @@
       "nome": "Nacional",
       "faixas": 8,
       "estrelasRival": 18,
+      "pilotos": [
+        { "nome": "Marina Faísca", "cor": "#E04B95" },
+        { "nome": "Rafa Turbo", "cor": "#F97316" },
+        { "nome": "Nina Pistão", "cor": "#A3E635" },
+        { "nome": "Dona Célia", "cor": "#0EA5B7" },
+        { "nome": "Tio Beto", "cor": "#8B5A2B" },
+        { "nome": "Dr. Curva", "cor": "#9333EA" },
+        { "nome": "Zé da Oficina", "cor": "#2563EB" },
+        { "nome": "Lu Parafuso", "cor": "#16A34A" }
+      ],
       "nos": [
         {
           "id": "nacional-1",
@@ -2641,6 +2672,18 @@
       "nome": "Global",
       "faixas": 8,
       "estrelasRival": 30,
+      "pilotos": [
+        { "nome": "SquadFun", "cor": "#22C55E" },
+        { "nome": "Bilboque", "cor": "#A855F7" },
+        { "nome": "Kojiro", "cor": "#F97316" },
+        { "nome": "Leector", "cor": "#14B8A6" },
+        { "nome": "Devair", "cor": "#EAB308" },
+        { "nome": "Nebrown", "cor": "#92400E" },
+        { "nome": "Peripato", "cor": "#84CC16" },
+        { "nome": "Sofia Lindqvist", "cor": "#38BDF8" },
+        { "nome": "Mateo Ruiz", "cor": "#EF4444" },
+        { "nome": "Aiko Tanabe", "cor": "#F472B6" }
+      ],
       "estrelasAbrir": 130,
       "nivelIA": 10,
       "nos": [
@@ -2997,6 +3040,20 @@
           ],
           "pilotos": [
             {
+              "nome": "Aiko Tanabe",
+              "cor": "#F472B6",
+              "ia": 184,
+              "carro": {
+                "motor": 0,
+                "bolha": 3,
+                "pneu": 1,
+                "chassi": 1,
+                "nitro": 2,
+                "modelo": 0
+              },
+              "estilo": "constante"
+            },
+            {
               "nome": "Sofia Lindqvist",
               "cor": "#38BDF8",
               "ia": 182,
@@ -3025,72 +3082,58 @@
               "estilo": "agressivo"
             },
             {
-              "nome": "Aiko Tanabe",
-              "cor": "#F472B6",
-              "ia": 184,
-              "carro": {
-                "motor": 0,
-                "bolha": 3,
-                "pneu": 1,
-                "chassi": 1,
-                "nitro": 2,
-                "modelo": 0
-              },
-              "estilo": "constante"
-            },
-            {
-              "nome": "Lukas Brandt",
-              "cor": "#94A3B8",
+              "nome": "SquadFun",
+              "cor": "#22C55E",
               "ia": 178,
               "carro": {
-                "motor": 2,
-                "bolha": 0,
-                "pneu": 2,
-                "chassi": 2,
-                "nitro": 0,
-                "modelo": 2
-              },
-              "estilo": "normal"
-            },
-            {
-              "nome": "Chloé Marchand",
-              "cor": "#3B82F6",
-              "ia": 176,
-              "carro": {
                 "motor": 1,
-                "bolha": 2,
+                "bolha": 0,
                 "pneu": 1,
                 "chassi": 0,
                 "nitro": 1,
-                "modelo": 1
-              },
-              "estilo": "nervoso"
-            },
-            {
-              "nome": "O Campeão",
-              "cor": "#F2B705",
-              "ia": 174,
-              "carro": {
-                "motor": 1,
-                "bolha": 1,
-                "pneu": 1,
-                "chassi": 2,
-                "nitro": 0,
                 "modelo": 2
               },
               "estilo": "agressivo"
             },
             {
-              "nome": "Dr. Curva",
-              "cor": "#9333EA",
-              "ia": 172,
+              "nome": "Bilboque",
+              "cor": "#A855F7",
+              "ia": 176,
+              "carro": {
+                "motor": 0,
+                "bolha": 2,
+                "pneu": 2,
+                "chassi": 1,
+                "nitro": 0,
+                "modelo": 1
+              },
+              "estilo": "nervoso"
+            },
+            {
+              "nome": "Peripato",
+              "cor": "#84CC16",
+              "ia": 176,
+              "carro": {
+                "motor": 1,
+                "bolha": 1,
+                "pneu": 0,
+                "chassi": 1,
+                "nitro": 0,
+                "modelo": 1
+              },
+              "estilo": "nervoso"
+            },
+            {
+              "nome": "Nebrown",
+              "cor": "#92400E",
+              "ia": 174,
               "carro": {
                 "motor": 0,
                 "bolha": 1,
-                "pneu": 1,
-                "chassi": 0,
+                "pneu": 2,
+                "chassi": 2,
                 "nitro": 0,
-                "modelo": 1
+                "modelo": 2
               },
               "estilo": "constante"
             }
@@ -3190,32 +3233,34 @@
               "nivel": 11
             },
             {
-              "nome": "Sofia Lindqvist",
-              "cor": "#38BDF8",
-              "ia": 192,
-              "carro": {
-                "motor": 2,
-                "bolha": 3,
-                "pneu": 0,
-                "chassi": 0,
-                "nitro": 1,
-                "modelo": 0
-              },
-              "estilo": "constante"
-            },
-            {
-              "nome": "Mateo Ruiz",
-              "cor": "#EF4444",
-              "ia": 190,
+              "nome": "Ianzin",
+              "cor": "#6366F1",
+              "ia": 200,
               "carro": {
                 "motor": 1,
                 "bolha": 3,
                 "pneu": 1,
                 "chassi": 1,
-                "nitro": 1,
+                "nitro": 2,
                 "modelo": 0
               },
-              "estilo": "agressivo"
+              "estilo": "constante",
+              "nivel": 11
+            },
+            {
+              "nome": "Rios",
+              "cor": "#0284C7",
+              "ia": 198,
+              "carro": {
+                "motor": 2,
+                "bolha": 1,
+                "pneu": 1,
+                "chassi": 0,
+                "nitro": 1,
+                "modelo": 1
+              },
+              "estilo": "agressivo",
+              "nivel": 10
             },
             {
               "nome": "Aiko Tanabe",
@@ -3232,44 +3277,44 @@
               "estilo": "constante"
             },
             {
-              "nome": "Lukas Brandt",
-              "cor": "#94A3B8",
-              "ia": 188,
+              "nome": "Kojiro",
+              "cor": "#F97316",
+              "ia": 190,
               "carro": {
                 "motor": 2,
-                "bolha": 3,
-                "pneu": 2,
+                "bolha": 1,
+                "pneu": 0,
                 "chassi": 2,
-                "nitro": 0,
-                "modelo": 0
+                "nitro": 2,
+                "modelo": 1
+              },
+              "estilo": "constante"
+            },
+            {
+              "nome": "Leector",
+              "cor": "#14B8A6",
+              "ia": 188,
+              "carro": {
+                "motor": 1,
+                "bolha": 2,
+                "pneu": 1,
+                "chassi": 0,
+                "nitro": 2,
+                "modelo": 2
               },
               "estilo": "normal"
             },
             {
-              "nome": "Chloé Marchand",
-              "cor": "#3B82F6",
+              "nome": "Devair",
+              "cor": "#EAB308",
               "ia": 186,
               "carro": {
-                "motor": 1,
-                "bolha": 3,
-                "pneu": 1,
-                "chassi": 0,
+                "motor": 2,
+                "bolha": 0,
+                "pneu": 0,
+                "chassi": 1,
                 "nitro": 1,
-                "modelo": 0
-              },
-              "estilo": "nervoso"
-            },
-            {
-              "nome": "O Campeão",
-              "cor": "#F2B705",
-              "ia": 184,
-              "carro": {
-                "motor": 1,
-                "bolha": 1,
-                "pneu": 1,
-                "chassi": 2,
-                "nitro": 0,
-                "modelo": 2
+                "modelo": 1
               },
               "estilo": "agressivo"
             }
@@ -3329,88 +3374,90 @@
               "nivel": 11
             },
             {
-              "nome": "Sofia Lindqvist",
-              "cor": "#38BDF8",
-              "ia": 186,
-              "carro": {
-                "motor": 2,
-                "bolha": 3,
-                "pneu": 0,
-                "chassi": 0,
-                "nitro": 1,
-                "modelo": 0
-              },
-              "estilo": "constante"
-            },
-            {
-              "nome": "Mateo Ruiz",
-              "cor": "#EF4444",
-              "ia": 184,
+              "nome": "Ianzin",
+              "cor": "#6366F1",
+              "ia": 200,
               "carro": {
                 "motor": 1,
-                "bolha": 3,
-                "pneu": 1,
-                "chassi": 1,
-                "nitro": 1,
-                "modelo": 0
-              },
-              "estilo": "agressivo"
-            },
-            {
-              "nome": "Aiko Tanabe",
-              "cor": "#F472B6",
-              "ia": 188,
-              "carro": {
-                "motor": 0,
                 "bolha": 3,
                 "pneu": 1,
                 "chassi": 1,
                 "nitro": 2,
                 "modelo": 0
               },
+              "estilo": "constante",
+              "nivel": 11
+            },
+            {
+              "nome": "Rios",
+              "cor": "#0284C7",
+              "ia": 196,
+              "carro": {
+                "motor": 2,
+                "bolha": 1,
+                "pneu": 1,
+                "chassi": 0,
+                "nitro": 1,
+                "modelo": 1
+              },
+              "estilo": "agressivo",
+              "nivel": 10
+            },
+            {
+              "nome": "Kojiro",
+              "cor": "#F97316",
+              "ia": 186,
+              "carro": {
+                "motor": 2,
+                "bolha": 1,
+                "pneu": 0,
+                "chassi": 2,
+                "nitro": 2,
+                "modelo": 1
+              },
               "estilo": "constante"
             },
             {
-              "nome": "Lukas Brandt",
-              "cor": "#94A3B8",
+              "nome": "SquadFun",
+              "cor": "#22C55E",
+              "ia": 184,
+              "carro": {
+                "motor": 1,
+                "bolha": 0,
+                "pneu": 1,
+                "chassi": 0,
+                "nitro": 1,
+                "modelo": 2
+              },
+              "estilo": "agressivo"
+            },
+            {
+              "nome": "Leector",
+              "cor": "#14B8A6",
               "ia": 182,
               "carro": {
-                "motor": 2,
-                "bolha": 3,
-                "pneu": 2,
-                "chassi": 2,
-                "nitro": 0,
-                "modelo": 0
+                "motor": 1,
+                "bolha": 2,
+                "pneu": 1,
+                "chassi": 0,
+                "nitro": 2,
+                "modelo": 2
               },
               "estilo": "normal"
             },
             {
-              "nome": "Chloé Marchand",
-              "cor": "#3B82F6",
+              "nome": "Peripato",
+              "cor": "#84CC16",
               "ia": 180,
               "carro": {
                 "motor": 1,
-                "bolha": 3,
-                "pneu": 1,
-                "chassi": 0,
-                "nitro": 1,
-                "modelo": 0
+                "bolha": 1,
+                "pneu": 0,
+                "chassi": 1,
+                "nitro": 0,
+                "modelo": 1
               },
               "estilo": "nervoso"
-            },
-            {
-              "nome": "O Campeão",
-              "cor": "#F2B705",
-              "ia": 178,
-              "carro": {
-                "motor": 1,
-                "bolha": 1,
-                "pneu": 1,
-                "chassi": 2,
-                "nitro": 0,
-                "modelo": 2
-              },
-              "estilo": "agressivo"
             }
           ],
           "premio": 7500,
