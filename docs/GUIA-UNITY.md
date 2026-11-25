@@ -2888,7 +2888,7 @@ Teste (`script eval`, oval, `vmax` 14, `grip` 29, `ramp` 0,5, robôs de qualidad
 - Caminho no mundo da oval de 4: 75,834 · 72,693 · 69,551 · 66,410 (o dobro das células).
 - Rodízio de 5 pilotos em 4 trilhos: 5 baterias, cada piloto **uma vez em cada trilho**. Rodízio de 2 com 3 pilotos continua `[0,1] [1,2] [2,0]`.
 - JSON sem `faixas` → 2; JSON de 4 ida e volta → 4.
-- **IA na pista de 4:** no primeiro teste os robôs dos trilhos de fora saíam **9 vezes** cada no oval: a coragem (até 115% do limite) enchia a derrapagem nas curvas 2× mais longas. Correção: com `Scale > 1`, a parte acima do limite é dividida pela escala, `m = √(1 + (m² − 1) / Scale)` (os erros de propósito, m ≥ 1,3, ficam). Caiu para 2 saídas em 4 carros. Na pista de 2 nada muda.
+- **IA na pista de 4:** no primeiro teste os robôs dos trilhos de fora saíam **9 vezes** cada no oval: a coragem (até 115% do limite) enchia a derrapagem nas curvas 2× mais longas. Correção: com `Scale > 1`, a parte acima do limite é dividida pela escala, `m = √(1 + (m² − 1) / Scale)` (os erros de propósito, m ≥ 1,45, ficam). Caiu para 2 saídas em 4 carros. Na pista de 2 nada muda.
 - Tela (Play mode): construtor com o 8 de 4 (mesa com células de 2, réguas certas, arte nova, 4 carrinhos no grid) e corrida no oval de 4 com 4 fichas de posição e 4 painéis.
 
 ### 25.8 O que falta
@@ -3638,7 +3638,7 @@ Constantes em `PieceCatalog`: `JumpLength = 4`, `JumpUp = 1`, `JumpGap = 1`, `Ju
 - **Forma** (`PieceCatalog.JumpY`): rampa de 1 célula em parábola até 0,2 de altura (inclinação 0,4 na ponta), vão de 1 célula e rampa de pouso de 2 células, de 0,2 até o chão. A malha não tem triângulos no vão (`JumpGapAt`), tem tampas nas duas pontas dele e a base é maciça até a mesa.
 - **Voo** (`RaceSim.AirStep`, `CarState.air/airY/airVy`): ao passar da ponta o carrinho sai com `airVy = v · 0,4`. No ar a velocidade na planta não muda (sem motor nem freio) e a altura cai com `JumpG · Scale`. O modo continua `OnSlot`: o carrinho segue o caminho na planta.
 - **Pouso:** toca quando `airY ≤` altura da pista. O tranco `(v·inclinação − airVy) / (JumpHard·Scale)` entra **ao quadrado** na derrapagem, mas só até `JumpSlipMax = 0,6`: o pouso sozinho não capota (só quem já vinha derrapando). Cada ponto de tranco acima de `JumpSoft = 0,8` tira `JumpLoss = 1,2` da velocidade, até `JumpLossMax = 0,6` (60%). Antes o pouso forte capotava sempre, e de pé no fundo não havia como passar. Tocou no chão do vão, ou chegou na ponta da rampa de pouso mais de 0,03 abaixo dela: caiu, e volta `JumpBack` (2) células antes da peça, para pegar embalo.
-- **IA:** busca `JumpAi × m` na ponta (m limitado a 0,9–1,1; no "erro", m ≥ 1,3 e ela capota). Com salto à vista ela não solta o botão: dosa o gatilho (`gas` 1% ou 100%). Soltar e apertar faz o acelerador recomeçar do zero e ela chegava devagar demais.
+- **IA:** não freia pelo salto (rápido, o carro voa e pousa no trilho; seção 105); só não chega na ponta abaixo de `JumpAi`. Com salto à vista ela não solta o botão: dosa o gatilho (`gas` 1% ou 100%). Soltar e apertar faz o acelerador recomeçar do zero e ela chegava devagar demais.
 - **Cruzar pelo vão:** na sobreposição ficam de fora os pontos do vão e os da última meia célula de cada rampa. Uma reta, ou outro salto, pode cruzar o vão em ângulo reto pelo centro; 0,25 fora do centro já acusa. Dois saltos em cruz: os carrinhos **colidem no ar** (mesma altura). Um no ar e outro no chão só colidem se a diferença de altura for de 0,18 ou menos (`CollidePair`).
 - **Online:** o snapshot ganhou a bandeira `ar` (bit 16) e, só quando ligada, `ay avy`. Em pista sem salto o formato é o mesmo, por isso `Format` continua 1.
 
@@ -5872,3 +5872,19 @@ Primeira etapa do enredo "A caixa do Tio Fê" (`docs/enredo.md`, fase H do `docs
 - Resultado: "Ganhou: Gatilho de dois estágios (meia aceleração)", só na vez em que o nó passa das estrelas pedidas (`kItemsNew`).
 
 **Teste** (`script eval`, com `Progresso.P.tudo = false` só na memória e um `CareerSave` novo, sem gravar): save novo → meia, turbo e ajuste fino travados; `garagem-oficina` 1★ → abre a meia; `garagem-8` → abre o turbo; `clube-taca` 1★ → ajuste fino continua travado; `clube-taca` 2★ → abre. `ItemsOf("clube-taca", 1)` não entrega nada; com 2, entrega o controle. Compilado sem erro; a trava no Play (teclas na prova) ainda não foi conferida na tela.
+
+
+## 105. IA: salto sem freio e mais saídas de pista
+
+- **Salto:** antes a IA chegava na ponta da rampa a `JumpAi × m` (freava se vinha mais rápido). Mas na velocidade máxima o carro voa e pousa no trilho, então agora a rampa não pede freio: `JumpAi` (por vão) virou a velocidade **mínima** na ponta (`jumpMin`, `need = max(need, jumpMin)`). As curvas antes e depois do salto ainda freiam (`needCurve`), e o gatilho continua dosado com o salto à vista.
+- **Erro de propósito:** m entre `AiMissLo 1,45` e `AiMissHi 1,6` (era 1,3–1,4) e dura `AiMissTime 3` s (era o sorteio de 1,2 s, que acabava no meio da curva). Chance por sorteio, `AiMiss`: 0,02 + 0,16·(1 − q)^1,5 até a 100 (18% na 1, 2% na 100; era 12,5% e 0,5%); de 101 a 200 cai de 2% a 0,8%. O jeito (agressivo ×2, constante ×0,3, nervoso pressionado ×6) continua.
+- **Por quê:** com 1,3–1,4 por 1,2 s a derrapagem não passava de 0,46: em 12 provas de 5 voltas na `clube-2`, qualidade 30, foram 14 erros e **nenhuma** saída.
+
+**Teste** (`CareerCalib.Table`, 12 provas de 5 voltas, IA sozinha), saídas por prova antes → depois:
+
+| Pista | IA | Saídas | Volta média |
+|---|---|---|---|
+| clube-2 | 30 · 70 · 100 | 0 → 1,5 · 0 → 0,6 · 0 → 0,3 | 4,85→4,77 · 4,73 · 4,31→4,30 |
+| global-1 (salto) | 70 · 100 · 130 · 180 | 0 → 0 | 14,79→14,07 · 13,89→13,30 · 13,47→12,96 · 12,47 |
+
+Na global-1 as curvas são inclinadas e longas: mesmo a 1,6 × o limite o carro bate na velocidade máxima antes, e não sai. Os tempos do relógio da carreira (seção 70) vieram da IA de antes; nas pistas com salto a IA ficou ~4% mais rápida.

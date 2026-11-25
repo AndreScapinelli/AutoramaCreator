@@ -1026,13 +1026,15 @@ namespace Autorama
         // ---------- Piloto IA ----------
         // Acelera enquanto estiver abaixo da velocidade com que ainda freia a tempo para a próxima curva.
         // A coragem m é a fração do limite da curva que ele aceita: de 0,82 (qualidade 1) a 1,15 (qualidade 100).
-        // A cada 1,2 s sorteia de novo, com uma variação que diminui com a qualidade. Às vezes erra: entra a 130–140%
-        // do limite e sai da pista; a chance vai de 12,5% por sorteio (qualidade 1) a 0,5% (qualidade 100).
+        // A cada 1,2 s sorteia de novo, com uma variação que diminui com a qualidade. Às vezes erra: entra a 145–160%
+        // do limite e sai da pista (seção 105).
         // Fora da pista, aperta Recolocar depois de um tempo de reação, menor nos melhores.
         const float AiLook = 3.5f, AiBrake = 20f, AiBrakePin = 10f, AiEvery = 1.2f;
         static float AiBase(float sk) => sk <= 1f ? 0.82f + 0.33f * sk : 1.15f * Mathf.Lerp(AiMasterLo, AiMasterHi, (sk - 1f) * 2f);
         static float AiSpread(float sk) => 0.02f + 0.1f * Mathf.Max(0f, 1f - sk);
-        static float AiMiss(float sk) => 0.005f + 0.12f * Mathf.Pow(Mathf.Max(0f, 1f - sk), 1.5f);
+        // Erro: m entre AiMissLo e AiMissHi por AiMissTime s. Chance por sorteio: 18% (qualidade 1), 2% (100), 0,8% (200).
+        public static float AiMissLo = 1.45f, AiMissHi = 1.6f, AiMissTime = 3f;
+        static float AiMiss(float sk) => sk <= 1f ? 0.02f + 0.16f * Mathf.Pow(1f - sk, 1.5f) : Mathf.Lerp(0.02f, 0.008f, sk - 1f);
         static float AiReslotDelay(float sk) => 1.4f - 0.9f * Mathf.Min(sk, 1f);
         // Mestres (qualidade 101–150, só a carreira usa; seção 70): além da coragem maior, dosam o gatilho em vez de
         // soltar o botão para frear, como o piloto do SetupCalib. De 1 a 100 nada muda.
@@ -1104,11 +1106,13 @@ namespace Autorama
                 float miss = AiMiss(sk) * (style == StyleAgressivo ? 2f : style == StyleConstante ? 0.3f : pressed ? 6f : 1f);
                 float spread = AiSpread(sk) * (style == StyleConstante ? 0.4f : pressed ? 2f : 1f);
                 float bold = style == StyleAgressivo ? 0.015f : style == StyleConstante ? -0.01f : 0f;
-                c.aiM = UnityEngine.Random.value < miss ? 1.3f + 0.1f * UnityEngine.Random.value
-                                                         : Mathf.Min(1.24f, AiBase(Mathf.Min(sk, 1.5f)) + bold + (UnityEngine.Random.value * 2f - 1f) * spread);
+                bool err = UnityEngine.Random.value < miss;
+                c.aiM = err ? AiMissLo + (AiMissHi - AiMissLo) * UnityEngine.Random.value
+                            : Mathf.Min(1.24f, AiBase(Mathf.Min(sk, 1.5f)) + bold + (UnityEngine.Random.value * 2f - 1f) * spread);
                 if (legend) c.aiB = Mathf.Lerp(LegendLo, LegendHi, (sk - 1.5f) * 2f) * (1f + (UnityEngine.Random.value * 2f - 1f) * spread)
                         + (style == StyleAgressivo ? 0.05f : style == StyleConstante ? -0.03f : 0f);
-                c.aiT = AiEvery;
+                // O erro dura AiMissTime: com 1,2 s ele acabava no meio da curva e o carro não saía.
+                c.aiT = err ? AiMissTime : AiEvery;
             }
             if (c.mode == CarMode.Off) { c.held = false; if ((c.offT += dt) >= AiReslotDelay(sk)) { c.offT = 0f; Reslot(k); } return; }
             if (c.mode != CarMode.OnSlot || c.finish != null) { c.held = false; return; }
@@ -1118,6 +1122,7 @@ namespace Autorama
             bool miss1 = m > 1.25f;
             float need = float.PositiveInfinity, needCurve = float.PositiveInfinity;   // needCurve: só o que as curvas pedem
             bool jumpNear = false;
+            float jumpMin = 0f;
             float step = 0.1f * Scale;
             int n = Mathf.Min(aiK.Length, Mathf.CeilToInt((AiLook + LegendTail) / 0.1f) + 1);
             // Lenda: a curvatura à frente e quanto falta das curvas seguidas (sem reta no meio) a partir de cada ponto.
@@ -1140,12 +1145,12 @@ namespace Autorama
                 float d = i * step;
                 var q = P.At(c.s + d);
                 if (i > 0 && q.k == 0f) here = false;
-                // Rampa de salto: chega na ponta a JumpAi (um pouco mais ou menos conforme a coragem; no erro, rápido demais).
-                if (q.jump && q.slope > 0f)
+                // Rampa de salto: rápido não tem problema (voa e pousa no trilho), então ela não freia pelo salto;
+                // só não chega na ponta abaixo de JumpAi (cai no vão). Curva antes ou depois ainda freia.
+                if (q.jump && q.slope > 0f && !jumpNear)
                 {
-                    float vj = JumpAi[Mathf.RoundToInt(q.def.Gap) - 1] * Speed * (miss1 ? m : Mathf.Clamp(m, 0.9f, 1.1f));
-                    need = Mathf.Min(need, Mathf.Sqrt(vj * vj + 2f * AiBrake * G * d));
                     jumpNear = true;
+                    jumpMin = JumpAi[Mathf.RoundToInt(q.def.Gap) - 1] * Speed;
                 }
                 if (crossD < 0f && (q.def.IsCross || q.def.IsFunnel)) { crossD = i == 0 ? 0f : d; crossLen = q.def.CenterLength * Scale; crossPair = q.def.IsFunnel; }
                 if (q.k == 0f) continue;
@@ -1168,6 +1173,7 @@ namespace Autorama
                 need = Mathf.Min(need, vc); needCurve = Mathf.Min(needCurve, vc);
             }
             if (crossD > 0f && set.collide && !jumpNear) need = Mathf.Min(need, CrossYield(k, crossD + crossLen * 0.5f, crossPair));
+            if (jumpNear) need = Mathf.Max(need, jumpMin);
             // Dentro do loop não deixa a velocidade cair abaixo de LoopAi, mesmo com curva logo depois.
             if (P.At(c.s).loop) need = Mathf.Max(need, LoopAi * Speed);
             // Muro e parafuso (seção 99): dentro e logo antes, não tira o pé abaixo de TwistAi (devagar, cai).
