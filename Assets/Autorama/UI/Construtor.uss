@@ -740,6 +740,15 @@
 .k-rival { font-size: 13px; -unity-font-style: italic; color: var(--texto); margin: 2px 0 6px 0; padding: 0; white-space: normal; }
 .k-res-score { font-size: 32px; -unity-font-style: bold; color: var(--destaque); margin: 4px 0; padding: 0; }
 .k-build { position: absolute; right: 16px; top: 52px; width: 340px; padding: 16px 18px; border-radius: 14px; background-color: var(--fundo-painel); border-width: 2px; border-color: var(--destaque); }
+/* Tutorial (seção 102): cartão embaixo, no meio da mesa; pergunta da primeira vez; destaque pulsando. */
+.tut-card { position: absolute; left: 50%; top: 84px; translate: -50% 0; width: 560px; padding: 14px 18px; border-radius: 14px; background-color: var(--fundo-painel); border-width: 2px; border-color: var(--destaque); }
+.tut-count { font-size: 11px; -unity-font-style: bold; color: var(--destaque); margin: 0 0 4px 0; padding: 0; letter-spacing: 1px; }
+.tut-text { font-size: 15px; color: var(--texto); margin: 0 0 8px 0; padding: 0; white-space: normal; }
+.tut-warn { font-size: 13px; color: rgb(240, 122, 58); margin: 0 0 8px 0; padding: 0; white-space: normal; }
+.tut-ask { position: absolute; left: 0; top: 0; right: 0; bottom: 0; align-items: center; justify-content: center; background-color: rgba(0, 0, 0, 0.55); }
+.tut-ask-card { width: 460px; padding: 20px 22px; border-radius: 14px; background-color: var(--fundo-painel); border-width: 2px; border-color: var(--destaque); }
+.tut-hi { border-width: 3px; border-color: rgb(245, 194, 27); background-color: rgba(245, 194, 27, 0.22); transition-property: border-color, background-color, scale; transition-duration: 0.4s; }
+.tut-pulse .tut-hi { border-color: rgb(255, 255, 255); background-color: rgba(245, 194, 27, 0.45); scale: 1.05 1.05; }
 .k-coins { font-size: 15px; -unity-font-style: bold; color: var(--premio); margin: 2px 0 6px 0; padding: 0; }
 .k-shop { width: 620px; }
 .k-shop-head { flex-direction: row; justify-content: space-between; align-items: center; }

@@ -9,9 +9,9 @@ namespace Autorama
     public class RaceSettings
     {
         public int laps = 5;
-        public float vmax = 14f;        // células por segundo com o acelerador no fundo
+        public float vmax = 17f;        // células por segundo com o acelerador no fundo
         public float ramp = 0.5f;       // segundos segurando até o acelerador chegar a 100%
-        public float grip = 29f;        // força lateral que a curva plana aguenta
+        public float grip = 43f;        // força lateral que a curva plana aguenta
         public bool collide = true;
         public string track = "builder";
         public bool bot;                // corrida livre: o jogador 2 é um piloto IA
@@ -54,6 +54,7 @@ namespace Autorama
             }
             catch { }
             s ??= new RaceSettings();
+            if ((s.vmax == 14f && s.grip == 29f) || (s.vmax == 17f && s.grip == 38f)) { s.vmax = 17f; s.grip = 43f; }   // padrões antigos (14/29 e 17/38) viram o novo
             s.FixSlots();
             return s;
         }
@@ -459,6 +460,7 @@ namespace Autorama
         public RaceSettings set;                // na corrida livre, os ajustes salvos; no campeonato, as regras dele
         public float? cutoff;                   // campeonato: a bateria acaba esse tanto depois da bandeirada do primeiro
         public float? bestT;                    // melhor volta da bateria até agora
+        public bool mirrored;                   // visitante online: voltas, tempos e chegada vêm só do snapshot do host
         public const int MaxCars = 8;
         public readonly int[] aiSkill = new int[MaxCars];   // 0: gente; 1–200: piloto IA com essa qualidade (101–150 mestre, 151–200 lenda)
         public readonly int[] aiStyle = new int[MaxCars];   // jeito do piloto IA (seção 92): 0 normal · 1 agressivo · 2 constante · 3 nervoso
@@ -587,7 +589,7 @@ namespace Autorama
                 return;
             }
             if (phase == Phase.Running) t += dt;
-            if (phase == Phase.Running && ByTime && t >= (Manche + 1) * MancheLen) { EndManche(); return; }
+            if (phase == Phase.Running && ByTime && t >= (Manche + 1) * MancheLen) { if (!mirrored) EndManche(); return; }   // visitante: espera o host
             // Campeonato: quem ainda não chegou tem um tempo limite depois da bandeirada do primeiro.
             if (phase == Phase.Running && cutoff.HasValue && winner >= 0 && t - cars[winner].finish.Value >= cutoff.Value) phase = Phase.Done;
 
@@ -778,7 +780,7 @@ namespace Autorama
             if (push.HasValue) c.flyVel += push.Value;                       // empurrão de uma batida
             c.flyW = -c.side * (220f + c.v * 30f);                           // gira no sentido da curva
             c.mode = CarMode.Off; c.load = 0f;
-            c.exitS = c.s; c.v = 0f; c.slip = 0f; c.offs++;
+            c.exitS = c.s; c.v = 0f; c.slip = 0f; if (!mirrored) c.offs++;
             if (set.turbo && phase == Phase.Running && !test) c.turbo = Mathf.Min(1f, c.turbo + TurboOff * TurboGain(k));   // saída de pista: um pouco (seção 81)
             ScoreChanged?.Invoke();
         }
@@ -817,7 +819,7 @@ namespace Autorama
 
         void CountLap(int k)
         {
-            if (test) return;
+            if (test || mirrored) return;
             var c = cars[k];
             int cr = PathOf(k).LineCount(c.s) - 1 + c.crossBase;      // -1 no grid; 0 ao largar; 1 ao completar a primeira volta
             if (cr <= c.cross) return;
@@ -951,7 +953,7 @@ namespace Autorama
             {
                 var mid = (pa.pos + pb.pos) / 2f;
                 Spark?.Invoke(new Vector3(mid.x, ya + 0.08f, mid.y));
-                A.hitFx = B.hitFx = 0.6f; A.hits++; B.hits++;
+                A.hitFx = B.hitFx = 0.6f; if (!mirrored) { A.hits++; B.hits++; }
                 ScoreChanged?.Invoke();
             }
             // Batida no cruzamento de retas (seção 63): os dois no trilho, um de lado para o outro. Não é raspar: é choque,

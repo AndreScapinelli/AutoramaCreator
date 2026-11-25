@@ -24,7 +24,7 @@ const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';   // sem 0/O/1/I
 // Partida rápida (seção 62 do guia): fila por tamanho de pista; com a fila cheia, sorteia uma das pistas e larga sozinho.
 const MM_SIZES = [2, 4, 6, 8];
 const MM_SECS = 240;                   // sempre por tempo: 4 minutos
-const MM_RULES = { vmax: 14, ramp: 0.5, grip: 29, collide: true, byTime: true, turbo: true, reslot: 0.3 };   // os padrões do RaceSettings
+const MM_RULES = { vmax: 17, ramp: 0.5, grip: 43, collide: true, byTime: true, turbo: true, reslot: 0.3 };   // os padrões do RaceSettings
 const COLORS = ['#E0362C', '#2563EB', '#F2B705', '#16A34A', '#9333EA', '#F97316', '#0EA5B7', '#E04B95'];   // PILOT_COLORS do guia
 
 // Tira controle e espaços repetidos; nome vazio vira ''.

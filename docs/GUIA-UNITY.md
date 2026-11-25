@@ -1059,7 +1059,7 @@ distância += v × dt
 
 | Parâmetro | Padrão | Efeito |
 |---|---|---|
-| `vMax` | 14 cél/s | Velocidade de reta com o acelerador no fundo |
+| `vMax` | 17 cél/s | Velocidade de reta com o acelerador no fundo (era 14; o grip foi de 29 para 43 ≈ 29 × (17/14)², para as curvas aguentarem na mesma proporção. `RaceSettings.Load` troca quem ainda tinha 14/29 ou 17/38 salvo) |
 | `accel` | 3,5 /s | Quão rápido o motor responde |
 | `brake`, `brakeFixed` | 1,8 /s e 0,5 cél/s² | Força do freio ao soltar |
 
@@ -1440,13 +1440,14 @@ Os modos antigos *3D* (1) e *Dinâmica* (3) saíram da corrida (eram ruins de as
 **Perseguição** (`TopDownCamera.ApplyThirdPerson`):
 
 - **Posição:** `carro − chaseFwd × (3,4 + recuo)u + cima × 1,6 × (1 + recuo/3,4)u` (~25° de cima, parado ou andando; era `1,2u` fixo, ~19° parado e ~13° na velocidade máxima, deitada demais), com `u = distância` do slider. **Recuo com a velocidade:** desligado (`ChaseSpeedBack 0`; o recuo mudava o enquadramento ao acelerar). No lugar, um zoom leve: o campo de visão vai de 55° a 49° na velocidade máxima (`ChaseZoom 6`, lerp `ChaseSpeedRate 1,5`), sem mexer na posição nem no ângulo. Antes: `ChaseSpeedBack 0,5 × v/vmax` (era 1,6) do carrinho (`vmax × Speed × setup.Top`; 0 fora do trilho), vindo de `SetCarTrack(k, noTrilho, derrapagem, speed01)`, com lerp lento `ChaseSpeedRate 1,5`: parado, 3,4 atrás; no máximo, 3,9. Parado o carrinho ficava bom, mas andando a câmera grudava nele. Lerp `ChasePosRate 6` só no deslocamento câmera − carrinho (`chaseOffset`), não na posição: antes ela seguia a posição absoluta e ficava v/6 para trás, muito longe e baixa no talo. Campo de visão 55°. Não multiplica pela escala da pista: o carrinho tem o mesmo tamanho em todas, e com `3,2 × escala` ele sumia na pista de 6 (9,6 atrás e 5,1 acima). Era `3,2u + 1,7u` antes.
-- **Ponto olhado:** `RaceController` manda a cada quadro o ponto do trilho `CamAhead 2,2` à frente (`SetCarAhead`). A câmera olha um ponto a `ChaseLookDist 4` × `distanceScale` à frente do carrinho, na direção que vira `ChaseLookAhead 0,55` do rumo do trilho para esse ponto (lerp `ThirdLookRate 12`). Como o ponto olhado escala junto com a câmera, o ângulo de cima fica em ~12° em qualquer distância (antes, na distância 0,4, ele ia a 41° e as faixas abriam em leque). Rodando, olha só o carrinho.
-- **Direção:** `chaseFwd` segue o rumo do trilho no carrinho (corda do ponto `CamBehind 0,3` atrás → carrinho, `SetCarBehind`), não o rumo do carro, com lerp `ChaseTurnRate 12` (posição: `ChasePosRate 12`). Com 1,5 atrás e lerp 6 a corda e o atraso deixavam a câmera de lado do carrinho nas curvas; agora ela fica sempre atrás. Assim a câmera gira junto com a curva, sem balançar com a derrapagem. Rodando ou fora do trilho, segura o rumo e só acompanha a posição (sem corte: a troca de "rodando" não reinicia mais a câmera).
+- **Ponto olhado:** `RaceController` manda a cada quadro o ponto do trilho `CamAhead 2,2` à frente (`SetCarAhead`). A câmera olha um ponto a `ChaseLookDist 4` × `distanceScale` à frente do carrinho, na direção que vira `ChaseLookAhead 0,55` do rumo do trilho para esse ponto (lerp `ThirdLookRate 12`). Como o ponto olhado escala junto com a câmera, o ângulo de cima fica em ~12° em qualquer distância (antes, na distância 0,4, ele ia a 41° e as faixas abriam em leque). Fora do trilho (`offSlot`), olha só o carrinho.
+- **Direção:** `chaseFwd` segue a **tangente** do trilho no carrinho (corda entre `s − CamBehind` e `s + CamBehind`, `CamBehind 0,05`, mandada por `SetCarBehind` como o ponto `carro − corda`), não o rumo do carro. Antes era a corda de 0,3 atrás → carrinho, que atrasava meia corda na entrada da curva: o carro virava e a câmera só depois. Zerar a corda não serve (comprimento zero cai no rumo do carro, com o balanço da derrapagem). Segue com lerp `ChaseTurnRate 12` (posição: `ChasePosRate 12`). Com 1,5 atrás e lerp 6 a corda e o atraso deixavam a câmera de lado do carrinho nas curvas; agora ela fica sempre atrás. Assim a câmera gira junto com a curva, sem balançar com a derrapagem. Só **fora do trilho** (`mode != OnSlot`, `offSlot[k]`) ela segura o rumo e só acompanha a posição. Antes usava o "rodando" da primeira pessoa (derrapagem ≥ `SpinIn 0,75`): numa curva no limite, o carrinho ainda no trilho fazia a curva e a câmera ficava reta e parava de olhar à frente, e parecia fugir do carro.
+- **Zoom pela roda** (`userZoom`, 0,5× a 2×, passo 0,9): multiplica o `u` da Perseguição e o enquadramento da TV, por cima da distância das Opções. Cada câmera tem o seu, e só a do quadro onde está o mouse responde (tela dividida, `cam.pixelRect.Contains`). Fica salvo só enquanto o jogo está aberto.
 - **Reinício:** trocar de modo ou de carrinho zera a direção (corte direto para a posição).
 
 **Primeira pessoa** (`TopDownCamera.ApplyFirstPerson`, `SetCarTrack`, `InFirstPersonOf`):
 
-- **Olho:** `carro + frente × 0,02 + cima × 0,155`, olhando reto para `carro + frente × 2 + cima × 0,1`. O horizonte fica nivelado (não inclina na rampa nem na curva inclinada), e a perspectiva é de 70°. A distância de *near* vai a 0,02 nesse modo e volta ao padrão nos outros.
+- **Olho (câmera no capô):** `carro − frente × FpBack 0,08 + cima × FpUp 0,24` (era dentro da cabine, `+0,02` e `0,155`: só via a curva já dentro dela e girava com cada balanço). A direção `fpFwd` vem do **trilho**, não do rumo do carro: a corda atrás → carro virada `FpLookAhead 0,7` para o ponto `CamAhead` à frente, com lerp `FpTurnRate 8`; olha para `olho + fpFwd × 3 + cima × (½ subida até o ponto à frente − 0,25)`. Horizonte nivelado. Campo de visão de `FpFov0 68°` parado a `FpFovMax 80°` na velocidade máxima (lerp 1,5). Volta da Perseguição reinicia a direção (`fpReady`). A distância de *near* vai a 0,02 nesse modo e volta ao padrão nos outros.
 - **Quando é "rodando":** a derrapagem (`CarState.slip`) passa de `SpinIn = 0,75`, ou o carrinho está fora do trilho (`mode != OnSlot`). `0,75` é a derrapagem em que a guinada chega a ~25° (`YawMax 38° × slip^1,4`, em `RaceSim`); o valor antigo, `0,3`, cortava com só ~9°, antes de o carrinho rodar de fato. Volta ao normal só com o carrinho no trilho e derrapagem abaixo de `SpinOut = 0,25`. A histerese evita piscar entre os dois modos.
 - **Corte:** quando "rodando" começa ou termina, não há transição. Ao cortar para a traseira, a câmera vai direto para a posição atrás do carro (sem deslizar pela pista). Trocar de modo ou de carrinho faz o mesmo.
 - **Cabine:** `CarView.SetCockpit` esconde o teto e a cabine do carrinho que a câmera ocupa, para não tapar a vista. Os outros carrinhos aparecem normalmente.
@@ -3537,6 +3538,7 @@ Cinco mudanças no campeonato online, nos dois transportes (servidor Node e Stea
   - entra numa sala com o campeonato andando.
 
   O host responde com `ev` `k:"sync"` só para quem pediu (`to`): o resultado de cada bateria (`heats`, uma `NetHeatRes` por bateria, vazia se não foi salva) e, por ter sido pedido, `title`, `rules`, `pilots` e `stages` com o JSON (o `started` guardado em `startedMsg`). O visitante substitui os resultados pelos do host e recarrega a bateria da vez (`OnlineApplySync`). Os recordes das baterias que ele perdeu não são gravados.
+- **Placar só do host.** O visitante roda o `RaceSim` para prever o movimento, com `sim.mirrored = true` (posto a cada quadro em `OnlineRunUpdate`; o resto do jogo põe `false`). Nesse modo o `RaceSim` não conta volta (`CountLap`: voltas, última e melhor volta, chegada, vencedor, tanque por volta), não soma saída de pista (`offs`) nem batida (`hits`) e não fecha a manche por tempo (`EndManche`). Tudo isso chega só no snapshot. Antes a predição gravava a própria volta (com o relógio e o turbo locais) até o snapshot seguinte. Nesse intervalo, as fichas, as etiquetas do F1 e a narração mostravam um tempo de volta diferente do placar. O som da volta do visitante toca quando o snapshot traz uma volta a mais.
 - **Servidor:** o `ev` não tem o limite de 16 KB do snapshot (o sync leva as pistas; vale o limite de 2 MB da mensagem). O mapa de salas criadas por endereço (`creates`) é limpo a cada ping.
 
 ### 41.2 Snapshot binário
@@ -4393,7 +4395,7 @@ Uma faixa no topo da mesa, embaixo das fichas dos pilotos, narra a prova em tom 
 ## 62. Partida rápida (fila e sorteio da pista; protocolo 5)
 
 - **O que faz:** na aba Online, o cartão **Partida rápida** fica acima de Criar sala. O jogador escolhe o tamanho (2, 4, 6 ou 8 carros) e uma pista fechada dele, que entra adaptada a esse tamanho (seção 32). Depois toca em **Procurar partida**. Na fila, a tela mostra "3 de 4", o tempo de espera, as pistas na disputa (repetidas aparecem com ×2) e o botão **Sair da fila**. As outras seções da entrada somem enquanto o jogador está na fila. Só larga com a fila cheia. Quando ela enche, o servidor cria uma sala privada (`room.mm`) e sorteia uma das pistas. Uma pista repetida conta uma vez por jogador que a escolheu. Em seguida o servidor larga sozinho: uma bateria **por tempo, 4:00**, com todos na mesma bateria (`MakeHeats` por tempo com pilotos = trilhos dá uma bateria só) e as regras padrão. Na tela aparece a roleta do sorteio (`.mm-sorteio`, ~3 s, para na pista escolhida). Depois vem a escolha do carro, que dura **20 s** (`MmCarWait`; no campeonato são 45). O host larga sozinho 10 s depois (ou no Enter dele), com a barra da largada, como no campeonato online. No fim, todos veem **Jogar de novo** (sai da sala e volta à fila com o mesmo tamanho e a mesma pista) e **Sair**. Não tem "Voltar ao lobby" nem "Encerrar campeonato": o botão de baixo vira "Sair da partida". Funciona no servidor Node e na Steam (veja abaixo).
-- **Servidor** (`servidor.js`): `MM_SIZES [2,4,6,8]`, `MM_SECS 240`, `MM_RULES` (vmax 14, ramp 0,5, grip 29, colisão, turbo, reslot 0,3, por tempo). A fila é `queues` (tamanho → entradas). As mensagens:
+- **Servidor** (`servidor.js`): `MM_SIZES [2,4,6,8]`, `MM_SECS 240`, `MM_RULES` (vmax 17, ramp 0,5, grip 43 — o mesmo padrão do `RaceSettings`; colisão, turbo, reslot 0,3, por tempo). A fila é `queues` (tamanho → entradas). As mensagens:
   - `mm {on, faixas, name, uid, track, hash, json}` entra na fila. Antes, o servidor tira o jogador de qualquer outra fila. O servidor recusa tamanho inválido, pista cujo JSON tem outro `faixas`, nome repetido na fila e quem já está numa sala. `on: false` sai da fila.
   - O servidor responde `mm {faixas, n, need, tracks, mmq}` a todos da fila (`faixas 0`: fora). `mmq` traz quantos esperam em cada fila e também vai no `rooms` (a lista de salas).
   - Fila cheia (`mmMatch`): os primeiros n jogadores entram na sala nova (`enter`, que manda `joined`) e o servidor chama `launch`, o mesmo do `start`, com `sorteio` de `crypto.randomInt` e mais `mm {tracks: [{name, by}], pick}` no `started`.
@@ -5082,7 +5084,7 @@ Na garagem da carreira, o nível da asa diz "+0,3% de aerodinâmica" (era "de ad
 **Autor.** `TrackSave.autor` (campo novo no JSON; pista antiga fica sem). Não entra na identidade (`Champ.TrackHash` continua `id:sentido:altura`), então recordes e fantasmas não mudam. O construtor guarda em `TrackBuilder.Author` (lido no `Apply`, gravado no `ToSave`, zerado no `NewTrack`; vai junto no desfazer). Ao salvar na biblioteca, se a pista ainda não tem autor, ganha o de quem está jogando (`BuilderPanel.LocalAuthor`: o nome da Steam ou o nome digitado no online, até 20 letras). Quem salva uma pista de outro mantém o autor original. Pelo online o autor vai no JSON da pista (etapas, sugestões, partida rápida, pistas guardadas na largada). Aparece em todas as listas, no fim da `TrackLine`: "… · fechada · de Ana" (com o `<` neutralizado, como no `Safe`).
 
 **Nota.** `Online/Steam/TrackRatings.cs`. Um placar (leaderboard) da Steam por identidade de pista, `nota-<hash>`, ordem decrescente, numérico; cada jogador grava a nota dele de 1 a 5 (`ForceUpdate`: votar de novo troca a nota). A média é a das primeiras `MaxRead 2000` notas lidas (`DownloadLeaderboardEntries`, global); o total é o `GetLeaderboardEntryCount`. Ler usa `FindLeaderboard` (nunca cria o placar; sem placar = sem notas); só dar a nota cria (`FindOrCreateLeaderboard`).
-- Um pedido de cada vez numa fila (`Tick`, chamado no `RaceController.Update`, que só roda os callbacks da Steam com pedido andando); cada pedido tem `Timeout 15` s; o resultado vale `Fresh 600` s. `Rate` já muda a média daqui na hora e, depois que a Steam confirma, lê de novo. `Version` sobe a cada nota que chega: a biblioteca (`BuilderPanel.Update`) e o lobby e o resultado (`RaceController.RatingsRedraw`) se redesenham no máximo uma vez por segundo.
+- Um pedido de cada vez numa fila (`Tick`, chamado no `RaceController.Update`, que só roda os callbacks da Steam com pedido andando); cada pedido tem `Timeout 15` s; o resultado vale `Fresh 600` s. `Rate` já muda a média daqui na hora, se ela já foi lida (antes disso guarda só a nota própria, para não mostrar uma média de 1 voto), e lê de novo depois que a Steam confirma. Uma leitura que saiu antes de um voto ainda na fila é velha: ela não troca a média daqui (`Voting`). `Version` sobe a cada nota que chega: a biblioteca (`BuilderPanel.Update`) e o lobby e o resultado (`RaceController.RatingsRedraw`) se redesenham no máximo uma vez por segundo.
 - **Onde dar a nota:** no resultado de **cada corrida online** (campeonato e partida rápida), embaixo da classificação, no banner (`DrawRate`, `.rate-box`): "Que nota você dá para esta pista?", 5 estrelas clicáveis (☆/★, `.rate-star`) e "média ★ 4,2 · 12 notas". Com nota já dada, as estrelas vêm preenchidas e o clique troca. Só com a Steam aberta (sem ela o cartão não aparece).
 - **Onde aparece a média:** em todas as listas, no fim da `TrackLine` ("· ★ 4,2 (12)"): biblioteca, etapas e pistas disponíveis do lobby e sugestões. A nota é por identidade, então a mesma pista em 2 e em 4 trilhos tem notas separadas, como os recordes.
 - **Limites:** com o AppId 480 (Spacewar) os placares são do app de teste da Valve e qualquer um com esse AppId pode mexer: vale só para testar. Com o AppId próprio, as notas passam a ser só do jogo (os placares de teste não vão junto). O voto é preso à conta da Steam. Quem joga pelo servidor Node sem a Steam não vê nem dá nota. A Oficina (Workshop) fica para depois.
@@ -5183,7 +5185,7 @@ Escolhemos o filtro, e não duas rolagens, porque o painel é estreito e duas ca
   - na hora, na corrida livre e na carreira (com a pista molhada quando a prova pede);
   - copiadas na criação do campeonato offline;
   - as do host no campeonato online, enviadas na largada e fixas até o fim;
-  - nunca na partida rápida, que usa as padrão (`MM_RULES`: 14, 0,5 s, 29, colisão e turbo ligados, 0,3 s).
+  - nunca na partida rápida, que usa as próprias (`MM_RULES`: 17, 0,5 s, 43, colisão e turbo ligados, 0,3 s).
 - **SEU CONTROLE E SOM:** meia aceleração, volume e som do motor. Valem só para o jogador, em qualquer modo.
 - Ao abrir Opções, `refreshAdjLabels` refaz o limite das curvas para a pista atual.
 - Os textos do Campeonato e do Online que diziam "aba Corrida" agora apontam para Opções.
@@ -5314,7 +5316,7 @@ A interface tem seis idiomas: português (o original), inglês, espanhol, franc�
 - **Assinatura no `jogador.json`:** junto do `elo` e do `eloJogos` vai `eloSig`, os 16 primeiros caracteres hexadecimais do HMAC-SHA256 de `uid:elo:jogos` com uma chave do jogo (`Elo.Sign`). Ao ler (`ChampFiles.PlayerElo`), se a assinatura não bate, o Elo volta para 1000 com 0 partidas e sai um aviso no log. O número fica legível (não é cifrado): o que protege é a assinatura, e cifrar só esconderia o valor. Isso segura quem edita o arquivo, mas não quem descompila o jogo e acha a chave.
 - **Na Steam, o placar é a fonte:**
   - **Próprio Elo:** o `Pull` lê a própria linha do placar `elo` e ela vale sempre (`EloBoard.Mine`), mesmo menor que o número daqui. Sem linha no placar e com partidas aqui, o número daqui sobe para lá (já passou pela assinatura).
-  - **Adversários:** na largada (`EloStart`), quem tem SteamID entra com 1000 e o jogo pede o Elo de cada um ao placar (`EloBoard.Users`, `DownloadLeaderboardEntriesForUsers`). O que chega substitui o que cada um disse na fila; quem não está no placar fica com 1000 e 0 partidas. A resposta só vale se chegar antes do fim da bateria e na mesma sala.
+  - **Adversários:** na largada (`EloStart`), quem tem SteamID entra com 1000 e o jogo pede o Elo de cada um ao placar (`EloBoard.Users`, `DownloadLeaderboardEntriesForUsers`). O que chega substitui o que cada um disse na fila; quem não está no placar fica com 1000 e 0 partidas. A resposta só vale na mesma sala. Se ela ainda não chegou no fim da bateria, a conta espera por ela (`eloWait`, `eloLate`), para todos fazerem a mesma conta. Antes, quem não tinha recebido a resposta calculava com 1000 e mostrava outro Elo no resultado. Se a leitura falha, a Steam cai ou o pedido passa de 15 s, ela volta vazia (`UsersLost`) e a conta segue com 1000. Sair no meio não espera.
 - **Ainda não protege:** quem modifica o jogo pode gravar qualquer número no próprio placar, porque o próprio cliente grava. Para fechar isso, um servidor confiável teria que gravar o placar (Web API da Steam, placar "Trusted") depois de conferir o resultado. Está anotado no `docs/IDEIAS.md`.
 - **Teste** (`script eval`, com backup e restauração do `jogador.json` de verdade): gravar 1234 com 7 partidas e ler de volta dá 1234:7. Trocar o Elo à mão para 2500 dá 1000:0. Trocar as partidas para 70 dá 1000:0. `Sign("x", 1000, 0)` e `Sign("x", 1001, 0)` dão assinaturas diferentes. Recompilado sem erros. **Não testado com a Steam de verdade:** o `Mine` e o `Users`.
 
@@ -5406,7 +5408,7 @@ Uma **quarta bolha** (`CarSetup.bolha = 3`, `CarBody.Formula`), com física pró
 
   Com 1,75% / 1,5% a melhor combinação de Fórmula ganhava da asa por 4% no Quadrado. Com 1,25% / 1%, ela fica em segundo na média em todas as pistas e a melhor volta só empata com a asa no Quadrado (0,2%, dentro do ruído). A asa continua a das curvas e a lisa a das retas. Com 1% / 0,75% ela passava a perder do padrão no Quadrado.
 - **Desenho** (`CarView.BuildFormula`, low-poly por código, um modelo só, "Fórmula Mundial"): monocoque de bico fino, pontões, assoalho escuro, tampa do motor com tomada de ar, capacete na segunda cor com viseira, halo, asa dianteira de ponta a ponta com dois planos e placas, asa traseira de dois planos na altura do meio (y 0,18), braços da suspensão e rodas descobertas (z = 0,15). Capacete e viseira se chamam "Teto" e somem na primeira pessoa. `CarView.ModelsOf(bolha)`: 3 modelos nas outras, 1 na Fórmula.
-- **Cartão Carro:** a linha Bolha ganha embaixo o botão Fórmula, com 🔒 e a dica "Seja campeão do Mundial na carreira para abrir." até abrir. A garagem da carreira continua com as três de sempre.
+- **Cartão Carro:** a linha Bolha ganha no fim, na mesma linha (asa · padrão · lisa · Fórmula), o botão Fórmula, com 🔒 e a dica "Seja campeão do Mundial na carreira para abrir." até abrir. A garagem da carreira continua com as três de sempre.
 - **Online:** a Fórmula vai como bolha 0 com o modelo 3 (que não existe), então o código continua cabendo (`CarCode`, `CarOf` até 24 × 81). Quem tem a versão antiga vê um carro padrão (modelo 2) com a física da Fórmula vinda do host.
 - **Servidor Node:** o `in` cortava o código do carro em 162, então o turbo e o modelo de um visitante nunca chegavam ao host pelo servidor (pela Steam chegavam). Agora o corte é 1944. `npm test` passa.
 - **Carreira:** de Fórmula correm o Felix (rival e campeonatos), as lendas do Mundial e das Lendas e, na Copa Global, a Sofia e a Aiko. O resultado do Mundial mostra "bolha Fórmula" ao abrir.
@@ -5646,3 +5648,161 @@ Um jogo antigo não abre pista com peça nova (`Peça desconhecida`). Por isso o
 - **Muro:** ver seção 99.2 (smootherstep, muros seguidos numa curva só). Depois: quina 1,4 na ponta, com rampa subindo do lado.
 - **Resto:** abaixo de 1. Os piores agora são a meia C (2,2, espremida pelo tamanho) e o parafuso (1,7).
 
+
+## 101. Arquibancada com torcida
+
+Grupo **Arquibancadas** na aba COSMÉTICOS (seção 97): quatro enfeites com torcida que reage aos carrinhos. Como todo enfeite, fica fora da identidade da pista e não mexe na corrida; só lê a posição dos carros, então funciona igual offline e online.
+
+| id | filas × colunas | preço | altura (células) |
+|---|---|---|---|
+| `arquibancada-pequena` | 2 × 8 | 150 | 0,54 |
+| `arquibancada-media` | 3 × 16 | 250 | 0,675 |
+| `arquibancada-grande` | 4 × 24 | 400 | 0,81 |
+| `arquibancada-coberta` | 3 × 16, com telhado | 350 | 0,97 |
+
+**Prefabs** (`Assets/Autorama/Prefabs/Cosmeticos/`): gerados por `Editor/ArquibancadaGen.cs` (menu **Autorama > Gerar arquibancadas**), com degraus de cubos (`Degrau 0.3` de altura, `Fundo 0.45` de profundidade, `Passo 0.34` entre cadeiras), assentos azuis, muro atrás e, na coberta, pilares e telhado vermelho. O gerador também cria ou atualiza os itens no `Catalogo.asset`, com `altura` = altura do modelo × `Escala 0.45`, para o torcedor ficar com ~0,15 célula, perto do tamanho do carrinho (com escala 1, a primeira versão ficou grande demais na mesa). A frente da arquibancada olha para −z local.
+
+**De frente para a pista:** ao pôr ou arrastar, o giro vira a frente para o ponto mais perto da pista (`TrackBuilder.FacingTrack`, 17 pontos por segmento, `rot = atan2(−dx, −dz)`), sem os 45° sorteados e sem variar o tamanho (`esc = 1`). O fantasma do clique também já mostra esse giro, e o R ainda gira à mão. Vale para todo item cujo prefab tem `Torcida` (`Fixo`). Teste: em 8 pontos da mesa, o produto escalar entre a frente e a direção do ponto mais perto da pista deu 1,00 em todos.
+
+**Braço até o fim:** o carro passa rápido, e a empolgação subia e descia antes de o braço chegar em cima. Agora quem viu o carro (alvo > 0,1) guarda o pico por `Segura 1.4` s. A empolgação sobe a 10/s e desce a 1,5/s, e o braço fica todo em cima já com 40% de empolgação (`emp × 2,5`).
+
+**Mesmo tamanho em pista larga:** a `altura` do catálogo vale em células da pista de 2. Nas de 4, 6 e 8, a raiz da mesa tem escala 2, 3 ou 4 e o carrinho não muda, então `CellsPerMeter` divide pela `Scale` (com `Raio` e `OnTrack` agora de instância). Assim o enfeite tem o mesmo tamanho no mundo, ao lado do carro, em qualquer largura. Isso vale para todos os enfeites, árvores e pedras inclusive, que antes ficavam 2 a 4 vezes maiores nas pistas largas.
+
+**Torcida** (`View/Torcida.cs`, `[ExecuteAlways]`, no prefab): um torcedor por cadeira (12% vazias, sorteio fixo por filas × colunas). Corpo de cápsula na cor da camisa (6 cores), cabeça e braços cor de pele. São desenhados com `Graphics.RenderMeshInstanced`, um lote por material, sem GameObject por pessoa.
+
+Reação, por torcedor:
+- **Parado:** balança de leve, cada um no seu ritmo e fase.
+- **Carro perto** (até `Alcance 3` unidades no plano): a empolgação vai a `(1 − d/Alcance) × (0,35 + 0,65·v/VRef)`, com `VRef 6`. Sobe rápido (4/s) e desce devagar (1,2/s), por isso a onda segue o carro pela arquibancada. Com empolgação, o torcedor pula (até 0,12) e ergue os braços.
+- **"Ohhh":** um carro perto que vinha acima de metade da `VRef` e perdeu mais da metade da velocidade em 0,15 s (`Queda 0.5`), por exemplo ao sair da pista. Os torcedores a menos de 0,8 × `Alcance` põem as mãos na cabeça e inclinam para trás por `OhTempo 1.6` s.
+
+Os carros vêm de `CarView.Todos` (lista estática, preenchida no `OnEnable`/`OnDisable` do `CarView`). `FindObjectsByType` não acha objetos com `HideFlags.DontSave`, que é o caso dos enfeites e carros da mesa. A velocidade é medida no espaço local da arquibancada.
+
+Ainda não tem: som de torcida (falta o áudio) e camisas nas cores dos pilotos.
+
+**Teste:** arquibancada média no meio da borda da mesa, com um carro passando de −2,5 a 0,3 na frente (40 passos de 16 ms) e `Update` chamado direto. Na captura, a torcida perto do carro aparece com os braços erguidos e a do lado oposto em repouso. Traduções: 5 textos nos 5 idiomas (`idiomas.js`: faltam 0).
+
+### 101.1 Arquibancada esticada ao longo da pista
+
+A arquibancada não é mais um bloco solto: é um trecho que acompanha a pista, nas retas e nas curvas, dos dois lados.
+
+- **Pôr:** o clique acha o ponto mais perto no caminho da pista e o lado dele (`Perto`). Nasce com as cadeiras do prefab (8, 16 ou 24), centrada ali. A prévia no mouse já mostra o trecho.
+- **Esticar:** com a arquibancada selecionada, aparecem dois pegadores (esferas da cor da seleção, `0,3/Scale` célula) nas pontas. Ao arrastar, a ponta vai até o ponto da pista mais perto do mouse, procurado só a até 3 células da ponta atual, para não pular para outro trecho. O mínimo é de `ArqMinCol 4` cadeiras. Em circuito fechado, o trecho passa pela largada.
+- **Arrastar o corpo:** escorrega ao longo da pista (janela de 4 células) e troca de lado se o mouse passar para o outro. **R** passa para o outro lado. Del tira.
+- **Distância:** a frente fica a `ArqDist 0.8` célula do centro da pista (com 0,7, encostava por fora da curva na pista de 8).
+- **Caminho** (`TrackBuilder.Arquibancada.cs`, `Caminho`): 25 pontos por segmento (`PoseAt`), com o comprimento acumulado `u` e a direção. A linha da frente usa um ponto a cada `ArqPasso 0.2` célula: `ponto(u) + esquerda(direção) × lado × ArqDist`.
+- **Malha:** o perfil dos degraus (espelho, piso, faixa do assento, muro de trás e, na coberta, o telhado e os pilares a cada ~6 cadeiras) é puxado ao longo da linha, com tampas nas pontas e 3 submalhas (concreto, assento, telhado, com os materiais do prefab achados pelo nome). As medidas são as do prefab × `Torcida.Escala / Scale`. A malha só é refeita quando a linha muda (`ArqChave`, um hash dos pontos). O MeshCollider serve para o clique.
+- **Torcida:** em cada fila, uma cadeira a cada `Passo` ao longo da linha daquela fila, centradas, e cada torcedor virado para a pista (`Torcida.Assentos`, com giro e escala por torcedor). Na curva, a fila de fora tem mais gente.
+- **Dados:** o `Enfeite` ganhou `linha` (pontos da frente, em células), `u0`, `comp`, `lado` e `colunas`. No JSON (`EnfeiteSave`) eles vão como `linha` (x, y alternados, y para baixo), `u0`, `comp`, `lado` e `colunas`. A linha fica gravada, então mexer na pista não move a arquibancada; se a pista passar por cima (`ArqNaPista`: frente e fundo a menos de 0,62 célula), ela sai, como os outros enfeites. Arquibancadas antigas, sem `linha`, continuam como bloco.
+- **Preço:** `EnfeiteCatalog.Preco` cobra o preço do catálogo a cada "colunas" do prefab (a média, 250 a cada 16 cadeiras).
+- **Teste** (pista de 8, escala 4): a média pôs 16 cadeiras (0,61 célula, 250). Esticada 3 células, ficou com 94 cadeiras e preço 1469. A grande foi posta dos dois lados de uma curva e esticada em 20 passos: as duas seguem a curva, e a captura mostra degraus, telhado e torcida.
+
+
+### 101.2 Pôr e esticar no mesmo clique
+
+Com a arquibancada armada na paleta, o clique põe e, se o botão continuar apertado, o mesmo arrasto já estica. O ponto do clique vira uma ponta (âncora, `arqAncora`) e o mouse puxa a outra, para qualquer lado da pista (`TrackBuilder.EsticarNova`; o ponto do mouse é procurado a até 3 células do último, `arqUlt`). Com menos de `ArqMinCol` cadeiras de arrasto, fica o mínimo para o lado do mouse. Um clique sem arrastar deixa o tamanho do prefab, centrado no clique.
+
+Depois de pôr, a arquibancada sai da paleta (desarma) e fica selecionada com os pegadores, prontos para ajustar. `PlaceArmed` guarda o índice em `NovaIndex`, e o `BuilderInput` marca o arrasto com `pressedHandle = 2`. O desfazer tem dois passos: pôr e esticar.
+
+Teste (pista de 8): a média nasceu com 0,61 célula. Com o mouse 2 células à frente, ficou com 2,00. Voltando até 2 células atrás da âncora, ficou com 1,65, porque ali o `Why` barrou um trecho (a mesa ou outra parte da pista).
+
+### 101.3 Mesa que cresce e troca de largura
+
+- **Mesa que cresce para a esquerda ou para cima** (`TrackBuilder.Grow`, deslocamento `dx, dz`): a `linha` da arquibancada anda junto com o `pos`. Antes só o `pos` andava, e a arquibancada ficava para trás, longe da pista.
+- **Troca de 2, 4, 6 ou 8 carros** (`AdaptTo`): a `ArqChave` inclui `Faixas`, então a malha é refeita na escala nova. As `colunas` (e o preço) são recontadas pelo `comp` em células. A linha continua no mesmo trecho da pista, e os degraus e a torcida ficam do mesmo tamanho ao lado do carro.
+- **Teste:** a média, posta numa pista de 2 (16 cadeiras, 0,68 de altura no mundo), foi para 8 carros. Ficou na mesma linha, com 0,68 de altura e 64 cadeiras, porque o mesmo trecho em células é 4 vezes mais longo no mundo.
+- **Afundava na mesa ao trocar a largura:** a altura do objeto da arquibancada (`GroundY = −Thickness/Scale`, o tampo no espaço da raiz) só era posta quando ele nascia. Ao passar de 2 para 6 ou 8 carros, a raiz cresce 3 ou 4 vezes e o −0,09 antigo virava −0,27 ou −0,36 no mundo, enterrando os degraus. Agora `MontarArquibancada` põe a altura de novo a cada vez. Teste: posta com 2 e passada por 4, 6, 8 e 2, a malha ficou sempre entre −0,090 (o tampo) e 0,585 no mundo.
+
+### 101.4 Destaque do enfeite selecionado
+
+O enfeite selecionado ganha o mesmo destaque amarelo das peças de pista (`TrackPieceView.SetHighlight`), em vez do disco que ficava embaixo dele. `TrackBuilder.Destacar` põe em cada `MeshFilter` do enfeite um filho "Destaque" com a mesma malha e `theme.selected` em todas as submalhas. Nos enfeites do pacote, a cópia é 4% maior (o pivô fica na base). Na arquibancada, a cópia é inflada pelas normais (`0,004/Scale` célula por face). Antes ela só subia 0,006, e as faces de lado brigavam com a malha de baixo e apareciam listras. Os pegadores continuam nas pontas. O destaque some na corrida. Teste: com a arquibancada selecionada, 1 destaque nela e 0 na árvore; com a árvore selecionada, 0 na arquibancada e 2 na árvore (duas malhas). Na captura, o pinheiro aparece todo amarelo.
+
+### 101.5 Pegador em forma de seta
+
+Os pegadores das pontas são uma seta dupla amarela (⟷), grossa (0,12) e com brilho, deitada ao longo da pista e solta logo além da ponta, a 0,75 do tamanho dela. A malha é gerada uma vez (`SetaMesh`, contorno de 10 pontos extrudado) e o material também (`SetaMat`, URP Lit com emissão). O tamanho é `0,5/Scale` célula, e a seta pulsa ±8% no Play (`LateUpdate`). O `BoxCollider` (0,7 × 0,5 × 1,2) é maior que a seta, para o clique pegar com folga.
+
+
+## 102. Tutorial da primeira vez
+
+Na primeira abertura, por cima do menu inicial, aparece "Primeira vez aqui?" (**Começar o tutorial** · **Pular**). O tutorial tem duas fases: montar uma pista e correr nela. O código fica em `Race/RaceController.Tutorial.cs`, com ganchos em `RaceController.cs` (`BuildTutorialUI` no `Start`, `TutTick` no `Update`, Enter e `sim.Step` travados, botão **Refazer tutorial** em Opções) e em `BuilderPanel` (`TrackSaved`, `HighlightTiles`, `HighlightClose`, classe `tut-hi`).
+
+### 102.1 Quando aparece
+
+`PlayerProfile.tutorial` (`perfil.json`): 0 nunca fez, 1 terminou a construção (falta a corrida), 2 terminou e 3 pulou ou saiu no meio. Ele pergunta com 0 e, com 1, oferece "Continuar o tutorial?", que reabre a pista guardada em `tutPista`. Quem já tem pista salva ou `carreira-1.json` (`TutVeteran`) passa direto para 3 e não vê a pergunta. **Sair do tutorial** e **Pular** também gravam 3. Opções → **Refazer tutorial** volta a 0 e começa.
+
+### 102.2 Construção
+
+O tutorial usa as travas do construtor da carreira (seção 72). Só valem reta curta, reta comprida, curva longa e meia curva, sem rampa (`TutPiece`, e `TrackCloser.Allowed = TutId` para o Q). A mesa tem 35 células (`TutMesa`), `SaveGate = null` (de graça) e a pista começa nova, com a largada. Os passos são cartões embaixo da mesa (`.tut-card`), cada um com texto, condição e um `hold` opcional, que espera **Continuar** ou Enter:
+
+1. Boas-vindas.
+2. Mover a mesa: 0,6 s arrastando com o botão direito ou o do meio (`tutPanT`, pelo `Mouse.current`).
+3. Aproximar: 3 quadros de roda para a frente (`tutZoomIn`).
+4. Afastar: 3 quadros de roda para trás, com a dica do C (`tutZoomOut`).
+5. Vista 3D: V ou o botão 3D (destacado, `Highlight3D`), e depois 0,6 s girando com o botão direito. O `tick` do passo zera o arrasto enquanto `cam.Tilted` é falso.
+6. De volta para cima: V de novo (`!cam.Tilted`).
+7. A largada.
+8. Reta (os cartões de retas ficam destacados).
+9. Curva (com a dica do F).
+10. Outra reta.
+11. Desfazer: Ctrl+Z ou o botão (`HighlightUndo`; passa com `builder.CanRedo`).
+12. Refazer: Ctrl+Y ou o botão (`HighlightRedo`; passa com `!builder.CanRedo`).
+13. Apagar: clicar numa peça e Delete, ou o botão da lixeira (`HighlightRemove`, mesa liberada), ou Backspace para a última. Passa quando o número de peças diminui. Ao sair do passo, a seleção é desfeita, para as peças seguintes encaixarem na ponta.
+14. Mais 3 peças livres.
+15. Q (botão Fechar circuito destacado; pulado se a pista já fechou).
+16. O custo (`PiecePrice.Total`) e salvar (o evento `TrackSaved`).
+
+Ao salvar, a pista fica paga na Carteira (`Carteira.Dar`), e mexer nela depois só cobra o que passar disso. As travas voltam por `OnProfileChanged`.
+
+**O Q a cada peça.** Depois de cada mudança, o tutorial começa um `TrackCloser.Start` próprio e bombeia 4 ms por quadro. Ele não bombeia enquanto o Q do jogador roda, porque os dois dividem o `searchOk`. Se o resultado for "não fecha", o cartão mostra o aviso para desfazer. Medido por `script eval`: um caso que fecha leva 16 a 31 ms e um que não fecha, 3 a 7 s. Por isso o teste roda em segundo plano, e não de uma vez.
+
+### 102.3 Corrida
+
+Os ajustes da corrida (`set`) vão para o PlayerPrefs `autorama.tutorial.corrida` e voltam no fim, ao sair ou na próxima abertura, se o jogo fechou no meio. Só a câmera escolhida fica. Durante o tutorial valem: pista do construtor, 1 carro (gente, carro padrão), turbo ligado, sem fantasma, sem corrida por tempo e 99 voltas. Os passos usam as teclas do jogador 1, lidas do `Controles`:
+
+1. Apresentação.
+2. Câmeras 1, 2, 3 e 4 (`set.cameraMode`).
+3. Escolher a câmera e Enter, que larga.
+4. Segurar Acelerar (passa com v > 50% da final).
+5. Acelerador no fundo até sair na curva (`offs`) ou completar uma volta.
+6. "Saiu da pista!" e Recolocar (pulado se não saiu).
+7. Meia aceleração: uma volta sem sair (`laps` e `offs`).
+8. Ajuste fino: Meia − e Meia + mudam o `HalfOf(0)`, mais uma volta limpa.
+9. Turbo: o tanque é enchido e o passo pede 0,5 s de turbo.
+10. 3 voltas: `set.laps = 3` e uma largada nova, até `Done`.
+11. Parabéns. Os ajustes voltam e o menu inicial abre.
+
+Num passo `hold`, a física para (`TutHold` no `Update`) e o som dos carros também, como na pausa (`AudioTick`).
+
+### 102.4 Teste
+
+Feito no Play, com os dados do jogador em backup e restaurados depois, chamando os métodos por reflexão e o `sim.Step` à mão:
+
+- **Construção.** Todos os passos passaram. A reta curtinha foi recusada. O Q fechou com 11 peças. O custo mostrado foi ◎ 255, e a pista ficou paga em 255.
+- **Corrida.** Com a final de 17, o carro no fundo saiu na primeira curva longa, e o recolocar seguiu. A volta a 60% foi limpa, e a 65% também. As 3 voltas terminaram em `Done`.
+- **Ajustes no fim.** Voltaram (8 carros, 3 voltas), ficou só a câmera escolhida e o backup foi apagado.
+
+### 102.5 Só o foco recebe clique, e o foco pulsa
+
+Durante o tutorial, um clique fora do que o passo pede é engolido.
+
+- **Na interface:** `BuilderPanel.ClickGate`, um `PointerDownEvent` com `TrickleDown` na raiz, chama `StopImmediatePropagation` quando o elemento clicado não está dentro de `.tut-card`, `.tut-ask`, `.tut-hi` ou `.pal-tab` (as abas da paleta ficam sempre livres). O cartão fica no alto, no meio (`top: 84px`), longe da paleta, que fica embaixo.
+- **Na mesa:** `BuilderPanel.WorldGate`, checado no começo do `BuilderInput.HandleMouse`, vale só para o botão esquerdo.
+- **Câmera:** o botão direito, o do meio e a roda continuam livres.
+
+Por passo:
+
+| Passo | O que aceita clique (além do cartão) |
+|---|---|
+| Curva | a mesa (`world`), para selecionar e apertar F |
+| Ctrl+Z | Desfazer, na barra e no painel (`HighlightUndo`) |
+| Peças livres | qualquer cartão aberto da paleta (`tiles`) e a mesa |
+| Q | o botão Fechar circuito (`HighlightClose`) |
+| Salvar | o bloco de salvar, com o nome e o botão (`HighlightSave`) |
+| Corrida | só o cartão |
+
+O destaque pulsa. A raiz alterna `tut-pulse` a cada 450 ms, e `.tut-pulse .tut-hi` vai para borda branca, fundo mais forte e escala 1,05, com transição de 0,4 s. Os portões voltam a `null` no `TutClose`.
+
+**Teste** (`TutClickOk` por `script eval`):
+- botão dentro do cartão: aceita;
+- texto dentro do destaque: aceita;
+- cartão da paleta sem destaque: recusa, e aceita com `tiles`;
+- outro botão: recusa.

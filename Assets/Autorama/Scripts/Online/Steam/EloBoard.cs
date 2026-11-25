@@ -45,10 +45,10 @@ namespace Autorama
         // A cada quadro (RaceController.Update).
         public static void Tick()
         {
-            if (!Available) { busy = wantPull = wantPush = false; haveBoard = false; return; }
+            if (!Available) { busy = wantPull = wantPush = false; haveBoard = false; users = null; UsersLost(); return; }
             if (!busy && !wantPull && !wantPush && users == null) return;
             SteamBoot.Tick();
-            if (busy && Time.realtimeSinceStartup - since > Timeout) busy = false;
+            if (busy && Time.realtimeSinceStartup - since > Timeout) { busy = false; if (users == null) UsersLost(); }
             if (busy) return;
             onFind ??= CallResult<LeaderboardFindResult_t>.Create(OnFind);
             onDown ??= CallResult<LeaderboardScoresDownloaded_t>.Create(OnDown);
@@ -98,12 +98,20 @@ namespace Autorama
             Version++;
         }
 
+        // O pedido dos adversários se perdeu (Steam caiu ou não respondeu): quem espera segue sem ele.
+        static void UsersLost()
+        {
+            var done = usersDone; usersDone = null;
+            done?.Invoke(new System.Collections.Generic.Dictionary<ulong, (int, int)>());
+        }
+
         static void OnUsers(LeaderboardScoresDownloaded_t r, bool fail)
         {
             busy = false;
             var done = usersDone; usersDone = null;
-            if (fail || done == null) return;
+            if (done == null) return;
             var res = new System.Collections.Generic.Dictionary<ulong, (int, int)>();
+            if (fail) { done(res); return; }               // falhou: quem espera segue com 1000 para os de fora
             var details = new int[1];
             for (int k = 0; k < r.m_cEntryCount; k++)
                 if (SteamUserStats.GetDownloadedLeaderboardEntry(r.m_hSteamLeaderboardEntries, k, out var e, details, 1) && e.m_nScore >= Elo.Min)

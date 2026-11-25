@@ -49,9 +49,14 @@ namespace Autorama
         {
             if (!Available || string.IsNullOrEmpty(hash) || stars < 1 || stars > Max) return;
             var i = Get(hash);
-            float sum = i.avg * i.count - (i.mine > 0 ? i.mine : 0) + stars;
-            if (i.mine == 0) i.count++;
-            i.mine = stars; i.avg = i.count > 0 ? sum / i.count : stars; i.done = true;
+            // Sem a média lida ainda, não inventa uma de 1 voto: guarda só a minha e espera a leitura depois de gravar.
+            if (i.done)
+            {
+                float sum = i.avg * i.count - (i.mine > 0 ? i.mine : 0) + stars;
+                if (i.mine == 0) i.count++;
+                i.avg = i.count > 0 ? sum / i.count : stars;
+            }
+            i.mine = stars;
             queue.Enqueue(new Job { hash = hash, stars = stars });
             Version++;
         }
@@ -88,7 +93,7 @@ namespace Autorama
             if (fail || r.m_bLeaderboardFound == 0)
             {
                 // Ninguém deu nota ainda (ler não cria o placar).
-                if (running.stars == 0) { var i = cache[running.hash]; i.avg = 0f; i.count = 0; i.mine = 0; i.done = true; i.at = Time.realtimeSinceStartup; Version++; }
+                if (running.stars == 0 && !Voting(running.hash)) { var i = cache[running.hash]; i.avg = 0f; i.count = 0; i.mine = 0; i.done = true; i.at = Time.realtimeSinceStartup; Version++; }
                 Finish(); return;
             }
             if (running.stars > 0) onUp.Set(SteamUserStats.UploadLeaderboardScore(r.m_hSteamLeaderboard, ELeaderboardUploadScoreMethod.k_ELeaderboardUploadScoreMethodForceUpdate, running.stars, null, 0));
@@ -98,7 +103,8 @@ namespace Autorama
         static void OnDown(LeaderboardScoresDownloaded_t r, bool fail)
         {
             if (running == null) return;
-            if (!fail)
+            // Leitura que saiu antes de um voto ainda na fila: é velha (sem o voto). Fica a média daqui; a leitura depois do voto acerta.
+            if (!fail && !Voting(running.hash))
             {
                 var me = SteamBoot.MyId;
                 int n = 0, sum = 0, mine = 0;
@@ -128,5 +134,7 @@ namespace Autorama
         }
 
         static void Finish() => running = null;
+
+        static bool Voting(string hash) { foreach (var j in queue) if (j.hash == hash && j.stars > 0) return true; return false; }
     }
 }

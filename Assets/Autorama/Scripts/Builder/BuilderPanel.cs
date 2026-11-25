@@ -241,6 +241,9 @@ namespace Autorama
                 if (t != null) tipJob = root.schedule.Execute(ShowTip).StartingIn(400);
             }, TrickleDown.TrickleDown);
             root.RegisterCallback<PointerDownEvent>(_ => { tipJob?.Pause(); tip.style.display = DisplayStyle.None; }, TrickleDown.TrickleDown);
+            // Tutorial (seção 102.5): clique fora do que o passo deixa (e das abas da paleta) não chega a ninguém; o destaque pulsa.
+            root.RegisterCallback<PointerDownEvent>(e => { if (ClickGate != null && !ClickGate(e.target as VisualElement)) e.StopImmediatePropagation(); }, TrickleDown.TrickleDown);
+            root.schedule.Execute(() => root.ToggleInClassList("tut-pulse")).Every(450);
         }
 
         void ShowTip()
@@ -366,6 +369,22 @@ namespace Autorama
             label.EnableInClassList("tile-price--caro", mult > 1);
             label.parent?.EnableInClassList("tile--caro", mult > 1);
         }
+
+        // Tutorial (seção 102): a pista salva, e o destaque nos cartões da paleta e no botão Fechar circuito.
+        public event System.Action<TrackSave> TrackSaved;
+        public void HighlightTiles(System.Func<PaletteEntry, bool> on)
+        {
+            foreach (var (tile, e) in paletteTiles) tile.EnableInClassList("tut-hi", on != null && on(e));
+        }
+        public void HighlightClose(bool on) => tableClose.EnableInClassList("tut-hi", on);
+        public void HighlightUndo(bool on) { barUndo.EnableInClassList("tut-hi", on); undoBtn.EnableInClassList("tut-hi", on); }
+        public void HighlightRedo(bool on) { barRedo.EnableInClassList("tut-hi", on); redoBtn.EnableInClassList("tut-hi", on); }
+        public void HighlightRemove(bool on) => barRemove.EnableInClassList("tut-hi", on);
+        public void Highlight3D(bool on) => bar3D.EnableInClassList("tut-hi", on);
+        public void HighlightSave(bool on) => saveBox.EnableInClassList("tut-hi", on);
+        // null = livre. ClickGate: o elemento clicado pode receber o clique? WorldGate: clique na mesa vale?
+        public static System.Func<VisualElement, bool> ClickGate;
+        public static System.Func<bool> WorldGate;
 
         // Construtor da carreira (seção 72): apaga as peças que a prova não deixa usar.
         public void RefreshAllowed()
@@ -1006,6 +1025,7 @@ namespace Autorama
             string why = TrackBuilder.SaveGate?.Invoke(save) ?? "";       // paga a pista (seção 94)
             if (why != "") { Say(why); return; }
             TrackLibrary.Save(save);
+            TrackSaved?.Invoke(save);
             RefreshLibrary();
             int pago = antes - Carteira.D.moedas;
             Say(pago > 0 ? L.F("“{0}” salva · pagou {1}.", builder.TrackName, PiecePrice.Money(pago))

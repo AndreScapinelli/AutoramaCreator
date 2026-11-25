@@ -48,7 +48,6 @@ SEQUÊNCIA	SEQUENCE
 Da largada até a ponta, no sentido em que os carrinhos correm.	From the start to the open end, in the direction the cars race.
 MINHAS PISTAS	MY TRACKS
 Salvar	Save
-Exemplo: oval	Example: oval
 Nova pista	New track
 Pasta: {0}	Folder: {0}
 VISTA E EDIÇÃO	VIEW AND EDITING
@@ -133,7 +132,6 @@ Abrir	Open
 Certeza?	Sure?
 Apagar	Delete
 “{0}” apagada.	“{0}” deleted.
-Pista {0}	Track {0}
 “{0}” salva.	“{0}” saved.
 “{0}” aberta.	“{0}” opened.
 Célula {0}	Cell {0}
@@ -153,7 +151,6 @@ chão	ground
 nível {0}	level {0}
 Esta prova deixa usar no máximo {0} peças.	This event allows at most {0} pieces.
 Rampa não encaixa atrás da largada: ela fica no chão.	A ramp can't attach behind the start: the start stays on the ground.
-Loop e rampa de salto não sobem nem descem de nível.	Loops and jump ramps don't go up or down a level.
 {0} ({1} carros)	{0} ({1} cars)
 Não cabe: a mesa vai até 120 × 120 células.	It doesn't fit: the table goes up to 120 × 120 cells.
 A pista já está fechada.	The track is already closed.
@@ -295,7 +292,6 @@ Vença {0} ({1}) na carreira.	Win {0} ({1}) in the career.
 Abre na carreira.	Unlocks in the career.
 {0} (bolha {1})	{0} ({1} body)
 {0}: abre na carreira ({1}).	{0}: unlocks in the career ({1}).
-Esta peça abre na carreira (menu inicial › Peças mostra em que prova).	This piece unlocks in the career (home screen › Pieces shows which event).
 Acelerar	Throttle
 Meia	Half
 Recolocar	Reslot
@@ -659,7 +655,7 @@ Jogador {0}	Player {0}
 Jogadores 5 e 6 (pista de 6) jogam só com controle.	Players 5 and 6 (6-lane track) play with a controller only.
 Restaurar padrão	Restore defaults
 REGRAS DA CORRIDA	RACE RULES
-<b>Onde valem:</b>\n• <b>Corrida livre</b> e <b>carreira</b>: na hora (na carreira, a pista molhada tira aderência quando a prova pede).\n• <b>Campeonato offline</b>: são copiadas quando o campeonato é criado. Mudar aqui depois não mexe num campeonato em andamento.\n• <b>Campeonato online</b>: valem as do <b>host</b>, enviadas na largada e fixas até o fim. As dos outros jogadores não contam.\n• <b>Partida rápida</b>: não valem. Lá as regras são sempre as padrão: velocidade 14, 0,5 s até 100%, aderência 29, colisão e turbo ligados, recolocar em 0,3 s.	<b>Where they apply:</b>\n• <b>Free race</b> and <b>career</b>: right away (in the career, the wet track takes away grip when the event calls for it).\n• <b>Offline championship</b>: they're copied when the championship is created. Changing them here later doesn't affect a championship in progress.\n• <b>Online championship</b>: the <b>host</b>'s apply, sent at the start and fixed until the end. The other players' don't count.\n• <b>Quick match</b>: they don't apply. There the rules are always the defaults: speed 14, 0.5 s to 100%, grip 29, collision and turbo on, reslot in 0.3 s.
+<b>Onde valem:</b>\n• <b>Corrida livre</b> e <b>carreira</b>: na hora (na carreira, a pista molhada tira aderência quando a prova pede).\n• <b>Campeonato offline</b>: são copiadas quando o campeonato é criado. Mudar aqui depois não mexe num campeonato em andamento.\n• <b>Campeonato online</b>: valem as do <b>host</b>, enviadas na largada e fixas até o fim. As dos outros jogadores não contam.\n• <b>Partida rápida</b>: não valem. Lá as regras são sempre as padrão: velocidade 17, 0,5 s até 100%, aderência 43, colisão e turbo ligados, recolocar em 0,3 s.	<b>Where they apply:</b>\n• <b>Free race</b> and <b>career</b>: right away (in the career, the wet track takes away grip when the event calls for it).\n• <b>Offline championship</b>: they're copied when the championship is created. Changing them here later doesn't affect a championship in progress.\n• <b>Online championship</b>: the <b>host</b>'s apply, sent at the start and fixed until the end. The other players' don't count.\n• <b>Quick match</b>: they don't apply. There the rules are always the defaults: speed 17, 0.5 s to 100%, grip 43, collision and turbo on, reslot in 0.3 s.
 SEU CONTROLE E SOM	YOUR CONTROLS AND SOUND
 Só seus, em qualquer modo, também no online: não vão para os outros jogadores.	Yours only, in any mode, online too: they aren't sent to the other players.
 JOGO ONLINE	ONLINE PLAY
@@ -1449,7 +1445,6 @@ Mesa grande	Large table
 Salão	Hall
 Sem limite	No limit
 Rampa (subida ou descida)	Ramp (up or down)
-Você tem {0} × {1}. Compre mais em Peças, no menu inicial.	You have {0} × {1}. Buy more in Pieces, on the main menu.
 Compre a mesa de antes primeiro.	Buy the previous table first.
 ◀ Carreira	◀ Career
 Começar	Start
@@ -1458,21 +1453,17 @@ Recomeçar do zero	Start over
 Clique de novo: apaga as estrelas (moedas, garagem e peças ficam)	Click again: erases the stars (coins, garage and pieces stay)
 PEÇAS E MESA	PIECES AND TABLE
 Seu kit para o construtor, comprado com as moedas da carreira. Cada pista usa até as peças que você tem (montar outra pista não gasta) e cabe na sua mesa. Peça nova abre na prova da carreira que a apresenta. Correr em qualquer pista sempre pode.	Your builder kit, bought with career coins. Each track uses up to the pieces you own (building another track costs nothing) and must fit your table. New pieces open at the career event that introduces them. Racing on any track is always allowed.
-Desbloquear tudo ligado: mesa e peças sem limite (teste).	Unlock everything is on: table and pieces without limit (test).
 MESA	TABLE
 pista de até {0} × {0} células	tracks up to {0} × {0} cells
 ✓ a sua	✓ yours
 ✓	✓
 Comprar · ◎ {0}	Buy · ◎ {0}
-você tem {0} (kit: {1})	you have {0} (kit: {1})
-você tem {0}	you have {0}
 Sua mesa	Your table
 {0} × {1} de {2} × {2} cél.	{0} × {1} of {2} × {2} cells
 Salvar pista	Save track
 Salva na biblioteca com o nome de Minhas pistas (Ctrl+S)	Saves to the library with the name in My tracks (Ctrl+S)
 Custo	Cost
 Custo da pista: {0}	Track cost: {0}
-“{0}” salva · custo {1}.	“{0}” saved · cost {1}.
 Ctrl+S	Ctrl+S
 salva a pista	saves the track
 Nome da pista	Track name
@@ -1548,3 +1539,68 @@ Parede da Morte	Wall of Death
 Parafuso Mundial	World Corkscrew
 Ângulo	Angle
  · {0}°	 · {0}°
+Arquibancadas	Grandstands
+Arquibancada pequena	Small grandstand
+Arquibancada média	Medium grandstand
+Arquibancada grande	Large grandstand
+Arquibancada coberta	Covered grandstand
+A arquibancada precisa de uma pista para acompanhar.	The grandstand needs a track to follow.
+Do outro lado da pista a arquibancada não cabe.	The grandstand doesn't fit on the other side of the track.
+Refazer tutorial	Redo tutorial
+Sair do tutorial	Leave tutorial
+Continuar  (Enter)	Continue  (Enter)
+Continuar o tutorial?	Continue the tutorial?
+Primeira vez aqui?	First time here?
+Sua pista está pronta. Falta aprender a correr nela.	Your track is ready. Now let's learn to race on it.
+Em uns 5 minutos você monta a sua primeira pista, peça por peça, e aprende a correr nela.	In about 5 minutes you'll build your first track, piece by piece, and learn to race on it.
+Pular	Skip
+Começar o tutorial	Start the tutorial
+No tutorial, só retas e curvas. As outras peças abrem na carreira.	In the tutorial, only straights and curves. The other pieces unlock in the career.
+No tutorial, só retas e curvas.	In the tutorial, only straights and curves.
+<b>Bem-vindo ao Autorama Mania!</b>\nVamos montar a sua primeira pista, peça por peça, e depois correr nela.	<b>Welcome to Autorama Mania!</b>\nLet's build your first track, piece by piece, and then race on it.
+<b>A largada</b> já está na mesa: a pista começa e termina nela.\nA seta mostra a ponta onde a próxima peça encaixa.	<b>The start</b> is already on the table: the track begins and ends there.\nThe arrow shows the end where the next piece snaps on.
+<b>Uma reta.</b> Clique em <b>Reta comprida</b> na paleta (ou aperte <b>2</b>). Ela encaixa sozinha na ponta.	<b>A straight.</b> Click <b>Long straight</b> in the palette (or press <b>2</b>). It snaps onto the end by itself.
+<b>Uma curva.</b> Escolha uma <b>Curva longa</b>: <b>3</b> vira à esquerda, <b>4</b> à direita.\nSe virou para o lado errado, clique nela e aperte <b>F</b>.	<b>A curve.</b> Pick a <b>Long curve</b>: <b>3</b> turns left, <b>4</b> turns right.\nIf it turned the wrong way, click it and press <b>F</b>.
+Mais uma <b>reta</b>: <b>1</b> é a curta, <b>2</b> a comprida.	One more <b>straight</b>: <b>1</b> is the short one, <b>2</b> the long one.
+<b>Agora é com você:</b> ponha mais 3 peças, retas ou curvas, do jeito que quiser ({0} de 3).	<b>Your turn:</b> add 3 more pieces, straights or curves, however you like ({0} of 3).
+<b>Fechar sozinho.</b> Aperte <b>Q</b> (ou o botão <b>Fechar circuito</b>) e o jogo completa a pista até a largada.\nSe não achar, desfaça uma peça (Ctrl+Z) e tente de novo.	<b>Close it for you.</b> Press <b>Q</b> (or the <b>Close circuit</b> button) and the game completes the track back to the start.\nIf it can't find a way, undo a piece (Ctrl+Z) and try again.
+<b>Pista fechada!</b> Esta pista custaria <b>{0}</b>. No tutorial ela sai de graça; depois, as moedas vêm sobretudo da carreira.\nDê um <b>nome</b> à pista no painel (MINHAS PISTAS) e salve (<b>Ctrl+S</b>).	<b>Track closed!</b> This track would cost <b>{0}</b>. In the tutorial it's free; later, coins come mostly from the career.\nGive the track a <b>name</b> in the panel (MY TRACKS) and save it (<b>Ctrl+S</b>).
+A pista do tutorial não está fechada.	The tutorial track isn't closed.
+<b>Hora de correr!</b> O carrinho vermelho é o seu.\nAntes da largada, conheça as câmeras.	<b>Time to race!</b> The red car is yours.\nBefore the start, get to know the cameras.
+Aperte <b>{0}</b>: <b>{1}</b>. {2}.	Press <b>{0}</b>: <b>{1}</b>. {2}.
+Escolha a câmera de que mais gostou (<b>1</b> a <b>4</b>): ela fica como a sua.\nDepois aperte <b>Enter</b> para largar.	Pick the camera you liked best (<b>1</b> to <b>4</b>): it becomes yours.\nThen press <b>Enter</b> to start.
+Largar  (Enter)	Start  (Enter)
+Espere o semáforo e <b>segure {0}</b> para acelerar. Soltou, o carrinho freia.	Wait for the lights and <b>hold {0}</b> to accelerate. Let go and the car brakes.
+Continue com o <b>{0}</b> no fundo, até na curva, para ver o que acontece…	Keep <b>{0}</b> floored, even in the curve, to see what happens…
+<b>Saiu da pista!</b> Rápido demais na curva, a traseira escorrega, a barra de derrapagem enche e o carrinho voa.\nAperte <b>{0}</b> para recolocar no trilho.	<b>Off the track!</b> Too fast in the curve: the rear slides, the slip bar fills and the car flies off.\nPress <b>{0}</b> to put it back on the slot.
+Aperte <b>{0}</b> para recolocar o carrinho.	Press <b>{0}</b> to put the car back.
+<b>A meia aceleração.</b> Nas retas, <b>{0}</b>. Chegando na curva, troque para o <b>{1}</b>: o acelerador vai só até {2}% e o carrinho faz a curva sem sair.\nDê <b>uma volta sem sair da pista</b>.	<b>Half throttle.</b> On straights, <b>{0}</b>. Coming into a curve, switch to <b>{1}</b>: the throttle only goes up to {2}% and the car takes the curve without flying off.\nDo <b>one lap without leaving the track</b>.
+<b>Ajuste fino.</b> <b>{0}</b> e <b>{1}</b> mudam até onde o <b>{2}</b> acelera (agora <b>{3}%</b>). Mais alto, a curva fica mais rápida, mas é mais fácil sair.\nMude o valor e dê uma volta limpa.	<b>Fine tuning.</b> <b>{0}</b> and <b>{1}</b> change how far <b>{2}</b> accelerates (now <b>{3}%</b>). Higher makes the curve faster, but it's easier to fly off.\nChange the value and do a clean lap.
+<b>O turbo.</b> A barra do turbo enche a cada volta (e um pouco a cada saída). Deixei o tanque cheio para você.\nNa reta, segure <b>{0}</b>: o carrinho passa da velocidade máxima até o tanque acabar.	<b>The turbo.</b> The turbo bar fills every lap (and a little every time you fly off). I filled the tank for you.\nOn a straight, hold <b>{0}</b>: the car goes past top speed until the tank runs out.
+Segure <b>{0}</b> numa reta.	Hold <b>{0}</b> on a straight.
+<b>Agora pra valer: 3 voltas.</b> Use tudo: acelerar nas retas, meia nas curvas e turbo quando o tanque encher.	<b>Now for real: 3 laps.</b> Use everything: throttle on straights, half on curves and turbo when the tank fills.
+Complete <b>3 voltas</b> ({0} de 3).	Complete <b>3 laps</b> ({0} of 3).
+Terminar	Finish
+<b>Parabéns!</b> Você montou a sua pista e completou 3 voltas.\nA <b>carreira</b> abre as outras peças e paga as moedas. Todas as teclas ficam em <b>Opções</b>, no menu inicial.	<b>Congratulations!</b> You built your track and completed 3 laps.\nThe <b>career</b> unlocks the other pieces and pays coins. All the keys are in <b>Options</b>, on the start menu.
+TUTORIAL · CORRIDA	TUTORIAL · RACE
+TUTORIAL · CONSTRUÇÃO	TUTORIAL · BUILDING
+  ·  {0} de {1}	  ·  {0} of {1}
+Por aqui o Q não consegue fechar a pista. Desfaça (Ctrl+Z) e tente outra direção.	From here Q can't close the track. Undo (Ctrl+Z) and try another direction.
+<b>Mover a mesa.</b> Segure o <b>botão direito</b> (ou o do meio) do mouse e arraste.	<b>Move the table.</b> Hold the <b>right mouse button</b> (or the middle one) and drag.
+<b>Aproximar.</b> Gire a <b>roda do mouse</b> para a frente.	<b>Zoom in.</b> Roll the <b>mouse wheel</b> forward.
+<b>Afastar.</b> Gire a <b>roda do mouse</b> para trás.\nSe a pista sumir da tela, <b>C</b> enquadra de novo.	<b>Zoom out.</b> Roll the <b>mouse wheel</b> back.\nIf the track goes off screen, <b>C</b> frames it again.
+<b>Vista 3D.</b> Aperte <b>V</b> (ou o botão <b>3D</b>) para inclinar a câmera.\nNa vista 3D, o botão direito <b>gira</b> a mesa em vez de mover. Experimente.	<b>3D view.</b> Press <b>V</b> (or the <b>3D</b> button) to tilt the camera.\nIn the 3D view, the right button <b>rotates</b> the table instead of moving it. Try it.
+<b>De volta para cima.</b> Aperte <b>V</b> (ou o botão <b>3D</b>) de novo para a vista de cima, a melhor para montar.	<b>Back to the top.</b> Press <b>V</b> (or the <b>3D</b> button) again for the top view, the best one for building.
+<b>Errou?</b> <b>Ctrl+Z</b> (ou o botão <b>Desfazer</b>) desfaz a última ação. Experimente: a última reta some.	<b>Made a mistake?</b> <b>Ctrl+Z</b> (or the <b>Undo</b> button) undoes the last action. Try it: the last straight disappears.
+<b>Refazer.</b> Mudou de ideia? <b>Ctrl+Y</b> (ou o botão <b>Refazer</b>) traz de volta o que foi desfeito.	<b>Redo.</b> Changed your mind? <b>Ctrl+Y</b> (or the <b>Redo</b> button) brings back what was undone.
+<b>Apagar uma peça.</b> Clique numa peça da pista para selecionar e aperte <b>Delete</b> (ou o botão da <b>lixeira</b>).\n<b>Backspace</b> apaga a última peça. A largada não sai.	<b>Delete a piece.</b> Click a piece of the track to select it and press <b>Delete</b> (or the <b>trash</b> button).\n<b>Backspace</b> deletes the last piece. The start can't be removed.
+Exemplo: oval	Example: oval
+Pista {0}	Track {0}
+Loop e rampa de salto não sobem nem descem de nível.	Loops and jump ramps don't go up or down a level.
+Esta peça abre na carreira (menu inicial › Peças mostra em que prova).	This piece unlocks in the career (home screen › Pieces shows which event).
+<b>Onde valem:</b>\n• <b>Corrida livre</b> e <b>carreira</b>: na hora (na carreira, a pista molhada tira aderência quando a prova pede).\n• <b>Campeonato offline</b>: são copiadas quando o campeonato é criado. Mudar aqui depois não mexe num campeonato em andamento.\n• <b>Campeonato online</b>: valem as do <b>host</b>, enviadas na largada e fixas até o fim. As dos outros jogadores não contam.\n• <b>Partida rápida</b>: não valem. Lá as regras são sempre as padrão: velocidade 14, 0,5 s até 100%, aderência 29, colisão e turbo ligados, recolocar em 0,3 s.	<b>Where they apply:</b>\n• <b>Free race</b> and <b>career</b>: right away (in the career, the wet track takes away grip when the event calls for it).\n• <b>Offline championship</b>: they're copied when the championship is created. Changing them here later doesn't affect a championship in progress.\n• <b>Online championship</b>: the <b>host</b>'s apply, sent at the start and fixed until the end. The other players' don't count.\n• <b>Quick match</b>: they don't apply. There the rules are always the defaults: speed 14, 0.5 s to 100%, grip 29, collision and turbo on, reslot in 0.3 s.
+Você tem {0} × {1}. Compre mais em Peças, no menu inicial.	You have {0} × {1}. Buy more in Pieces, on the main menu.
+Desbloquear tudo ligado: mesa e peças sem limite (teste).	Unlock everything is on: table and pieces without limit (test).
+você tem {0} (kit: {1})	you have {0} (kit: {1})
+você tem {0}	you have {0}
+“{0}” salva · custo {1}.	“{0}” saved · cost {1}.

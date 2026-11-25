@@ -49,7 +49,15 @@ namespace Autorama
             if (enfeites != null)
                 foreach (var e in enfeites)
                     if (EnfeiteCatalog.ById(e.id) != null)
-                        list.Add(new Enfeite { id = e.id, pos = new Vector2(e.x, mesa.h - e.y), rot = -e.h, esc = e.esc > 0 ? e.esc : 1f });
+                    {
+                        var n = new Enfeite { id = e.id, pos = new Vector2(e.x, mesa.h - e.y), rot = -e.h, esc = e.esc > 0 ? e.esc : 1f, u0 = e.u0, comp = e.comp, lado = e.lado, colunas = e.colunas };
+                        if (e.linha != null && e.linha.Length >= 4)
+                        {
+                            n.linha = new List<Vector2>();
+                            for (int i = 0; i + 1 < e.linha.Length; i += 2) n.linha.Add(new Vector2(e.linha[i], mesa.h - e.linha[i + 1]));
+                        }
+                        list.Add(n);
+                    }
             return list;
         }
 
@@ -57,7 +65,11 @@ namespace Autorama
         {
             enfeites = new List<EnfeiteSave>();
             foreach (var e in list)
-                enfeites.Add(new EnfeiteSave { id = e.id, x = e.pos.x, y = mesa.h - e.pos.y, h = TrackMath.Normalize(-e.rot), esc = e.esc });
+            {
+                float[] l = null;
+                if (e.Trecho) { l = new float[e.linha.Count * 2]; for (int i = 0; i < e.linha.Count; i++) { l[2 * i] = e.linha[i].x; l[2 * i + 1] = mesa.h - e.linha[i].y; } }
+                enfeites.Add(new EnfeiteSave { id = e.id, x = e.pos.x, y = mesa.h - e.pos.y, h = TrackMath.Normalize(-e.rot), esc = e.esc, linha = l, u0 = e.u0, comp = e.comp, lado = e.lado, colunas = e.colunas });
+            }
         }
 
         // ----- conversão para o modelo da Unity -----

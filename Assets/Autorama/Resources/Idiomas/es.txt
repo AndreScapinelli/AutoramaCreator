@@ -48,7 +48,6 @@ SEQUÊNCIA	SECUENCIA
 Da largada até a ponta, no sentido em que os carrinhos correm.	De la salida hasta el extremo, en el sentido en que corren los coches.
 MINHAS PISTAS	MIS PISTAS
 Salvar	Guardar
-Exemplo: oval	Ejemplo: óvalo
 Nova pista	Nueva pista
 Pasta: {0}	Carpeta: {0}
 VISTA E EDIÇÃO	VISTA Y EDICIÓN
@@ -133,7 +132,6 @@ Abrir	Abrir
 Certeza?	¿Seguro?
 Apagar	Borrar
 “{0}” apagada.	“{0}” borrada.
-Pista {0}	Pista {0}
 “{0}” salva.	“{0}” guardada.
 “{0}” aberta.	“{0}” abierta.
 Célula {0}	Celda {0}
@@ -153,7 +151,6 @@ chão	suelo
 nível {0}	nivel {0}
 Esta prova deixa usar no máximo {0} peças.	Esta prueba permite como máximo {0} piezas.
 Rampa não encaixa atrás da largada: ela fica no chão.	La rampa no encaja detrás de la salida: la salida queda en el suelo.
-Loop e rampa de salto não sobem nem descem de nível.	El loop y la rampa de salto no suben ni bajan de nivel.
 {0} ({1} carros)	{0} ({1} coches)
 Não cabe: a mesa vai até 120 × 120 células.	No cabe: la mesa llega hasta 120 × 120 celdas.
 A pista já está fechada.	La pista ya está cerrada.
@@ -295,7 +292,6 @@ Vença {0} ({1}) na carreira.	Gana {0} ({1}) en la trayectoria.
 Abre na carreira.	Se desbloquea en la trayectoria.
 {0} (bolha {1})	{0} (carrocería {1})
 {0}: abre na carreira ({1}).	{0}: se desbloquea en la trayectoria ({1}).
-Esta peça abre na carreira (menu inicial › Peças mostra em que prova).	Esta pieza se desbloquea en la trayectoria (menú inicial › Piezas muestra en qué prueba).
 Acelerar	Acelerar
 Meia	Media
 Recolocar	Recolocar
@@ -659,7 +655,7 @@ Jogador {0}	Jugador {0}
 Jogadores 5 e 6 (pista de 6) jogam só com controle.	Los jugadores 5 y 6 (pista de 6) juegan solo con mando.
 Restaurar padrão	Restaurar valores
 REGRAS DA CORRIDA	REGLAS DE LA CARRERA
-<b>Onde valem:</b>\n• <b>Corrida livre</b> e <b>carreira</b>: na hora (na carreira, a pista molhada tira aderência quando a prova pede).\n• <b>Campeonato offline</b>: são copiadas quando o campeonato é criado. Mudar aqui depois não mexe num campeonato em andamento.\n• <b>Campeonato online</b>: valem as do <b>host</b>, enviadas na largada e fixas até o fim. As dos outros jogadores não contam.\n• <b>Partida rápida</b>: não valem. Lá as regras são sempre as padrão: velocidade 14, 0,5 s até 100%, aderência 29, colisão e turbo ligados, recolocar em 0,3 s.	<b>Dónde valen:</b>\n• <b>Carrera libre</b> y <b>trayectoria</b>: al momento (en la trayectoria, la pista mojada quita agarre cuando la prueba lo pide).\n• <b>Campeonato offline</b>: se copian al crear el campeonato. Cambiarlas aquí después no afecta a un campeonato en curso.\n• <b>Campeonato online</b>: valen las del <b>anfitrión</b>, enviadas en la salida y fijas hasta el final. Las de los demás jugadores no cuentan.\n• <b>Partida rápida</b>: no valen. Allí las reglas son siempre las estándar: velocidad 14, 0,5 s hasta 100%, agarre 29, colisión y turbo activados, recolocar en 0,3 s.
+<b>Onde valem:</b>\n• <b>Corrida livre</b> e <b>carreira</b>: na hora (na carreira, a pista molhada tira aderência quando a prova pede).\n• <b>Campeonato offline</b>: são copiadas quando o campeonato é criado. Mudar aqui depois não mexe num campeonato em andamento.\n• <b>Campeonato online</b>: valem as do <b>host</b>, enviadas na largada e fixas até o fim. As dos outros jogadores não contam.\n• <b>Partida rápida</b>: não valem. Lá as regras são sempre as padrão: velocidade 17, 0,5 s até 100%, aderência 43, colisão e turbo ligados, recolocar em 0,3 s.	<b>Dónde valen:</b>\n• <b>Carrera libre</b> y <b>trayectoria</b>: al momento (en la trayectoria, la pista mojada quita agarre cuando la prueba lo pide).\n• <b>Campeonato offline</b>: se copian al crear el campeonato. Cambiarlas aquí después no afecta a un campeonato en curso.\n• <b>Campeonato online</b>: valen las del <b>anfitrión</b>, enviadas en la salida y fijas hasta el final. Las de los demás jugadores no cuentan.\n• <b>Partida rápida</b>: no valen. Allí las reglas son siempre las estándar: velocidad 17, 0,5 s hasta 100%, agarre 43, colisión y turbo activados, recolocar en 0,3 s.
 SEU CONTROLE E SOM	TU CONTROL Y SONIDO
 Só seus, em qualquer modo, também no online: não vão para os outros jogadores.	Solo tuyos, en cualquier modo, también online: no se envían a los demás jugadores.
 JOGO ONLINE	JUEGO ONLINE
@@ -1449,7 +1445,6 @@ Mesa grande	Mesa grande
 Salão	Salón
 Sem limite	Sin límite
 Rampa (subida ou descida)	Rampa (subida o bajada)
-Você tem {0} × {1}. Compre mais em Peças, no menu inicial.	Tienes {0} × {1}. Compra más en Piezas, en el menú principal.
 Compre a mesa de antes primeiro.	Compra primero la mesa anterior.
 ◀ Carreira	◀ Carrera
 Começar	Empezar
@@ -1458,21 +1453,17 @@ Recomeçar do zero	Empezar de cero
 Clique de novo: apaga as estrelas (moedas, garagem e peças ficam)	Haz clic otra vez: borra las estrellas (monedas, garaje y piezas se quedan)
 PEÇAS E MESA	PIEZAS Y MESA
 Seu kit para o construtor, comprado com as moedas da carreira. Cada pista usa até as peças que você tem (montar outra pista não gasta) e cabe na sua mesa. Peça nova abre na prova da carreira que a apresenta. Correr em qualquer pista sempre pode.	Tu kit para el constructor, comprado con las monedas de la carrera. Cada pista usa hasta las piezas que tienes (montar otra pista no gasta) y cabe en tu mesa. Las piezas nuevas se abren en la prueba de la carrera que las presenta. Correr en cualquier pista siempre se puede.
-Desbloquear tudo ligado: mesa e peças sem limite (teste).	Desbloquear todo activado: mesa y piezas sin límite (prueba).
 MESA	MESA
 pista de até {0} × {0} células	pistas de hasta {0} × {0} celdas
 ✓ a sua	✓ la tuya
 ✓	✓
 Comprar · ◎ {0}	Comprar · ◎ {0}
-você tem {0} (kit: {1})	tienes {0} (kit: {1})
-você tem {0}	tienes {0}
 Sua mesa	Tu mesa
 {0} × {1} de {2} × {2} cél.	{0} × {1} de {2} × {2} celdas
 Salvar pista	Guardar pista
 Salva na biblioteca com o nome de Minhas pistas (Ctrl+S)	Guarda en la biblioteca con el nombre de Mis pistas (Ctrl+S)
 Custo	Coste
 Custo da pista: {0}	Coste de la pista: {0}
-“{0}” salva · custo {1}.	“{0}” guardada · coste {1}.
 Ctrl+S	Ctrl+S
 salva a pista	guarda la pista
 Nome da pista	Nombre de la pista
@@ -1548,3 +1539,68 @@ Parede da Morte	Muro de la Muerte
 Parafuso Mundial	Sacacorchos Mundial
 Ângulo	Ángulo
  · {0}°	 · {0}°
+Arquibancadas	Gradas
+Arquibancada pequena	Grada pequeña
+Arquibancada média	Grada mediana
+Arquibancada grande	Grada grande
+Arquibancada coberta	Grada cubierta
+A arquibancada precisa de uma pista para acompanhar.	La grada necesita una pista que seguir.
+Do outro lado da pista a arquibancada não cabe.	La grada no cabe al otro lado de la pista.
+Refazer tutorial	Repetir el tutorial
+Sair do tutorial	Salir del tutorial
+Continuar  (Enter)	Continuar  (Enter)
+Continuar o tutorial?	¿Continuar el tutorial?
+Primeira vez aqui?	¿Primera vez aquí?
+Sua pista está pronta. Falta aprender a correr nela.	Tu pista está lista. Falta aprender a correr en ella.
+Em uns 5 minutos você monta a sua primeira pista, peça por peça, e aprende a correr nela.	En unos 5 minutos montas tu primera pista, pieza por pieza, y aprendes a correr en ella.
+Pular	Saltar
+Começar o tutorial	Empezar el tutorial
+No tutorial, só retas e curvas. As outras peças abrem na carreira.	En el tutorial, solo rectas y curvas. Las demás piezas se abren en la carrera.
+No tutorial, só retas e curvas.	En el tutorial, solo rectas y curvas.
+<b>Bem-vindo ao Autorama Mania!</b>\nVamos montar a sua primeira pista, peça por peça, e depois correr nela.	<b>¡Bienvenido a Autorama Mania!</b>\nVamos a montar tu primera pista, pieza por pieza, y después correr en ella.
+<b>A largada</b> já está na mesa: a pista começa e termina nela.\nA seta mostra a ponta onde a próxima peça encaixa.	<b>La salida</b> ya está en la mesa: la pista empieza y termina en ella.\nLa flecha muestra el extremo donde encaja la próxima pieza.
+<b>Uma reta.</b> Clique em <b>Reta comprida</b> na paleta (ou aperte <b>2</b>). Ela encaixa sozinha na ponta.	<b>Una recta.</b> Haz clic en <b>Recta larga</b> en la paleta (o pulsa <b>2</b>). Encaja sola en el extremo.
+<b>Uma curva.</b> Escolha uma <b>Curva longa</b>: <b>3</b> vira à esquerda, <b>4</b> à direita.\nSe virou para o lado errado, clique nela e aperte <b>F</b>.	<b>Una curva.</b> Elige una <b>Curva larga</b>: <b>3</b> gira a la izquierda, <b>4</b> a la derecha.\nSi giró hacia el lado equivocado, haz clic en ella y pulsa <b>F</b>.
+Mais uma <b>reta</b>: <b>1</b> é a curta, <b>2</b> a comprida.	Otra <b>recta</b>: <b>1</b> es la corta, <b>2</b> la larga.
+<b>Agora é com você:</b> ponha mais 3 peças, retas ou curvas, do jeito que quiser ({0} de 3).	<b>Ahora te toca:</b> pon 3 piezas más, rectas o curvas, como quieras ({0} de 3).
+<b>Fechar sozinho.</b> Aperte <b>Q</b> (ou o botão <b>Fechar circuito</b>) e o jogo completa a pista até a largada.\nSe não achar, desfaça uma peça (Ctrl+Z) e tente de novo.	<b>Cerrar sola.</b> Pulsa <b>Q</b> (o el botón <b>Cerrar circuito</b>) y el juego completa la pista hasta la salida.\nSi no lo encuentra, deshaz una pieza (Ctrl+Z) e inténtalo de nuevo.
+<b>Pista fechada!</b> Esta pista custaria <b>{0}</b>. No tutorial ela sai de graça; depois, as moedas vêm sobretudo da carreira.\nDê um <b>nome</b> à pista no painel (MINHAS PISTAS) e salve (<b>Ctrl+S</b>).	<b>¡Pista cerrada!</b> Esta pista costaría <b>{0}</b>. En el tutorial es gratis; después, las monedas vienen sobre todo de la carrera.\nPonle un <b>nombre</b> a la pista en el panel (MIS PISTAS) y guárdala (<b>Ctrl+S</b>).
+A pista do tutorial não está fechada.	La pista del tutorial no está cerrada.
+<b>Hora de correr!</b> O carrinho vermelho é o seu.\nAntes da largada, conheça as câmeras.	<b>¡Hora de correr!</b> El coche rojo es el tuyo.\nAntes de la salida, conoce las cámaras.
+Aperte <b>{0}</b>: <b>{1}</b>. {2}.	Pulsa <b>{0}</b>: <b>{1}</b>. {2}.
+Escolha a câmera de que mais gostou (<b>1</b> a <b>4</b>): ela fica como a sua.\nDepois aperte <b>Enter</b> para largar.	Elige la cámara que más te gustó (<b>1</b> a <b>4</b>): se queda como la tuya.\nLuego pulsa <b>Enter</b> para salir.
+Largar  (Enter)	Salir  (Enter)
+Espere o semáforo e <b>segure {0}</b> para acelerar. Soltou, o carrinho freia.	Espera el semáforo y <b>mantén {0}</b> para acelerar. Si sueltas, el coche frena.
+Continue com o <b>{0}</b> no fundo, até na curva, para ver o que acontece…	Sigue con <b>{0}</b> a fondo, incluso en la curva, para ver qué pasa…
+<b>Saiu da pista!</b> Rápido demais na curva, a traseira escorrega, a barra de derrapagem enche e o carrinho voa.\nAperte <b>{0}</b> para recolocar no trilho.	<b>¡Fuera de la pista!</b> Demasiado rápido en la curva: la parte trasera derrapa, la barra de derrape se llena y el coche sale volando.\nPulsa <b>{0}</b> para volver a ponerlo en el carril.
+Aperte <b>{0}</b> para recolocar o carrinho.	Pulsa <b>{0}</b> para volver a poner el coche.
+<b>A meia aceleração.</b> Nas retas, <b>{0}</b>. Chegando na curva, troque para o <b>{1}</b>: o acelerador vai só até {2}% e o carrinho faz a curva sem sair.\nDê <b>uma volta sem sair da pista</b>.	<b>Media aceleración.</b> En las rectas, <b>{0}</b>. Al llegar a la curva, cambia a <b>{1}</b>: el acelerador solo llega al {2}% y el coche toma la curva sin salirse.\nDa <b>una vuelta sin salirte de la pista</b>.
+<b>Ajuste fino.</b> <b>{0}</b> e <b>{1}</b> mudam até onde o <b>{2}</b> acelera (agora <b>{3}%</b>). Mais alto, a curva fica mais rápida, mas é mais fácil sair.\nMude o valor e dê uma volta limpa.	<b>Ajuste fino.</b> <b>{0}</b> y <b>{1}</b> cambian hasta dónde acelera <b>{2}</b> (ahora <b>{3}%</b>). Más alto, la curva es más rápida, pero es más fácil salirse.\nCambia el valor y da una vuelta limpia.
+<b>O turbo.</b> A barra do turbo enche a cada volta (e um pouco a cada saída). Deixei o tanque cheio para você.\nNa reta, segure <b>{0}</b>: o carrinho passa da velocidade máxima até o tanque acabar.	<b>El turbo.</b> La barra del turbo se llena en cada vuelta (y un poco en cada salida). Te dejé el depósito lleno.\nEn la recta, mantén <b>{0}</b>: el coche supera la velocidad máxima hasta que se acaba el depósito.
+Segure <b>{0}</b> numa reta.	Mantén <b>{0}</b> en una recta.
+<b>Agora pra valer: 3 voltas.</b> Use tudo: acelerar nas retas, meia nas curvas e turbo quando o tanque encher.	<b>Ahora de verdad: 3 vueltas.</b> Usa todo: acelerar en las rectas, media en las curvas y turbo cuando se llene el depósito.
+Complete <b>3 voltas</b> ({0} de 3).	Completa <b>3 vueltas</b> ({0} de 3).
+Terminar	Terminar
+<b>Parabéns!</b> Você montou a sua pista e completou 3 voltas.\nA <b>carreira</b> abre as outras peças e paga as moedas. Todas as teclas ficam em <b>Opções</b>, no menu inicial.	<b>¡Felicidades!</b> Montaste tu pista y completaste 3 vueltas.\nLa <b>carrera</b> abre las demás piezas y paga monedas. Todas las teclas están en <b>Opciones</b>, en el menú inicial.
+TUTORIAL · CORRIDA	TUTORIAL · CARRERA
+TUTORIAL · CONSTRUÇÃO	TUTORIAL · CONSTRUCCIÓN
+  ·  {0} de {1}	  ·  {0} de {1}
+Por aqui o Q não consegue fechar a pista. Desfaça (Ctrl+Z) e tente outra direção.	Desde aquí Q no puede cerrar la pista. Deshaz (Ctrl+Z) y prueba otra dirección.
+<b>Mover a mesa.</b> Segure o <b>botão direito</b> (ou o do meio) do mouse e arraste.	<b>Mover la mesa.</b> Mantén el <b>botón derecho</b> (o el del medio) del ratón y arrastra.
+<b>Aproximar.</b> Gire a <b>roda do mouse</b> para a frente.	<b>Acercar.</b> Gira la <b>rueda del ratón</b> hacia delante.
+<b>Afastar.</b> Gire a <b>roda do mouse</b> para trás.\nSe a pista sumir da tela, <b>C</b> enquadra de novo.	<b>Alejar.</b> Gira la <b>rueda del ratón</b> hacia atrás.\nSi la pista sale de la pantalla, <b>C</b> la vuelve a encuadrar.
+<b>Vista 3D.</b> Aperte <b>V</b> (ou o botão <b>3D</b>) para inclinar a câmera.\nNa vista 3D, o botão direito <b>gira</b> a mesa em vez de mover. Experimente.	<b>Vista 3D.</b> Pulsa <b>V</b> (o el botón <b>3D</b>) para inclinar la cámara.\nEn la vista 3D, el botón derecho <b>gira</b> la mesa en vez de moverla. Pruébalo.
+<b>De volta para cima.</b> Aperte <b>V</b> (ou o botão <b>3D</b>) de novo para a vista de cima, a melhor para montar.	<b>De vuelta arriba.</b> Pulsa <b>V</b> (o el botón <b>3D</b>) otra vez para la vista desde arriba, la mejor para montar.
+<b>Errou?</b> <b>Ctrl+Z</b> (ou o botão <b>Desfazer</b>) desfaz a última ação. Experimente: a última reta some.	<b>¿Te equivocaste?</b> <b>Ctrl+Z</b> (o el botón <b>Deshacer</b>) deshace la última acción. Pruébalo: la última recta desaparece.
+<b>Refazer.</b> Mudou de ideia? <b>Ctrl+Y</b> (ou o botão <b>Refazer</b>) traz de volta o que foi desfeito.	<b>Rehacer.</b> ¿Cambiaste de idea? <b>Ctrl+Y</b> (o el botón <b>Rehacer</b>) trae de vuelta lo que se deshizo.
+<b>Apagar uma peça.</b> Clique numa peça da pista para selecionar e aperte <b>Delete</b> (ou o botão da <b>lixeira</b>).\n<b>Backspace</b> apaga a última peça. A largada não sai.	<b>Borrar una pieza.</b> Haz clic en una pieza de la pista para seleccionarla y pulsa <b>Supr</b> (o el botón de la <b>papelera</b>).\n<b>Retroceso</b> borra la última pieza. La salida no se quita.
+Exemplo: oval	Ejemplo: óvalo
+Pista {0}	Pista {0}
+Loop e rampa de salto não sobem nem descem de nível.	El loop y la rampa de salto no suben ni bajan de nivel.
+Esta peça abre na carreira (menu inicial › Peças mostra em que prova).	Esta pieza se desbloquea en la trayectoria (menú inicial › Piezas muestra en qué prueba).
+<b>Onde valem:</b>\n• <b>Corrida livre</b> e <b>carreira</b>: na hora (na carreira, a pista molhada tira aderência quando a prova pede).\n• <b>Campeonato offline</b>: são copiadas quando o campeonato é criado. Mudar aqui depois não mexe num campeonato em andamento.\n• <b>Campeonato online</b>: valem as do <b>host</b>, enviadas na largada e fixas até o fim. As dos outros jogadores não contam.\n• <b>Partida rápida</b>: não valem. Lá as regras são sempre as padrão: velocidade 14, 0,5 s até 100%, aderência 29, colisão e turbo ligados, recolocar em 0,3 s.	<b>Dónde valen:</b>\n• <b>Carrera libre</b> y <b>trayectoria</b>: al momento (en la trayectoria, la pista mojada quita agarre cuando la prueba lo pide).\n• <b>Campeonato offline</b>: se copian al crear el campeonato. Cambiarlas aquí después no afecta a un campeonato en curso.\n• <b>Campeonato online</b>: valen las del <b>anfitrión</b>, enviadas en la salida y fijas hasta el final. Las de los demás jugadores no cuentan.\n• <b>Partida rápida</b>: no valen. Allí las reglas son siempre las estándar: velocidad 14, 0,5 s hasta 100%, agarre 29, colisión y turbo activados, recolocar en 0,3 s.
+Você tem {0} × {1}. Compre mais em Peças, no menu inicial.	Tienes {0} × {1}. Compra más en Piezas, en el menú principal.
+Desbloquear tudo ligado: mesa e peças sem limite (teste).	Desbloquear todo activado: mesa y piezas sin límite (prueba).
+você tem {0} (kit: {1})	tienes {0} (kit: {1})
+você tem {0}	tienes {0}
+“{0}” salva · custo {1}.	“{0}” guardada · coste {1}.

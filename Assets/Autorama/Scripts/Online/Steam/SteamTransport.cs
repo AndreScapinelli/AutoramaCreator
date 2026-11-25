@@ -327,7 +327,7 @@ namespace Autorama
             var room = BuildRoom();
             string track = TrackName(ids[win]);
             var m = new NetMsg { t = "started", title = Clean(L.T("Partida rápida · ") + track, 40),
-                rules = new NetRules { vmax = 14f, ramp = 0.5f, grip = 29f, collide = true, byTime = true, turbo = true, sorteio = seed, reslot = 0.3f } };
+                rules = new NetRules { vmax = 17f, ramp = 0.5f, grip = 43f, collide = true, byTime = true, turbo = true, sorteio = seed, reslot = 0.3f } };
             foreach (var p in room.players) if (!NetGuest.Is(p.id)) m.pilots.Add(new NetPlayer { id = p.id, name = p.name, color = p.color, uid = p.uid, elo = p.elo, eloj = p.eloj });
             m.stages.Add(new NetStage { name = track, laps = 30, secs = 240, tempo = true, faixas = mmSize, hash = hashes[win], json = JsonOf(ids[win]) });
             for (int i = 0; i < members.Count; i++) m.mm.tracks.Add(new NetMMTrack { name = TrackName(ids[i]), by = Clean(members[i].name, 20) });

@@ -9,7 +9,7 @@ namespace Autorama
         public TrackBuilder builder;
         public TopDownCamera cam;
 
-        int pressedIndex = -1, pressedEnf = -1;
+        int pressedIndex = -1, pressedEnf = -1, pressedHandle = -1;
         bool dragging;
         Vector3 grabWorld;
         Vector2 grabOrigin, pressScreen, grabEnf;
@@ -58,13 +58,18 @@ namespace Autorama
         void HandleMouse(Mouse m)
         {
             Vector2 screen = m.position.ReadValue();
+            if (m.leftButton.wasPressedThisFrame && BuilderPanel.WorldGate != null && !BuilderPanel.WorldGate() && !BuilderPanel.PointerOverUI(screen)) return;    // tutorial (seção 102.5)
             if (builder.Armed != null)
             {
                 bool ui = BuilderPanel.PointerOverUI(screen);
                 Vector3 w = cam.MouseOnTable();
                 Vector2 cell = new Vector2(w.x - builder.transform.position.x, w.z - builder.transform.position.z) / builder.Scale;
                 builder.ShowArmed(ui ? (Vector2?)null : cell);
-                if (m.leftButton.wasPressedThisFrame && !ui) builder.PlaceArmed(cell);
+                if (m.leftButton.wasPressedThisFrame && !ui && builder.PlaceArmed(cell) && builder.Armed == null && builder.NovaIndex >= 0)
+                {
+                    // Arquibancada (seção 101.2): segurando o botão, o mesmo clique já estica.
+                    pressedHandle = 2; pressedEnf = builder.NovaIndex; pressedIndex = -3; dragging = false; pressScreen = screen;
+                }
                 return;
             }
             if (m.leftButton.wasPressedThisFrame)
@@ -72,7 +77,10 @@ namespace Autorama
                 if (BuilderPanel.PointerOverUI(screen)) { pressedIndex = -2; return; }
                 pressedIndex = -1;
                 Ray ray = Camera.main.ScreenPointToRay(screen);
-                pressedEnf = -1;
+                pressedEnf = -1; pressedHandle = -1;
+                foreach (var h in Physics.RaycastAll(ray, 500f))          // pegador da arquibancada ganha de tudo (seção 101)
+                    if (builder.PegadorDe(h.collider) is int ph && ph >= 0) { pressedHandle = ph; break; }
+                if (pressedHandle >= 0) { pressedEnf = builder.EnfSel; pressedIndex = -3; dragging = false; pressScreen = screen; return; }
                 if (Physics.Raycast(ray, out var hit, 500f)) { pressedIndex = builder.IndexOf(hit.collider); pressedEnf = builder.IndexOfEnfeite(hit.collider); }
                 if (pressedEnf >= 0) pressedIndex = -3;
                 grabEnf = pressedEnf >= 0 ? builder.enfeites[pressedEnf].pos : default;
@@ -80,6 +88,16 @@ namespace Autorama
                 pressScreen = screen;
                 grabWorld = cam.MouseOnTable();
                 grabOrigin = builder.Origin.pos;
+            }
+            else if (m.leftButton.isPressed && pressedHandle >= 0)
+            {
+                if (!dragging && (screen - pressScreen).sqrMagnitude > 16f) { dragging = true; builder.BeginEdit(); }
+                if (dragging)
+                {
+                    Vector3 w = cam.MouseOnTable();
+                    var cell = new Vector2(w.x - builder.transform.position.x, w.z - builder.transform.position.z) / builder.Scale;
+                    if (pressedHandle == 2) builder.EsticarNova(cell); else builder.EsticarPonta(pressedEnf, pressedHandle, cell);
+                }
             }
             else if (m.leftButton.isPressed && pressedEnf >= 0)
             {
@@ -101,9 +119,10 @@ namespace Autorama
             }
             else if (m.leftButton.wasReleasedThisFrame)
             {
-                if (pressedEnf >= 0 && !dragging) builder.SelectEnfeite(pressedEnf);
+                if (pressedHandle >= 0) { }
+                else if (pressedEnf >= 0 && !dragging) builder.SelectEnfeite(pressedEnf);
                 else if (pressedIndex >= -1 && !dragging) builder.Select(pressedIndex);
-                pressedEnf = -1;
+                pressedEnf = -1; pressedHandle = -1;
                 if (dragging) builder.EndEdit();
                 pressedIndex = -2;
                 dragging = false;

@@ -48,7 +48,6 @@ SEQUÊNCIA	REIHENFOLGE
 Da largada até a ponta, no sentido em que os carrinhos correm.	Vom Start bis zum offenen Ende, in Fahrtrichtung der Autos.
 MINHAS PISTAS	MEINE STRECKEN
 Salvar	Speichern
-Exemplo: oval	Beispiel: Oval
 Nova pista	Neue Strecke
 Pasta: {0}	Ordner: {0}
 VISTA E EDIÇÃO	ANSICHT UND BEARBEITUNG
@@ -133,7 +132,6 @@ Abrir	Öffnen
 Certeza?	Sicher?
 Apagar	Löschen
 “{0}” apagada.	„{0}“ gelöscht.
-Pista {0}	Strecke {0}
 “{0}” salva.	„{0}“ gespeichert.
 “{0}” aberta.	„{0}“ geöffnet.
 Célula {0}	Feld {0}
@@ -153,7 +151,6 @@ chão	Boden
 nível {0}	Ebene {0}
 Esta prova deixa usar no máximo {0} peças.	Dieses Event erlaubt höchstens {0} Teile.
 Rampa não encaixa atrás da largada: ela fica no chão.	Eine Rampe passt nicht hinter den Start: Der Start bleibt auf dem Boden.
-Loop e rampa de salto não sobem nem descem de nível.	Looping und Sprungschanze gehen keine Ebene hoch oder runter.
 {0} ({1} carros)	{0} ({1} Autos)
 Não cabe: a mesa vai até 120 × 120 células.	Passt nicht: Der Tisch reicht bis 120 × 120 Felder.
 A pista já está fechada.	Die Strecke ist bereits geschlossen.
@@ -295,7 +292,6 @@ Vença {0} ({1}) na carreira.	Gewinne {0} ({1}) in der Karriere.
 Abre na carreira.	Wird in der Karriere freigeschaltet.
 {0} (bolha {1})	{0} (Karosserie {1})
 {0}: abre na carreira ({1}).	{0}: wird in der Karriere freigeschaltet ({1}).
-Esta peça abre na carreira (menu inicial › Peças mostra em que prova).	Dieses Teil wird in der Karriere freigeschaltet (Startbildschirm › Teile zeigt, in welchem Event).
 Acelerar	Gas
 Meia	Halbgas
 Recolocar	Zurücksetzen
@@ -659,7 +655,7 @@ Jogador {0}	Spieler {0}
 Jogadores 5 e 6 (pista de 6) jogam só com controle.	Spieler 5 und 6 (6-spurige Strecke) spielen nur mit Controller.
 Restaurar padrão	Standard wiederherstellen
 REGRAS DA CORRIDA	RENNREGELN
-<b>Onde valem:</b>\n• <b>Corrida livre</b> e <b>carreira</b>: na hora (na carreira, a pista molhada tira aderência quando a prova pede).\n• <b>Campeonato offline</b>: são copiadas quando o campeonato é criado. Mudar aqui depois não mexe num campeonato em andamento.\n• <b>Campeonato online</b>: valem as do <b>host</b>, enviadas na largada e fixas até o fim. As dos outros jogadores não contam.\n• <b>Partida rápida</b>: não valem. Lá as regras são sempre as padrão: velocidade 14, 0,5 s até 100%, aderência 29, colisão e turbo ligados, recolocar em 0,3 s.	<b>Wo sie gelten:</b>\n• <b>Freies Rennen</b> und <b>Karriere</b>: sofort (in der Karriere nimmt die nasse Strecke Grip weg, wenn das Event es verlangt).\n• <b>Offline-Meisterschaft</b>: Sie werden beim Anlegen der Meisterschaft übernommen. Spätere Änderungen hier betreffen keine laufende Meisterschaft.\n• <b>Online-Meisterschaft</b>: Es gelten die des <b>Hosts</b>, beim Start übertragen und bis zum Ende fest. Die der anderen Spieler zählen nicht.\n• <b>Schnelles Spiel</b>: Sie gelten nicht. Dort gelten immer die Standardregeln: Tempo 14, 0,5 s bis 100 %, Grip 29, Kollision und Turbo an, Zurücksetzen in 0,3 s.
+<b>Onde valem:</b>\n• <b>Corrida livre</b> e <b>carreira</b>: na hora (na carreira, a pista molhada tira aderência quando a prova pede).\n• <b>Campeonato offline</b>: são copiadas quando o campeonato é criado. Mudar aqui depois não mexe num campeonato em andamento.\n• <b>Campeonato online</b>: valem as do <b>host</b>, enviadas na largada e fixas até o fim. As dos outros jogadores não contam.\n• <b>Partida rápida</b>: não valem. Lá as regras são sempre as padrão: velocidade 17, 0,5 s até 100%, aderência 43, colisão e turbo ligados, recolocar em 0,3 s.	<b>Wo sie gelten:</b>\n• <b>Freies Rennen</b> und <b>Karriere</b>: sofort (in der Karriere nimmt die nasse Strecke Grip weg, wenn das Event es verlangt).\n• <b>Offline-Meisterschaft</b>: Sie werden beim Anlegen der Meisterschaft übernommen. Spätere Änderungen hier betreffen keine laufende Meisterschaft.\n• <b>Online-Meisterschaft</b>: Es gelten die des <b>Hosts</b>, beim Start übertragen und bis zum Ende fest. Die der anderen Spieler zählen nicht.\n• <b>Schnelles Spiel</b>: Sie gelten nicht. Dort gelten immer die Standardregeln: Tempo 17, 0,5 s bis 100 %, Grip 43, Kollision und Turbo an, Zurücksetzen in 0,3 s.
 SEU CONTROLE E SOM	DEINE STEUERUNG UND DEIN SOUND
 Só seus, em qualquer modo, também no online: não vão para os outros jogadores.	Nur für dich, in jedem Modus, auch online: Sie gehen nicht an die anderen Spieler.
 JOGO ONLINE	ONLINE-SPIEL
@@ -1449,7 +1445,6 @@ Mesa grande	Großer Tisch
 Salão	Saal
 Sem limite	Ohne Grenze
 Rampa (subida ou descida)	Rampe (hoch oder runter)
-Você tem {0} × {1}. Compre mais em Peças, no menu inicial.	Du hast {0} × {1}. Kauf mehr unter Teile im Hauptmenü.
 Compre a mesa de antes primeiro.	Kauf zuerst den vorherigen Tisch.
 ◀ Carreira	◀ Karriere
 Começar	Starten
@@ -1458,21 +1453,17 @@ Recomeçar do zero	Von vorn beginnen
 Clique de novo: apaga as estrelas (moedas, garagem e peças ficam)	Nochmal klicken: löscht die Sterne (Münzen, Garage und Teile bleiben)
 PEÇAS E MESA	TEILE UND TISCH
 Seu kit para o construtor, comprado com as moedas da carreira. Cada pista usa até as peças que você tem (montar outra pista não gasta) e cabe na sua mesa. Peça nova abre na prova da carreira que a apresenta. Correr em qualquer pista sempre pode.	Dein Bausatz für den Streckenbau, gekauft mit den Münzen der Karriere. Jede Strecke nutzt höchstens die Teile, die du hast (eine weitere Strecke kostet nichts), und muss auf deinen Tisch passen. Neue Teile öffnen sich im Karriererennen, das sie vorstellt. Fahren auf jeder Strecke geht immer.
-Desbloquear tudo ligado: mesa e peças sem limite (teste).	Alles freischalten ist an: Tisch und Teile ohne Grenze (Test).
 MESA	TISCH
 pista de até {0} × {0} células	Strecken bis {0} × {0} Felder
 ✓ a sua	✓ deiner
 ✓	✓
 Comprar · ◎ {0}	Kaufen · ◎ {0}
-você tem {0} (kit: {1})	du hast {0} (Bausatz: {1})
-você tem {0}	du hast {0}
 Sua mesa	Dein Tisch
 {0} × {1} de {2} × {2} cél.	{0} × {1} von {2} × {2} Feldern
 Salvar pista	Strecke speichern
 Salva na biblioteca com o nome de Minhas pistas (Ctrl+S)	Speichert in der Bibliothek unter dem Namen aus Meine Strecken (Strg+S)
 Custo	Kosten
 Custo da pista: {0}	Streckenkosten: {0}
-“{0}” salva · custo {1}.	„{0}“ gespeichert · Kosten {1}.
 Ctrl+S	Strg+S
 salva a pista	speichert die Strecke
 Nome da pista	Streckenname
@@ -1548,3 +1539,68 @@ Parede da Morte	Todeswand
 Parafuso Mundial	Welt-Korkenzieher
 Ângulo	Winkel
  · {0}°	 · {0}°
+Arquibancadas	Tribünen
+Arquibancada pequena	Kleine Tribüne
+Arquibancada média	Mittlere Tribüne
+Arquibancada grande	Große Tribüne
+Arquibancada coberta	Überdachte Tribüne
+A arquibancada precisa de uma pista para acompanhar.	Die Tribüne braucht eine Strecke, der sie folgen kann.
+Do outro lado da pista a arquibancada não cabe.	Auf der anderen Seite der Strecke passt die Tribüne nicht hin.
+Refazer tutorial	Tutorial wiederholen
+Sair do tutorial	Tutorial verlassen
+Continuar  (Enter)	Weiter  (Enter)
+Continuar o tutorial?	Tutorial fortsetzen?
+Primeira vez aqui?	Zum ersten Mal hier?
+Sua pista está pronta. Falta aprender a correr nela.	Deine Strecke ist fertig. Jetzt lernst du, darauf zu fahren.
+Em uns 5 minutos você monta a sua primeira pista, peça por peça, e aprende a correr nela.	In etwa 5 Minuten baust du deine erste Strecke, Teil für Teil, und lernst, darauf zu fahren.
+Pular	Überspringen
+Começar o tutorial	Tutorial starten
+No tutorial, só retas e curvas. As outras peças abrem na carreira.	Im Tutorial nur Geraden und Kurven. Die anderen Teile werden in der Karriere freigeschaltet.
+No tutorial, só retas e curvas.	Im Tutorial nur Geraden und Kurven.
+<b>Bem-vindo ao Autorama Mania!</b>\nVamos montar a sua primeira pista, peça por peça, e depois correr nela.	<b>Willkommen bei Autorama Mania!</b>\nWir bauen deine erste Strecke, Teil für Teil, und fahren dann darauf.
+<b>A largada</b> já está na mesa: a pista começa e termina nela.\nA seta mostra a ponta onde a próxima peça encaixa.	<b>Der Start</b> liegt schon auf dem Tisch: Dort beginnt und endet die Strecke.\nDer Pfeil zeigt das Ende, an dem das nächste Teil einrastet.
+<b>Uma reta.</b> Clique em <b>Reta comprida</b> na paleta (ou aperte <b>2</b>). Ela encaixa sozinha na ponta.	<b>Eine Gerade.</b> Klicke in der Palette auf <b>Lange Gerade</b> (oder drücke <b>2</b>). Sie rastet von selbst am Ende ein.
+<b>Uma curva.</b> Escolha uma <b>Curva longa</b>: <b>3</b> vira à esquerda, <b>4</b> à direita.\nSe virou para o lado errado, clique nela e aperte <b>F</b>.	<b>Eine Kurve.</b> Wähle eine <b>Lange Kurve</b>: <b>3</b> biegt links ab, <b>4</b> rechts.\nFalls sie in die falsche Richtung zeigt, klicke sie an und drücke <b>F</b>.
+Mais uma <b>reta</b>: <b>1</b> é a curta, <b>2</b> a comprida.	Noch eine <b>Gerade</b>: <b>1</b> ist die kurze, <b>2</b> die lange.
+<b>Agora é com você:</b> ponha mais 3 peças, retas ou curvas, do jeito que quiser ({0} de 3).	<b>Jetzt du:</b> setze noch 3 Teile, Geraden oder Kurven, wie du willst ({0} von 3).
+<b>Fechar sozinho.</b> Aperte <b>Q</b> (ou o botão <b>Fechar circuito</b>) e o jogo completa a pista até a largada.\nSe não achar, desfaça uma peça (Ctrl+Z) e tente de novo.	<b>Automatisch schließen.</b> Drücke <b>Q</b> (oder den Knopf <b>Rundkurs schließen</b>), und das Spiel vervollständigt die Strecke bis zum Start.\nFindet es keinen Weg, mach ein Teil rückgängig (Strg+Z) und versuch es noch einmal.
+<b>Pista fechada!</b> Esta pista custaria <b>{0}</b>. No tutorial ela sai de graça; depois, as moedas vêm sobretudo da carreira.\nDê um <b>nome</b> à pista no painel (MINHAS PISTAS) e salve (<b>Ctrl+S</b>).	<b>Strecke geschlossen!</b> Diese Strecke würde <b>{0}</b> kosten. Im Tutorial ist sie gratis; später kommen die Münzen vor allem aus der Karriere.\nGib der Strecke im Panel (MEINE STRECKEN) einen <b>Namen</b> und speichere sie (<b>Strg+S</b>).
+A pista do tutorial não está fechada.	Die Tutorial-Strecke ist nicht geschlossen.
+<b>Hora de correr!</b> O carrinho vermelho é o seu.\nAntes da largada, conheça as câmeras.	<b>Zeit zum Rennen!</b> Das rote Auto gehört dir.\nLerne vor dem Start die Kameras kennen.
+Aperte <b>{0}</b>: <b>{1}</b>. {2}.	Drücke <b>{0}</b>: <b>{1}</b>. {2}.
+Escolha a câmera de que mais gostou (<b>1</b> a <b>4</b>): ela fica como a sua.\nDepois aperte <b>Enter</b> para largar.	Wähle die Kamera, die dir am besten gefiel (<b>1</b> bis <b>4</b>): Sie wird deine.\nDann drücke <b>Enter</b> zum Starten.
+Largar  (Enter)	Starten  (Enter)
+Espere o semáforo e <b>segure {0}</b> para acelerar. Soltou, o carrinho freia.	Warte auf die Ampel und <b>halte {0}</b> zum Beschleunigen. Loslassen bremst das Auto.
+Continue com o <b>{0}</b> no fundo, até na curva, para ver o que acontece…	Halte <b>{0}</b> voll gedrückt, auch in der Kurve, und sieh, was passiert…
+<b>Saiu da pista!</b> Rápido demais na curva, a traseira escorrega, a barra de derrapagem enche e o carrinho voa.\nAperte <b>{0}</b> para recolocar no trilho.	<b>Von der Strecke!</b> Zu schnell in der Kurve: Das Heck rutscht, der Rutschbalken füllt sich und das Auto fliegt raus.\nDrücke <b>{0}</b>, um es wieder in die Spur zu setzen.
+Aperte <b>{0}</b> para recolocar o carrinho.	Drücke <b>{0}</b>, um das Auto wieder einzusetzen.
+<b>A meia aceleração.</b> Nas retas, <b>{0}</b>. Chegando na curva, troque para o <b>{1}</b>: o acelerador vai só até {2}% e o carrinho faz a curva sem sair.\nDê <b>uma volta sem sair da pista</b>.	<b>Halbgas.</b> Auf Geraden <b>{0}</b>. Vor der Kurve wechsle zu <b>{1}</b>: Das Gas geht nur bis {2} %, und das Auto nimmt die Kurve, ohne rauszufliegen.\nFahre <b>eine Runde, ohne von der Strecke zu fliegen</b>.
+<b>Ajuste fino.</b> <b>{0}</b> e <b>{1}</b> mudam até onde o <b>{2}</b> acelera (agora <b>{3}%</b>). Mais alto, a curva fica mais rápida, mas é mais fácil sair.\nMude o valor e dê uma volta limpa.	<b>Feineinstellung.</b> <b>{0}</b> und <b>{1}</b> ändern, wie weit <b>{2}</b> beschleunigt (jetzt <b>{3} %</b>). Höher macht die Kurve schneller, aber man fliegt leichter raus.\nÄndere den Wert und fahre eine saubere Runde.
+<b>O turbo.</b> A barra do turbo enche a cada volta (e um pouco a cada saída). Deixei o tanque cheio para você.\nNa reta, segure <b>{0}</b>: o carrinho passa da velocidade máxima até o tanque acabar.	<b>Der Turbo.</b> Der Turbobalken füllt sich jede Runde (und ein wenig bei jedem Abflug). Ich habe dir den Tank gefüllt.\nHalte auf einer Geraden <b>{0}</b>: Das Auto fährt über die Höchstgeschwindigkeit, bis der Tank leer ist.
+Segure <b>{0}</b> numa reta.	Halte <b>{0}</b> auf einer Geraden.
+<b>Agora pra valer: 3 voltas.</b> Use tudo: acelerar nas retas, meia nas curvas e turbo quando o tanque encher.	<b>Jetzt im Ernst: 3 Runden.</b> Nutze alles: Gas auf den Geraden, Halbgas in den Kurven und Turbo, wenn der Tank voll ist.
+Complete <b>3 voltas</b> ({0} de 3).	Fahre <b>3 Runden</b> ({0} von 3).
+Terminar	Beenden
+<b>Parabéns!</b> Você montou a sua pista e completou 3 voltas.\nA <b>carreira</b> abre as outras peças e paga as moedas. Todas as teclas ficam em <b>Opções</b>, no menu inicial.	<b>Glückwunsch!</b> Du hast deine Strecke gebaut und 3 Runden geschafft.\nDie <b>Karriere</b> schaltet die anderen Teile frei und bringt Münzen. Alle Tasten findest du unter <b>Optionen</b> im Startmenü.
+TUTORIAL · CORRIDA	TUTORIAL · RENNEN
+TUTORIAL · CONSTRUÇÃO	TUTORIAL · BAUEN
+  ·  {0} de {1}	  ·  {0} von {1}
+Por aqui o Q não consegue fechar a pista. Desfaça (Ctrl+Z) e tente outra direção.	Von hier kann Q die Strecke nicht schließen. Mach es rückgängig (Strg+Z) und versuch eine andere Richtung.
+<b>Mover a mesa.</b> Segure o <b>botão direito</b> (ou o do meio) do mouse e arraste.	<b>Tisch verschieben.</b> Halte die <b>rechte Maustaste</b> (oder die mittlere) gedrückt und ziehe.
+<b>Aproximar.</b> Gire a <b>roda do mouse</b> para a frente.	<b>Heranzoomen.</b> Drehe das <b>Mausrad</b> nach vorn.
+<b>Afastar.</b> Gire a <b>roda do mouse</b> para trás.\nSe a pista sumir da tela, <b>C</b> enquadra de novo.	<b>Herauszoomen.</b> Drehe das <b>Mausrad</b> nach hinten.\nWenn die Strecke aus dem Bild verschwindet, holt <b>C</b> sie wieder ins Bild.
+<b>Vista 3D.</b> Aperte <b>V</b> (ou o botão <b>3D</b>) para inclinar a câmera.\nNa vista 3D, o botão direito <b>gira</b> a mesa em vez de mover. Experimente.	<b>3D-Ansicht.</b> Drücke <b>V</b> (oder den Knopf <b>3D</b>), um die Kamera zu neigen.\nIn der 3D-Ansicht <b>dreht</b> die rechte Maustaste den Tisch, statt ihn zu verschieben. Probier es aus.
+<b>De volta para cima.</b> Aperte <b>V</b> (ou o botão <b>3D</b>) de novo para a vista de cima, a melhor para montar.	<b>Zurück nach oben.</b> Drücke noch einmal <b>V</b> (oder den Knopf <b>3D</b>) für die Ansicht von oben, die beste zum Bauen.
+<b>Errou?</b> <b>Ctrl+Z</b> (ou o botão <b>Desfazer</b>) desfaz a última ação. Experimente: a última reta some.	<b>Vertan?</b> <b>Strg+Z</b> (oder der Knopf <b>Rückgängig</b>) macht die letzte Aktion rückgängig. Probier es: Die letzte Gerade verschwindet.
+<b>Refazer.</b> Mudou de ideia? <b>Ctrl+Y</b> (ou o botão <b>Refazer</b>) traz de volta o que foi desfeito.	<b>Wiederholen.</b> Doch anders überlegt? <b>Strg+Y</b> (oder der Knopf <b>Wiederholen</b>) holt das Rückgängige zurück.
+<b>Apagar uma peça.</b> Clique numa peça da pista para selecionar e aperte <b>Delete</b> (ou o botão da <b>lixeira</b>).\n<b>Backspace</b> apaga a última peça. A largada não sai.	<b>Ein Teil löschen.</b> Klicke ein Teil der Strecke an, um es auszuwählen, und drücke <b>Entf</b> (oder den <b>Papierkorb</b>).\n<b>Rücktaste</b> löscht das letzte Teil. Der Start bleibt.
+Exemplo: oval	Beispiel: Oval
+Pista {0}	Strecke {0}
+Loop e rampa de salto não sobem nem descem de nível.	Looping und Sprungschanze gehen keine Ebene hoch oder runter.
+Esta peça abre na carreira (menu inicial › Peças mostra em que prova).	Dieses Teil wird in der Karriere freigeschaltet (Startbildschirm › Teile zeigt, in welchem Event).
+<b>Onde valem:</b>\n• <b>Corrida livre</b> e <b>carreira</b>: na hora (na carreira, a pista molhada tira aderência quando a prova pede).\n• <b>Campeonato offline</b>: são copiadas quando o campeonato é criado. Mudar aqui depois não mexe num campeonato em andamento.\n• <b>Campeonato online</b>: valem as do <b>host</b>, enviadas na largada e fixas até o fim. As dos outros jogadores não contam.\n• <b>Partida rápida</b>: não valem. Lá as regras são sempre as padrão: velocidade 14, 0,5 s até 100%, aderência 29, colisão e turbo ligados, recolocar em 0,3 s.	<b>Wo sie gelten:</b>\n• <b>Freies Rennen</b> und <b>Karriere</b>: sofort (in der Karriere nimmt die nasse Strecke Grip weg, wenn das Event es verlangt).\n• <b>Offline-Meisterschaft</b>: Sie werden beim Anlegen der Meisterschaft übernommen. Spätere Änderungen hier betreffen keine laufende Meisterschaft.\n• <b>Online-Meisterschaft</b>: Es gelten die des <b>Hosts</b>, beim Start übertragen und bis zum Ende fest. Die der anderen Spieler zählen nicht.\n• <b>Schnelles Spiel</b>: Sie gelten nicht. Dort gelten immer die Standardregeln: Tempo 14, 0,5 s bis 100 %, Grip 29, Kollision und Turbo an, Zurücksetzen in 0,3 s.
+Você tem {0} × {1}. Compre mais em Peças, no menu inicial.	Du hast {0} × {1}. Kauf mehr unter Teile im Hauptmenü.
+Desbloquear tudo ligado: mesa e peças sem limite (teste).	Alles freischalten ist an: Tisch und Teile ohne Grenze (Test).
+você tem {0} (kit: {1})	du hast {0} (Bausatz: {1})
+você tem {0}	du hast {0}
+“{0}” salva · custo {1}.	„{0}“ gespeichert · Kosten {1}.

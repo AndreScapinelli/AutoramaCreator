@@ -24,6 +24,13 @@ namespace Autorama
         // Derrapagem 0,75 ≈ 25° de guinada visível (YawMax 38° × slip^1,4); 0,3 cortava com só ~9°.
         const float SpinIn = 0.75f, SpinOut = 0.25f;
         readonly bool[] spun = new bool[RaceSim.MaxCars];
+        readonly bool[] offSlot = new bool[RaceSim.MaxCars];   // fora do trilho de verdade (a Perseguição só segura o rumo aí)
+        float userZoom = 1f;                                   // roda do mouse na Perseguição, na primeira pessoa (cai na Perseguição) e na TV
+        const float UserZoomMin = 0.5f, UserZoomMax = 2f;
+        Vector3 fpFwd; bool fpReady;                           // primeira pessoa: direção suavizada pelo trilho
+        float fpFov;
+        const float FpTurnRate = 8f, FpLookAhead = 0.7f, FpFov0 = 68f, FpFovMax = 80f;
+        const float FpUp = 0.24f, FpBack = 0.08f;              // câmera no capô: acima e um pouco atrás do centro
         float nearDefault = 0.3f;
 
         public float minSize = 2f, maxSize = 110f;     // a pista de 8 carros é 4× maior no mundo
@@ -106,6 +113,7 @@ namespace Autorama
             followReady = false;
             panning = orbiting = false;
             chaseReady = false;
+            fpReady = false;
             if (cam != null) cam.nearClipPlane = nearDefault;
         }
 
@@ -114,7 +122,7 @@ namespace Autorama
         {
             if (k < 0 || k >= spun.Length) return;
             carSpeed01[k] = speed01;
-            bool before = spun[k];
+            offSlot[k] = !onSlot;
             if (!onSlot || slip >= SpinIn) spun[k] = true;
             else if (slip < SpinOut) spun[k] = false;
         }
@@ -125,7 +133,7 @@ namespace Autorama
         public void SetThirdPersonCar(int idx)
         {
             int k = Mathf.Clamp(idx, 0, raceCarPos.Length - 1);
-            if (k != ThirdPersonCar) chaseReady = false;
+            if (k != ThirdPersonCar) chaseReady = fpReady = false;
             ThirdPersonCar = k;
         }
 
@@ -208,6 +216,9 @@ namespace Autorama
             bool overUi = BuilderPanel.PointerOverUI(mouse);
 
             float scroll = m.scroll.ReadValue().y;
+            // Corrida: a roda aproxima/afasta a câmera do quadro onde está o mouse (na tela dividida, cada um o seu).
+            if (autoFollow && !overUi && Mathf.Abs(scroll) > 0.01f && cam.pixelRect.Contains(mouse))
+                userZoom = Mathf.Clamp(userZoom * Mathf.Pow(0.9f, Mathf.Sign(scroll)), UserZoomMin, UserZoomMax);
             if (!overUi && !autoFollow && Mathf.Abs(scroll) > 0.01f)
             {
                 float k = Mathf.Pow(0.9f, Mathf.Sign(scroll));
@@ -261,7 +272,7 @@ namespace Autorama
         {
             if (RaceMode == RaceViewMode.FirstPerson && hasRaceTargets)
             {
-                if (spun[Mathf.Clamp(ThirdPersonCar, 0, raceCars - 1)]) ApplyThirdPerson();
+                if (spun[Mathf.Clamp(ThirdPersonCar, 0, raceCars - 1)]) { fpReady = false; ApplyThirdPerson(); }
                 else ApplyFirstPerson();
                 return;
             }
@@ -295,7 +306,8 @@ namespace Autorama
             float rad = raceCarHeading[k] * Mathf.Deg2Rad;
             Vector3 carFwd = new Vector3(Mathf.Cos(rad), 0f, Mathf.Sin(rad));
             float dt = Time.unscaledDeltaTime;
-            float u = distanceScale;
+            float u = distanceScale * userZoom;
+            bool off = offSlot[k];
             Vector3 car = raceCarPos[k];
             // Rumo da câmera: a corda do trilho (ponto atrás → carrinho). Nas curvas ela gira junto com a pista,
             // sem o balanço do rumo do carro nem da derrapagem.
@@ -306,7 +318,7 @@ namespace Autorama
             // trilho à frente: o ângulo de cima fica o mesmo em qualquer distância (~12°) e a curva aparece antes.
             Vector3 toAhead = raceAhead[k] - car; toAhead.y = 0f;
             Vector3 lookDir = toAhead.sqrMagnitude > 0.01f ? Vector3.Slerp(trackFwd, toAhead.normalized, ChaseLookAhead).normalized : trackFwd;
-            Vector3 look = spun[k] ? car : car + lookDir * ChaseLookDist * u + Vector3.up * (raceAhead[k].y - car.y) * ChaseLookAhead;
+            Vector3 look = off ? car : car + lookDir * ChaseLookDist * u + Vector3.up * (raceAhead[k].y - car.y) * ChaseLookAhead;
 
             cam.nearClipPlane = nearDefault;
             float extraTarget = ChaseSpeedBack * carSpeed01[k];
@@ -322,7 +334,7 @@ namespace Autorama
             chaseExtra = Mathf.Lerp(chaseExtra, extraTarget, 1f - Mathf.Exp(-ChaseSpeedRate * dt));
 
             // Rodando, a câmera segura o rumo e só acompanha a posição: o rodopio aparece, sem a tela girar.
-            if (!spun[k])
+            if (!off)
                 chaseFwd = Vector3.Slerp(chaseFwd, trackFwd, 1f - Mathf.Exp(-ChaseTurnRate * dt)).normalized;
 
             chaseLook = Vector3.Lerp(chaseLook, look, 1f - Mathf.Exp(-ThirdLookRate * dt));
@@ -330,7 +342,7 @@ namespace Autorama
             Vector3 lookAt = chaseLook;
 
             // Loop à frente: vai para o lado do anel, para o carrinho aparecer dando a volta.
-            bool wantLoop = loopOn[k] && !spun[k];
+            bool wantLoop = loopOn[k] && !off;
             if (wantLoop && !loopSideSet)
             {
                 float hr = loopHeading[k] * Mathf.Deg2Rad;
@@ -359,17 +371,29 @@ namespace Autorama
             cam.fieldOfView = 55f - ChaseZoom * chaseZoom;
         }
 
-        // Dentro do carrinho: o olho fica um pouco à frente do centro da cabine e olha reto para a frente (horizonte nivelado).
+        // Câmera no capô: acima e um pouco atrás do centro do carrinho, olhando pelo trilho (corda atrás → carro, virada
+        // FpLookAhead para o ponto à frente), suavizada: a curva aparece antes e o balanço da derrapagem não gira a tela.
+        // Horizonte nivelado; campo de visão abre com a velocidade.
         void ApplyFirstPerson()
         {
             int k = Mathf.Clamp(ThirdPersonCar, 0, raceCars - 1);
             float rad = raceCarHeading[k] * Mathf.Deg2Rad;
-            Vector3 fwd = new Vector3(Mathf.Cos(rad), 0f, Mathf.Sin(rad));
-            Vector3 eye = raceCarPos[k] + fwd * 0.02f + Vector3.up * 0.155f;
-            Vector3 look = raceCarPos[k] + fwd * 2f + Vector3.up * 0.1f;
+            Vector3 carFwd = new Vector3(Mathf.Cos(rad), 0f, Mathf.Sin(rad));
+            Vector3 car = raceCarPos[k];
+            float dt = Time.unscaledDeltaTime;
+            Vector3 chord = car - raceBehind[k]; chord.y = 0f;
+            Vector3 trackFwd = chord.sqrMagnitude > 0.0001f ? chord.normalized : carFwd;
+            Vector3 toAhead = raceAhead[k] - car; toAhead.y = 0f;
+            Vector3 want = toAhead.sqrMagnitude > 0.01f ? Vector3.Slerp(trackFwd, toAhead.normalized, FpLookAhead).normalized : trackFwd;
+            if (!fpReady) { fpFwd = want; fpFov = FpFov0; fpReady = true; }
+            fpFwd = Vector3.Slerp(fpFwd, want, 1f - Mathf.Exp(-FpTurnRate * dt)).normalized;
+            Vector3 eye = car - carFwd * FpBack + Vector3.up * FpUp;
+            float rise = Mathf.Clamp(raceAhead[k].y - car.y, -1f, 1f) * 0.5f;
+            Vector3 look = eye + fpFwd * 3f + Vector3.up * (rise - 0.25f);
             transform.SetPositionAndRotation(eye, Quaternion.LookRotation((look - eye).normalized, Vector3.up));
+            fpFov = Mathf.Lerp(fpFov, Mathf.Lerp(FpFov0, FpFovMax, carSpeed01[k]), 1f - Mathf.Exp(-ChaseSpeedRate * dt));
             cam.orthographic = false;
-            cam.fieldOfView = 70f;
+            cam.fieldOfView = fpFov;
             cam.nearClipPlane = 0.02f;
         }
 
@@ -410,7 +434,7 @@ namespace Autorama
             tvLook = Vector3.Lerp(tvLook, car, 1f - Mathf.Exp(-TvLookRate * dt));
             Vector3 eye = tvSpots[tvSpot];
             float dist = Vector3.Distance(eye, tvLook);
-            float half = TvFrame * trackScale * distanceScale;
+            float half = TvFrame * trackScale * distanceScale * userZoom;
             float fov = Mathf.Clamp(2f * Mathf.Atan(half / Mathf.Max(dist, 0.1f)) * Mathf.Rad2Deg, 8f, 60f);
             cam.orthographic = false;
             cam.nearClipPlane = nearDefault;

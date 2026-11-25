@@ -48,7 +48,6 @@ SEQUÊNCIA	並び
 Da largada até a ponta, no sentido em que os carrinhos correm.	スタートから端まで、車が走る向きの順です。
 MINHAS PISTAS	マイコース
 Salvar	保存
-Exemplo: oval	例:オーバル
 Nova pista	新しいコース
 Pasta: {0}	フォルダー:{0}
 VISTA E EDIÇÃO	表示と編集
@@ -133,7 +132,6 @@ Abrir	開く
 Certeza?	本当に?
 Apagar	削除
 “{0}” apagada.	「{0}」を削除しました。
-Pista {0}	コース{0}
 “{0}” salva.	「{0}」を保存しました。
 “{0}” aberta.	「{0}」を開きました。
 Célula {0}	マス {0}
@@ -153,7 +151,6 @@ chão	地面
 nível {0}	高さ{0}
 Esta prova deixa usar no máximo {0} peças.	このレースで使えるパーツは最大{0}個です。
 Rampa não encaixa atrás da largada: ela fica no chão.	スロープはスタートの後ろにはつなげません:スタートは地面にあります。
-Loop e rampa de salto não sobem nem descem de nível.	ループとジャンプ台は高さを上げ下げしません。
 {0} ({1} carros)	{0}({1}台)
 Não cabe: a mesa vai até 120 × 120 células.	収まりません:テーブルは最大120 × 120マスです。
 A pista já está fechada.	コースはもう閉じています。
@@ -295,7 +292,6 @@ Vença {0} ({1}) na carreira.	キャリアで{0}({1})に勝とう。
 Abre na carreira.	キャリアで解放されます。
 {0} (bolha {1})	{0}({1}ボディ)
 {0}: abre na carreira ({1}).	{0}:キャリアで解放されます({1})。
-Esta peça abre na carreira (menu inicial › Peças mostra em que prova).	このパーツはキャリアで解放されます(ホーム画面 › パーツ で、どのレースか確認できます)。
 Acelerar	アクセル
 Meia	ハーフ
 Recolocar	復帰
@@ -659,7 +655,7 @@ Jogador {0}	プレイヤー{0}
 Jogadores 5 e 6 (pista de 6) jogam só com controle.	プレイヤー5と6(6レーンのコース)はコントローラーのみで遊びます。
 Restaurar padrão	初期設定に戻す
 REGRAS DA CORRIDA	レースのルール
-<b>Onde valem:</b>\n• <b>Corrida livre</b> e <b>carreira</b>: na hora (na carreira, a pista molhada tira aderência quando a prova pede).\n• <b>Campeonato offline</b>: são copiadas quando o campeonato é criado. Mudar aqui depois não mexe num campeonato em andamento.\n• <b>Campeonato online</b>: valem as do <b>host</b>, enviadas na largada e fixas até o fim. As dos outros jogadores não contam.\n• <b>Partida rápida</b>: não valem. Lá as regras são sempre as padrão: velocidade 14, 0,5 s até 100%, aderência 29, colisão e turbo ligados, recolocar em 0,3 s.	<b>適用される場所:</b>\n• <b>フリーレース</b>と<b>キャリア</b>:すぐに適用(キャリアでは、レースの指定があればウェット路面でグリップが下がります)。\n• <b>オフライン選手権</b>:選手権を作ったときにコピーされます。あとでここを変えても進行中の選手権には影響しません。\n• <b>オンライン選手権</b>:<b>ホスト</b>のルールが適用され、スタート時に送られて最後まで固定です。他のプレイヤーのルールは使われません。\n• <b>クイックマッチ</b>:適用されません。常に標準ルールです:速度14、100%まで0.5秒、グリップ29、衝突とターボはオン、復帰0.3秒。
+<b>Onde valem:</b>\n• <b>Corrida livre</b> e <b>carreira</b>: na hora (na carreira, a pista molhada tira aderência quando a prova pede).\n• <b>Campeonato offline</b>: são copiadas quando o campeonato é criado. Mudar aqui depois não mexe num campeonato em andamento.\n• <b>Campeonato online</b>: valem as do <b>host</b>, enviadas na largada e fixas até o fim. As dos outros jogadores não contam.\n• <b>Partida rápida</b>: não valem. Lá as regras são sempre as padrão: velocidade 17, 0,5 s até 100%, aderência 43, colisão e turbo ligados, recolocar em 0,3 s.	<b>適用される場所:</b>\n• <b>フリーレース</b>と<b>キャリア</b>:すぐに適用(キャリアでは、レースの指定があればウェット路面でグリップが下がります)。\n• <b>オフライン選手権</b>:選手権を作ったときにコピーされます。あとでここを変えても進行中の選手権には影響しません。\n• <b>オンライン選手権</b>:<b>ホスト</b>のルールが適用され、スタート時に送られて最後まで固定です。他のプレイヤーのルールは使われません。\n• <b>クイックマッチ</b>:適用されません。常に標準ルールです:速度17、100%まで0.5秒、グリップ43、衝突とターボはオン、復帰0.3秒。
 SEU CONTROLE E SOM	自分の操作と音
 Só seus, em qualquer modo, também no online: não vão para os outros jogadores.	自分だけの設定で、どのモードでも、オンラインでも使えます:他のプレイヤーには送られません。
 JOGO ONLINE	オンラインプレイ
@@ -1449,7 +1445,6 @@ Mesa grande	大きいテーブル
 Salão	ホール
 Sem limite	無制限
 Rampa (subida ou descida)	スロープ（上りか下り）
-Você tem {0} × {1}. Compre mais em Peças, no menu inicial.	{1} は {0} 個持っています。メインメニューの「パーツ」で買い足せます。
 Compre a mesa de antes primeiro.	先に前のテーブルを買ってください。
 ◀ Carreira	◀ キャリア
 Começar	始める
@@ -1458,21 +1453,17 @@ Recomeçar do zero	最初からやり直す
 Clique de novo: apaga as estrelas (moedas, garagem e peças ficam)	もう一度クリック：星が消えます（コイン、ガレージ、パーツは残ります）
 PEÇAS E MESA	パーツとテーブル
 Seu kit para o construtor, comprado com as moedas da carreira. Cada pista usa até as peças que você tem (montar outra pista não gasta) e cabe na sua mesa. Peça nova abre na prova da carreira que a apresenta. Correr em qualquer pista sempre pode.	キャリアのコインで買うコース作りのキット。各コースは持っているパーツの数まで使えます（別のコースを作っても減りません）。コースはテーブルに収まる必要があります。新しいパーツは、それを紹介するキャリアのレースで開きます。どのコースでも走るのはいつでも自由です。
-Desbloquear tudo ligado: mesa e peças sem limite (teste).	すべて解除がオン：テーブルとパーツは無制限（テスト）。
 MESA	テーブル
 pista de até {0} × {0} células	{0} × {0} マスまでのコース
 ✓ a sua	✓ あなたの
 ✓	✓
 Comprar · ◎ {0}	購入 · ◎ {0}
-você tem {0} (kit: {1})	{0} 個（キット：{1}）
-você tem {0}	{0} 個
 Sua mesa	あなたのテーブル
 {0} × {1} de {2} × {2} cél.	{2} × {2} マス中 {0} × {1}
 Salvar pista	コースを保存
 Salva na biblioteca com o nome de Minhas pistas (Ctrl+S)	マイコースの名前でライブラリに保存します（Ctrl+S）
 Custo	コスト
 Custo da pista: {0}	コースのコスト：{0}
-“{0}” salva · custo {1}.	「{0}」を保存しました · コスト {1}。
 Ctrl+S	Ctrl+S
 salva a pista	コースを保存
 Nome da pista	コース名
@@ -1548,3 +1539,68 @@ Parede da Morte	死の壁
 Parafuso Mundial	ワールドスクリュー
 Ângulo	角度
  · {0}°	 · {0}°
+Arquibancadas	観客席
+Arquibancada pequena	小さな観客席
+Arquibancada média	中くらいの観客席
+Arquibancada grande	大きな観客席
+Arquibancada coberta	屋根付き観客席
+A arquibancada precisa de uma pista para acompanhar.	観客席を置くにはコースが必要です。
+Do outro lado da pista a arquibancada não cabe.	コースの反対側には観客席が入りません。
+Refazer tutorial	チュートリアルをやり直す
+Sair do tutorial	チュートリアルをやめる
+Continuar  (Enter)	次へ  (Enter)
+Continuar o tutorial?	チュートリアルを続けますか？
+Primeira vez aqui?	はじめてですか？
+Sua pista está pronta. Falta aprender a correr nela.	コースは完成しています。あとは走り方を覚えましょう。
+Em uns 5 minutos você monta a sua primeira pista, peça por peça, e aprende a correr nela.	約5分で、最初のコースをパーツごとに組み立て、その上で走る方法を覚えます。
+Pular	スキップ
+Começar o tutorial	チュートリアルを始める
+No tutorial, só retas e curvas. As outras peças abrem na carreira.	チュートリアルでは直線とカーブだけです。ほかのパーツはキャリアで解放されます。
+No tutorial, só retas e curvas.	チュートリアルでは直線とカーブだけです。
+<b>Bem-vindo ao Autorama Mania!</b>\nVamos montar a sua primeira pista, peça por peça, e depois correr nela.	<b>Autorama Maniaへようこそ！</b>\n最初のコースをパーツごとに組み立てて、その上で走ってみましょう。
+<b>A largada</b> já está na mesa: a pista começa e termina nela.\nA seta mostra a ponta onde a próxima peça encaixa.	<b>スタート</b>はもうテーブルにあります。コースはここで始まり、ここで終わります。\n矢印は次のパーツがつながる端を示しています。
+<b>Uma reta.</b> Clique em <b>Reta comprida</b> na paleta (ou aperte <b>2</b>). Ela encaixa sozinha na ponta.	<b>直線。</b>パレットの<b>ロングストレート</b>をクリック（または<b>2</b>を押す）。端に自動でつながります。
+<b>Uma curva.</b> Escolha uma <b>Curva longa</b>: <b>3</b> vira à esquerda, <b>4</b> à direita.\nSe virou para o lado errado, clique nela e aperte <b>F</b>.	<b>カーブ。</b><b>ロングカーブ</b>を選びます。<b>3</b>は左、<b>4</b>は右に曲がります。\n向きが逆なら、クリックして<b>F</b>を押してください。
+Mais uma <b>reta</b>: <b>1</b> é a curta, <b>2</b> a comprida.	もう一本<b>直線</b>を。<b>1</b>は短い直線、<b>2</b>は長い直線です。
+<b>Agora é com você:</b> ponha mais 3 peças, retas ou curvas, do jeito que quiser ({0} de 3).	<b>今度はあなたの番：</b>直線かカーブを好きなようにあと3つ置いてください（{0}／3）。
+<b>Fechar sozinho.</b> Aperte <b>Q</b> (ou o botão <b>Fechar circuito</b>) e o jogo completa a pista até a largada.\nSe não achar, desfaça uma peça (Ctrl+Z) e tente de novo.	<b>自動で閉じる。</b><b>Q</b>（または<b>コースを閉じる</b>ボタン）を押すと、ゲームがスタートまでコースを完成させます。\n見つからなければ、パーツを1つ取り消して（Ctrl+Z）もう一度試してください。
+<b>Pista fechada!</b> Esta pista custaria <b>{0}</b>. No tutorial ela sai de graça; depois, as moedas vêm sobretudo da carreira.\nDê um <b>nome</b> à pista no painel (MINHAS PISTAS) e salve (<b>Ctrl+S</b>).	<b>コースが閉じました！</b>このコースは<b>{0}</b>かかるところです。チュートリアルでは無料。これからは、コインは主にキャリアで手に入ります。\nパネル（マイコース）でコースに<b>名前</b>をつけて保存してください（<b>Ctrl+S</b>）。
+A pista do tutorial não está fechada.	チュートリアルのコースが閉じていません。
+<b>Hora de correr!</b> O carrinho vermelho é o seu.\nAntes da largada, conheça as câmeras.	<b>さあ、レースだ！</b>赤い車があなたの車です。\nスタートの前に、カメラを見てみましょう。
+Aperte <b>{0}</b>: <b>{1}</b>. {2}.	<b>{0}</b>を押す：<b>{1}</b>。{2}。
+Escolha a câmera de que mais gostou (<b>1</b> a <b>4</b>): ela fica como a sua.\nDepois aperte <b>Enter</b> para largar.	いちばん気に入ったカメラを選んでください（<b>1</b>〜<b>4</b>）。それがあなたのカメラになります。\nそれから<b>Enter</b>でスタート。
+Largar  (Enter)	スタート  (Enter)
+Espere o semáforo e <b>segure {0}</b> para acelerar. Soltou, o carrinho freia.	シグナルを待って、<b>{0}を押し続けて</b>加速。離すとブレーキがかかります。
+Continue com o <b>{0}</b> no fundo, até na curva, para ver o que acontece…	カーブでも<b>{0}</b>を押しっぱなしにして、どうなるか見てみましょう…
+<b>Saiu da pista!</b> Rápido demais na curva, a traseira escorrega, a barra de derrapagem enche e o carrinho voa.\nAperte <b>{0}</b> para recolocar no trilho.	<b>コースアウト！</b>カーブで速すぎると、リアが滑ってスリップバーがたまり、車が飛び出します。\n<b>{0}</b>を押してスロットに戻しましょう。
+Aperte <b>{0}</b> para recolocar o carrinho.	<b>{0}</b>を押して車を戻してください。
+<b>A meia aceleração.</b> Nas retas, <b>{0}</b>. Chegando na curva, troque para o <b>{1}</b>: o acelerador vai só até {2}% e o carrinho faz a curva sem sair.\nDê <b>uma volta sem sair da pista</b>.	<b>ハーフスロットル。</b>直線では<b>{0}</b>。カーブの手前で<b>{1}</b>に切り替えると、アクセルは{2}%までしか開かず、飛び出さずに曲がれます。\n<b>コースアウトせずに1周</b>してください。
+<b>Ajuste fino.</b> <b>{0}</b> e <b>{1}</b> mudam até onde o <b>{2}</b> acelera (agora <b>{3}%</b>). Mais alto, a curva fica mais rápida, mas é mais fácil sair.\nMude o valor e dê uma volta limpa.	<b>微調整。</b><b>{0}</b>と<b>{1}</b>で<b>{2}</b>の加速の上限を変えられます（いまは<b>{3}%</b>）。高くするとカーブが速くなりますが、飛び出しやすくなります。\n値を変えて、ミスなく1周してください。
+<b>O turbo.</b> A barra do turbo enche a cada volta (e um pouco a cada saída). Deixei o tanque cheio para você.\nNa reta, segure <b>{0}</b>: o carrinho passa da velocidade máxima até o tanque acabar.	<b>ターボ。</b>ターボバーは1周ごとに（コースアウトでも少し）たまります。タンクは満タンにしておきました。\n直線で<b>{0}</b>を押し続けると、タンクが空になるまで最高速度を超えて走ります。
+Segure <b>{0}</b> numa reta.	直線で<b>{0}</b>を押し続けてください。
+<b>Agora pra valer: 3 voltas.</b> Use tudo: acelerar nas retas, meia nas curvas e turbo quando o tanque encher.	<b>本番です：3周。</b>直線ではアクセル、カーブではハーフ、タンクがたまったらターボ。全部使いましょう。
+Complete <b>3 voltas</b> ({0} de 3).	<b>3周</b>を走りきってください（{0}／3）。
+Terminar	終了
+<b>Parabéns!</b> Você montou a sua pista e completou 3 voltas.\nA <b>carreira</b> abre as outras peças e paga as moedas. Todas as teclas ficam em <b>Opções</b>, no menu inicial.	<b>おめでとう！</b>自分のコースを作り、3周を走りきりました。\n<b>キャリア</b>でほかのパーツが解放され、コインがもらえます。すべてのキーはスタートメニューの<b>オプション</b>にあります。
+TUTORIAL · CORRIDA	チュートリアル・レース
+TUTORIAL · CONSTRUÇÃO	チュートリアル・組み立て
+  ·  {0} de {1}	  ・  {0}／{1}
+Por aqui o Q não consegue fechar a pista. Desfaça (Ctrl+Z) e tente outra direção.	ここからではQでコースを閉じられません。取り消して（Ctrl+Z）別の向きを試してください。
+<b>Mover a mesa.</b> Segure o <b>botão direito</b> (ou o do meio) do mouse e arraste.	<b>テーブルを動かす。</b>マウスの<b>右ボタン</b>（または中ボタン）を押したままドラッグします。
+<b>Aproximar.</b> Gire a <b>roda do mouse</b> para a frente.	<b>拡大。</b><b>マウスホイール</b>を前に回します。
+<b>Afastar.</b> Gire a <b>roda do mouse</b> para trás.\nSe a pista sumir da tela, <b>C</b> enquadra de novo.	<b>縮小。</b><b>マウスホイール</b>を後ろに回します。\nコースが画面から消えたら、<b>C</b>で収め直せます。
+<b>Vista 3D.</b> Aperte <b>V</b> (ou o botão <b>3D</b>) para inclinar a câmera.\nNa vista 3D, o botão direito <b>gira</b> a mesa em vez de mover. Experimente.	<b>3Dビュー。</b><b>V</b>（または<b>3D</b>ボタン）でカメラを傾けます。\n3Dビューでは、右ボタンでテーブルが動くかわりに<b>回転</b>します。試してみましょう。
+<b>De volta para cima.</b> Aperte <b>V</b> (ou o botão <b>3D</b>) de novo para a vista de cima, a melhor para montar.	<b>上からの視点に戻る。</b>もう一度<b>V</b>（または<b>3D</b>ボタン）で上からの視点に。組み立てにはこれがいちばんです。
+<b>Errou?</b> <b>Ctrl+Z</b> (ou o botão <b>Desfazer</b>) desfaz a última ação. Experimente: a última reta some.	<b>間違えた？</b><b>Ctrl+Z</b>（または<b>元に戻す</b>ボタン）で最後の操作を取り消します。試してみましょう。最後の直線が消えます。
+<b>Refazer.</b> Mudou de ideia? <b>Ctrl+Y</b> (ou o botão <b>Refazer</b>) traz de volta o que foi desfeito.	<b>やり直す。</b>気が変わった？<b>Ctrl+Y</b>（または<b>やり直す</b>ボタン）で取り消したものが戻ります。
+<b>Apagar uma peça.</b> Clique numa peça da pista para selecionar e aperte <b>Delete</b> (ou o botão da <b>lixeira</b>).\n<b>Backspace</b> apaga a última peça. A largada não sai.	<b>パーツを消す。</b>コースのパーツをクリックして選び、<b>Delete</b>（または<b>ゴミ箱</b>ボタン）を押します。\n<b>Backspace</b>は最後のパーツを消します。スタートは消せません。
+Exemplo: oval	例:オーバル
+Pista {0}	コース{0}
+Loop e rampa de salto não sobem nem descem de nível.	ループとジャンプ台は高さを上げ下げしません。
+Esta peça abre na carreira (menu inicial › Peças mostra em que prova).	このパーツはキャリアで解放されます(ホーム画面 › パーツ で、どのレースか確認できます)。
+<b>Onde valem:</b>\n• <b>Corrida livre</b> e <b>carreira</b>: na hora (na carreira, a pista molhada tira aderência quando a prova pede).\n• <b>Campeonato offline</b>: são copiadas quando o campeonato é criado. Mudar aqui depois não mexe num campeonato em andamento.\n• <b>Campeonato online</b>: valem as do <b>host</b>, enviadas na largada e fixas até o fim. As dos outros jogadores não contam.\n• <b>Partida rápida</b>: não valem. Lá as regras são sempre as padrão: velocidade 14, 0,5 s até 100%, aderência 29, colisão e turbo ligados, recolocar em 0,3 s.	<b>適用される場所:</b>\n• <b>フリーレース</b>と<b>キャリア</b>:すぐに適用(キャリアでは、レースの指定があればウェット路面でグリップが下がります)。\n• <b>オフライン選手権</b>:選手権を作ったときにコピーされます。あとでここを変えても進行中の選手権には影響しません。\n• <b>オンライン選手権</b>:<b>ホスト</b>のルールが適用され、スタート時に送られて最後まで固定です。他のプレイヤーのルールは使われません。\n• <b>クイックマッチ</b>:適用されません。常に標準ルールです:速度14、100%まで0.5秒、グリップ29、衝突とターボはオン、復帰0.3秒。
+Você tem {0} × {1}. Compre mais em Peças, no menu inicial.	{1} は {0} 個持っています。メインメニューの「パーツ」で買い足せます。
+Desbloquear tudo ligado: mesa e peças sem limite (teste).	すべて解除がオン：テーブルとパーツは無制限（テスト）。
+você tem {0} (kit: {1})	{0} 個（キット：{1}）
+você tem {0}	{0} 個
+“{0}” salva · custo {1}.	「{0}」を保存しました · コスト {1}。

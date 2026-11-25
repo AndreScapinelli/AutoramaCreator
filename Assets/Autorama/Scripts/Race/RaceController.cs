@@ -216,6 +216,7 @@ namespace Autorama
             BuildShopUI();
             BuildOnlineUI();
             OnlineBoot();
+            BuildTutorialUI();
             builder.Changed += OnTrackChanged;
             panel.ModeChanged += OnMode;
             panel.OptionsRequested += ShowKeys;
@@ -451,9 +452,11 @@ namespace Autorama
             NarraKeys();
             NarraTick();
             if (kBuilding) BuildTick();
+            TutTick();
             HalfFocusGuard();
             if (OnlineRun) { OnlineRunUpdate(); return; }
             if (sim == null || !sim.Ready) return;
+            sim.mirrored = false;
             if (!panel.RaceMode) { if (testing) sim.Step(Mathf.Min(Time.deltaTime, 0.05f)); PlaceCars(); return; }       // no construtor, os carrinhos ficam no grid
 
             var kb = Keyboard.current;
@@ -469,10 +472,10 @@ namespace Autorama
                 if (g > 0f) sim.cars[k].gas = g;
                 if ((keys && KeyWasPressed(kb, ReslotKey(k))) || PadPressed(k, p => p.buttonSouth)) sim.Reslot(k);
             }
-            if (!Paused && ((keys && (kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame)) || AnyPadStart())) { if (panel.ChampMode) ChampEnter(); else if (!panel.CareerMode) StartRace(); }
+            if (!Paused && ((keys && (kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame)) || AnyPadStart())) { if (panel.ChampMode) ChampEnter(); else if (!panel.CareerMode && !TutOn) StartRace(); }
 
             if (keys && kb.pKey.wasPressedThisFrame) PausePressed(null);
-            if (!PauseTick() && CareerSteps) sim.Step(Mathf.Min(Time.deltaTime, 0.05f));
+            if (!PauseTick() && CareerSteps && !TutHold) sim.Step(Mathf.Min(Time.deltaTime, 0.05f));
             if (panel.CareerMode) CareerTick();
             PlaceCars();
             UpdatePads();
@@ -515,7 +518,9 @@ namespace Autorama
                 carPos[k] = pos; carHeading[k] = p.heading;
                 // Ponto do trilho à frente, para a Perseguição olhar a curva antes de chegar.
                 var ahead = sim.PathOf(k).At(st.s + CamAhead);
-                var behind = sim.PathOf(k).At(st.s - CamBehind);
+                // Tangente do trilho no carrinho (pontos CamBehind antes e depois): a Perseguição gira junto, sem atraso na entrada da curva.
+                var tb = sim.PathOf(k).At(st.s - CamBehind); var tf = sim.PathOf(k).At(st.s + CamBehind);
+                var behind = sim.PathOf(k).At(st.s); behind.pos -= tf.pos - tb.pos;
                 for (int i = 0; i < CamCount; i++)
                 {
                     PaneCam(i).SetCarAhead(k, new Vector3(ahead.pos.x, ahead.y, ahead.pos.y));
@@ -819,7 +824,7 @@ namespace Autorama
             reset.style.alignSelf = Align.FlexStart;
 
             Text(L.T("REGRAS DA CORRIDA"), "hint", card).style.marginTop = 14;
-            Text(L.T("<b>Onde valem:</b>\n• <b>Corrida livre</b> e <b>carreira</b>: na hora (na carreira, a pista molhada tira aderência quando a prova pede).\n• <b>Campeonato offline</b>: são copiadas quando o campeonato é criado. Mudar aqui depois não mexe num campeonato em andamento.\n• <b>Campeonato online</b>: valem as do <b>host</b>, enviadas na largada e fixas até o fim. As dos outros jogadores não contam.\n• <b>Partida rápida</b>: não valem. Lá as regras são sempre as padrão: velocidade 14, 0,5 s até 100%, aderência 29, colisão e turbo ligados, recolocar em 0,3 s."),
+            Text(L.T("<b>Onde valem:</b>\n• <b>Corrida livre</b> e <b>carreira</b>: na hora (na carreira, a pista molhada tira aderência quando a prova pede).\n• <b>Campeonato offline</b>: são copiadas quando o campeonato é criado. Mudar aqui depois não mexe num campeonato em andamento.\n• <b>Campeonato online</b>: valem as do <b>host</b>, enviadas na largada e fixas até o fim. As dos outros jogadores não contam.\n• <b>Partida rápida</b>: não valem. Lá as regras são sempre as padrão: velocidade 17, 0,5 s até 100%, aderência 43, colisão e turbo ligados, recolocar em 0,3 s."),
                  "small", card).style.marginBottom = 8;
             card.Add(optRules);
             Text(L.T("SEU CONTROLE E SOM"), "hint", card).style.marginTop = 14;
@@ -843,6 +848,7 @@ namespace Autorama
             }
             var bottom = El("row", outer);
             bottom.style.marginTop = 8;
+            Btn(L.T("Refazer tutorial"), TutRedo, "btn", bottom);
             Btn(L.T("Fechar  (Esc)"), CloseKeys, "btn btn--primary", bottom);
             KeysChanged();
         }
@@ -1076,7 +1082,7 @@ namespace Autorama
         void DrawCarCard(VisualElement parent, CarSetup su, System.Action<CarSetup> change, bool full = true, bool rows = true)
         {
             var box = El("car-card", parent);
-            void Row(string title, string[] names, int cur, System.Func<int, CarSetup> with)
+            VisualElement Row(string title, string[] names, int cur, System.Func<int, CarSetup> with)
             {
                 var row = El("segmented car-row", box);
                 Text(title, "seg-label", row);
@@ -1085,16 +1091,15 @@ namespace Autorama
                     int oo = o;
                     Btn(names[o], () => change(with(oo)), cur == o ? "btn btn--on" : "btn", row);
                 }
+                return row;
             }
             if (rows)
             {
                 Row(L.T("Motor"), CarSetup.MotorNames, su.motor, o => { var n = su; n.motor = o; return n; });
-                Row(L.T("Bolha"), CarSetup.BolhaNames, su.bolha, o => { var n = su; n.bolha = o; if (!Progresso.ModelOk(o, n.modelo)) n.modelo = 0; return n; });
-                // A Fórmula (seção 93): só para quem foi campeão do Mundial na carreira.
+                var fr = Row(L.T("Bolha"), CarSetup.BolhaNames, su.bolha, o => { var n = su; n.bolha = o; if (!Progresso.ModelOk(o, n.modelo)) n.modelo = 0; return n; });
+                // A Fórmula (seção 93), na mesma linha: só para quem foi campeão do Mundial na carreira.
                 {
                     bool ok = Progresso.FormulaOk;
-                    var fr = El("segmented car-row", box);
-                    Text("", "seg-label", fr);
                     var fb = Btn(ok ? CarSetup.BolhaNames[3] : "🔒 " + CarSetup.BolhaNames[3], () => { var n = su; n.bolha = 3; n.modelo = 0; change(n); }, su.bolha == 3 ? "btn btn--on" : "btn", fr);
                     fb.SetEnabled(ok);
                     fb.tooltip = ok ? L.T("Um pouco da asa e um pouco da lisa.") : L.T("Seja campeão do Mundial na carreira para abrir.");
@@ -1145,7 +1150,7 @@ namespace Autorama
             SetBot(); DrawRaceSetup();
         }
 
-        const float CamBehind = 0.3f;     // ponto do trilho logo atrás do carrinho: a corda até ele é quase o rumo do trilho ali (Perseguição)
+        const float CamBehind = 0.05f;    // meia corda em volta do carrinho: a tangente do trilho ali (Perseguição)
         const float CamAhead = 2.2f;      // distância no mundo à frente do carrinho que a Perseguição olha (sem a escala da pista)
         const float LoopCamLead = 0.6f;   // segundos de antecedência para a câmera ir para o lado do loop
         const float LoopCamMin = 1.5f;    // células: antecedência mínima

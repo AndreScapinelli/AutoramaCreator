@@ -11,6 +11,9 @@ namespace Autorama
     public class PlayerProfile
     {
         public bool tudo;                 // "Desbloquear tudo" (só enquanto Progresso.Teste)
+        // Tutorial (seção 102): 0 nunca fez, 1 terminou a construção (falta a corrida), 2 terminou, 3 pulou.
+        public int tutorial;
+        public string tutPista = "";      // a pista montada no tutorial (JSON), para a corrida voltar a ela
     }
 
     // Um grupo de peças do construtor e a prova da carreira que o abre (terminar com ★ em qualquer save).

@@ -33,6 +33,7 @@ namespace Autorama
         readonly Dictionary<string, int> remoteTs = new Dictionary<string, int>();        // o relógio que veio nele (volta no snapshot)
         const float InTimeout = 1f;                            // sem "in" por esse tempo, o botão do visitante conta como solto
         float snapAcc;
+        readonly int[] lapsSeen = new int[RaceSim.MaxCars];
         readonly float[] seenBest = new float[RaceSim.MaxCars];   // a melhor volta de cada carro já vista (aviso de recorde)
         int snapSeq, lastSq;                                   // host: número do último snapshot mandado · visitante: do último aplicado
         float rtt = -1f;                                       // visitante: latência de ida e volta (s), média; −1 desconhecida
@@ -267,6 +268,7 @@ namespace Autorama
             }
 
             if (keys && kb.pKey.wasPressedThisFrame) PausePressed(myId);
+            sim.mirrored = !IsHost;
             if (!PauseTick()) sim.Step(dt);
             if (IsHost) OnlineLapFlash();
             if (sim.phase != lastPhase) { lastPhase = sim.phase; scoreDirty = champDirty = true; snapAcc = 1f; SideForPhase(); phaseSince = Time.realtimeSinceStartup; }
@@ -393,7 +395,10 @@ namespace Autorama
                 if (r >= 0f) { rtt = rtt < 0f ? r : Mathf.Lerp(rtt, r, 0.1f); ownHist.lag = ownHist2.lag = rtt * 0.5f; }
             }
             int before = ScoreSig();
+            for (int k = 0; k < sim.N; k++) lapsSeen[k] = sim.cars[k].laps;
             NetSync.Apply(s, sim, lane, ownHist, lane2, ownHist2);
+            // O visitante não conta volta (sim.mirrored): o som da volta sai da volta que chega no snapshot.
+            for (int k = 0; k < sim.N; k++) if (sim.cars[k].laps > lapsSeen[k] && sim.phase != RaceSim.Phase.Idle) Play(lapClip, sim.aiSkill[k] > 0 ? 0.25f : 0.7f);
             OnlineLapFlash();
             if (ScoreSig() != before) scoreDirty = true;
         }

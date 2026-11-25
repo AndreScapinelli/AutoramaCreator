@@ -53,7 +53,7 @@ namespace Autorama
         // Na largada da partida rápida: o Elo de cada um (o meu é sempre o daqui).
         void EloStart(NetMsg m)
         {
-            mmRatings.Clear(); eloDeltas.Clear(); eloApplied = false;
+            mmRatings.Clear(); eloDeltas.Clear(); eloApplied = eloWait = eloLate = false;
             if (!MmRoom) { eloApplied = true; return; }
             foreach (var p in m.pilots) if (p.elo >= Elo.Min && !NetGuest.Is(p.id)) mmRatings[p.id] = (p.elo, p.eloj);
             if (myId != null) mmRatings[myId] = (myElo, myEloJ);
@@ -64,17 +64,26 @@ namespace Autorama
             if (steam.Count == 0 || !EloBoard.Available) return;
             foreach (ulong sid in steam) mmRatings[sid.ToString()] = (Elo.Start, 0);
             string room0 = room?.code;
+            eloWait = true;
             EloBoard.Users(steam.ToArray(), res =>
             {
+                eloWait = false;
                 if (eloApplied || room?.code != room0) return;
                 foreach (var kv in res) mmRatings[kv.Key.ToString()] = kv.Value;
+                if (eloLate) { eloLate = false; EloApply(false); scoreDirty = true; }
             });
         }
+
+        // eloWait: o Elo dos adversários ainda não chegou do placar. A conta do fim da bateria espera (eloLate) para todos
+        // fazerem a mesma conta; sem isso, quem não recebeu a tempo calculava com 1000 e mostrava outro Elo.
+        bool eloWait, eloLate;
 
         // Fim da bateria (quit = false) ou saída no meio (quit = true: eu em último). Uma vez por partida.
         void EloApply(bool quit)
         {
-            if (eloApplied || myId == null || !HeatNow(out _, out _, out _, out _, out var pl)) return;
+            if (eloApplied || myId == null) return;
+            if (eloWait && !quit) { eloLate = true; return; }
+            if (!HeatNow(out _, out _, out _, out _, out var pl)) return;
             var ids = new List<string>();
             foreach (int k in Order())
             {

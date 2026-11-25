@@ -26,9 +26,17 @@ namespace Autorama
         public Vector2 pos;
         public float rot;
         public float esc = 1f;             // variação de tamanho (0,9 a 1,1 ao colocar)
-        public Enfeite Clone() => (Enfeite)MemberwiseClone();
+
+        // Arquibancada (seção 101): trecho ao longo da pista. linha = frente, em células; u0 e comp = início e comprimento
+        // no caminho da pista (células) para esticar de novo; lado = +1 à esquerda do sentido da pista, −1 à direita.
+        public List<Vector2> linha;
+        public float u0, comp;
+        public int lado, colunas;
+        public bool Trecho => linha != null && linha.Count > 1;
+
+        public Enfeite Clone() { var c = (Enfeite)MemberwiseClone(); if (linha != null) c.linha = new List<Vector2>(linha); return c; }
     }
 
     // No JSON (formato herdado do HTML): y para baixo (y = altura da mesa − z) e ângulo no sentido horário.
-    [Serializable] public class EnfeiteSave { public string id; public float x, y, h, esc = 1f; }
+    [Serializable] public class EnfeiteSave { public string id; public float x, y, h, esc = 1f; public float[] linha; public float u0, comp; public int lado, colunas; }
 }

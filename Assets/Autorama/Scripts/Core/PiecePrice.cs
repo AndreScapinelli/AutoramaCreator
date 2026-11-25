@@ -27,7 +27,7 @@ namespace Autorama
         public static int Total(IList<TrackPiece> pieces, IList<Enfeite> enfeites)
         {
             int t = Total(pieces);
-            foreach (var e in enfeites) t += EnfeiteCatalog.ById(e.id)?.preco ?? 0;
+            foreach (var e in enfeites) t += EnfeiteCatalog.Preco(e);
             return t;
         }
 

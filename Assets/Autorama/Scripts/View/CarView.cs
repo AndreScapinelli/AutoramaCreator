@@ -22,6 +22,10 @@ namespace Autorama
         GameObject[] models;                       // modelo importado de cada bolha (índice = CarBody); sem ele, por código
         float spin, tumble;
 
+        public static readonly List<CarView> Todos = new List<CarView>();   // os carrinhos ativos (a torcida lê, seção 101)
+        void OnEnable() => Todos.Add(this);
+        void OnDisable() => Todos.Remove(this);
+
         public CarBody Body { get; private set; }
         public int Model { get; private set; }
 

@@ -110,7 +110,7 @@ namespace Autorama
             generated = null;
             views.Clear();
             enfViews.Clear();
-            enfGhost = null; enfMark = null;
+            enfGhost = null;
             arrow = arrow2 = hoverCell = null;
             ghost = null;
         }
@@ -400,7 +400,11 @@ namespace Autorama
             if (dx != 0 || dz != 0)
             {
                 Origin = new Pose2(Origin.pos + new Vector2(dx, dz), Origin.heading);
-                foreach (var e in enfeites) e.pos += new Vector2(dx, dz);
+                foreach (var e in enfeites)
+                {
+                    e.pos += new Vector2(dx, dz);
+                    if (e.linha != null) for (int k = 0; k < e.linha.Count; k++) e.linha[k] += new Vector2(dx, dz);   // arquibancada (seção 101)
+                }
                 Shifted?.Invoke(new Vector2(dx, dz) * Scale);     // no mundo
             }
             boardSize = new Vector2Int(w, h);

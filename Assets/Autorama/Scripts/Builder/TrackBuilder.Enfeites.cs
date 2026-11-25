@@ -17,8 +17,7 @@ namespace Autorama
         readonly List<GameObject> enfViews = new List<GameObject>();
         readonly List<string> enfIds = new List<string>();
         GameObject enfGhost;
-        string enfGhostId;
-        Transform enfMark;
+        string enfGhostId, ghostChave;
 
         public void Arm(string id) { Armed = id; EnfSel = -1; if (Selected >= 0) Selected = -1; Rebuild(); }
         public void Disarm() { if (Armed == null) return; Armed = null; if (enfGhost) enfGhost.SetActive(false); }
@@ -30,7 +29,22 @@ namespace Autorama
         {
             var def = Armed != null ? EnfeiteCatalog.ById(Armed) : null;
             if (def == null) return false;
-            var e = new Enfeite { id = def.id, pos = cell, rot = Random.Range(0, 8) * EnfRotStep, esc = Random.Range(0.9f, 1.1f) };
+            Enfeite e;
+            if (TorcidaDe(def.id))
+            {
+                e = NovaArquibancada(def, cell, out arqAncora);       // arquibancada (seção 101): trecho ao longo da pista
+                if (e == null) { Notice?.Invoke(L.T("A arquibancada precisa de uma pista para acompanhar.")); return false; }
+                arqUlt = arqAncora;
+                string w = Why(e);
+                if (w != null) { Notice?.Invoke(w); return false; }
+                if (!Commit(() => enfeites.Add(e))) return false;
+                // Já sai selecionada, com os pegadores, e o mesmo clique, se arrastar, estica (BuilderInput).
+                NovaIndex = enfeites.Count - 1;
+                Armed = null; if (enfGhost) enfGhost.SetActive(false);
+                SelectEnfeite(NovaIndex);
+                return true;
+            }
+            else e = new Enfeite { id = def.id, pos = cell, rot = Random.Range(0, 8) * EnfRotStep, esc = Random.Range(0.9f, 1.1f) };
             string why = Why(e);
             if (why != null) { Notice?.Invoke(why); return false; }
             return Commit(() => enfeites.Add(e));
@@ -45,6 +59,13 @@ namespace Autorama
         public void RotateEnfeite()
         {
             if (EnfSel < 0) return;
+            if (enfeites[EnfSel].Trecho)
+            {
+                var e = enfeites[EnfSel].Clone();
+                if (!VirarArquibancada(e) || Why(e, EnfSel) != null) { Notice?.Invoke(L.T("Do outro lado da pista a arquibancada não cabe.")); return; }
+                Commit(() => enfeites[EnfSel] = e);
+                return;
+            }
             Commit(() => enfeites[EnfSel].rot = TrackMath.Normalize(enfeites[EnfSel].rot + EnfRotStep));
         }
 
@@ -52,6 +73,7 @@ namespace Autorama
         public void MoveEnfeite(int i, Vector2 cell)
         {
             if (i < 0 || i >= enfeites.Count) return;
+            if (enfeites[i].Trecho) { if (DeslizarArquibancada(i, cell)) Rebuild(); return; }
             var e = enfeites[i].Clone();
             e.pos = cell;
             if (Why(e, i) != null) return;
@@ -62,13 +84,19 @@ namespace Autorama
         // null se cabe; senão o aviso.
         string Why(Enfeite e, int skip = -1)
         {
+            if (e.Trecho)
+            {
+                if (ArqForaDaMesa(e)) return L.T("O enfeite precisa ficar dentro da mesa.");
+                return ArqNaPista(e, Segments) ? L.T("O enfeite não pode ficar em cima da pista.") : null;
+            }
             float r = Raio(e) * FootShare;
             if (e.pos.x < r || e.pos.y < r || e.pos.x > boardSize.x - r || e.pos.y > boardSize.y - r) return L.T("O enfeite precisa ficar dentro da mesa.");
             return OnTrack(e, Segments) ? L.T("O enfeite não pode ficar em cima da pista.") : null;
         }
 
-        static bool OnTrack(Enfeite e, List<Segment> segs)
+        bool OnTrack(Enfeite e, List<Segment> segs)
         {
+            if (e.Trecho) return ArqNaPista(e, segs);
             float min = TrackHalf + Raio(e) * FootShare;
             foreach (var sg in segs)
             {
@@ -113,12 +141,14 @@ namespace Autorama
             return measured[def.id] = b;
         }
 
-        // Células por metro do modelo.
-        static float CellsPerMeter(EnfeiteDef def, Enfeite e) => def.altura / Mathf.Max(0.01f, Measure(def).size.y) * e.esc;
+        // Células por metro do modelo. A altura do catálogo é em células da pista de 2; nas largas (escala 2–4) a célula
+        // é maior no mundo e o carrinho não, então o enfeite encolhe em células para ficar do mesmo tamanho ao lado do carro.
+        float CellsPerMeter(EnfeiteDef def, Enfeite e) => def.altura / Mathf.Max(0.01f, Measure(def).size.y) * e.esc / Scale;
 
         // Raio da pegada no chão, em células.
-        public static float Raio(Enfeite e)
+        public float Raio(Enfeite e)
         {
+            if (e.Trecho) return ArqRaio(e);
             var def = EnfeiteCatalog.ById(e.id);
             if (def == null) return 0.5f;
             var s = Measure(def).extents;
@@ -156,10 +186,25 @@ namespace Autorama
             {
                 var e = enfeites[i];
                 var def = EnfeiteCatalog.ById(e.id);
-                if (i < enfViews.Count && enfViews[i] && enfIds[i] == e.id) { Pose(enfViews[i], def, e); continue; }
+                bool trecho = e.Trecho && def?.prefab;
+                string chave = trecho ? ArqChave(e) : e.id;
+                if (i < enfViews.Count && enfViews[i] && enfIds[i] == chave) { if (!trecho) Pose(enfViews[i], def, e); continue; }
+                if (trecho && i < enfViews.Count && enfViews[i] && enfIds[i].StartsWith(e.id + "|"))
+                {
+                    MontarArquibancada(enfViews[i], def, e);           // mesma arquibancada, outra linha: refaz a malha no lugar
+                    enfIds[i] = chave;
+                    continue;
+                }
                 if (i < enfViews.Count) TrackPieceView.Kill(enfViews[i]);
-                var go = def?.prefab ? Spawn(def, "Enfeite " + e.id) : new GameObject("Enfeite sem modelo") { hideFlags = HideFlags.DontSave };
-                if (def?.prefab)
+                GameObject go;
+                if (trecho)
+                {
+                    go = NovaVistaArquibancada("Enfeite " + e.id);
+                    go.AddComponent<MeshCollider>();
+                    MontarArquibancada(go, def, e);
+                }
+                else go = def?.prefab ? Spawn(def, "Enfeite " + e.id) : new GameObject("Enfeite sem modelo") { hideFlags = HideFlags.DontSave };
+                if (!trecho && def?.prefab)
                 {
                     var b = Measure(def);
                     var box = go.AddComponent<BoxCollider>();          // para o clique achar o enfeite
@@ -167,26 +212,58 @@ namespace Autorama
                     box.size = b.size;
                     Pose(go, def, e);
                 }
-                if (i < enfViews.Count) { enfViews[i] = go; enfIds[i] = e.id; } else { enfViews.Add(go); enfIds.Add(e.id); }
+                if (i < enfViews.Count) { enfViews[i] = go; enfIds[i] = chave; } else { enfViews.Add(go); enfIds.Add(chave); }
             }
             while (enfViews.Count > enfeites.Count) { TrackPieceView.Kill(enfViews[enfViews.Count - 1]); enfViews.RemoveAt(enfViews.Count - 1); enfIds.RemoveAt(enfIds.Count - 1); }
 
-            // Marca do selecionado: um disco da cor da seleção embaixo dele.
-            bool mark = EnfSel >= 0 && EnfSel < enfeites.Count && !RaceMode;
-            if (mark && !enfMark) enfMark = Quad("Enfeite selecionado", theme.selected, 0f);
-            if (enfMark)
-            {
-                enfMark.gameObject.SetActive(mark);
-                if (mark)
-                {
-                    var e = enfeites[EnfSel];
-                    float d = Mathf.Max(0.6f, Raio(e) * 2f);
-                    enfMark.localRotation = Quaternion.Euler(90f, 0f, 0f);
-                    enfMark.localPosition = new Vector3(e.pos.x, GroundY + 0.004f / Scale, e.pos.y);
-                    enfMark.localScale = new Vector3(d, d, 1f);
-                }
-            }
+            for (int i = 0; i < enfViews.Count; i++) Destacar(enfViews[i], !RaceMode && i == EnfSel);
+            MostrarAlcas();
             if (RaceMode) Disarm();
+        }
+
+        // Destaque do selecionado, como o das peças (TrackPieceView.SetHighlight): uma cópia de cada malha por cima,
+        // no material de seleção, um pouco maior (ou, na arquibancada, que fica na origem da raiz, um pouco acima).
+        void Destacar(GameObject go, bool on)
+        {
+            if (!go) return;
+            bool trecho = go.GetComponent<Torcida>() && go.GetComponent<MeshFilter>();
+            foreach (var mf in go.GetComponentsInChildren<MeshFilter>(true))
+            {
+                if (mf.name == "Destaque") continue;
+                var t = mf.transform.Find("Destaque");
+                if (!on) { if (t) t.gameObject.SetActive(false); continue; }
+                if (!mf.sharedMesh) continue;
+                if (!t)
+                {
+                    var d = new GameObject("Destaque") { hideFlags = HideFlags.DontSave };
+                    d.transform.SetParent(mf.transform, false);
+                    d.AddComponent<MeshFilter>();
+                    var r = d.AddComponent<MeshRenderer>();
+                    r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                    t = d.transform;
+                }
+                t.gameObject.SetActive(true);
+                var tf = t.GetComponent<MeshFilter>();
+                if (trecho)
+                {
+                    // Arquibancada: a cópia é inflada pelas normais (cada face anda para fora), sem brigar com a malha de baixo.
+                    var src = mf.sharedMesh;
+                    var m = tf.sharedMesh && tf.sharedMesh != src ? tf.sharedMesh : new Mesh { name = "Destaque", hideFlags = HideFlags.DontSave };
+                    var vs = src.vertices; var ns = src.normals;
+                    for (int k = 0; k < vs.Length; k++) vs[k] += ns[k] * (0.004f / Scale);
+                    m.Clear(); m.indexFormat = src.indexFormat; m.vertices = vs; m.normals = ns;
+                    m.subMeshCount = src.subMeshCount;
+                    for (int k = 0; k < src.subMeshCount; k++) m.SetTriangles(src.GetTriangles(k), k);
+                    m.RecalculateBounds();
+                    tf.sharedMesh = m;
+                }
+                else tf.sharedMesh = mf.sharedMesh;
+                var mats = new Material[tf.sharedMesh.subMeshCount];
+                for (int k = 0; k < mats.Length; k++) mats[k] = theme.selected;
+                t.GetComponent<MeshRenderer>().sharedMaterials = mats;
+                if (trecho) { t.localScale = Vector3.one; t.localPosition = Vector3.zero; }
+                else { t.localScale = Vector3.one * 1.04f; t.localPosition = Vector3.zero; }
+            }
         }
 
         // O enfeite armado acompanha o mouse (null esconde).
@@ -194,6 +271,22 @@ namespace Autorama
         {
             var def = Armed != null ? EnfeiteCatalog.ById(Armed) : null;
             if (def == null || def.prefab == null || !cell.HasValue || RaceMode) { if (enfGhost) enfGhost.SetActive(false); return; }
+            if (TorcidaDe(def.id))
+            {
+                var a = NovaArquibancada(def, cell.Value);
+                if (a == null) { if (enfGhost) enfGhost.SetActive(false); return; }
+                if (!enfGhost || enfGhostId != def.id + "|")
+                {
+                    TrackPieceView.Kill(enfGhost);
+                    enfGhost = NovaVistaArquibancada("Enfeite fantasma");
+                    enfGhostId = def.id + "|";
+                    ghostChave = null;
+                }
+                enfGhost.SetActive(true);
+                string k = ArqChave(a);
+                if (k != ghostChave) { MontarArquibancada(enfGhost, def, a); ghostChave = k; }
+                return;
+            }
             if (!enfGhost || enfGhostId != def.id)
             {
                 TrackPieceView.Kill(enfGhost);

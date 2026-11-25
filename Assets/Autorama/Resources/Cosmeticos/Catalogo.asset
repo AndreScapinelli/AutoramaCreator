@@ -61,3 +61,27 @@ MonoBehaviour:
     prefab: {fileID: 1205270495780786, guid: bfe46d6e2f03af346a70ed16cbda3eee, type: 3}
     preco: 40
     altura: 0.6
+  - id: arquibancada-pequena
+    nome: Arquibancada pequena
+    grupo: Arquibancadas
+    prefab: {fileID: 6706613954992983637, guid: 283cf8d5d5091cd4f8e7abb474d54449, type: 3}
+    preco: 150
+    altura: 0.54
+  - id: arquibancada-media
+    nome: "Arquibancada m\xE9dia"
+    grupo: Arquibancadas
+    prefab: {fileID: 3360976602575719462, guid: 34bee9874fde2824894c6d2dfa6d2f0b, type: 3}
+    preco: 250
+    altura: 0.67499995
+  - id: arquibancada-grande
+    nome: Arquibancada grande
+    grupo: Arquibancadas
+    prefab: {fileID: 8054627424428800053, guid: 75b89998a52a1414087bb55ffdb58faa, type: 3}
+    preco: 400
+    altura: 0.81
+  - id: arquibancada-coberta
+    nome: Arquibancada coberta
+    grupo: Arquibancadas
+    prefab: {fileID: 8444058158140229762, guid: e8d115c18889e6d4da2299a37d281d06, type: 3}
+    preco: 350
+    altura: 0.9674999
