@@ -69,10 +69,10 @@ namespace Autorama
             if (keys && kb != null)
             {
                 if (KeyPressed(kb, GasKeyAt(ks))) g = 1f;
-                else if (KeyPressed(kb, HalfKeyAt(ks))) g = Mathf.Max(g, HalfOf(k) / 100f);
-                HalfKeys(k, kb, Controles.Get(ks, Controles.Acao.MeiaMenos), Controles.Get(ks, Controles.Acao.MeiaMais));
+                else if (!Locked(k, Career.ItemMeia) && KeyPressed(kb, HalfKeyAt(ks))) g = Mathf.Max(g, HalfOf(k) / 100f);
+                if (!Locked(k, Career.ItemFino)) HalfKeys(k, kb, Controles.Get(ks, Controles.Acao.MeiaMenos), Controles.Get(ks, Controles.Acao.MeiaMais));
             }
-            HalfPad(k, PadOf(ks));
+            if (!Locked(k, Career.ItemFino)) HalfPad(k, PadOf(ks));
             return Mathf.Max(g, Trigger(PadOf(ks)));
         }
 
@@ -80,7 +80,7 @@ namespace Autorama
         // jogador muda na hora, arrastando o marcador na barra ACELERAR ou com meia − / meia + (← · → no jogador 1).
         public const int HalfMin = 10, HalfMax = 95, HalfStep = 5;
         readonly int[] halfPct = new int[RaceSim.MaxCars];
-        int HalfOf(int k) => halfPct[k] > 0 ? halfPct[k] : set.halfGas;
+        int HalfOf(int k) => halfPct[k] > 0 && !Locked(k, Career.ItemFino) ? halfPct[k] : set.halfGas;
         void SetHalf(int k, int v)
         {
             halfPct[k] = Mathf.Clamp(v, HalfMin, HalfMax);
@@ -91,7 +91,7 @@ namespace Autorama
         {
             int ks = OnlineRun ? 0 : KeySet(k);
             Key a = Controles.Get(ks, Controles.Acao.MeiaMenos), b = Controles.Get(ks, Controles.Acao.MeiaMais);
-            return a == Key.None && b == Key.None ? "▲" : $"{KeyText(a)}  ▲  {KeyText(b)}";
+            return a == Key.None && b == Key.None || Locked(k, Career.ItemFino) ? "▲" : $"{KeyText(a)}  ▲  {KeyText(b)}";
         }
         void HalfKeys(int k, Keyboard kb, Key less, Key more)
         {
@@ -142,6 +142,7 @@ namespace Autorama
         {
             if (GasKey(k) == Key.None) return PadOf(KeySet(k)) != null ? L.T("ACELERAR  ·  controle") : L.T("PRECISA DE UM CONTROLE");     // 5º e 6º humano
             string pad = PadOf(KeySet(k)) != null ? L.T("  ·  controle") : "";
+            if (Locked(k, Career.ItemMeia)) return L.F("ACELERAR  {0}{1}", KeyText(GasKey(k)), pad);
             return OnlineRun ? L.F("ACELERAR  {0}  ·  {1}% {2}{3}", KeyText(GasKeyAt(0)), HalfOf(k), KeyText(HalfKeyAt(0)), (Gamepad.all.Count > 0 ? L.T("  ·  controle") : "")) : L.F("ACELERAR  {0}  ·  {1}% {2}{3}", KeyText(GasKey(k)), HalfOf(k), KeyText(HalfKey(k)), pad);
         }
         Key ReslotKey(int k) => ReslotKeyAt(KeySet(k));
@@ -1331,7 +1332,7 @@ namespace Autorama
             El("half-line", half).pickingMode = PickingMode.Ignore;
             p.halfTri = Text(HalfTri(k), "half-tri", half); p.halfTri.pickingMode = PickingMode.Ignore;
             half.style.left = Length.Percent(HalfOf(k));
-            void Drag(IPointerEvent e) => SetHalf(idx, Mathf.RoundToInt(gas.WorldToLocal(e.position).x / Mathf.Max(1f, gas.layout.width) * 100f));
+            void Drag(IPointerEvent e) { if (!Locked(idx, Career.ItemFino)) SetHalf(idx, Mathf.RoundToInt(gas.WorldToLocal(e.position).x / Mathf.Max(1f, gas.layout.width) * 100f)); }
             half.RegisterCallback<PointerDownEvent>(e => { half.CapturePointer(e.pointerId); Drag(e); e.StopPropagation(); });
             half.RegisterCallback<PointerMoveEvent>(e => { if (half.HasPointerCapture(e.pointerId)) Drag(e); });
             half.RegisterCallback<PointerUpEvent>(e => { half.ReleasePointer(e.pointerId); e.StopPropagation(); });

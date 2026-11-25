@@ -1038,6 +1038,7 @@ namespace Autorama
                 if (!sim.setup[k].Padrao && sim.N <= 4) p.name.text += L.F("  <size=10><color=#9AA3A8>{0}</color></size>", sim.setup[k].Resumo);
                 p.gasText.text = ai && !OnlineRun ? L.F("IA PILOTANDO · {0}", sim.aiSkill[k]) : GasLabel(k);
                 p.halfTri.text = HalfTri(k);
+                p.half.style.display = Locked(k, Career.ItemMeia) ? DisplayStyle.None : DisplayStyle.Flex;   // sem meia na carreira (seção 104)
                 p.reslot.text = OnlineRun ? L.F("Recolocar  {0}", KeyText(ReslotKeyAt(LocalKeySet(Math.Max(0, LocalOf(pilot?.id)))))) : L.F("Recolocar  {0}", KeyText(ReslotKey(k)));
                 p.gas.EnableInClassList("gas--ai", ai);
                 var kc = CareerColor(k);

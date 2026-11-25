@@ -356,7 +356,11 @@ namespace Autorama
             if (n.tipo == "construtor") Text(BuildRules(n), "k-rule", kCardBox);
             if (KRegion.nivelIA > 0 && n.tipo != "relogio" && n.tipo != "campeonato") Text(L.F("Carros da IA no nível {0} da garagem", KRegion.nivelIA), "k-sub", kCardBox);
             if (n.tipo == "campeonato") Text(ChampCard(n), "k-rival", kCardBox);
-            for (int i = 0; i < n.estrelas.Length; i++) Text($"{new string('★', i + 1)}  {Career.Texto(n.estrelas[i])}", "k-goal", kCardBox);
+            foreach (var i in Career.Itens)
+                if (i.no == n.id) Text(L.F("Entrega: {0}", Career.ItemTexto(i)) + (i.estrelas > 1 ? L.T(" · sendo campeão") : "") + (Career.Has(kSave, i.id) ? " ✓" : ""), "k-open", kCardBox);
+            if (n.tipo != "relogio" && n.tipo != "campeonato" && (n.turbo && !n.Has("turboLivre")) && !Career.Has(kSave, Career.ItemTurbo))
+                Text(L.T("Sem turbo: você ainda não tem a lata de nitro."), "k-sub", kCardBox);
+            for (int i = 0; i < n.estrelas.Length; i++) Text($"{new string('★', i + 1)}  {Career.Texto(Career.Meta(kSave, n, i))}", "k-goal", kCardBox);
             var ns = Career.Of(kSave, n.id);
             string prep = CarShop.LevelResumo(CarShop.RaceCar(kSave, n));
             Text(n.Has("carro") ? L.F("Carro imposto: {0}", n.carro.Resumo) + (prep != "" ? $" · {prep}" : "")
@@ -439,7 +443,7 @@ namespace Autorama
             sim.set = new RaceSettings
             {
                 laps = n.voltas, vmax = set.vmax, ramp = set.ramp, grip = set.grip * (n.Has("molhada") ? Career.Wet : 1f), collide = set.collide,
-                turbo = !clock && (n.turbo || n.Has("turboLivre")), reslotTime = set.reslotTime, halfGas = set.halfGas,
+                turbo = !clock && (n.Has("turboLivre") || n.turbo && Career.Has(kSave, Career.ItemTurbo)), reslotTime = set.reslotTime, halfGas = set.halfGas,
             };
             sim.cutoff = null;
             int ais = clock ? 0 : n.adversarios;
@@ -556,7 +560,7 @@ namespace Autorama
         {
             kRes = r;
             int before = Career.Stars(kSave, KNode.id);
-            kGot = Career.Avaliar(KNode, kRes);
+            kGot = Career.Avaliar(KNode, kRes, kSave);
             kNew = Career.Record(kSave, KNode, kRes);
             int after = Career.Stars(kSave, KNode.id);
             int paid = Mathf.Max(before, Carteira.Estrelas(KNode.id));     // recomeçou: estrela já paga não paga de novo (seção 94)
@@ -565,6 +569,8 @@ namespace Autorama
             kModelsNew.Clear();
             foreach (var x in Progresso.ModelsOf(KNode.id, after)) kModelsNew.Add(x);
             foreach (var x in Progresso.ModelsOf(KNode.id, paid)) kModelsNew.Remove(x);
+            kItemsNew.Clear();
+            foreach (var i in Career.ItemsOf(KNode.id, after)) if (before < i.estrelas) kItemsNew.Add(i);
             if (KNode.tipo == "construtor" && kBuilt != null)
             {
                 var ns = Career.Of(kSave, KNode.id);
@@ -613,7 +619,7 @@ namespace Autorama
             var sb = new System.Text.StringBuilder();
             for (int i = 0; i < n.estrelas.Length; i++)
             {
-                var o = n.estrelas[i];
+                var o = Career.Meta(kSave, n, i);
                 string mark;
                 if (IsChamp) mark = "…";        // vale a tabela final
                 else switch (o.tipo)
@@ -681,11 +687,13 @@ namespace Autorama
             Text(L.F("+{0} moedas  ·  ◎ {1}  ·  gaste na garagem do carro (G no mapa)", kCoins, Carteira.D.moedas), "k-coins", box);
             for (int i = 0; i < n.estrelas.Length; i++)
             {
-                bool ok = kGot > 0 && Career.Cumpre(n.estrelas[i], kRes);
-                Text($"{(ok ? "<color=#3DBE74>✓</color>" : "<color=#F07A3A>✗</color>")}  {Career.Texto(n.estrelas[i])}", "k-goal", box);
+                var o = Career.Meta(kSave, n, i);
+                bool ok = kGot > 0 && Career.Cumpre(o, kRes);
+                Text($"{(ok ? "<color=#3DBE74>✓</color>" : "<color=#F07A3A>✗</color>")}  {Career.Texto(o)}", "k-goal", box);
             }
             foreach (var x in NewlyOpened()) Text(L.F("Abriu: {0}", x), "k-open", box);
             foreach (var x in kModelsNew) Text(L.F("Modelo novo: {0}. Vale em todos os modos (cartão Carro).", x), "k-open", box);
+            foreach (var i in kItemsNew) Text(L.F("Ganhou: {0}", Career.ItemTexto(i)), "k-open", box);
             if (IsChamp && kFinalTable != null)
             {
                 ChampTable(box, kFinalChamp, kFinalTable);
@@ -778,6 +786,7 @@ namespace Autorama
         bool kBuilding, kRunBuilt, kRunNext, kBackToMap;
         int kCoins, kPurse;
         readonly List<string> kModelsNew = new List<string>();
+        readonly List<Career.ItemDef> kItemsNew = new List<Career.ItemDef>();
         TrackSave kUserTrack, kBuilt;
         VisualElement kBuildBox;
         Label kBuildTitle, kBuildRules, kBuildInfo;
@@ -872,6 +881,8 @@ namespace Autorama
 
         // Na prova da carreira: o jogador é "VOCÊ" e o rival tem nome e cor (placar de cima, controles, etiquetas).
         bool CareerRacing => panel.CareerMode && kScreen != KScreen.Map && kScreen != KScreen.Saves;
+        // O jogador (carro 0) na carreira sem o objeto que abre esse controle (seção 104).
+        bool Locked(int k, string item) => k == 0 && CareerRacing && kSave != null && !Career.Has(kSave, item);
         // Os outros carros das provas comuns têm o nome e a cor de um piloto da região (kGrid, Career.Grid), nunca "robô".
         readonly PilotoDef[] kGrid = new PilotoDef[RaceSim.MaxCars];
         string CareerName(int k) => !CareerRacing ? null : k == 0 ? L.T("VOCÊ") : IsChamp ? ChampName(k) : k == 1 && IsRival ? KNode.rival.ToUpperInvariant()

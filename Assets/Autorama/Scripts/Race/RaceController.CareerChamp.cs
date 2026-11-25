@@ -22,7 +22,7 @@ namespace Autorama
         RaceSettings NodeSettings(NodeDef n) => new RaceSettings
         {
             laps = n.voltas, vmax = set.vmax, ramp = set.ramp, grip = set.grip * (n.Has("molhada") ? Career.Wet : 1f), collide = set.collide,
-            turbo = n.tipo != "relogio" && (n.turbo || n.Has("turboLivre")), reslotTime = set.reslotTime, halfGas = set.halfGas,
+            turbo = n.tipo != "relogio" && (n.Has("turboLivre") || n.turbo && Career.Has(kSave, Career.ItemTurbo)), reslotTime = set.reslotTime, halfGas = set.halfGas,
             byTime = n.tipo == "campeonato" && n.porTempo, secs = n.segundos,
         };
 

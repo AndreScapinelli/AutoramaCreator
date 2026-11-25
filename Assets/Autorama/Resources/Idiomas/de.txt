@@ -1615,3 +1615,19 @@ Nebrown	Nebrown
 Peripato	Peripato
 Ianzin	Ianzin
 Rios	Rios
+Gatilho de dois estágios	Zweistufiger Abzug
+meia aceleração	Halbgas
+Lata de nitro do Fê	Fês Nitrodose
+turbo	Turbo
+Caixa grande do Fê	Fês große Kiste
+Controle da Dona Célia	Dona Célias Regler
+ajuste fino da meia aceleração	Feineinstellung des Halbgases
+Caderno do Dr. Curva	Dr. Curvas Notizbuch
+Foto de 1996	Foto von 1996
+Carro do Fê	Fês Auto
+{0} ({1})	{0} ({1})
+Entrega: {0}	Belohnung: {0}
+ · sendo campeão	 · als Meister
+Sem turbo: você ainda não tem a lata de nitro.	Kein Turbo: Du hast die Nitrodose noch nicht.
+Ganhou: {0}	Erhalten: {0}
+ACELERAR  {0}{1}	GAS  {0}{1}

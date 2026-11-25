@@ -1615,3 +1615,19 @@ Nebrown	Nebrown
 Peripato	Peripato
 Ianzin	Ianzin
 Rios	Rios
+Gatilho de dois estágios	二段トリガー
+meia aceleração	ハーフスロットル
+Lata de nitro do Fê	フェーのニトロ缶
+turbo	ターボ
+Caixa grande do Fê	フェーの大きな箱
+Controle da Dona Célia	セリアさんのコントローラー
+ajuste fino da meia aceleração	ハーフスロットルの微調整
+Caderno do Dr. Curva	ドクター・カーブのノート
+Foto de 1996	1996年の写真
+Carro do Fê	フェーの車
+{0} ({1})	{0}（{1}）
+Entrega: {0}	報酬：{0}
+ · sendo campeão	・優勝で
+Sem turbo: você ainda não tem a lata de nitro.	ターボなし：まだニトロ缶を持っていません。
+Ganhou: {0}	入手：{0}
+ACELERAR  {0}{1}	アクセル  {0}{1}

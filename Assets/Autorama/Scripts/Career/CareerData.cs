@@ -149,13 +149,19 @@ namespace Autorama
         }
 
         // A 1ª estrela é concluir; sem ela não vale nenhuma. As outras duas valem cada uma por si.
-        public static int Avaliar(NodeDef n, ResultadoCorrida r)
+        public static int Avaliar(NodeDef n, ResultadoCorrida r, CareerSave sv = null)
         {
-            if (n.estrelas == null || n.estrelas.Length == 0 || !Cumpre(n.estrelas[0], r)) return 0;
+            if (n.estrelas == null || n.estrelas.Length == 0 || !Cumpre(Meta(sv, n, 0), r)) return 0;
             int s = 1;
-            for (int i = 1; i < n.estrelas.Length && i < 3; i++) if (Cumpre(n.estrelas[i], r)) s++;
+            for (int i = 1; i < n.estrelas.Length && i < 3; i++) if (Cumpre(Meta(sv, n, i), r)) s++;
             return s;
         }
+
+        // A prova tem turbo, mas o jogador ainda não tem a lata de nitro (seção 104): ninguém usa turbo nela.
+        public static bool SemLata(CareerSave s, NodeDef n) => s != null && n.tipo != "relogio" && n.turbo && !n.Has("turboLivre") && !Has(s, ItemTurbo);
+        // O objetivo i da prova. Sem a lata, "Sem usar o turbo" sairia de graça: vira "Sem sair da pista".
+        static readonly Objetivo SemSairMeta = new Objetivo { tipo = "semSair", valor = 0f };
+        public static Objetivo Meta(CareerSave s, NodeDef n, int i) => n.estrelas[i].tipo == "semTurbo" && SemLata(s, n) ? SemSairMeta : n.estrelas[i];
 
         public static string Texto(Objetivo o)
         {
@@ -217,6 +223,37 @@ namespace Autorama
 
         public static NodeSave Of(CareerSave s, string id) => s.nos.Find(x => x.id == id);
         public static int Stars(CareerSave s, string id) => Of(s, id)?.estrelas ?? 0;
+
+        // Objetos do enredo (seção 104, docs/enredo.md): cada um vem de um nó quando ele chega às estrelas pedidas
+        // (2 = campeão). Os que abrem um controle (meia, ajuste fino, turbo) só valem na carreira; fora dela tudo é livre.
+        public class ItemDef
+        {
+            public string id, nome, no, abre; public int estrelas;
+            public ItemDef(string id, string nome, string no, int estrelas, string abre) { this.id = id; this.nome = nome; this.no = no; this.estrelas = estrelas; this.abre = abre; }
+        }
+        public const string ItemMeia = "gatilho-duplo", ItemTurbo = "lata-nitro", ItemFino = "controle-celia";
+        public static readonly ItemDef[] Itens =
+        {
+            new ItemDef(ItemMeia, L.N("Gatilho de dois estágios"), "garagem-oficina", 1, L.N("meia aceleração")),
+            new ItemDef(ItemTurbo, L.N("Lata de nitro do Fê"), "garagem-8", 1, L.N("turbo")),
+            new ItemDef("caixa-grande", L.N("Caixa grande do Fê"), "garagem-9", 1, ""),
+            new ItemDef(ItemFino, L.N("Controle da Dona Célia"), "clube-taca", 2, L.N("ajuste fino da meia aceleração")),
+            new ItemDef("caderno-curva", L.N("Caderno do Dr. Curva"), "regional-drcurva", 1, ""),
+            new ItemDef("foto-96", L.N("Foto de 1996"), "nacional-campeao", 1, ""),
+            new ItemDef("carro-fe", L.N("Carro do Fê"), "global-mundial", 2, L.N("bolha Fórmula")),
+        };
+        public static bool Has(CareerSave s, string id)
+        {
+            if (Progresso.All || s == null) return true;
+            foreach (var i in Itens) if (i.id == id) return Stars(s, i.no) >= i.estrelas;
+            return true;
+        }
+        // Objetos que o nó entrega com essas estrelas (para o cartão e o resultado).
+        public static IEnumerable<ItemDef> ItemsOf(string no, int estrelas)
+        {
+            foreach (var i in Itens) if (i.no == no && estrelas >= i.estrelas) yield return i;
+        }
+        public static string ItemTexto(ItemDef i) => string.IsNullOrEmpty(i.abre) ? L.T(i.nome) : L.F("{0} ({1})", L.T(i.nome), L.T(i.abre));
 
         public static int RegionStars(CareerSave s, RegionDef r)
         {
@@ -287,7 +324,7 @@ namespace Autorama
         // Guarda o melhor de cada coisa; devolve quantas estrelas NOVAS a corrida deu.
         public static int Record(CareerSave s, NodeDef n, ResultadoCorrida r)
         {
-            int got = Avaliar(n, r);
+            int got = Avaliar(n, r, s);
             var ns = Of(s, n.id);
             if (ns == null) { ns = new NodeSave { id = n.id }; s.nos.Add(ns); }
             int novas = Mathf.Max(0, got - ns.estrelas);

@@ -5844,3 +5844,31 @@ Cada campeonato tem 7 pilotos mais o jogador, o mesmo que antes (`Champ.MaxPilot
 
 **Teste** (`script eval`, `Career.Grid` em todas as provas comuns): nenhum carro sem piloto. `garagem-1`: Zé da Oficina; `clube-1`: Lu Parafuso, Marina Faísca; `nacional-1`: Rafa Turbo, Zé da Oficina, Dr. Curva, Lu Parafuso, Tio Beto; `global-1`: Peripato, Aiko, Sofia, Mateo, Nebrown, Bilboque, Kojiro; nos rivais o carro 1 fica com o rival. Os três campeonatos do Global leem 7 pilotos, com o Ianzin em IA 200 e nível 11.
 
+## 104. Objetos do enredo e controles travados na carreira
+
+Primeira etapa do enredo "A caixa do Tio Fê" (`docs/enredo.md`, fase H do `docs/carreira.html`). Os controles da corrida chegam aos poucos, cada um como um objeto que alguém entrega. **Só na carreira:** corrida livre, campeonato, online e tutorial continuam com tudo.
+
+**`Career.Itens`** (`Career/CareerData.cs`): cada objeto vem de um nó quando ele chega às estrelas pedidas (2 = campeão). Não há campo novo no save: o objeto é lido das estrelas do nó (`Career.Has(save, id)`), então um save antigo já tem o que ganhou. Com o "Desbloquear tudo" (`Progresso.All`), tudo vale.
+
+| Id | Objeto | Nó (estrelas) | Abre na carreira |
+|---|---|---|---|
+| `gatilho-duplo` (`ItemMeia`) | Gatilho de dois estágios | `garagem-oficina` (1) | meia aceleração |
+| `lata-nitro` (`ItemTurbo`) | Lata de nitro do Fê | `garagem-8` (1) | turbo |
+| `caixa-grande` | Caixa grande do Fê | `garagem-9` (1) | (história) |
+| `controle-celia` (`ItemFino`) | Controle da Dona Célia | `clube-taca` (2) | ajuste fino da meia |
+| `caderno-curva` | Caderno do Dr. Curva | `regional-drcurva` (1) | (história; parciais e fantasma ficam para depois) |
+| `foto-96` | Foto de 1996 | `nacional-campeao` (1) | (história) |
+| `carro-fe` | Carro do Fê | `global-mundial` (2) | bolha Fórmula (já abria ali, seção 93) |
+
+**As travas** (`RaceController.Locked(k, item)`: carro 0, numa prova da carreira, sem o objeto):
+- **Sem `gatilho-duplo`:** a tecla Meia não faz nada, o marcador da meia some do painel e o rótulo fica "ACELERAR A". O gatilho analógico do controle continua analógico.
+- **Sem `controle-celia`:** meia − e meia +, o direcional do controle e arrastar o marcador não fazem nada; a meia fica no valor do ajuste "Meia aceleração" (`set.halfGas`), e o ▲ aparece sem as teclas do lado.
+- **Sem `lata-nitro`:** a prova corre sem turbo para todos, IA inclusive (`NodeSettings` e a largada da prova: `turbo = turboLivre || n.turbo && Has(ItemTurbo)`), para ninguém ter turbo que o jogador não tem. O "Turbo sem fim" (`turboLivre`) dá turbo a todos mesmo assim: é a prova que entrega a lata. O cartão avisa "Sem turbo: você ainda não tem a lata de nitro."
+
+**A estrela "Sem usar o turbo" sem a lata.** Numa prova que corre sem turbo porque falta a lata (`Career.SemLata`), essa estrela sairia de graça. Então ela vira **"Sem sair da pista"** (`Career.Meta(save, nó, i)` devolve um `semSair 0` no lugar do `semTurbo`). Vale no cartão, nos objetivos ao vivo, no resultado e na conta das estrelas (`Avaliar(n, r, save)`, que o `Record` também usa). Com a lata, volta a ser "Sem usar o turbo". O "Turbo sem fim" (`turboLivre`) não muda. São 9 provas com essa estrela; na prática, `garagem-3` e `garagem-7` (dá para chegar no Clube sem a `garagem-8`, pela `garagem-7`). Teste (`script eval`, `garagem-3`): sem lata, vencer sem sair = 3★ e vencer saindo 2 vezes = 2★; com a lata, as duas = 3★. `regional-mirante` (`turboLivre`) continua "Sem usar o turbo".
+
+**Na tela:**
+- Cartão do nó: "Entrega: Controle da Dona Célia (ajuste fino da meia aceleração) · sendo campeão", com ✓ quando já tem.
+- Resultado: "Ganhou: Gatilho de dois estágios (meia aceleração)", só na vez em que o nó passa das estrelas pedidas (`kItemsNew`).
+
+**Teste** (`script eval`, com `Progresso.P.tudo = false` só na memória e um `CareerSave` novo, sem gravar): save novo → meia, turbo e ajuste fino travados; `garagem-oficina` 1★ → abre a meia; `garagem-8` → abre o turbo; `clube-taca` 1★ → ajuste fino continua travado; `clube-taca` 2★ → abre. `ItemsOf("clube-taca", 1)` não entrega nada; com 2, entrega o controle. Compilado sem erro; a trava no Play (teclas na prova) ainda não foi conferida na tela.

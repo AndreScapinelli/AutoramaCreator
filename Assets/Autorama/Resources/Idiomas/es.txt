@@ -1615,3 +1615,19 @@ Nebrown	Nebrown
 Peripato	Peripato
 Ianzin	Ianzin
 Rios	Rios
+Gatilho de dois estágios	Gatillo de dos etapas
+meia aceleração	media aceleración
+Lata de nitro do Fê	Lata de nitro de Fê
+turbo	turbo
+Caixa grande do Fê	Caja grande de Fê
+Controle da Dona Célia	Mando de Doña Célia
+ajuste fino da meia aceleração	ajuste fino de la media aceleración
+Caderno do Dr. Curva	Cuaderno del Dr. Curva
+Foto de 1996	Foto de 1996
+Carro do Fê	Coche de Fê
+{0} ({1})	{0} ({1})
+Entrega: {0}	Entrega: {0}
+ · sendo campeão	 · siendo campeón
+Sem turbo: você ainda não tem a lata de nitro.	Sin turbo: aún no tienes la lata de nitro.
+Ganhou: {0}	Ganaste: {0}
+ACELERAR  {0}{1}	ACELERAR  {0}{1}

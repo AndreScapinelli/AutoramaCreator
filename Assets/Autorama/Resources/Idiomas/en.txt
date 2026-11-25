@@ -1615,3 +1615,19 @@ Nebrown	Nebrown
 Peripato	Peripato
 Ianzin	Ianzin
 Rios	Rios
+Gatilho de dois estágios	Two-stage trigger
+meia aceleração	half throttle
+Lata de nitro do Fê	Uncle Fê's nitro can
+turbo	turbo
+Caixa grande do Fê	Uncle Fê's big box
+Controle da Dona Célia	Dona Célia's controller
+ajuste fino da meia aceleração	half throttle fine-tuning
+Caderno do Dr. Curva	Dr. Curva's notebook
+Foto de 1996	1996 photo
+Carro do Fê	Uncle Fê's car
+{0} ({1})	{0} ({1})
+Entrega: {0}	Reward: {0}
+ · sendo campeão	 · as champion
+Sem turbo: você ainda não tem a lata de nitro.	No turbo: you don't have the nitro can yet.
+Ganhou: {0}	Got: {0}
+ACELERAR  {0}{1}	THROTTLE  {0}{1}

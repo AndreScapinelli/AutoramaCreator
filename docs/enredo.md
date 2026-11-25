@@ -196,7 +196,7 @@ Uma por região, ganha com **★★★** na prova de relógio do meio (a volta p
 
 ## Ordem sugerida
 
-1. Objetos e trava dos controles na carreira (sem tela de cena): já muda o jogo.
+1. ~~Objetos e trava dos controles na carreira (sem tela de cena): já muda o jogo.~~ Pronto (seção 104 do guia; os objetos ficam em `Career.Itens`, lidos das estrelas, sem campo novo no save). Parciais e fantasma do caderno ficam para depois.
 2. Tela de cena e as cenas principais (G0, G4, G5, C3, N2, W1, W3).
 3. Resto das cenas, cartas e Álbum.
 4. Retratos e tradução.
